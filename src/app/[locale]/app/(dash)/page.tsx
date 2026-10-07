@@ -41,7 +41,7 @@ export default async function Dashboard({ params }: PageProps<"/[locale]/app">) 
   const { locale } = (await params) as { locale: Locale };
   setRequestLocale(locale);
   const t = await getTranslations("dashboard");
-  const { session, user, site, draft, address, siteUrl, checklist } = await loadDashboard();
+  const { session, user, site, draft, render, address, siteUrl, checklist } = await loadDashboard();
   const tp = await getTranslations("projects");
   const projects = (await listProjects(site.id)).slice(0, 6);
   const badgeLabels = {
@@ -99,7 +99,13 @@ export default async function Dashboard({ params }: PageProps<"/[locale]/app">) 
           </div>
           <div className="border-line overflow-hidden rounded-[10px] border">
             <ScaledSite width={1200} height={600}>
-              <SiteRender site={draft} available={site.available.on ? { label: t("available.title") } : undefined} />
+              <SiteRender
+                site={draft}
+                editing
+                media={render.media}
+                projects={render.projects}
+                available={{ on: site.available.on, label: t("available.title"), hire: t("hireMe") }}
+              />
             </ScaledSite>
           </div>
           <div dir="ltr" className="text-start text-[16px] font-semibold rtl:text-end" data-testid="site-address">

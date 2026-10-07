@@ -1,62 +1,72 @@
-// Builds the four starter sites from the sign-up answers (ONBOARDING.md step 3/4).
-// Pure function: the same code makes the live preview and the site saved to Firestore.
+// Builds the four starter sites from the sign-up answers (ONBOARDING.md step 3/4), and the six
+// theme presets of the editor. Pure functions: the same code makes the live preview and the saved site.
 
 import { disciplineById, wantsReel, type DisciplineKind } from "@/config/disciplines";
 import type { Locale } from "@/i18n/locales";
-import type { Block, LayoutId, SampleArt, SiteDraft, Theme, ThemePreset } from "./types";
+import { blockCopy, newId, sampleArt } from "./blocks";
+import type { Block, LayoutId, PageDraft, SampleArt, SiteDraft, Theme, ThemePreset } from "./types";
 
 export const layoutIds: LayoutId[] = ["reel", "grid", "storyteller", "minimalist"];
 
+const base = { radius: 6, logoMediaId: null, faviconMediaId: null };
+
+/** Editor Style tab presets (Editor.dc.html). Artist sites use these, never Fannan's own brand. */
 export const themes: Record<ThemePreset, Theme> = {
+  gallery: {
+    ...base,
+    preset: "gallery",
+    colors: { background: "#FFFFFF", text: "#141414", accent: "#141414" },
+    fonts: { heading: "space-grotesk", body: "plex", arabic: "plex-arabic" },
+    radius: 2,
+    nav: "top",
+  },
+  studio: {
+    ...base,
+    preset: "studio",
+    colors: { background: "#0E0E10", text: "#F4F4F0", accent: "#E5432F" },
+    fonts: { heading: "bricolage", body: "plex", arabic: "plex-arabic" },
+    nav: "top",
+  },
+  paper: {
+    ...base,
+    preset: "paper",
+    colors: { background: "#F5F1E8", text: "#2B2B2E", accent: "#5B3A2E" },
+    fonts: { heading: "fraunces", body: "plex", arabic: "plex-arabic" },
+    nav: "centered",
+  },
+  lime: {
+    ...base,
+    preset: "lime",
+    colors: { background: "#FFFFFF", text: "#141414", accent: "#C6F432" },
+    fonts: { heading: "bricolage", body: "plex", arabic: "marhey" },
+    radius: 12,
+    nav: "top",
+  },
   night: {
+    ...base,
     preset: "night",
-    colors: { background: "#141414", text: "#FFFFFF", muted: "#BDBDB7", surface: "#222222", accent: "#C6F432" },
-    fonts: { heading: "grotesk", body: "sans" },
+    colors: { background: "#141414", text: "#F4F4F0", accent: "#C6F432" },
+    fonts: { heading: "bricolage", body: "plex", arabic: "plex-arabic" },
     radius: 8,
     nav: "split",
   },
-  gallery: {
-    preset: "gallery",
-    colors: { background: "#FFFFFF", text: "#141414", muted: "#6A6A70", surface: "#F4F4F2", accent: "#141414" },
-    fonts: { heading: "sans", body: "sans" },
-    radius: 4,
-    nav: "split",
-  },
-  paper: {
-    preset: "paper",
-    colors: { background: "#F5F1E8", text: "#2B2B2E", muted: "#6E675C", surface: "#ECE6D8", accent: "#5B3A2E" },
-    fonts: { heading: "serif", body: "serif" },
-    radius: 6,
-    nav: "center",
-  },
-  studio: {
-    preset: "studio",
-    colors: { background: "#FFFFFF", text: "#141414", muted: "#8A8A8F", surface: "#F7F7F5", accent: "#141414" },
-    fonts: { heading: "sans", body: "sans" },
-    radius: 0,
-    nav: "minimal",
-  },
-  lime: {
-    preset: "lime",
-    colors: { background: "#FFFFFF", text: "#141414", muted: "#6A6A70", surface: "#C6F432", accent: "#C6F432" },
-    fonts: { heading: "grotesk", body: "sans" },
-    radius: 12,
-    nav: "split",
-  },
   sand: {
+    ...base,
     preset: "sand",
-    colors: { background: "#EFE6D8", text: "#3B2F25", muted: "#7A6A58", surface: "#E4D7C3", accent: "#9C5B34" },
-    fonts: { heading: "serif", body: "sans" },
+    colors: { background: "#E9E2D4", text: "#24221F", accent: "#9C5B34" },
+    fonts: { heading: "instrument-serif", body: "dm-sans", arabic: "alexandria" },
     radius: 10,
-    nav: "center",
+    nav: "centered",
   },
 };
+
+export const presetIds = Object.keys(themes) as ThemePreset[];
 
 const layoutTheme: Record<LayoutId, ThemePreset> = {
   reel: "night",
   grid: "gallery",
   storyteller: "paper",
-  minimalist: "studio",
+  minimalist: "gallery",
 };
 
 // Earthy sample tones per kind of work (no blue: brand rule).
@@ -70,39 +80,13 @@ const palettes: Record<DisciplineKind, string[]> = {
   concept: ["#3E4A3A", "#5B4C2E", "#4A3E3A", "#6B5A4A", "#2E3A2E", "#7A6A58"],
   comics: ["#141414", "#9C2E2E", "#B0903A", "#3A3A3A", "#6B3A3A", "#7A5A2E"],
   games: ["#4E5B2E", "#5B2E4F", "#7A5A2E", "#3A3A3A", "#9C5B34", "#5B3A2E"],
-  design: ["#141414", "#C6F432", "#9C5B34", "#E2E2DE", "#5B2E4F", "#7A5A2E"],
+  design: ["#141414", "#9C5B34", "#B0903A", "#5B2E4F", "#7A5A2E", "#4E5B2E"],
   other: ["#5B3A2E", "#4E5B2E", "#5B2E4F", "#3A3A44", "#5B4C2E", "#6B4A3A"],
 };
 
-const copy = {
-  en: {
-    work: "Work",
-    about: "About",
-    contact: "Contact",
-    reel: "Showreel",
-    project: (n: number) => `Project ${n}`,
-    aboutText: (first: string, what: string) =>
-      `${first} is a ${what.toLowerCase()}. Write a few lines about your work, the studios you've worked with and what you'd like to do next.`,
-    contactHeading: "Let's work together",
-    contactText: "Tell me about your project, your timeline and your budget.",
-    contactButton: "Send a message",
-    headline: (what: string) => `${what}. Telling stories, frame by frame.`,
-    credit: "Studio · Your role · Year",
-  },
-  ar: {
-    work: "الأعمال",
-    about: "نبذة",
-    contact: "تواصل",
-    reel: "الريل",
-    project: (n: number) => `مشروع ${n}`,
-    aboutText: (first: string, what: string) =>
-      `${first}، ${what}. اكتب بضعة أسطر عن عملك والاستوديوهات التي عملت معها وما تريد فعله بعد ذلك.`,
-    contactHeading: "لنعمل معًا",
-    contactText: "أخبرني عن مشروعك وموعده وميزانيته.",
-    contactButton: "أرسل رسالة",
-    headline: (what: string) => `${what}. أحكي القصص، لقطة بلقطة.`,
-    credit: "الاستوديو · دورك · السنة",
-  },
+const pageTitles = {
+  en: { work: "Work", about: "About", contact: "Contact" },
+  ar: { work: "الأعمال", about: "نبذة", contact: "تواصل" },
 };
 
 export interface StarterInput {
@@ -136,66 +120,95 @@ export function firstName(name: string): string {
 }
 
 export function generateStarter(input: StarterInput): SiteDraft {
-  const t = copy[input.language];
+  const l = input.language;
+  const c = blockCopy[l];
   const kind = disciplineById(input.discipline)?.kind ?? "other";
   const tones = palettes[kind];
-  const what = disciplineText(input.discipline, input.language) || (input.language === "ar" ? "فنان" : "Artist");
+  const what = disciplineText(input.discipline, l) || (l === "ar" ? "فنان" : "Artist");
   const first = firstName(input.name) || input.name;
-  const art = (i: number, ratio: SampleArt["ratio"] = "1/1"): SampleArt => ({ tone: tones[i % tones.length], ratio });
-  const items = (n: number, ratio: SampleArt["ratio"] = "1/1") =>
-    Array.from({ length: n }, (_, i) => ({ title: t.project(i + 1), art: art(i, ratio) }));
-
-  const about: Block = { id: "about", type: "about", heading: t.about, text: t.aboutText(first, what) };
-  const contact: Block = {
-    id: "contact",
-    type: "contact",
-    heading: t.contactHeading,
-    text: t.contactText,
-    button: t.contactButton,
-  };
+  const samples = (n: number, ratio: SampleArt["ratio"]) =>
+    sampleArt(n, ratio).map((s, i) => ({ ...s, tone: tones[i % tones.length] }));
+  const gallery = (
+    columns: number,
+    gap: number,
+    n: number,
+    ratio: SampleArt["ratio"],
+    layout: "grid" | "masonry" = "grid",
+  ): Block => ({
+    id: newId(),
+    type: "gallery",
+    layout,
+    source: "all",
+    columns,
+    gap,
+    ratio: ratio === "1/1" ? "1:1" : ratio === "16/9" ? "16:9" : ratio === "3/4" ? "original" : "4:3",
+    lightbox: true,
+    captions: true,
+    credits: true,
+    hoverPlay: true,
+    filter: false,
+    samples: samples(n, ratio),
+  });
+  const aboutText =
+    l === "ar" ? `${first}، ${what}. ${c.aboutText}` : `${first} is a ${what.toLowerCase()}. ${c.aboutText}`;
+  const about: Block = { id: newId(), type: "about", heading: c.about, text: aboutText, photoId: null, cvId: null };
+  const contact: Block = { id: newId(), type: "contact", heading: c.contact, text: c.contactText, button: c.send };
 
   let blocks: Block[];
   switch (input.layout) {
     case "reel":
       blocks = [
         reelLayoutName(input.discipline) === "reel"
-          ? { id: "reel", type: "reel", title: t.reel, art: art(0, "16/9") }
-          : { id: "hero", type: "hero-image", art: art(0, "16/9") },
-        { id: "work", type: "grid", columns: 3, gap: "normal", items: items(6, "4/3") },
+          ? { id: newId(), type: "reel", url: "", mediaId: null, title: c.reel, tone: tones[0] }
+          : { id: newId(), type: "image", mediaId: null, tone: tones[0], caption: "", fullWidth: true },
+        gallery(3, 16, 6, "4/3"),
         about,
         contact,
       ];
       break;
     case "grid":
-      blocks = [{ id: "work", type: "grid", columns: 3, gap: "tight", items: items(9) }, about, contact];
+      blocks = [gallery(3, 8, 9, "1/1"), about, contact];
       break;
     case "storyteller":
       blocks = [
-        { id: "intro", type: "hero-headline", text: t.headline(what) },
         {
-          id: "cases",
-          type: "case-studies",
-          items: [0, 1, 2].map((i) => ({ title: t.project(i + 1), credit: t.credit, art: art(i, "16/9") })),
+          id: newId(),
+          type: "hero",
+          text: l === "ar" ? `${what}. أحكي القصص، لقطة بلقطة.` : `${what}. Telling stories, frame by frame.`,
+          align: "start",
         },
+        gallery(1, 40, 3, "16/9"),
         about,
         contact,
       ];
       break;
     case "minimalist":
-      blocks = [{ id: "work", type: "grid", columns: 2, gap: "airy", items: items(4, "4/3") }, contact];
+      blocks = [gallery(2, 40, 4, "4/3"), contact];
       break;
   }
 
+  const t = pageTitles[l];
+  const pages: PageDraft[] = [
+    { id: "home", slug: "", title: t.work, type: "gallery", showInNav: true, blocks },
+    { id: "about", slug: "about", title: t.about, type: "about", showInNav: true, blocks: [{ ...about, id: newId() }] },
+    {
+      id: "contact",
+      slug: "contact",
+      title: t.contact,
+      type: "custom",
+      showInNav: true,
+      blocks: [{ ...contact, id: newId() }],
+    },
+  ];
   return {
     layout: input.layout,
-    language: input.language,
+    language: l,
     title: input.name.trim(),
     tagline: what,
-    theme: themes[layoutTheme[input.layout]],
-    pages: [
-      { id: "home", slug: "", title: t.work, type: "gallery", blocks },
-      { id: "about", slug: "about", title: t.about, type: "about", blocks: [about] },
-      { id: "contact", slug: "contact", title: t.contact, type: "custom", blocks: [contact] },
-    ],
+    theme: {
+      ...themes[layoutTheme[input.layout]],
+      nav: input.layout === "minimalist" ? "minimal" : themes[layoutTheme[input.layout]].nav,
+    },
+    pages,
   };
 }

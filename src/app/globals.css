@@ -128,3 +128,87 @@
   background: var(--color-lime);
   transform: skewX(var(--hl-skew)) rotate(var(--hl-rotate));
 }
+
+/* ---------- Artist sites (SiteRender). Sizes follow the site's own box, not the window. ---------- */
+.site-root {
+  --site-pad: 48px;
+}
+.site-root .site-grid {
+  grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+}
+.site-root .site-about {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+}
+.site-root .site-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 20px;
+  border-radius: var(--site-radius);
+  background: var(--site-accent);
+  color: var(--site-on-accent);
+  font-weight: 600;
+}
+.site-root .site-with-sidebar {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  column-gap: 48px;
+  align-items: start;
+}
+.site-root .site-with-sidebar > header {
+  flex-direction: column;
+  align-items: flex-start;
+  position: sticky;
+  top: var(--site-pad);
+}
+.site-root .site-with-sidebar > header > span:last-child > span {
+  flex-direction: column;
+  align-items: flex-start;
+}
+.site-root .site-with-sidebar > footer {
+  grid-column: 2;
+}
+@container (max-width: 820px) {
+  .site-root .site-grid {
+    grid-template-columns: repeat(min(var(--cols, 3), 2), minmax(0, 1fr));
+  }
+  .site-root .site-masonry {
+    column-count: min(var(--cols, 3), 2) !important;
+  }
+  .site-root .site-about {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .site-root .site-with-sidebar {
+    display: flex;
+    flex-direction: column;
+  }
+  .site-root .site-with-sidebar > header {
+    position: static;
+  }
+}
+@container (max-width: 560px) {
+  .site-root > div {
+    --site-pad: 20px;
+  }
+  .site-root .site-grid {
+    grid-template-columns: repeat(min(var(--cols, 3), 1), minmax(0, 1fr));
+  }
+  .site-root .site-masonry {
+    column-count: 1 !important;
+  }
+}
+
+/* Editor canvas: hover and selection outlines (Fannan UI, not the artist's theme). */
+.site-root .site-block {
+  outline: 2px solid transparent;
+  outline-offset: 6px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.site-root .site-block:hover {
+  outline-color: color-mix(in srgb, #141414 25%, transparent);
+}
+.site-root .site-block-selected,
+.site-root .site-block-selected:hover {
+  outline: 2px solid #141414;
+  box-shadow: 0 0 0 8px #c6f432;
+}

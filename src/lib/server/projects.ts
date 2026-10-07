@@ -1,16 +1,15 @@
 import "server-only";
 
-import { randomBytes, scrypt as scryptCb, timingSafeEqual } from "node:crypto";
-import { promisify } from "node:util";
+import { randomBytes } from "node:crypto";
 import { FieldValue, type DocumentReference, type Timestamp } from "firebase-admin/firestore";
 import { limitsFor, plansConfig } from "@/config/plans";
 import { slugify } from "@/config/usernames";
 import { adminDb } from "@/lib/firebase/admin";
+import { parseVideoLink } from "@/lib/video";
 import { getUser, type SiteDoc } from "./data";
 import { processMedia, type ProcessKind, type ProcessResult, type Variants } from "./processor";
+import { checkPassword, scryptHash } from "./passwords";
 import { deleteObject, deletePrefix, objectSize, readHead, signedUploadUrl } from "./storage";
-
-const scrypt = promisify(scryptCb) as (pw: string, salt: Buffer, len: number) => Promise<Buffer>;
 
 /* ---------- shapes ---------- */
 
@@ -316,20 +315,8 @@ export async function deleteProject(o: Owner, projectId: string) {
   await ref.delete();
 }
 
-async function hashPassword(pw: string) {
-  const salt = randomBytes(16);
-  const hash = await scrypt(pw, salt, 32);
-  return `scrypt$${salt.toString("base64")}$${hash.toString("base64")}`;
-}
-
-/** Used by the public renderer in phase 4. */
-export async function checkPassword(stored: string | null, pw: string): Promise<boolean> {
-  if (!stored) return false;
-  const [, salt, hash] = stored.split("$");
-  const got = await scrypt(pw, Buffer.from(salt, "base64"), 32);
-  const want = Buffer.from(hash, "base64");
-  return want.length === got.length && timingSafeEqual(want, got);
-}
+const hashPassword = scryptHash;
+export { checkPassword };
 
 /* ---------- uploads ---------- */
 
@@ -343,6 +330,7 @@ const TYPES: Record<string, { kind: ProcessKind; media: MediaType; ext: string; 
   "video/mp4": { kind: "loop", media: "loop", ext: "mp4", max: () => plansConfig.uploads.maxLoopBytes },
 };
 export const ACCEPTED_TYPES = Object.keys(TYPES);
+export const LIBRARY = "_library";
 
 /** What the first bytes say the file is. Names and browser-reported types can lie. */
 function sniff(head: Buffer): string | null {
@@ -376,7 +364,8 @@ export async function startUpload(
   const used = o.site.storageUsed ?? 0;
   if (used + file.size > limitsFor(o.plan).storageBytes) throw new ProjectError("storage-full");
 
-  const { ref: projectRef, project } = await getProjectRef(o, projectId);
+  // The site library holds media used by editor blocks (cover images, logos...) outside any project.
+  const proj = projectId === LIBRARY ? null : await getProjectRef(o, projectId);
   let mediaRef: DocumentReference;
   let gen = 1;
   if (replaceMediaId) {
@@ -416,11 +405,13 @@ export async function startUpload(
       pendingGen: gen,
       createdAt: FieldValue.serverTimestamp(),
     });
-    await projectRef.update({
-      media: FieldValue.arrayUnion(mediaRef.id),
-      ...(project.coverMediaId ? {} : { coverMediaId: mediaRef.id }),
-      updatedAt: FieldValue.serverTimestamp(),
-    });
+    if (proj) {
+      await proj.ref.update({
+        media: FieldValue.arrayUnion(mediaRef.id),
+        ...(proj.project.coverMediaId ? {} : { coverMediaId: mediaRef.id }),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    }
   }
   return { mediaId: mediaRef.id, uploadUrl: await signedUploadUrl(original, file.type), contentType: file.type };
 }
@@ -519,29 +510,7 @@ export async function cropMedia(
 
 /* ---------- other items ---------- */
 
-export function parseVideoLink(raw: string): { provider: "youtube" | "vimeo"; id: string; hash?: string } | null {
-  let url: URL;
-  try {
-    url = new URL(raw.trim());
-  } catch {
-    return null;
-  }
-  const host = url.hostname.replace(/^www\.|^m\./, "");
-  if (host === "youtu.be") {
-    const id = url.pathname.slice(1).split("/")[0];
-    return /^[\w-]{11}$/.test(id) ? { provider: "youtube", id } : null;
-  }
-  if (host === "youtube.com" || host === "youtube-nocookie.com") {
-    const id = url.searchParams.get("v") ?? url.pathname.match(/^\/(?:embed|shorts|live)\/([\w-]{11})/)?.[1] ?? "";
-    return /^[\w-]{11}$/.test(id) ? { provider: "youtube", id } : null;
-  }
-  if (host === "vimeo.com" || host === "player.vimeo.com") {
-    const m = url.pathname.match(/(?:\/video)?\/(\d{6,12})(?:\/([0-9a-f]{6,20}))?/);
-    if (!m) return null;
-    return { provider: "vimeo", id: m[1], hash: m[2] ?? url.searchParams.get("h") ?? undefined };
-  }
-  return null;
-}
+export { parseVideoLink };
 
 async function videoInfo(v: NonNullable<ReturnType<typeof parseVideoLink>>) {
   if (v.provider === "youtube") {

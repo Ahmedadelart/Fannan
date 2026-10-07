@@ -14,7 +14,7 @@ import { checkUsername, slugify, usernameIdeas, type UsernameProblem } from "@/c
 import type { Locale } from "@/i18n/locales";
 import { cx } from "@/lib/cx";
 import { firstName, generateStarter, layoutOrder, reelLayoutName } from "@/lib/site/starter";
-import type { LayoutId } from "@/lib/site/types";
+import type { LayoutId, SiteDraft } from "@/lib/site/types";
 import { claimName, completeSignIn, holdName, logStep, prepareClaim, saveStep, setLocale } from "../actions";
 
 export interface SignupInitial {
@@ -66,6 +66,24 @@ function Problem({ children, id }: { children: ReactNode; id?: string }) {
       {children}
     </p>
   );
+}
+
+/** Before the discipline is known, sample art is shown as plain grey shapes. */
+function blank(site: SiteDraft): SiteDraft {
+  const tone = "#F4F4F2";
+  return {
+    ...site,
+    pages: site.pages.map((p) => ({
+      ...p,
+      blocks: p.blocks.map((b) =>
+        b.type === "gallery"
+          ? { ...b, samples: b.samples.map((s) => ({ ...s, tone })) }
+          : b.type === "image" || b.type === "reel" || b.type === "cover"
+            ? { ...b, tone }
+            : b,
+      ),
+    })),
+  };
 }
 
 /* ---------- the flow ---------- */
@@ -393,7 +411,7 @@ export function SignupFlow({
               </span>
             </div>
             <ScaledSite width={1200} height={760} label={t("previewFor", { address })} className="max-lg:max-h-[150px]">
-              <SiteRender site={preview} blankArt={step < 3 ? "#F4F4F2" : undefined} />
+              <SiteRender site={step < 3 ? blank(preview) : preview} editing />
             </ScaledSite>
           </div>
         </aside>
@@ -556,6 +574,7 @@ export function SignupFlow({
                         <ScaledSite width={1200} height={760}>
                           <SiteRender
                             site={generateStarter({ name: first || name, discipline, layout: id, language: locale })}
+                            editing
                           />
                         </ScaledSite>
                       </span>

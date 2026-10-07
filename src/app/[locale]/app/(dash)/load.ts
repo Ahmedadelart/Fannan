@@ -5,7 +5,8 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { currencyForCountry, limitsFor, lowestMonthlyPrice } from "@/config/plans";
 import type { Locale } from "@/i18n/locales";
-import { countProjects, getSite, getSiteDraft, getUser } from "@/lib/server/data";
+import { countProjects, getSite, getUser } from "@/lib/server/data";
+import { loadDraft, loadRenderData } from "@/lib/server/site";
 import { getSession } from "@/lib/server/session";
 import { DISPLAY_DOMAIN, surfaceUrls } from "@/lib/server/urls";
 
@@ -23,11 +24,12 @@ export const loadDashboard = cache(async () => {
   if (!session) redirect("/login");
   const user = await getUser(session.uid);
   if (!user?.siteId) redirect("/signup");
-  const [site, draft, projects, urls] = await Promise.all([
+  const [site, draft, projects, urls, render] = await Promise.all([
     getSite(user.siteId),
-    getSiteDraft(user.siteId),
+    loadDraft(user.siteId),
     countProjects(user.siteId),
     surfaceUrls(),
+    loadRenderData(user.siteId),
   ]);
   if (!site || !draft) redirect("/signup");
 
@@ -37,6 +39,7 @@ export const loadDashboard = cache(async () => {
     user,
     site,
     draft,
+    render,
     projects,
     limits,
     address: `${site.username}.${DISPLAY_DOMAIN}`,

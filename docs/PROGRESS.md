@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 7 Oct 2026, end of phase 2 (waiting for Ahmed's test)._
+_Last updated: 7 Oct 2026, end of phase 3 (waiting for Ahmed's test)._
 
 ## Done
 
@@ -62,6 +62,22 @@ _Last updated: 7 Oct 2026, end of phase 2 (waiting for Ahmed's test)._
 - **Buckets:** `fannan-media-staging`, `fannan-media-production` in project `fannan-510913` (europe-west1, private, uniform access).
 - **Tests:** 62 Playwright tests. New: full project with photo, GIF, loop, PDF and YouTube link; wrong-type and too-long refusal; crop to 1:1; cover and order survive reload; 8-project limit; editor in Arabic. Local tests run the media function against a folder (`.local-storage/`).
 
+### Phase 3: Site editor
+- **Editor** (`app.fannan.net/editor`) matching Editor.dc.html:
+  - top bar: page selector, desktop/tablet/phone canvas, undo/redo (also Ctrl/Cmd+Z), save state ("Saved", "Unpublished changes", "Live site is up to date"), Preview, Publish;
+  - **Blocks** tab: search, 4 groups with icons and the Fannan tag; click to add below the selected block, or drag onto the canvas (drop line shows where); move up/down, duplicate, remove;
+  - **20 launch blocks**: Fullscreen cover, Text, Columns, Hero headline, Grid, Masonry, Slider (one Gallery block with Grid/Masonry/Slider/Fullscreen layouts), Image, Video (YouTube/Vimeo), Loop/GIF, Before/after, PDF, Reel, Credits, Logo wall, About/CV, Contact form, Hire-me badge, Social links, Quote — each with its settings panel (gallery settings as in the design);
+  - **Style** tab: 6 presets (Gallery, Studio, Paper, Lime, Night, Sand), heading/body/Arabic fonts (12 Google fonts), background/text/accent colours, corner radius, 5 nav layouts, logo and favicon, site name, tagline, site language;
+  - **Pages** tab: Gallery / Custom / About-CV / External link pages; rename, address, show in nav, reorder, delete; page password (Pro only, stored as a hash, never sent to the browser);
+  - media picker with uploads into a site-wide library (`_library`), so blocks can use any image, loop or PDF;
+  - first-run tips (3, one at a time, pointing at the real controls), shown once per account;
+  - on phones the side panels become drawers and the canvas starts in phone view.
+- **Renderer** `src/components/site/SiteRender.tsx`: all blocks, all themes, nav layouts, container queries (the phone preview and a real phone get the same layout), Free-plan footer credit, galleries from real projects (sample art only while editing).
+- **Autosave** (0.8 s after the last change, retries on failure); **Publish** saves first, then writes an immutable snapshot to `sites/{id}/published/{version}` (draft + projects + only the media they use; password hashes stay server-side), keeps the last 5, marks projects Live. Cache purge is a stub until Cloudflare (phase 4).
+- **Old drafts** from phases 1–2 are upgraded on read (`src/lib/site/normalize.ts`).
+- **Dashboard** preview now shows real media and projects; "Edit site" opens the editor; the checklist ticks "Write your About" and "Publish your site".
+- **Tests:** 66 (64 run per size). New: build → phone preview → publish → edit again, checking in the database that the published copy did not change; editor on a phone in Arabic.
+
 ## In progress
 - Nothing.
 
@@ -93,3 +109,7 @@ _Last updated: 7 Oct 2026, end of phase 2 (waiting for Ahmed's test)._
 - **"Publish project" and "Preview"** from the design arrive with publishing (phase 3) and the public renderer (phase 4).
 - **Checked on staging:** photo, GIF, loop and PDF processed by the cloud function in about 9 s. A Vimeo link was added but came back as "Vimeo video" with no poster: Vimeo's info service may refuse requests from Google's servers. YouTube titles and posters work. Revisit in phase 4 (fallback: the Vimeo player shows its own poster).
 - Sign-up funnel events sent right before a page change can be dropped by the browser; switch them to `navigator.sendBeacon` when the stats work starts (phase 5).
+- **Turbopack bug:** Readex Pro and Alexandria must load as variable fonts (no explicit weights), or the build fails with "next/font/google queries have exactly one entry".
+- **Editing in place** on the canvas (typing directly into headings) isn't built; text is edited in the right panel with a live canvas. Candidate for a later polish pass.
+- **Contact form and lightbox** look right in the editor; they start working on the live site in phase 4.
+- **Project order in galleries** is newest first; manual ordering can come later if artists ask.

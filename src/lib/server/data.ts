@@ -6,7 +6,7 @@ import { checkUsername, normalizeUsername, type UsernameProblem } from "@/config
 import type { Locale } from "@/i18n/locales";
 import { adminAuth, adminDb } from "@/lib/firebase/admin";
 import { generateStarter } from "@/lib/site/starter";
-import type { LayoutId, PageDraft, SiteDraft } from "@/lib/site/types";
+import type { LayoutId, SiteDraft } from "@/lib/site/types";
 
 // All reads and writes go through the server (firebase-admin). Browser access to Firestore
 // stays blocked by firestore.rules.
@@ -177,7 +177,7 @@ export async function claimUsernameAndCreateSite(
       language: answers.language,
       title: draft.title,
       tagline: draft.tagline,
-      layout: draft.layout,
+      layout: draft.layout ?? answers.layout,
       theme: draft.theme,
       available: { on: false, types: [] },
       publishedVersion: null,
@@ -209,24 +209,6 @@ export async function claimUsernameAndCreateSite(
 export async function getSite(siteId: string): Promise<(SiteDoc & { id: string }) | null> {
   const snap = await sites().doc(siteId).get();
   return snap.exists ? { id: snap.id, ...(snap.data() as SiteDoc) } : null;
-}
-
-export async function getSiteDraft(siteId: string): Promise<SiteDraft | null> {
-  const site = await getSite(siteId);
-  if (!site) return null;
-  const pages = await sites().doc(siteId).collection("pages").orderBy("order").get();
-  return {
-    layout: site.layout,
-    language: site.language,
-    title: site.title,
-    tagline: site.tagline,
-    theme: site.theme,
-    pages: pages.docs.map((d) => {
-      const p = d.data() as PageDraft & { order?: number };
-      delete p.order;
-      return p as PageDraft;
-    }),
-  };
 }
 
 export async function countProjects(siteId: string): Promise<number> {
