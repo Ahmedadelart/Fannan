@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 7 Oct 2026, phase 1 built; waiting on Ahmed to switch on Firebase sign-in._
+_Last updated: 7 Oct 2026, end of phase 1 (waiting for Ahmed's test)._
 
 ## Done
 
@@ -51,7 +51,6 @@ _Last updated: 7 Oct 2026, phase 1 built; waiting on Ahmed to switch on Firebase
 - Nothing.
 
 ## Blocked on Ahmed
-- **Switch on Firebase sign-in** in both projects (Anonymous, Email link, Google). Until then sign-up works locally and in tests, but not on staging.
 - Billing on `fannan-staging` (needed before phase 2): Google refused to link it because the billing account already has its 5-project limit (fannan, zareef, feshar, artgym, klaket). Ahmed to request a higher limit or free a slot.
 
 ## Known issues and notes
@@ -71,3 +70,4 @@ _Last updated: 7 Oct 2026, phase 1 built; waiting on Ahmed to switch on Firebase
 - **Local emulators need Java 21**; this PC has Java 8 first on PATH, so start them with JAVA_HOME pointing at `C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot`.
 - **Beta-artist quote** on step 6 is replaced by the "Publishing is free" promise until a real quote exists (AHMED-TODO).
 - Terms and Content policy links on step 6 point to pages built in phase 7.
+- **Firebase sign-in is on** in both projects (Anonymous, Email link, Google). Allowed domains: staging adds its run.app address, `staging.fannan.net` and `app.staging.fannan.net`; production adds `app.fannan.net`.
