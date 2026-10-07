@@ -22,11 +22,20 @@ export default defineConfig({
     { name: "desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } },
     { name: "mobile", use: { ...devices["Pixel 7"] } },
   ],
-  webServer: {
-    command: `npm run build && npx next start -p ${PORT}`,
-    url: `http://localhost:${PORT}/kitchen-sink`,
-    reuseExistingServer: !process.env.CI,
-    timeout: 300_000,
-    env: { ROOT_DOMAIN: "fannan.localhost", SURFACE_SWITCHER: "true" },
-  },
+  webServer: [
+    {
+      // Firebase Auth + Firestore emulators (need Java 11+). Nothing touches real projects.
+      command: "npx firebase emulators:start --only auth,firestore --project demo-fannan",
+      port: 9099,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+    {
+      command: `npm run build && npx next start -p ${PORT}`,
+      url: `http://localhost:${PORT}/kitchen-sink`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 300_000,
+      env: { ROOT_DOMAIN: "fannan.localhost", SURFACE_SWITCHER: "true", FIREBASE_ENV: "emulator" },
+    },
+  ],
 });

@@ -1,0 +1,84 @@
+# Words that can't appear in a username (docs/CONTENT-POLICY.md), English and Arabic written in Latin letters.
+# Two kinds of line:
+#   word        -> blocked anywhere inside a username (only for words that can't hide inside innocent ones)
+#   =word       -> blocked only as the whole username or as a hyphen-separated part ("kos" alone, but "kosta" is fine)
+# Ahmed: add or remove freely. Lines starting with # are comments.
+
+# English
+fuck
+=fuk
+shit
+cunt
+bitch
+whore
+slut
+porn
+p0rn
+xxx
+nigger
+nigga
+faggot
+fagg
+retard
+rapist
+=rape
+=nazi
+hitler
+=isis
+=pedo
+=paedo
+=cum
+=cock
+=dick
+=pussy
+=penis
+=vagina
+=anal
+=sex
+=sexy
+=nude
+=nudes
+=onlyfans
+=hentai
+=boobs
+=tits
+=ass
+=asshole
+=bastard
+=wank
+=jerk-off
+
+# Arabic in Latin letters (Franco-Arab), common spellings
+sharmoota
+sharmouta
+sharmuta
+sharmota
+sharmo0ta
+khawal
+khwal
+manyak
+=maniak
+metnak
+mitnak
+=neek
+=ne2k
+=koss
+=kuss
+=kos
+=kus
+=a7a
+=zeb
+=zeby
+=zebby
+=teez
+=tiz
+=wes5
+=wiskh
+=lbwa
+=labwa
+=kalb
+=ibn-kalb
+=hmar
+=7mar
+=5awal
+=gazma

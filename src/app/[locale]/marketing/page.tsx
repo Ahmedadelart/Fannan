@@ -2,12 +2,15 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { buttonClasses } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
 import type { Locale } from "@/i18n/locales";
+import { DISPLAY_DOMAIN, surfaceUrls } from "@/lib/server/urls";
+import { ClaimBox } from "./ClaimBox";
 
 export default async function MarketingHome({ params }: PageProps<"/[locale]/marketing">) {
   const { locale } = (await params) as { locale: Locale };
   setRequestLocale(locale);
   const t = await getTranslations("marketing");
   const tc = await getTranslations("common");
+  const urls = await surfaceUrls();
 
   return (
     <main className="mx-auto flex max-w-[960px] flex-col gap-8 px-6 py-10">
@@ -26,6 +29,7 @@ export default async function MarketingHome({ params }: PageProps<"/[locale]/mar
           {t("title")}
         </h1>
         <p className="text-body text-ink-soft max-w-[560px]">{t("subtitle")}</p>
+        <ClaimBox signupUrl={urls.app("/signup?username=__NAME__")} domain={DISPLAY_DOMAIN} />
         <p className="text-muted text-[13px]">{t("placeholder")}</p>
         <div>
           <a href={locale === "ar" ? "/ar/kitchen-sink" : "/kitchen-sink"} className={buttonClasses("primary", "lg")}>

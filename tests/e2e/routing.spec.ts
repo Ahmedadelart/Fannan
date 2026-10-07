@@ -35,14 +35,14 @@ test.describe("three surfaces, one app", () => {
     expect(res.headers()["location"]).toContain(`//${ROOT}/kitchen-sink`);
   });
 
-  test("app.fannan.net is the dashboard and remembers the language", async ({ page }) => {
-    await page.goto(at("app"));
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Dashboard");
-    await page.getByRole("link", { name: "Dashboard language" }).click();
+  test("app.fannan.net is the app and remembers the language", async ({ page }) => {
+    await page.goto(at("app", "/login"));
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Welcome back.");
+    await page.goto(at("app", "/__locale?to=ar&back=/login"));
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("لوحة التحكم");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("أهلًا بعودتك.");
     // Still Arabic on the next visit.
-    await page.goto(at("app"));
+    await page.goto(at("app", "/login"));
     await expect(page.locator("html")).toHaveAttribute("lang", "ar");
     // The language cookie lives on app.fannan.net only, never shared with artist sites.
     const cookies = await page.context().cookies();
@@ -80,7 +80,7 @@ test.describe("three surfaces, one app", () => {
   test("on staging/local hosts a switcher picks the surface", async ({ page }) => {
     await page.goto("http://localhost:3100/");
     await page.getByRole("link", { name: "app.fannan.net" }).click();
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Dashboard");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Welcome back.");
     await page.getByRole("link", { name: "ahmed.fannan.net" }).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("ahmed");
     await page.getByRole("link", { name: "fannan.net", exact: true }).click();

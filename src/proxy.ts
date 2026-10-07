@@ -53,7 +53,7 @@ export function proxy(request: NextRequest) {
 
     if (pathname === "/__surface") {
       const to = searchParams.get("to") ?? "marketing";
-      const res = NextResponse.redirect(new URL("/", request.url));
+      const res = NextResponse.redirect(new URL(safeBackPath(searchParams.get("next")), request.url));
       res.cookies.set(SURFACE_COOKIE, to, { path: "/", httpOnly: true, sameSite: "lax", maxAge: YEAR });
       return res;
     }

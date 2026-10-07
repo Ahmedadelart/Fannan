@@ -1,24 +1,19 @@
 "use client";
 
-// Browser-side Firebase. The server hands the config down (see src/config/firebase.ts),
-// so the same build works on staging and production.
-import { getApps, initializeApp, type FirebaseApp } from "firebase/app";
-import { connectAuthEmulator, getAuth } from "firebase/auth";
-import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
-import { connectStorageEmulator, getStorage } from "firebase/storage";
+// Browser-side Firebase: sign-in only. All data goes through the server.
+// The server hands the config down (src/config/firebase.ts), so one build serves staging and production.
+import { getApps, initializeApp } from "firebase/app";
+import { connectAuthEmulator, getAuth, type Auth } from "firebase/auth";
 import { EMULATOR_PORTS, type FirebaseEnv, type FirebaseWebConfig } from "@/config/firebase";
 
-let app: FirebaseApp | undefined;
+let auth: Auth | undefined;
 
-export function firebaseClient(config: FirebaseWebConfig, env: FirebaseEnv) {
-  if (!app) {
-    app = getApps()[0] ?? initializeApp(config);
-    if (env === "emulator") {
-      const host = window.location.hostname === "localhost" ? "127.0.0.1" : window.location.hostname;
-      connectAuthEmulator(getAuth(app), `http://${host}:${EMULATOR_PORTS.auth}`, { disableWarnings: true });
-      connectFirestoreEmulator(getFirestore(app), host, EMULATOR_PORTS.firestore);
-      connectStorageEmulator(getStorage(app), host, EMULATOR_PORTS.storage);
-    }
+export function firebaseAuth(config: FirebaseWebConfig, env: FirebaseEnv): Auth {
+  if (auth) return auth;
+  const app = getApps()[0] ?? initializeApp(config);
+  auth = getAuth(app);
+  if (env === "emulator") {
+    connectAuthEmulator(auth, `http://127.0.0.1:${EMULATOR_PORTS.auth}`, { disableWarnings: true });
   }
-  return { app, auth: getAuth(app), db: getFirestore(app), storage: getStorage(app) };
+  return auth;
 }

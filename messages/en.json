@@ -15,7 +15,11 @@
     "title": "Your next job is looking for you.",
     "subtitle": "Put your best work on one link, made for the studios and clients who hire.",
     "placeholder": "The full homepage arrives in phase 7. This page proves the address routing works.",
-    "kitchenSinkLink": "See the interface kit"
+    "kitchenSinkLink": "See the interface kit",
+    "claimLabel": "Your username",
+    "claimButton": "Claim it",
+    "claimHint": "Claim your name before someone else does.",
+    "claimChecking": "Checking…"
   },
   "app": {
     "title": "Dashboard",
@@ -130,5 +134,196 @@
     "freeProjects": "Free: {count} projects",
     "proFrom": "Pro from {price} a month",
     "months": "{count} months"
+  },
+  "usernameProblems": {
+    "too-short": "Use at least 3 characters.",
+    "too-long": "Keep it to 30 characters or fewer.",
+    "must-start-with-letter": "Start with a letter.",
+    "bad-characters": "Use only English letters, numbers and hyphens.",
+    "hyphen-edges": "Hyphens go between words, not at the end or twice in a row.",
+    "reserved": "That name is kept for Fannan. Try another one.",
+    "blocked": "That name isn’t allowed. Try another one.",
+    "taken": "Someone already has that name. Try one of the suggestions."
+  },
+  "signup": {
+    "metaTitle": "Build your portfolio",
+    "alreadyHave": "Already have a site?",
+    "login": "Log in",
+    "progress": "Step {step} of 6",
+    "goToStep": "Go to step {step}",
+    "step1Kicker": "Step 1 of 6 · Takes about a minute",
+    "step1Title": "Let’s build your portfolio. What’s your name?",
+    "nameLabel": "Your name",
+    "namePlaceholder": "Your name",
+    "noCard": "No email, no password, no card yet.",
+    "nameNeeded": "Type your name so we can put it on your site.",
+    "heldName": "{address} is held for you for 30 minutes.",
+    "next": "Next",
+    "back": "Back",
+    "stepKicker": "Step {step} of 6",
+    "step2Title": "Nice to meet you, {first}. What do you do?",
+    "jobLabel": "What you do",
+    "jobPlaceholder": "Start typing, e.g. animator",
+    "jobNeeded": "Pick one, or type what you do.",
+    "step3Title": "Setting up a portfolio for a {what}…",
+    "load1": "Putting your name on it",
+    "loadReel": "Giving your reel the top spot",
+    "loadLayouts": "Choosing layouts for {plural}",
+    "load3": "Making room for your credits",
+    "continue": "Continue",
+    "step4Title": "Pick a starting point, {first}.",
+    "step4Sub": "Made for {plural}. Nothing here is final: you can change every block, colour and page later.",
+    "choose": "I choose you",
+    "selected": "Selected",
+    "customize": "Customize this one",
+    "layouts": {
+      "reel": {
+        "name": "The Reel",
+        "desc": "Your reel fills the top; projects below. Best for animators."
+      },
+      "showcase": {
+        "name": "The Showcase",
+        "desc": "One big piece up top; projects below."
+      },
+      "grid": {
+        "name": "The Grid",
+        "desc": "Straight into the work. A tight grid that lets the art talk."
+      },
+      "storyteller": {
+        "name": "The Storyteller",
+        "desc": "Big case studies with process and credits. Best for directors and leads."
+      },
+      "minimalist": {
+        "name": "The Minimalist",
+        "desc": "Lots of white, small type, nothing in the way."
+      }
+    },
+    "step5Title": "Where should studios find you?",
+    "usernameLabel": "Your address",
+    "checking": "Checking…",
+    "available": "{address} is available",
+    "suggestions": "Suggestions:",
+    "claim": "Claim it",
+    "lastStep": "Last step",
+    "step6Title": "Don’t lose your progress.",
+    "step6Sub": "Save {address} to your email. We’ll send a sign-in link, so there’s no password to remember.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@email.com",
+    "emailInvalid": "That email doesn’t look right. Check it and try again.",
+    "save": "Save and open my site",
+    "google": "Continue with Google",
+    "promise": "Publishing is free. Your site goes live on the Free plan, and it stays free.",
+    "legal": "By continuing you agree to the <terms>Terms</terms> and <policy>Content policy</policy>. Free forever plan: no card needed.",
+    "checkEmailTitle": "Check your email",
+    "checkEmail": "We sent a sign-in link to {email}. Open it on any device to save your site. You can keep going meanwhile.",
+    "keepGoing": "Go to my dashboard",
+    "otherEmail": "Use a different email",
+    "previewLabel": "Your site, as you go",
+    "previewFor": "Preview of {address}",
+    "error": "Something went wrong. Please try again.",
+    "googleFailed": "Google sign-in didn’t finish. Try again, or use your email.",
+    "saving": "Saving…"
+  },
+  "login": {
+    "metaTitle": "Log in",
+    "title": "Welcome back.",
+    "sub": "Enter your email and we’ll send you a sign-in link. No password needed.",
+    "send": "Send me a link",
+    "sentTitle": "Check your email",
+    "sent": "We sent a sign-in link to {email}. Open it on this device or any other.",
+    "noAccount": "New to Fannan?",
+    "signup": "Build your portfolio",
+    "restoring": "Signing you in…"
+  },
+  "authLink": {
+    "metaTitle": "Signing in",
+    "working": "Signing you in…",
+    "askTitle": "Confirm your email",
+    "askSub": "For your safety, type the email this link was sent to.",
+    "confirm": "Continue",
+    "expired": "This link has expired or was already used.",
+    "getNew": "Send me a new link"
+  },
+  "dashboard": {
+    "metaTitle": "Dashboard",
+    "nav": {
+      "dashboard": "Dashboard",
+      "editor": "Site editor",
+      "projects": "Projects",
+      "stats": "Stats",
+      "settings": "Settings"
+    },
+    "navLabel": "App",
+    "freePlan": "Free plan",
+    "projectsUsed": "{count} of {limit} projects",
+    "upgrade": "Upgrade to Pro",
+    "language": "Switch dashboard language",
+    "logout": "Log out",
+    "title": "Your site",
+    "sub": "Everything that helps the right people find you, in one place.",
+    "viewSite": "View site",
+    "editSite": "Edit site",
+    "yourLink": "Your link",
+    "notPublished": "Not published yet",
+    "published": "Published",
+    "share": "Share",
+    "copied": "Link copied",
+    "available": {
+      "title": "Available for work",
+      "onTitle": "Open to projects",
+      "onBody": "Badge is showing on your site",
+      "offTitle": "Not available",
+      "offBody": "Badge is hidden",
+      "note": "When it’s on, your site shows a badge and a “Hire me” button that opens your contact form.",
+      "typesLabel": "Kinds of work",
+      "types": {
+        "freelance": "Freelance",
+        "full-time": "Full-time",
+        "remote": "Remote",
+        "part-time": "Part-time",
+        "commissions": "Commissions"
+      },
+      "saved": "Saved"
+    },
+    "stats": {
+      "title": "Last 30 days",
+      "emptyTitle": "No visitors yet",
+      "emptyText": "Share your link and your numbers show up here."
+    },
+    "messages": {
+      "title": "Messages",
+      "sub": "From your contact form · also sent to your email",
+      "emptyTitle": "No messages yet",
+      "emptyText": "Turn on “Available for work” so studios know they can reach you.",
+      "emptyAction": "Turn it on"
+    },
+    "projects": {
+      "title": "Projects",
+      "new": "New project",
+      "emptyTitle": "Add your first project",
+      "emptyText": "Upload your best piece with clear credits. Studios look at the work first."
+    },
+    "checklist": {
+      "title": "Get hired checklist",
+      "hide": "Hide checklist",
+      "progress": "{done} of {total} done",
+      "items": {
+        "project": "Add your first project",
+        "about": "Write your About",
+        "available": "Turn on Available for work",
+        "publish": "Publish your site",
+        "share": "Share your link"
+      }
+    },
+    "saveBanner": {
+      "title": "Save your site",
+      "text": "You haven’t saved {address} to an email yet. Save it so you don’t lose it.",
+      "action": "Save my site"
+    },
+    "comingSoon": {
+      "title": "Coming soon",
+      "text": "This part of Fannan is being built right now.",
+      "back": "Back to dashboard"
+    }
   }
 }

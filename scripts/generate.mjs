@@ -4,6 +4,7 @@
 //   design/tokens.json            -> src/styles/tokens.generated.css   (Tailwind theme)
 //   design/icons/*.svg            -> src/components/ui/icons.generated.ts
 //   config/reserved-usernames.txt -> src/config/reserved-usernames.generated.ts
+//   config/blocked-username-words.txt -> src/config/blocked-words.generated.ts
 
 import { readFileSync, readdirSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -85,6 +86,20 @@ write(
   "src/config/reserved-usernames.generated.ts",
   `// ${HEADER} Source: config/reserved-usernames.txt\n\n` +
     `export const reservedUsernames: ReadonlySet<string> = new Set(${JSON.stringify([...new Set(reserved)])});\n`,
+);
+
+// ---------- blocked words ----------
+const blockedLines = read("config/blocked-username-words.txt")
+  .split(/\r?\n/)
+  .map((l) => l.trim().toLowerCase())
+  .filter((l) => l && !l.startsWith("#"));
+const contains = blockedLines.filter((l) => !l.startsWith("="));
+const whole = blockedLines.filter((l) => l.startsWith("=")).map((l) => l.slice(1));
+write(
+  "src/config/blocked-words.generated.ts",
+  `// ${HEADER} Source: config/blocked-username-words.txt\n\n` +
+    `export const blockedAnywhere: readonly string[] = ${JSON.stringify(contains)};\n` +
+    `export const blockedWhole: ReadonlySet<string> = new Set(${JSON.stringify(whole)});\n`,
 );
 
 console.log(`generate: ${Object.keys(icons).length} icons, ${reserved.length} reserved names, tokens ok`);
