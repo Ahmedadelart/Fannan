@@ -91,3 +91,5 @@ _Last updated: 7 Oct 2026, end of phase 2 (waiting for Ahmed's test)._
 - **Crop** works on the picture as it is now; "Reset" goes back to the full original.
 - **Rate limits** loosened (40 sign-up actions per minute per IP) so a class on one Wi-Fi can sign up together; `RATE_LIMITS=off` only in automated tests.
 - **"Publish project" and "Preview"** from the design arrive with publishing (phase 3) and the public renderer (phase 4).
+- **Checked on staging:** photo, GIF, loop and PDF processed by the cloud function in about 9 s. A Vimeo link was added but came back as "Vimeo video" with no poster: Vimeo's info service may refuse requests from Google's servers. YouTube titles and posters work. Revisit in phase 4 (fallback: the Vimeo player shows its own poster).
+- Sign-up funnel events sent right before a page change can be dropped by the browser; switch them to `navigator.sendBeacon` when the stats work starts (phase 5).
