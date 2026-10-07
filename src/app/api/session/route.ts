@@ -19,7 +19,7 @@ function ip(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!rateLimit(`session:${ip(req)}`, 30, 60_000)) {
+  if (!rateLimit(`session:${ip(req)}`, 80, 60_000)) {
     return NextResponse.json({ error: "slow-down" }, { status: 429 });
   }
   const body = (await req.json().catch(() => null)) as { idToken?: string; locale?: string } | null;

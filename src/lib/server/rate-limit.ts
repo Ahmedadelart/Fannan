@@ -6,7 +6,11 @@ import "server-only";
 
 const buckets = new Map<string, { count: number; resetAt: number }>();
 
+// Automated tests sign up many accounts a minute from one machine.
+const OFF = process.env.RATE_LIMITS === "off";
+
 export function rateLimit(key: string, limit: number, windowMs: number): boolean {
+  if (OFF) return true;
   const now = Date.now();
   const b = buckets.get(key);
   if (!b || b.resetAt <= now) {

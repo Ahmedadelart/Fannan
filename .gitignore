@@ -57,3 +57,7 @@ firebase-debug.log
 firestore-debug.log
 ui-debug.log
 /src/config/blocked-words.generated.ts
+
+# local stand-in for cloud storage (dev and tests)
+/.local-storage/
+/functions/*/node_modules/

@@ -1,0 +1,19 @@
+{
+  "name": "fannan-media",
+  "private": true,
+  "description": "Turns uploaded originals into web-sized WebP/AVIF variants, posters and thumbnails. Called by the app server only.",
+  "type": "module",
+  "main": "index.js",
+  "engines": { "node": "22" },
+  "scripts": {
+    "start": "functions-framework --target=processMedia --port=8090"
+  },
+  "dependencies": {
+    "@google-cloud/functions-framework": "^5.0.5",
+    "@google-cloud/storage": "^8.2.0",
+    "ffmpeg-static": "^5.3.0",
+    "ffprobe-static": "^3.1.0",
+    "mupdf": "^1.28.1",
+    "sharp": "^0.35.5"
+  }
+}

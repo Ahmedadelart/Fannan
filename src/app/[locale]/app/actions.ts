@@ -52,13 +52,13 @@ export async function saveStep(input: { step: number; name?: string; discipline?
 
 export async function holdName(name: string): Promise<Availability> {
   const { uid } = await requireSession();
-  if (!rateLimit(`hold:${await clientIp()}`, 20, 60_000)) return { ok: false, reason: "taken" };
+  if (!rateLimit(`hold:${await clientIp()}`, 40, 60_000)) return { ok: false, reason: "taken" };
   return holdUsername(String(name), uid);
 }
 
 export async function claimName(name: string): Promise<Availability> {
   const session = await requireSession();
-  if (!rateLimit(`claim:${await clientIp()}`, 15, 60_000)) return { ok: false, reason: "taken" };
+  if (!rateLimit(`claim:${await clientIp()}`, 40, 60_000)) return { ok: false, reason: "taken" };
   const user = await getUser(session.uid);
   const o = user?.onboarding;
   if (!o?.name || !o.discipline || !o.layout) return { ok: false, reason: "too-short" };
@@ -74,7 +74,7 @@ export async function claimName(name: string): Promise<Availability> {
 export async function prepareClaim(email?: string): Promise<string | null> {
   const session = await getSession();
   if (!session?.isAnonymous) return null;
-  if (!rateLimit(`claimtoken:${await clientIp()}`, 10, 60_000)) return null;
+  if (!rateLimit(`claimtoken:${await clientIp()}`, 40, 60_000)) return null;
   return createClaim(session.uid, clean(email, 200));
 }
 

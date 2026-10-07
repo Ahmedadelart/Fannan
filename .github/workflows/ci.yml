@@ -31,6 +31,7 @@ jobs:
           distribution: temurin
           java-version: 21 # for the Firebase emulators used by the tests
       - run: npm ci
+      - run: npm ci --prefix functions/media
       - run: npm run typecheck
       - run: npm run lint
       - run: npx playwright install --with-deps chromium
@@ -54,11 +55,21 @@ jobs:
       id-token: write # keyless sign-in to Google Cloud
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: google-github-actions/auth@v3
         with:
           workload_identity_provider: projects/129265233489/locations/global/workloadIdentityPools/github/providers/github
           service_account: github-deployer@fannan-510913.iam.gserviceaccount.com
       - uses: google-github-actions/setup-gcloud@v3
+      - name: Deploy the staging media processor (only when it changed)
+        run: |
+          if git diff --quiet HEAD~1 HEAD -- functions/media; then echo "unchanged"; exit 0; fi
+          gcloud functions deploy fannan-media-staging --gen2 --runtime nodejs22 --region "$REGION" \
+            --project "$PROJECT_ID" --source functions/media --entry-point processMedia --trigger-http \
+            --no-allow-unauthenticated --service-account media-processor@fannan-510913.iam.gserviceaccount.com \
+            --build-service-account projects/fannan-510913/serviceAccounts/functions-builder@fannan-510913.iam.gserviceaccount.com \
+            --memory 2Gi --cpu 2 --timeout 300 --max-instances 3 --concurrency 4 --quiet
       - run: gcloud auth configure-docker europe-west1-docker.pkg.dev --quiet
       - name: Build and push image
         run: |
@@ -70,7 +81,7 @@ jobs:
             --project "$PROJECT_ID" --region "$REGION" \
             --image "$IMAGE:${{ github.sha }}" \
             --service-account web-staging@fannan-510913.iam.gserviceaccount.com \
-            --set-env-vars FIREBASE_ENV=staging,ROOT_DOMAIN=staging.fannan.net,SURFACE_SWITCHER=true \
+            --set-env-vars FIREBASE_ENV=staging,ROOT_DOMAIN=staging.fannan.net,SURFACE_SWITCHER=true,MEDIA_BUCKET=fannan-media-staging,MEDIA_FUNCTION_URL=https://fannan-media-staging-mtxig4fw3a-ew.a.run.app \
             --cpu 1 --memory 512Mi --min-instances 0 --max-instances 2 \
             --no-invoker-iam-check --quiet
           echo "### Staging: $(gcloud run services describe fannan-staging --project "$PROJECT_ID" --region "$REGION" --format='value(status.url)')" >> "$GITHUB_STEP_SUMMARY"

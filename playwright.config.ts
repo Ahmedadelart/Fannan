@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import { defineConfig, devices } from "@playwright/test";
 
 // Tests run against a production build on port 3100.
@@ -31,11 +32,24 @@ export default defineConfig({
       timeout: 120_000,
     },
     {
+      // The media processor (functions/media), working on the local storage folder.
+      command: "npm --prefix functions/media start",
+      port: 8090,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      env: { LOCAL_STORAGE_ROOT: join(process.cwd(), ".local-storage") },
+    },
+    {
       command: `npm run build && npx next start -p ${PORT}`,
       url: `http://localhost:${PORT}/kitchen-sink`,
       reuseExistingServer: !process.env.CI,
       timeout: 300_000,
-      env: { ROOT_DOMAIN: "fannan.localhost", SURFACE_SWITCHER: "true", FIREBASE_ENV: "emulator" },
+      env: {
+        ROOT_DOMAIN: "fannan.localhost",
+        SURFACE_SWITCHER: "true",
+        FIREBASE_ENV: "emulator",
+        RATE_LIMITS: "off",
+      },
     },
   ],
 });

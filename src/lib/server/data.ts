@@ -47,6 +47,8 @@ export interface SiteDoc {
   publishedVersion: number | null;
   sharedAt?: Timestamp | null;
   aboutWritten?: boolean;
+  /** Bytes of originals stored for this site (kept up to date on upload and delete). */
+  storageUsed?: number;
   createdAt?: Timestamp;
 }
 

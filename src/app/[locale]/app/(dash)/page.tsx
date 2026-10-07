@@ -8,8 +8,11 @@ import { Icon } from "@/components/ui/Icon";
 import { EmptyState } from "@/components/ui/Surfaces";
 import type { Locale } from "@/i18n/locales";
 import { cx } from "@/lib/cx";
+import { ProjectCard } from "@/components/projects/ProjectCard";
+import { listProjects } from "@/lib/server/projects";
 import { AvailabilityCard, HideChecklistButton, ShareButton, TurnOnButton } from "./DashClient";
 import { loadDashboard } from "./load";
+import { newProject } from "./projects/actions";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/app">): Promise<Metadata> {
   const { locale } = await params;
@@ -39,6 +42,14 @@ export default async function Dashboard({ params }: PageProps<"/[locale]/app">) 
   setRequestLocale(locale);
   const t = await getTranslations("dashboard");
   const { session, user, site, draft, address, siteUrl, checklist } = await loadDashboard();
+  const tp = await getTranslations("projects");
+  const projects = (await listProjects(site.id)).slice(0, 6);
+  const badgeLabels = {
+    live: tp("badge.live"),
+    password: tp("badge.password"),
+    draft: tp("badge.draft"),
+    hidden: tp("badge.hidden"),
+  };
 
   const items = Object.entries(checklist) as Array<[keyof typeof checklist, boolean]>;
   const done = items.filter(([, v]) => v).length;
@@ -167,12 +178,34 @@ export default async function Dashboard({ params }: PageProps<"/[locale]/app">) 
           <h2 id="projects-title" className="font-heading font-heading-weight text-[20px]">
             {t("projects.title")}
           </h2>
-          <a href="/projects" className={buttonClasses("primary", "md")}>
-            <Icon name="add" size={18} />
-            {t("projects.new")}
-          </a>
+          <form action={newProject}>
+            <input type="hidden" name="title" value={tp("newTitle")} />
+            <button type="submit" className={buttonClasses("primary", "md")}>
+              <Icon name="add" size={18} />
+              {t("projects.new")}
+            </button>
+          </form>
         </div>
-        <EmptyState icon="projects" title={t("projects.emptyTitle")} text={t("projects.emptyText")} />
+        {projects.length === 0 ? (
+          <EmptyState icon="projects" title={t("projects.emptyTitle")} text={t("projects.emptyText")} />
+        ) : (
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-[repeat(auto-fill,minmax(210px,1fr))]">
+            {projects.map((p) => (
+              <ProjectCard
+                key={p.id}
+                labels={badgeLabels}
+                p={{
+                  id: p.id,
+                  title: p.title,
+                  meta: [p.category ? tp(`categories.${p.category}`) : "", p.role].filter(Boolean).join(" · "),
+                  visibility: p.visibility,
+                  published: p.published,
+                  cover: p.cover,
+                }}
+              />
+            ))}
+          </div>
+        )}
       </section>
     </>
   );

@@ -7,8 +7,11 @@ import { loadDashboard } from "./load";
 // Dashboard shell matching design/screens/product/Dashboard.dc.html: white sidebar, flat mist main area.
 export default async function DashLayout({ children, params }: LayoutProps<"/[locale]/app">) {
   const { locale } = (await params) as { locale: Locale };
-  const { user, projects, limits } = await loadDashboard();
+  const { user, site, projects, limits } = await loadDashboard();
   const t = await getTranslations("dashboard");
+  const tp = await getTranslations("projects");
+  // Storage is never advertised as a number: only a calm percentage here, louder from 80%.
+  const storagePct = Math.min(100, Math.round(((site.storageUsed ?? 0) / limits.storageBytes) * 100));
   const limit = limits.projects;
 
   return (
@@ -53,6 +56,17 @@ export default async function DashLayout({ children, params }: LayoutProps<"/[lo
               />
             </div>
           )}
+          <div className="border-line flex flex-col gap-1.5 border-t pt-2.5" data-testid="storage-meter">
+            <div className="bg-line h-1.5 rounded-[3px]" aria-hidden>
+              <div
+                className={storagePct >= 80 ? "bg-ink h-1.5 rounded-[3px]" : "bg-ink-soft h-1.5 rounded-[3px]"}
+                style={{ width: `${storagePct}%` }}
+              />
+            </div>
+            <span className={storagePct >= 80 ? "text-ink text-[12px] font-semibold" : "text-muted text-[12px]"}>
+              {storagePct >= 80 ? tp("storageHigh", { percent: storagePct }) : tp("storage", { percent: storagePct })}
+            </span>
+          </div>
           <a
             href="/upgrade"
             className="bg-lime flex h-9 items-center justify-center rounded-[8px] text-[13px] font-semibold hover:brightness-95"

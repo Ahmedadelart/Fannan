@@ -1,11 +1,21 @@
 import "server-only";
 
 import { cache } from "react";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { limitsFor } from "@/config/plans";
+import { currencyForCountry, limitsFor, lowestMonthlyPrice } from "@/config/plans";
+import type { Locale } from "@/i18n/locales";
 import { countProjects, getSite, getSiteDraft, getUser } from "@/lib/server/data";
 import { getSession } from "@/lib/server/session";
 import { DISPLAY_DOMAIN, surfaceUrls } from "@/lib/server/urls";
+
+/** "112 EGP" in Egypt, "$6" elsewhere (Cloudflare's country header). Used in limit prompts. */
+export async function priceLabel(locale: Locale) {
+  const currency = currencyForCountry((await headers()).get("cf-ipcountry"));
+  const n = lowestMonthlyPrice(currency);
+  const num = new Intl.NumberFormat(locale === "ar" ? "ar-EG" : "en").format(n);
+  return currency === "EGP" ? (locale === "ar" ? `${num} جنيه` : `${num} EGP`) : `$${n}`;
+}
 
 /** Everything the dashboard needs, loaded once per request. Sends people without a site to sign-up. */
 export const loadDashboard = cache(async () => {

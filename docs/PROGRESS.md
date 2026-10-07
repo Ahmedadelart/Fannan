@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 7 Oct 2026, end of phase 1 (waiting for Ahmed's test)._
+_Last updated: 7 Oct 2026, end of phase 2 (waiting for Ahmed's test)._
 
 ## Done
 
@@ -47,6 +47,21 @@ _Last updated: 7 Oct 2026, end of phase 1 (waiting for Ahmed's test)._
 - **Language** remembered per account and applied on every device at sign-in.
 - **Tests:** 56 Playwright tests, including the full sign-up in EN (desktop + phone) and AR (desktop + phone), log-in on a second device, Available toggle persisting, language following the account. Tests run against the Firebase emulators (Java 21 in CI).
 
+### Phase 2: Projects and media
+- **Project editor** (`app.fannan.net/projects/{id}`) matching Project.dc.html:
+  - drag-and-drop or button uploads, several at once, 3 in parallel, with progress; clear errors for wrong type, size, too-long loops, full storage;
+  - YouTube/Vimeo links become embeds (title and poster fetched); text blocks;
+  - items: reorder (drag, or Move earlier/later for phones and keyboards), crop (Free/16:9/4:3/1:1/3:4, original kept), set cover, caption, alt text (with a nudge when empty), replace, delete, Full width / Lightbox / Autoplay;
+  - credits (title, category, year, role, client, studio, team, description, tags), visibility (Public / Password (Pro only) / Hidden), mature flag, SEO title/description, project link (follows the title until edited), optional Arabic fields;
+  - everything autosaves; "Saved · N items".
+- **Projects list** (`/projects`) and project tiles on the dashboard with Live / Password / Draft / Hidden badges. Free plan stops at 8 projects with "You've used 8 of 8 projects. Go Pro from 112 EGP / $6 a month" (currency from Cloudflare's country header).
+- **Storage meter** in the sidebar: percentage only, calm until 80%.
+- **Uploads:** browser → private bucket with a 15-minute signed link (`src/lib/server/storage.ts`); the server checks the real file type from its first bytes and the size, then calls the media function.
+- **Media function** `functions/media` (Cloud Functions 2nd gen, `fannan-media-staging` and `fannan-media`): WebP + AVIF at 400/800/1600/2560, upright, no EXIF/GPS; GIFs stay animated (animated WebP + still poster); SVGs only ever published as pictures (scripts can't run); MP4 loops ≤ 30 s, sound removed, fast-start, poster frame; PDFs get a page-1 cover and page count. Only the app's own server accounts can call it.
+- **Media serving (owner only for now):** `/api/media/...` streams web versions to the signed-in owner, never originals.
+- **Buckets:** `fannan-media-staging`, `fannan-media-production` in project `fannan-510913` (europe-west1, private, uniform access).
+- **Tests:** 62 Playwright tests. New: full project with photo, GIF, loop, PDF and YouTube link; wrong-type and too-long refusal; crop to 1:1; cover and order survive reload; 8-project limit; editor in Arabic. Local tests run the media function against a folder (`.local-storage/`).
+
 ## In progress
 - Nothing.
 
@@ -71,3 +86,8 @@ _Last updated: 7 Oct 2026, end of phase 1 (waiting for Ahmed's test)._
 - **Beta-artist quote** on step 6 is replaced by the "Publishing is free" promise until a real quote exists (AHMED-TODO).
 - Terms and Content policy links on step 6 point to pages built in phase 7.
 - **Firebase sign-in is on** in both projects (Anonymous, Email link, Google). Allowed domains: staging adds its run.app address, `staging.fannan.net` and `app.staging.fannan.net`; production adds `app.fannan.net`.
+- **Uploads live in the main project's buckets** (fannan-510913) for staging too, because `fannan-staging` still has no billing. The staging bucket is separate from production, so data never mixes.
+- **Design file vs plan:** Project.dc.html lists "MP4 up to 4K, MOV, MP3/WAV, Before/after". Built to the decided plan instead: no video hosting (loops ≤ 30 s), audio later, before/after is an editor block (phase 3).
+- **Crop** works on the picture as it is now; "Reset" goes back to the full original.
+- **Rate limits** loosened (40 sign-up actions per minute per IP) so a class on one Wi-Fi can sign up together; `RATE_LIMITS=off` only in automated tests.
+- **"Publish project" and "Preview"** from the design arrive with publishing (phase 3) and the public renderer (phase 4).

@@ -7,7 +7,6 @@ import type { Locale } from "@/i18n/locales";
 // Placeholders for dashboard areas built in later phases.
 const sections: Record<string, { icon: IconName; nav?: string }> = {
   editor: { icon: "site-editor", nav: "editor" },
-  projects: { icon: "projects", nav: "projects" },
   stats: { icon: "stats", nav: "stats" },
   settings: { icon: "settings", nav: "settings" },
   upgrade: { icon: "publish" },

@@ -39,3 +39,24 @@ export async function logInWithEmail(page: Page, email: string, locale: "en" | "
   await expect(page.getByText(email)).toBeVisible();
   await page.goto(await magicLink(email));
 }
+
+/** The quickest way through sign-up to a saved account with a site (English). */
+export async function signUp(page: Page, id = uniq()) {
+  const username = `p${id}`;
+  const email = `projects-${id}@example.com`;
+  await page.goto(at("app", "/signup"));
+  await page.getByRole("textbox", { name: "Your name" }).fill("Nour Adel");
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Character designer" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Customize this one" }).click({ timeout: 10_000 });
+  await page.getByRole("textbox", { name: "Your address" }).fill(username);
+  await expect(page.getByText(`${username}.fannan.localhost is available`)).toBeVisible();
+  await page.getByRole("button", { name: "Claim it" }).click();
+  await page.getByRole("textbox", { name: "Email" }).fill(email);
+  await page.getByRole("button", { name: "Save and open my site" }).click();
+  await expect(page.getByRole("heading", { name: "Check your email" })).toBeVisible();
+  await page.goto(await magicLink(email));
+  await expect(page.getByRole("heading", { level: 1, name: "Your site" })).toBeVisible({ timeout: 20_000 });
+  return { username, email };
+}
