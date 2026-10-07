@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fannan site editor</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@800&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#ECECE8}
+a{color:#141414}a:hover{color:#4A6400}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1000px; display: flex; flex-direction: column; background: #ECECE8; color: #141414; font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; line-height: 1.45">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 10px 18px; background: #FFFFFF; border-bottom: 1px solid #E2E2DE">
+<a href="Main.dc.html" style="text-decoration: none; font-family: 'Bricolage Grotesque', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1"><span style="position: relative; display: inline-block"><span style="position: absolute; left: -0.18em; right: -0.09em; top: 44%; bottom: 6%; background: #C6F432; transform: skewX(-14deg) rotate(-1.5deg)"></span><span style="position: relative">fannan</span></span></a>
+<span style="width: 1px; height: 24px; background: #E2E2DE"></span>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #6A6A70">Page
+<select style="height: 36px; padding: 0 10px; border: 1px solid #E2E2DE; border-radius: 8px; background: #FFFFFF; font: inherit; color: #141414; font-weight: 600"><option>Home</option><option>Character design</option><option>2D animation</option><option>Storyboard</option><option>About</option><option>Contact</option></select></label>
+<div style="flex: 1 1 200px; display: flex; justify-content: center; align-items: center; gap: 10px">
+<div style="display: flex; gap: 2px; padding: 3px; background: #F4F4F2; border-radius: 10px">
+<button aria-label="Desktop" style="width: 40px; height: 32px; border: 0; border-radius: 8px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(0,0,0,0.08); cursor: pointer"><span style="display: flex; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true" style="display:block;flex:none;overflow:visible"><rect x="2.5" y="4" width="19" height="12.5" rx="0" fill="none"/><line x1="9" y1="20" x2="15" y2="20" fill="none"/><line x1="12" y1="16.5" x2="12" y2="20" fill="none"/></svg></span></button>
+<button aria-label="Tablet" style="width: 40px; height: 32px; border: 0; border-radius: 8px; background: transparent; cursor: pointer"><span style="display: flex; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6A6A70" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true" style="display:block;flex:none;overflow:visible"><rect x="5" y="2.5" width="14" height="19" rx="0" fill="none"/><line x1="11" y1="18.5" x2="13" y2="18.5" fill="none"/></svg></span></button>
+<button aria-label="Phone" style="width: 40px; height: 32px; border: 0; border-radius: 8px; background: transparent; cursor: pointer"><span style="display: flex; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6A6A70" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true" style="display:block;flex:none;overflow:visible"><rect x="7" y="2.5" width="10" height="19" rx="0" fill="none"/><line x1="11" y1="18.5" x2="13" y2="18.5" fill="none"/></svg></span></button>
+</div>
+<button aria-label="Undo" style="width: 36px; height: 36px; border: 1px solid #E2E2DE; border-radius: 8px; background: #FFFFFF; cursor: pointer"><span style="display: flex; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true" style="display:block;flex:none;overflow:visible"><path d="M9 14L4 9l5-5" fill="none"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" fill="none"/></svg></span></button>
+<button aria-label="Redo" style="width: 36px; height: 36px; border: 1px solid #E2E2DE; border-radius: 8px; background: #FFFFFF; cursor: pointer"><span style="display: flex; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true" style="display:block;flex:none;overflow:visible"><path d="M15 14l5-5-5-5" fill="none"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13" fill="none"/></svg></span></button>
+</div>
+<span style="font-size: 12px; color: #6A6A70">Saved</span>
+<button style="height: 40px; padding: 0 14px; border: 1px solid #E2E2DE; border-radius: 10px; background: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer; display: flex; align-items: center"><span style="display: inline-flex; margin-right: 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true" style="display:block;flex:none;overflow:visible"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z" fill="none"/><circle cx="12" cy="12" r="3" fill="none"/></svg></span>Preview</button>
+<button style="height: 40px; padding: 0 18px; border: 0; border-radius: 10px; background: #141414; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer; display: flex; align-items: center"><span style="display: inline-flex; margin-right: 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true" style="display:block;flex:none;overflow:visible"><path d="M21 3L3 10.5l7 3 3 7z" fill="none"/><line x1="10" y1="13.5" x2="21" y2="3" fill="none"/></svg></span>Publish</button>
+</header>
+
+<div style="flex: 1 1 auto; display: flex; flex-wrap: wrap; align-items: stretch">
+
+<aside style="flex: 0 1 300px; min-width: 260px; background: #FFFFFF; border-right: 1px solid #E2E2DE; display: flex; flex-direction: column">
+<nav aria-label="Editor panels" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 0 12px; border-bottom: 1px solid #E2E2DE">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+<button onClick="{{t.pick}}" style="{{t.style}}">{{t.label}}</button>
+</sc-for>
+</nav>
+
+<sc-if value="{{showBlocks}}" hint-placeholder-val="{{true}}">
+<div style="padding: 14px 12px 24px; display: flex; flex-direction: column; gap: 18px">
+<label style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border: 1px solid #E2E2DE; border-radius: 10px; color: #6A6A70"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6A6A70" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true" style="display:block;flex:none;overflow:visible"><circle cx="10.5" cy="10.5" r="6.5" fill="none"/><line x1="15.5" y1="15.5" x2="20.5" y2="20.5" fill="none"/></svg><input type="text" placeholder="Search blocks" aria-label="Search blocks" style="flex: 1; min-width: 0; border: 0; outline: none; font: inherit"></label>
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #6A6A70">{{g.name}}</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{g.items}}" as="b" hint-placeholder-count="4">
+<button style="display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 10px; border: 1px solid #E2E2DE; border-radius: 12px; background: #FFFFFF; font: inherit; text-align: left; cursor: grab">
+<img src="{{b.icon}}" alt="" width="24" height="24" style="display: block; flex: none">
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; font-size: 12px; font-weight: 600; line-height: 1.2">{{b.name}}<span style="{{b.tagStyle}}">{{b.tag}}</span></span>
+</button>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{showStyle}}" hint-placeholder-val="{{false}}">
+<div style="padding: 16px 14px 24px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #6A6A70">THEME PRESETS</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{presets}}" as="p" hint-placeholder-count="6">
+<button style="{{p.style}}"><span style="{{p.bar}}"></span><span style="font-size: 11px; font-weight: 600">{{p.name}}</span></button>
+</sc-for>
+</div>
+</div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600">Heading font
+<select style="height: 40px; padding: 0 10px; border: 1px solid #E2E2DE; border-radius: 10px; background: #FFFFFF; font: inherit; font-weight: 500"><option>Bricolage Grotesque</option><option>Fraunces</option><option>Syne</option><option>Space Grotesk</option><option>Instrument Serif</option></select></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600">Body font
+<select style="height: 40px; padding: 0 10px; border: 1px solid #E2E2DE; border-radius: 10px; background: #FFFFFF; font: inherit; font-weight: 500"><option>IBM Plex Sans</option><option>DM Sans</option><option>Work Sans</option></select></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600">Arabic font
+<select style="height: 40px; padding: 0 10px; border: 1px solid #E2E2DE; border-radius: 10px; background: #FFFFFF; font: inherit; font-weight: 500"><option>IBM Plex Sans Arabic</option><option>Marhey</option><option>Readex Pro</option><option>Alexandria</option></select></label>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 12px; font-weight: 600">Colours</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: #6A6A70"><input type="color" value="#0E0E10" style="width: 100%; height: 36px; border: 1px solid #E2E2DE; border-radius: 8px; padding: 2px">Background</label>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: #6A6A70"><input type="color" value="#F4F4F0" style="width: 100%; height: 36px; border: 1px solid #E2E2DE; border-radius: 8px; padding: 2px">Text</label>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: #6A6A70"><input type="color" value="#E5432F" style="width: 100%; height: 36px; border: 1px solid #E2E2DE; border-radius: 8px; padding: 2px">Accent</label>
+</div>
+<label style="display: flex; align-items: center; justify-content: space-between; font-size: 13px">Gradient background<input type="checkbox" style="width: 18px; height: 18px; accent-color: #141414"></label>
+</div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600">Corner radius<input type="range" min="0" max="24" value="6" style="accent-color: #141414"></label>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 12px; font-weight: 600">Navigation</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{navs}}" as="n" hint-placeholder-count="5">
+<button style="{{n.style}}"><span style="{{n.pic}}"></span><span style="font-size: 11px; font-weight: 600">{{n.name}}</span></button>
+</sc-for>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<button style="height: 64px; border: 1px dashed #BDBDB7; border-radius: 10px; background: #FFFFFF; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer">Upload logo</button>
+<button style="height: 64px; border: 1px dashed #BDBDB7; border-radius: 10px; background: #FFFFFF; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer">Upload favicon</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{showPages}}" hint-placeholder-val="{{false}}">
+<div style="padding: 16px 12px 24px; display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{pages}}" as="p" hint-placeholder-count="7">
+<div style="{{p.style}}"><span>{{p.name}}</span><span style="font-size: 12px; color: #6A6A70">{{p.meta}}</span></div>
+</sc-for>
+<div style="margin-top: 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #6A6A70">ADD A PAGE</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<button style="height: 44px; border: 1px solid #E2E2DE; border-radius: 10px; background: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">Gallery page</button>
+<button style="height: 44px; border: 1px solid #E2E2DE; border-radius: 10px; background: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">Custom page</button>
+<button style="height: 44px; border: 1px solid #E2E2DE; border-radius: 10px; background: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">About / CV</button>
+<button style="height: 44px; border: 1px solid #E2E2DE; border-radius: 10px; background: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">External link</button>
+</div>
+</div>
+</sc-if>
+</aside>
+
+<main style="flex: 999 1 520px; min-width: 0; padding: 24px; display: flex; justify-content: center">
+<div style="width: 100%; max-width: 960px; background: #0E0E10; border-radius: 10px; overflow: hidden; box-shadow: 0 12px 32px rgba(0,0,0,0.12); color: #F4F4F0">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 20px 32px">
+<span style="font-weight: 600; letter-spacing: 0.14em">YOUR NAME</span>
+<span style="display: flex; flex-wrap: wrap; gap: 20px; font-size: 12px; letter-spacing: 0.08em; color: #B9B9B3"><span>CHARACTER DESIGN</span><span>2D ANIMATION</span><span>STORYBOARD</span><span>ABOUT</span><span style="padding: 4px 10px; border-radius: 999px; background: #C6F432; color: #141414; font-weight: 600; letter-spacing: 0">Hire me</span></span>
+</div>
+<div style="position: relative; margin: 0 16px; aspect-ratio: 16 / 6; border-radius: 6px; background: #2A2622; display: flex; align-items: center; justify-content: center">
+<span style="width: 56px; height: 56px; border-radius: 50%; border: 1.5px solid #F4F4F0; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="#F4F4F0"><path d="M8 5v14l11-7z"></path></svg></span>
+<span style="position: absolute; left: 12px; bottom: 10px; font-size: 11px; color: #B9B9B3">Reel · Vimeo · 4K</span>
+</div>
+<div style="position: relative; margin: 26px 16px 20px; padding: 18px; outline: 2px solid #C6F432; border-radius: 8px">
+<span style="position: absolute; top: -14px; left: 14px; padding: 3px 10px; border-radius: 6px; background: #C6F432; color: #141414; font-size: 12px; font-weight: 600">Gallery · Grid</span>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+<sc-for list="{{tiles}}" as="t" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; gap: 6px"><div style="{{t.style}}"></div><span style="font-size: 12px; font-weight: 600">{{t.title}}</span><span style="font-size: 11px; color: #9C9C96">{{t.meta}}</span></div>
+</sc-for>
+</div>
+</div>
+<div style="margin: 0 16px 24px; padding: 16px; border: 1px dashed #3A3A3E; border-radius: 8px; text-align: center; font-size: 12px; color: #9C9C96">Drop a block here</div>
+</div>
+</main>
+
+<aside style="flex: 0 1 290px; min-width: 250px; background: #FFFFFF; border-left: 1px solid #E2E2DE; padding: 18px; display: flex; flex-direction: column; gap: 18px">
+<div><div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 18px; font-weight: 800">Gallery</div><div style="font-size: 12px; color: #6A6A70">Shows projects from Character design</div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><div style="font-size: 12px; font-weight: 600">Layout</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px">
+<button style="height: 36px; border: 2px solid #141414; border-radius: 8px; background: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">Grid</button>
+<button style="height: 36px; border: 1px solid #E2E2DE; border-radius: 8px; background: #FFFFFF; font: inherit; cursor: pointer">Masonry</button>
+<button style="height: 36px; border: 1px solid #E2E2DE; border-radius: 8px; background: #FFFFFF; font: inherit; cursor: pointer">Slider</button>
+<button style="height: 36px; border: 1px solid #E2E2DE; border-radius: 8px; background: #FFFFFF; font: inherit; cursor: pointer">Fullscreen</button>
+</div></div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600">Columns<input type="range" min="1" max="6" value="3" style="accent-color: #141414"></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600">Spacing<input type="range" min="0" max="40" value="12" style="accent-color: #141414"></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600">Thumbnail shape<select style="height: 38px; padding: 0 10px; border: 1px solid #E2E2DE; border-radius: 8px; background: #FFFFFF; font: inherit; font-weight: 500"><option>16:9</option><option>4:3</option><option>1:1</option><option>2:3</option><option>Original</option></select></label>
+<fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px">
+<legend style="padding: 0; margin-bottom: 8px; font-size: 12px; font-weight: 600">Options</legend>
+<label style="display: flex; align-items: center; justify-content: space-between">Open in lightbox<input type="checkbox" checked="checked" style="width: 18px; height: 18px; accent-color: #141414"></label>
+<label style="display: flex; align-items: center; justify-content: space-between">Show captions<input type="checkbox" checked="checked" style="width: 18px; height: 18px; accent-color: #141414"></label>
+<label style="display: flex; align-items: center; justify-content: space-between">Show credits (client · role)<input type="checkbox" checked="checked" style="width: 18px; height: 18px; accent-color: #141414"></label>
+<label style="display: flex; align-items: center; justify-content: space-between">Play loop on hover<input type="checkbox" checked="checked" style="width: 18px; height: 18px; accent-color: #141414"></label>
+<label style="display: flex; align-items: center; justify-content: space-between">Category filter<input type="checkbox" style="width: 18px; height: 18px; accent-color: #141414"></label>
+</fieldset>
+<button style="margin-top: auto; height: 40px; border: 1px solid #E2E2DE; border-radius: 10px; background: #FFFFFF; font: inherit; font-weight: 600; color: #8A1C1C; cursor: pointer">Remove block</button>
+</aside>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { tab: 'blocks' }; }
+  renderVals() {
+    var IC = {"Fullscreen cover": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Crect%20x%3D%222.5%22%20y%3D%224%22%20width%3D%2219%22%20height%3D%2216%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%225.5%22%20y%3D%2211.5%22%20width%3D%229%22%20height%3D%223.5%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%225.5%22%20y1%3D%2217%22%20x2%3D%2211%22%20y2%3D%2217%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Text": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Cline%20x1%3D%224%22%20y1%3D%226%22%20x2%3D%2220%22%20y2%3D%226%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%224%22%20y1%3D%2210%22%20x2%3D%2220%22%20y2%3D%2210%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%224%22%20y1%3D%2214%22%20x2%3D%2217%22%20y2%3D%2214%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%224%22%20y1%3D%2218%22%20x2%3D%2212%22%20y2%3D%2218%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Columns": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%227.5%22%20height%3D%2216%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%2213.5%22%20y%3D%224%22%20width%3D%227.5%22%20height%3D%2216%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Hero headline": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Crect%20x%3D%223%22%20y%3D%224.5%22%20width%3D%2218%22%20height%3D%226.5%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%223%22%20y1%3D%2215%22%20x2%3D%2217%22%20y2%3D%2215%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%223%22%20y1%3D%2219%22%20x2%3D%2212%22%20y2%3D%2219%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Grid": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Crect%20x%3D%223.5%22%20y%3D%223.5%22%20width%3D%227%22%20height%3D%227%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%2213.5%22%20y%3D%223.5%22%20width%3D%227%22%20height%3D%227%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%223.5%22%20y%3D%2213.5%22%20width%3D%227%22%20height%3D%227%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%2213.5%22%20y%3D%2213.5%22%20width%3D%227%22%20height%3D%227%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Masonry": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Crect%20x%3D%223.5%22%20y%3D%223.5%22%20width%3D%227%22%20height%3D%2210%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%223.5%22%20y%3D%2216.5%22%20width%3D%227%22%20height%3D%224%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%2213.5%22%20y%3D%223.5%22%20width%3D%227%22%20height%3D%224%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%2213.5%22%20y%3D%2210.5%22%20width%3D%227%22%20height%3D%2210%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Slider": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Crect%20x%3D%226.5%22%20y%3D%224%22%20width%3D%2211%22%20height%3D%2213%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%223%22%20y1%3D%226.5%22%20x2%3D%223%22%20y2%3D%2214.5%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%2221%22%20y1%3D%226.5%22%20x2%3D%2221%22%20y2%3D%2214.5%22%20fill%3D%22none%22%2F%3E%3Ccircle%20cx%3D%2210%22%20cy%3D%2220.5%22%20r%3D%220.9%22%20fill%3D%22%23141414%22%2F%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2220.5%22%20r%3D%220.9%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Lightbox": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Crect%20x%3D%228.5%22%20y%3D%228.5%22%20width%3D%227%22%20height%3D%227%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M4%209V4h5%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M15%204h5v5%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M20%2015v5h-5%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M9%2020H4v-5%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Video gallery": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Crect%20x%3D%223%22%20y%3D%223.5%22%20width%3D%2218%22%20height%3D%2211%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M10%206.5l5%202.5-5%202.5z%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%2217%22%20width%3D%225%22%20height%3D%223.5%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%229.5%22%20y%3D%2217%22%20width%3D%225%22%20height%3D%223.5%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%2216%22%20y%3D%2217%22%20width%3D%225%22%20height%3D%223.5%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Fullscreen grid": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Crect%20x%3D%222.5%22%20y%3D%222.5%22%20width%3D%2219%22%20height%3D%2219%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%2212%22%20y1%3D%222.5%22%20x2%3D%2212%22%20y2%3D%2221.5%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%222.5%22%20y1%3D%2212%22%20x2%3D%2221.5%22%20y2%3D%2212%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Image": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Crect%20x%3D%223%22%20y%3D%224.5%22%20width%3D%2218%22%20height%3D%2215%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Ccircle%20cx%3D%228.5%22%20cy%3D%229.5%22%20r%3D%221.8%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M3%2017l5-5%204%204%203-3%206%206%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Video \u00b7 4K": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Crect%20x%3D%222.5%22%20y%3D%224.5%22%20width%3D%2219%22%20height%3D%2215%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M10%209l5%203-5%203z%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Video background": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Crect%20x%3D%222.5%22%20y%3D%223.5%22%20width%3D%2219%22%20height%3D%2217%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M14%206.5l3.5%202-3.5%202z%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%226%22%20y1%3D%2214%22%20x2%3D%2215%22%20y2%3D%2214%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%226%22%20y1%3D%2217.5%22%20x2%3D%2211%22%20y2%3D%2217.5%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Loop / GIF": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%222.2%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M19%2012a7%207%200%200%201-12.2%204.7%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M5%2012a7%207%200%200%201%2012.2-4.7%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M17.5%203.5v4h-4%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M6.5%2020.5v-4h4%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Before / after": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2216%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%2212%22%20y1%3D%222.5%22%20x2%3D%2212%22%20y2%3D%229.5%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%2212%22%20y1%3D%2214.5%22%20x2%3D%2212%22%20y2%3D%2221.5%22%20fill%3D%22none%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%222.5%22%20fill%3D%22%23FFFFFF%22%2F%3E%3Cpath%20d%3D%22M8.5%2010.5L7%2012l1.5%201.5%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M15.5%2010.5L17%2012l-1.5%201.5%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Audio": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Cline%20x1%3D%224%22%20y1%3D%2210%22%20x2%3D%224%22%20y2%3D%2214%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%228%22%20y1%3D%227%22%20x2%3D%228%22%20y2%3D%2217%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%2212%22%20y1%3D%224%22%20x2%3D%2212%22%20y2%3D%2220%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%2216%22%20y1%3D%228%22%20x2%3D%2216%22%20y2%3D%2216%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%2220%22%20y1%3D%2210.5%22%20x2%3D%2220%22%20y2%3D%2213.5%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "PDF": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Cpath%20d%3D%22M6%202.5h8l5%205v14H6z%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M14%202.5v5h5%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%228.5%22%20y%3D%2212%22%20width%3D%228%22%20height%3D%224.5%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Embed": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Cpath%20d%3D%22M8.5%207L3.5%2012l5%205%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M15.5%207l5%205-5%205%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%2213.5%22%20y1%3D%225%22%20x2%3D%2210.5%22%20y2%3D%2219%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Reel": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%20fill%3D%22none%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%221.4%22%20fill%3D%22none%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%226.8%22%20r%3D%221.8%22%20fill%3D%22%23FFFFFF%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2217.2%22%20r%3D%221.8%22%20fill%3D%22%23FFFFFF%22%2F%3E%3Ccircle%20cx%3D%226.8%22%20cy%3D%2212%22%20r%3D%221.8%22%20fill%3D%22%23FFFFFF%22%2F%3E%3Ccircle%20cx%3D%2217.2%22%20cy%3D%2212%22%20r%3D%221.8%22%20fill%3D%22%23FFFFFF%22%2F%3E%3C%2Fsvg%3E", "Credits": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%2218%22%20height%3D%2218%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%228%22%20y1%3D%228%22%20x2%3D%2216%22%20y2%3D%228%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%227%22%20y1%3D%2212%22%20x2%3D%2217%22%20y2%3D%2212%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%229%22%20y1%3D%2216%22%20x2%3D%2215%22%20y2%3D%2216%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Logo wall": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%225%22%20height%3D%225%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%227.5%22%20r%3D%222.5%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M16.5%2010l2.5-5%202.5%205z%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M5.5%2014l2.5%202.5-2.5%202.5-2.5-2.5z%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%229.5%22%20y%3D%2214.5%22%20width%3D%225%22%20height%3D%224%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Ccircle%20cx%3D%2219%22%20cy%3D%2216.5%22%20r%3D%222.5%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "About / CV": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2218%22%20height%3D%2216%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Ccircle%20cx%3D%229%22%20cy%3D%2210%22%20r%3D%222.3%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M5.5%2017c.6-2%202-3%203.5-3s2.9%201%203.5%203%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%2214.5%22%20y1%3D%229.5%22%20x2%3D%2218%22%20y2%3D%229.5%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%2214.5%22%20y1%3D%2213%22%20x2%3D%2218%22%20y2%3D%2213%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Contact form": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Crect%20x%3D%223%22%20y%3D%223.5%22%20width%3D%2218%22%20height%3D%224.5%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%2210%22%20width%3D%2218%22%20height%3D%224.5%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%2211%22%20y%3D%2217%22%20width%3D%2210%22%20height%3D%224%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Hire me badge": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Crect%20x%3D%222.5%22%20y%3D%227%22%20width%3D%2219%22%20height%3D%2210%22%20rx%3D%225%22%20fill%3D%22none%22%2F%3E%3Ccircle%20cx%3D%227.5%22%20cy%3D%2212%22%20r%3D%221.8%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%2211.5%22%20y1%3D%2212%22%20x2%3D%2218%22%20y2%3D%2212%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Social links": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Cline%20x1%3D%228.2%22%20y1%3D%2210.8%22%20x2%3D%2215.8%22%20y2%3D%227.2%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%228.2%22%20y1%3D%2213.2%22%20x2%3D%2215.8%22%20y2%3D%2216.8%22%20fill%3D%22none%22%2F%3E%3Ccircle%20cx%3D%226%22%20cy%3D%2212%22%20r%3D%222.5%22%20fill%3D%22%23FFFFFF%22%2F%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%226%22%20r%3D%222.5%22%20fill%3D%22%23FFFFFF%22%2F%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%2218%22%20r%3D%222.5%22%20fill%3D%22%23FFFFFF%22%2F%3E%3C%2Fsvg%3E", "Quote": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Cpath%20d%3D%22M4%2011h5v6H4z%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M4%2011c0-3%201.5-5%204-6%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M13%2011h5v6h-5z%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M13%2011c0-3%201.5-5%204-6%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E"};
+    var self = this;
+    var tab = this.state.tab;
+    var tabs = [['blocks', 'Blocks'], ['style', 'Style'], ['pages', 'Pages']].map(function (t) {
+      return { label: t[1], pick: function () { self.setState({ tab: t[0] }); },
+        style: 'height:44px;border:0;border-bottom:2px solid ' + (tab === t[0] ? '#141414' : 'transparent') + ';background:transparent;font:inherit;font-weight:' + (tab === t[0] ? '600' : '500') + ';color:' + (tab === t[0] ? '#141414' : '#6A6A70') + ';cursor:pointer;' };
+    });
+    var pat = {
+      cover: 'background:#2A2622;',
+      text: 'background:repeating-linear-gradient(180deg,#141414 0 3px,transparent 3px 9px) 8px 10px/60% 30px no-repeat,#F4F4F2;',
+      cols: 'background:linear-gradient(90deg,#D8D8D4 0 47%,transparent 47% 53%,#D8D8D4 53%);',
+      grid: 'background:repeating-linear-gradient(90deg,#D8D8D4 0 30%,transparent 30% 35%),#FFFFFF;',
+      masonry: 'background:linear-gradient(180deg,#D8D8D4 0 60%,transparent 60% 66%,#D8D8D4 66%) 0 0/32% 100% no-repeat,linear-gradient(180deg,#D8D8D4 0 35%,transparent 35% 41%,#D8D8D4 41%) 50% 0/32% 100% no-repeat,linear-gradient(180deg,#D8D8D4 0 75%,transparent 75% 81%,#D8D8D4 81%) 100% 0/32% 100% no-repeat;',
+      slider: 'background:linear-gradient(90deg,transparent 0 12%,#D8D8D4 12% 88%,transparent 88%);',
+      media: 'background:#5B3A2E;',
+      video: 'background:radial-gradient(circle at 50% 50%,#F4F4F0 0 12%,transparent 13%),#2E4A5B;',
+      ba: 'background:linear-gradient(90deg,#5B3A2E 0 50%,#C6F432 50% 52%,#D8C7B8 52%);',
+      audio: 'background:repeating-linear-gradient(90deg,#141414 0 3px,transparent 3px 7px) 50% 50%/80% 40% no-repeat,#F4F4F2;',
+      pdf: 'background:linear-gradient(135deg,transparent 0 80%,#D8D8D4 80%),#F4F4F2;',
+      lime: 'background:linear-gradient(transparent 40%,#C6F432 40% 80%,transparent 80%) 15% 0/70% 100% no-repeat,#FFFFFF;',
+      logos: 'background:repeating-linear-gradient(90deg,#141414 0 18%,transparent 18% 26%) 0 50%/100% 20% no-repeat,#FFFFFF;',
+      form: 'background:linear-gradient(#E2E2DE,#E2E2DE) 10% 25%/80% 14% no-repeat,linear-gradient(#E2E2DE,#E2E2DE) 10% 55%/80% 14% no-repeat,linear-gradient(#141414,#141414) 10% 85%/35% 14% no-repeat,#FFFFFF;',
+      social: 'background:radial-gradient(circle,#141414 0 30%,transparent 32%) 0 50%/25% 50% repeat-x,#FFFFFF;'
+    };
+    function item(name, p, tag) {
+      return { name: name, icon: IC[name], tag: tag || '', thumb: 'display:block;height:46px;border-radius:6px;border:1px solid #EFEFEC;' + pat[p],
+        tagStyle: tag ? 'padding:1px 5px;border-radius:4px;background:#C6F432;font-size:9px;font-weight:600;' : 'display:none;' };
+    }
+    var groups = [
+      { name: 'LAYOUT', items: [item('Fullscreen cover', 'cover'), item('Text', 'text'), item('Columns', 'cols'), item('Hero headline', 'lime')] },
+      { name: 'GALLERIES', items: [item('Grid', 'grid'), item('Masonry', 'masonry'), item('Slider', 'slider'), item('Lightbox', 'grid'), item('Video gallery', 'video'), item('Fullscreen grid', 'grid')] },
+      { name: 'MEDIA', items: [item('Image', 'media'), item('Video · 4K', 'video'), item('Video background', 'video'), item('Loop / GIF', 'media'), item('Before / after', 'ba'), item('Audio', 'audio'), item('PDF', 'pdf'), item('Embed', 'video')] },
+      { name: 'GET HIRED', items: [item('Reel', 'video', 'Fannan'), item('Credits', 'text', 'Fannan'), item('Logo wall', 'logos', 'Fannan'), item('About / CV', 'text'), item('Contact form', 'form'), item('Hire me badge', 'lime', 'Fannan'), item('Social links', 'social'), item('Quote', 'text')] }
+    ];
+    var presets = [
+      ['Gallery', '#FFFFFF', '#141414'], ['Studio', '#0E0E10', '#F4F4F0'], ['Paper', '#F5F1E8', '#2B2B2E'],
+      ['Lime', '#FFFFFF', '#C6F432'], ['Night', '#141414', '#C6F432'], ['Sand', '#E9E2D4', '#24221F']
+    ].map(function (p, i) {
+      return { name: p[0], style: 'display:flex;flex-direction:column;gap:6px;padding:6px;border:' + (i === 1 ? '2px solid #141414' : '1px solid #E2E2DE') + ';border-radius:10px;background:#FFFFFF;font:inherit;cursor:pointer;',
+        bar: 'display:block;height:30px;border-radius:6px;border:1px solid #EFEFEC;background:linear-gradient(90deg,' + p[1] + ' 0 70%,' + p[2] + ' 70%);' };
+    });
+    var navs = ['Top bar', 'Centred', 'Sidebar', 'Split', 'Minimal'].map(function (n, i) {
+      var pics = [
+        'linear-gradient(#141414,#141414) 8% 18%/30% 10% no-repeat,linear-gradient(#BDBDB7,#BDBDB7) 92% 18%/40% 10% no-repeat',
+        'linear-gradient(#141414,#141414) 50% 15%/34% 10% no-repeat,linear-gradient(#BDBDB7,#BDBDB7) 50% 38%/60% 8% no-repeat',
+        'linear-gradient(#141414,#141414) 0 0/28% 100% no-repeat',
+        'linear-gradient(#141414,#141414) 8% 50%/30% 12% no-repeat,linear-gradient(#BDBDB7,#BDBDB7) 92% 50%/30% 12% no-repeat',
+        'linear-gradient(#141414,#141414) 8% 18%/14% 10% no-repeat'
+      ];
+      return { name: n, style: 'display:flex;flex-direction:column;gap:6px;padding:6px;border:' + (i === 1 ? '2px solid #141414' : '1px solid #E2E2DE') + ';border-radius:10px;background:#FFFFFF;font:inherit;cursor:pointer;',
+        pic: 'display:block;height:36px;border-radius:6px;background:' + pics[i] + ',#F4F4F2;' };
+    });
+    var row = 'display:flex;align-items:center;justify-content:space-between;height:42px;padding:0 10px;border-radius:10px;';
+    var pages = [['Home', ''], ['Character design', '14 projects'], ['2D animation', '9 projects'], ['Storyboard', '6 projects'], ['About', 'CV + bio'], ['Contact', 'Form'], ['Client preview', 'Password']].map(function (p, i) {
+      return { name: p[0], meta: p[1], style: row + (i === 0 ? 'background:#F4F4F2;font-weight:600;' : '') };
+    });
+    var tones = ['#5B3A2E', '#2E4A5B', '#4E5B2E', '#5B2E4F', '#3A3A44', '#5B4C2E'];
+    var tiles = [['Fever Dreams', 'Netflix · Lead character designer'], ['Hakawati Nation', 'MBC Academy · Lead character designer'], ['Zakia Al Zakia', 'Majid TV · Animation supervisor'], ['Long Night', 'Short film · Director'], ['Samado', 'Personal · Character design'], ['The Grand Night', 'Feature · Key animator']].map(function (t, i) {
+      return { title: t[0], meta: t[1], style: 'aspect-ratio:4/3;border-radius:4px;background:' + tones[i] + ';' };
+    });
+    return { tabs: tabs, showBlocks: tab === 'blocks', showStyle: tab === 'style', showPages: tab === 'pages', groups: groups, presets: presets, navs: navs, pages: pages, tiles: tiles };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+rules_version = '2';
+
+// Locked by default. Uploads open in phase 2, with size and type limits from config/plans.json.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

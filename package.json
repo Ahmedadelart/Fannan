@@ -1,0 +1,44 @@
+{
+  "name": "fannan",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "generate": "node scripts/generate.mjs",
+    "predev": "npm run generate",
+    "dev": "next dev",
+    "prebuild": "npm run generate",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "npm run generate && next typegen && tsc --noEmit",
+    "format": "prettier --write .",
+    "test:e2e": "playwright test",
+    "emulators": "firebase emulators:start --project demo-fannan"
+  },
+  "dependencies": {
+    "firebase": "^12.19.0",
+    "firebase-admin": "^14.5.0",
+    "next": "16.4.0",
+    "next-intl": "^4.14.9",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@tailwindcss/turbopack": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.0",
+    "firebase-tools": "^14.27.0",
+    "prettier": "^3.9.9",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "overrides": {
+    "@swc/core": "1.15.47"
+  }
+}

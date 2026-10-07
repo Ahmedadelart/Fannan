@@ -1,0 +1,130 @@
+@import "tailwindcss";
+@import "../styles/tokens.generated.css";
+
+/* Font families. The variables are set by next/font in the root layout. */
+@theme inline {
+  --font-*: initial;
+  --font-display: var(--font-bricolage), system-ui, sans-serif;
+  --font-body: var(--font-plex), var(--font-plex-arabic), system-ui, sans-serif;
+  --font-arabic: var(--font-marhey), var(--font-plex-arabic), sans-serif;
+  /* Headline font that follows the page language: Bricolage in English, Marhey in Arabic. */
+  --font-heading: var(--heading-family);
+  --shadow-*: initial;
+  --shadow-float: 0 12px 32px rgba(20, 20, 20, 0.14);
+}
+
+:root {
+  --heading-family: var(--font-bricolage), system-ui, sans-serif;
+}
+:root[lang="ar"] {
+  --heading-family: var(--font-marhey), var(--font-plex-arabic), sans-serif;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Keyboard focus: 2px ink outline plus a 4px lime ring (BRAND.md §6). */
+  :focus-visible {
+    outline: 2px solid transparent;
+    box-shadow:
+      0 0 0 2px var(--color-ink),
+      0 0 0 6px var(--color-lime);
+  }
+  ::selection {
+    background: var(--color-lime);
+    color: var(--color-ink);
+  }
+}
+
+@utility font-heading-weight {
+  font-weight: 800;
+  :root[lang="ar"] & {
+    font-weight: 700;
+  }
+}
+
+/* Mirror directional icons in right-to-left pages. */
+@utility rtl-mirror {
+  [dir="rtl"] & {
+    transform: scaleX(-1);
+  }
+}
+
+/* The slanted lime stroke from the logo. Sits behind text inside a `relative` parent. */
+@utility hl-stroke {
+  position: absolute;
+  inset-inline-start: calc(var(--hl-overhang) * -1);
+  inset-inline-end: calc(var(--hl-overhang) * -0.5);
+  top: var(--hl-top);
+  bottom: var(--hl-bottom);
+  background: var(--hl-color, var(--color-lime));
+  transform: skewX(var(--hl-skew)) rotate(var(--hl-rotate));
+  z-index: 0;
+}
+
+/* Range slider (Slider component). The filled part follows reading direction. */
+.fannan-range {
+  --fill: linear-gradient(to right, var(--color-ink) var(--pct), var(--color-line) var(--pct));
+  appearance: none;
+  width: 100%;
+  height: 20px;
+  background: transparent;
+  cursor: pointer;
+}
+[dir="rtl"] .fannan-range {
+  --fill: linear-gradient(to left, var(--color-ink) var(--pct), var(--color-line) var(--pct));
+}
+.fannan-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--fill);
+}
+.fannan-range::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--fill);
+}
+.fannan-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -8px;
+  border-radius: 50%;
+  background: var(--color-paper);
+  border: 2px solid var(--color-ink);
+  box-sizing: border-box;
+}
+.fannan-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-paper);
+  border: 2px solid var(--color-ink);
+  box-sizing: border-box;
+}
+.fannan-range:focus-visible {
+  box-shadow: none;
+}
+.fannan-range:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px var(--color-lime);
+}
+.fannan-range:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 4px var(--color-lime);
+}
+
+/* Short bar version, for bullets and markers. */
+@utility hl-bar {
+  display: inline-block;
+  flex: none;
+  background: var(--color-lime);
+  transform: skewX(var(--hl-skew)) rotate(var(--hl-rotate));
+}

@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "fannan-staging",
+    "staging": "fannan-staging",
+    "production": "fannan-510913"
+  }
+}

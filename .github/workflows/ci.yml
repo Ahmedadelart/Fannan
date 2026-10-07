@@ -1,0 +1,72 @@
+# Every push to main: check, test, build one container image, deploy it to staging.
+# Production is a separate, manual step (production.yml) that reuses the same image.
+name: CI and staging
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PROJECT_ID: fannan-510913
+  REGION: europe-west1
+  IMAGE: europe-west1-docker.pkg.dev/fannan-510913/fannan/web
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 14
+
+  deploy-staging:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write # keyless sign-in to Google Cloud
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/129265233489/locations/global/workloadIdentityPools/github/providers/github
+          service_account: github-deployer@fannan-510913.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v3
+      - run: gcloud auth configure-docker europe-west1-docker.pkg.dev --quiet
+      - name: Build and push image
+        run: |
+          docker build -t "$IMAGE:${{ github.sha }}" .
+          docker push "$IMAGE:${{ github.sha }}"
+      - name: Deploy to staging
+        run: |
+          gcloud run deploy fannan-staging \
+            --project "$PROJECT_ID" --region "$REGION" \
+            --image "$IMAGE:${{ github.sha }}" \
+            --service-account web-staging@fannan-510913.iam.gserviceaccount.com \
+            --set-env-vars FIREBASE_ENV=staging,ROOT_DOMAIN=staging.fannan.net,SURFACE_SWITCHER=true \
+            --cpu 1 --memory 512Mi --min-instances 0 --max-instances 2 \
+            --no-invoker-iam-check --quiet
+          echo "### Staging: $(gcloud run services describe fannan-staging --project "$PROJECT_ID" --region "$REGION" --format='value(status.url)')" >> "$GITHUB_STEP_SUMMARY"

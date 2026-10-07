@@ -1,0 +1,44 @@
+# Manual: GitHub → Actions → "Deploy to production" → Run workflow.
+# Ships the exact image already tested on staging (by default, the latest commit on main).
+name: Deploy to production
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: "Commit to ship (leave empty for the latest on main)"
+        required: false
+
+env:
+  PROJECT_ID: fannan-510913
+  REGION: europe-west1
+  IMAGE: europe-west1-docker.pkg.dev/fannan-510913/fannan/web
+
+jobs:
+  deploy-production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - id: sha
+        run: echo "sha=${{ inputs.commit || github.sha }}" >> "$GITHUB_OUTPUT"
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/129265233489/locations/global/workloadIdentityPools/github/providers/github
+          service_account: github-deployer@fannan-510913.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Deploy to production
+        run: |
+          gcloud run deploy fannan-production \
+            --project "$PROJECT_ID" --region "$REGION" \
+            --image "$IMAGE:${{ steps.sha.outputs.sha }}" \
+            --service-account web-production@fannan-510913.iam.gserviceaccount.com \
+            --set-env-vars FIREBASE_ENV=production,ROOT_DOMAIN=fannan.net,SURFACE_SWITCHER=false \
+            --cpu 1 --memory 512Mi --min-instances 0 --max-instances 5 \
+            --no-invoker-iam-check --quiet

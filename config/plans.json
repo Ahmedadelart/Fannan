@@ -1,0 +1,44 @@
+{
+  "_note": "Single source of truth for plans, prices and limits. Prices are in whole units (EGP pounds, US dollars). Pro is PREPAID: one payment buys 3, 6 or 12 months, nothing renews automatically.",
+  "currencyByCountry": { "EG": "EGP", "default": "USD" },
+  "plans": {
+    "free": {
+      "price": 0,
+      "limits": {
+        "projects": 8,
+        "storageBytes": 1073741824,
+        "statsDays": 30,
+        "customDomain": false,
+        "passwordProtection": false,
+        "footerCredit": true
+      }
+    },
+    "pro": {
+      "durations": [
+        { "months": 3,  "EGP": 450,  "USD": 24, "label": "Try it" },
+        { "months": 6,  "EGP": 800,  "USD": 42, "label": "Popular" },
+        { "months": 12, "EGP": 1350, "USD": 72, "label": "Best value" }
+      ],
+      "limits": {
+        "projects": null,
+        "storageBytes": 53687091200,
+        "statsDays": 90,
+        "customDomain": true,
+        "passwordProtection": true,
+        "footerCredit": false
+      }
+    }
+  },
+  "uploads": {
+    "maxImageBytes": 31457280,
+    "maxPdfBytes": 52428800,
+    "maxLoopBytes": 52428800,
+    "maxLoopSeconds": 30,
+    "longVideo": "embed-only (YouTube / Vimeo)"
+  },
+  "renewal": {
+    "reminderDaysBefore": [14, 3, 0],
+    "graceDays": 7,
+    "stacking": "Buying again while Pro is active adds the new months after the current end date."
+  }
+}

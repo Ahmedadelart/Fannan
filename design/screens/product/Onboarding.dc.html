@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fannan onboarding</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@800&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#FFFFFF}
+.inp{height:60px;padding:0 18px;border:2px solid #141414;border-radius:12px;background:#FFFFFF;font:inherit;font-size:20px;color:#141414;box-sizing:border-box;width:100%;outline:none}
+.inp:focus{box-shadow:0 0 0 4px #C6F432}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:52px;padding:0 24px;border:0;border-radius:12px;background:#141414;color:#FFFFFF;font:inherit;font-size:16px;font-weight:600;cursor:pointer;white-space:nowrap}
+.ghost{display:inline-flex;align-items:center;height:52px;padding:0 6px;border:0;background:transparent;font:inherit;font-size:15px;font-weight:600;color:#6A6A70;cursor:pointer}
+.q{margin:0;font-family:'Bricolage Grotesque',sans-serif;font-size:52px;font-weight:800;letter-spacing:-0.025em;line-height:1.05}
+.sub{font-size:18px;color:#3A3A40;margin:0}
+.note{font-size:12px;color:#6A6A70;padding:8px 12px;border-radius:8px;background:#F4F4F2;align-self:flex-start}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1000px; display: flex; flex-direction: column; background: #FFFFFF; color: #141414; font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; line-height: 1.5">
+
+<header style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 40px">
+<span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1"><span style="position: relative; display: inline-block"><span style="position: absolute; left: -0.18em; right: -0.09em; top: 44%; bottom: 6%; background: #C6F432; transform: skewX(-14deg) rotate(-1.5deg)"></span><span style="position: relative">fannan</span></span>.net</span>
+<div aria-label="Progress" style="display: flex; align-items: center; gap: 6px">
+<sc-for list="{{dots}}" as="d" hint-placeholder-count="6"><button onClick="{{d.go}}" aria-label="{{d.label}}" style="{{d.style}}"></button></sc-for>
+</div>
+<span style="font-size: 14px; color: #6A6A70">Already have a site? <a href="Main.dc.html" style="font-weight: 600">Log in</a></span>
+</header>
+
+<div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+
+<main style="flex: 1 1 560px; min-width: 0; padding: 60px 40px 60px 120px; display: flex; flex-direction: column; justify-content: center; gap: 26px; max-width: 760px; box-sizing: border-box">
+
+<sc-if value="{{s1}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 26px">
+<span style="font-size: 14px; font-weight: 600; letter-spacing: .08em; color: #6A6A70">STEP 1 OF 6 · TAKES ABOUT A MINUTE</span>
+<h1 class="q">Let’s build your portfolio. What’s your name?</h1>
+<input class="inp" aria-label="Your name" value="{{name}}" onInput="{{setName}}" placeholder="Your name">
+<div style="display: flex; align-items: center; gap: 14px"><button class="btn" onClick="{{next}}">Next</button><span style="font-size: 13px; color: #6A6A70">No email, no password, no card yet.</span></div>
+</div>
+</sc-if>
+
+<sc-if value="{{s2}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 22px">
+<span style="font-size: 14px; font-weight: 600; letter-spacing: .08em; color: #6A6A70">STEP 2 OF 6</span>
+<h1 class="q">Nice to meet you, {{first}}. What do you do?</h1>
+<input class="inp" aria-label="What you do" value="{{job}}" onInput="{{setJob}}" placeholder="Start typing, e.g. animator">
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{jobs}}" as="j" hint-placeholder-count="8"><button onClick="{{j.pick}}" style="{{j.style}}">{{j.label}}</button></sc-for>
+</div>
+<span class="note">The list autocompletes from about 60 disciplines (animation, comics, illustration, games, motion), in English and Arabic. It shapes the layouts, the sample blocks and the wording in step 4.</span>
+<div style="display: flex; align-items: center; gap: 14px"><button class="btn" onClick="{{next}}">Next</button><button class="ghost" onClick="{{back}}">Back</button></div>
+</div>
+</sc-if>
+
+<sc-if value="{{s3}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 26px">
+<h1 class="q">Setting up a portfolio for a {{jobLower}}…</h1>
+<div style="height: 12px; border-radius: 6px; background: #F4F4F2; overflow: hidden"><div style="width: 68%; height: 12px; background: #C6F432; transform: skewX(-14deg); margin-left: -6px"></div></div>
+<div style="display: flex; flex-direction: column; gap: 10px; font-size: 17px">
+<span style="display: flex; gap: 12px; align-items: center"><span style="width: 14px; height: 7px; background: #141414; transform: skewX(-14deg)"></span>Putting your name on it</span>
+<span style="display: flex; gap: 12px; align-items: center"><span style="width: 14px; height: 7px; background: #141414; transform: skewX(-14deg)"></span>{{loadLine}}</span>
+<span style="display: flex; gap: 12px; align-items: center; color: #6A6A70"><span style="width: 14px; height: 7px; background: #E2E2DE; transform: skewX(-14deg)"></span>Making room for your credits</span>
+</div>
+<span class="note">Moves on by itself after about 3 seconds. The pause is on purpose: it makes the result feel made for them.</span>
+<div><button class="btn" onClick="{{next}}">Continue</button></div>
+</div>
+</sc-if>
+
+<sc-if value="{{s4}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 20px">
+<span style="font-size: 14px; font-weight: 600; letter-spacing: .08em; color: #6A6A70">STEP 4 OF 6</span>
+<h1 class="q" style="font-size: 44px">Pick a starting point, {{first}}.</h1>
+<p class="sub">Made for {{jobPlural}}. Nothing here is final: you can change every block, colour and page later.</p>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+<sc-for list="{{layouts}}" as="l" hint-placeholder-count="4">
+<button onClick="{{l.pick}}" style="{{l.box}}">
+<span style="{{l.pic}}"><span style="{{l.logo}}">{{l.first}}</span><span style="{{l.hero}}"></span><span style="{{l.row}}"><span style="{{l.t}}"></span><span style="{{l.t}}"></span><span style="{{l.t}}"></span></span></span>
+<span style="display: flex; justify-content: space-between; align-items: center; gap: 8px"><span style="font-weight: 600">{{l.name}}</span><span style="{{l.cta}}">{{l.ctaText}}</span></span>
+<span style="font-size: 12px; color: #6A6A70; text-align: left">{{l.desc}}</span>
+</button>
+</sc-for>
+</div>
+<div style="display: flex; align-items: center; gap: 14px"><button class="btn" onClick="{{next}}">Customize this one</button><button class="ghost" onClick="{{back}}">Back</button></div>
+</div>
+</sc-if>
+
+<sc-if value="{{s5}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 22px">
+<span style="font-size: 14px; font-weight: 600; letter-spacing: .08em; color: #6A6A70">STEP 5 OF 6</span>
+<h1 class="q">Where should studios find you?</h1>
+<div style="display: flex; align-items: center; height: 60px; border: 2px solid #141414; border-radius: 12px; padding: 0 18px; font-size: 20px">
+<input aria-label="Username" value="{{user}}" onInput="{{setUser}}" style="flex: 1; min-width: 0; border: 0; outline: none; font: inherit; text-align: right; padding-right: 2px">
+<span style="color: #6A6A70">.fannan.net</span>
+</div>
+<span style="{{userMsgStyle}}">{{userMsg}}</span>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center"><span style="font-size: 13px; color: #6A6A70">Suggestions:</span>
+<sc-for list="{{userSugs}}" as="u" hint-placeholder-count="3"><button onClick="{{u.pick}}" style="height: 32px; padding: 0 12px; border: 1px solid #E2E2DE; border-radius: 999px; background: #FFFFFF; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{u.label}}</button></sc-for>
+</div>
+<div style="display: flex; align-items: center; gap: 14px"><button class="btn" onClick="{{next}}">Claim it</button><button class="ghost" onClick="{{back}}">Back</button></div>
+</div>
+</sc-if>
+
+<sc-if value="{{s6}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 20px">
+<span style="font-size: 14px; font-weight: 600; letter-spacing: .08em; color: #6A6A70">LAST STEP</span>
+<h1 class="q">Don’t lose your progress.</h1>
+<p class="sub">Save {{user}}.fannan.net to your email. We’ll send a sign-in link, so there’s no password to remember.</p>
+<input class="inp" aria-label="Email" placeholder="you@email.com" value="{{email}}" onInput="{{setEmail}}">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+<a href="Editor.dc.html" class="btn" style="text-decoration: none; color: #FFFFFF">Save and open my site</a>
+<a href="Editor.dc.html" style="display: inline-flex; align-items: center; gap: 10px; height: 52px; padding: 0 20px; border: 1px solid #E2E2DE; border-radius: 12px; text-decoration: none; font-weight: 600"><span style="width: 18px; height: 18px; border-radius: 50%; border: 2px solid #141414; box-sizing: border-box"></span>Continue with Google</a>
+</div>
+<div style="display: flex; gap: 14px; align-items: flex-start; padding: 18px; border-radius: 16px; background: #F4F4F2; max-width: 520px">
+<span style="flex: none; width: 44px; height: 44px; border-radius: 50%; background: #5B3A2E"></span>
+<div><div style="font-size: 15px">“[Quote from a beta artist about getting work through their Fannan site.]”</div><div style="font-size: 13px; color: #6A6A70; margin-top: 4px">[Name] · [Discipline], [City]</div></div>
+</div>
+<span style="font-size: 12px; color: #6A6A70">By continuing you agree to the <a href="#">Terms</a> and <a href="#">Content policy</a>. Free forever plan: no card needed.</span>
+</div>
+</sc-if>
+
+</main>
+
+<aside aria-label="Live preview" style="flex: 1 1 480px; min-width: 0; background: #F4F4F2; padding: 60px 56px; display: flex; flex-direction: column; justify-content: center; gap: 14px; box-sizing: border-box">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: .08em; color: #6A6A70">YOUR SITE, AS YOU GO</span>
+<div style="border-radius: 16px; overflow: hidden; background: #FFFFFF; border: 1px solid #E2E2DE; box-shadow: 0 20px 48px rgba(20,20,20,0.08)">
+<div style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-bottom: 1px solid #E2E2DE; font-size: 12px; color: #6A6A70"><span style="width: 9px; height: 9px; border-radius: 50%; background: #D8D8D4"></span><span style="width: 9px; height: 9px; border-radius: 50%; background: #D8D8D4"></span><span style="width: 9px; height: 9px; border-radius: 50%; background: #D8D8D4"></span><span style="margin-left: 8px"><b style="color: #141414">{{user}}</b>.fannan.net</span></div>
+<div style="{{pvBody}}">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="{{pvLogo}}">{{nameShown}}</span><span style="{{pvNav}}">Work · About · Contact</span></div>
+<div style="{{pvJob}}">{{jobShown}}</div>
+<div style="{{pvHero}}"></div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px"><div style="{{pvT1}}"></div><div style="{{pvT2}}"></div><div style="{{pvT3}}"></div></div>
+</div>
+</div>
+<span style="font-size: 13px; color: #6A6A70">The preview updates with each answer. In the real product it’s the actual renderer, not a picture.</span>
+</aside>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { step: 1, name: 'Ahmed Hassan', job: '2D Animator', layout: 0, user: 'ahmedhassan', email: '' }; }
+  renderVals() {
+    var self = this, s = this.state;
+    function go(n) { return function () { self.setState({ step: Math.max(1, Math.min(6, n)) }); }; }
+    var dots = [1, 2, 3, 4, 5, 6].map(function (n) {
+      return { go: go(n), label: 'Step ' + n, style: 'width:' + (n === s.step ? '26px' : '8px') + ';height:8px;border:0;padding:0;border-radius:4px;cursor:pointer;background:' + (n <= s.step ? '#141414' : '#E2E2DE') + ';' };
+    });
+    var first = (s.name || 'there').trim().split(/\s+/)[0] || 'there';
+    var all = ['2D Animator', '3D Animator', 'Character designer', 'Storyboard artist', 'Illustrator', 'Comic artist', 'Concept artist', 'Motion designer', 'Background painter', 'Animation director', 'Visual development artist', 'Game artist'];
+    var q = (s.job || '').toLowerCase();
+    var list = all.filter(function (j) { return !q || j.toLowerCase().indexOf(q.split(' ')[0]) > -1 || j === s.job; });
+    if (list.length < 4) list = all.slice(0, 8);
+    var jobs = list.slice(0, 8).map(function (j) {
+      var on = j === s.job;
+      return { label: j, pick: function () { self.setState({ job: j }); },
+        style: 'height:38px;padding:0 14px;border-radius:999px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;border:' + (on ? '0' : '1px solid #E2E2DE') + ';background:' + (on ? '#141414' : '#FFFFFF') + ';color:' + (on ? '#FFFFFF' : '#141414') + ';' };
+    });
+    var job = s.job || 'Artist';
+    var isAnim = /anim|motion|director/i.test(job);
+    var lay = [
+      { name: isAnim ? 'The Reel' : 'The Showcase', desc: isAnim ? 'Your reel fills the top; projects below. Best for animators.' : 'One big piece up top; projects below.', bg: '#141414', fg: '#FFFFFF', hero: '#2E4A5B', heroH: '46%', font: "'Bricolage Grotesque',sans-serif" },
+      { name: 'The Grid', desc: 'Straight into the work. A tight grid that lets the art talk.', bg: '#FFFFFF', fg: '#141414', hero: 'transparent', heroH: '0%', font: "'IBM Plex Sans',sans-serif" },
+      { name: 'The Storyteller', desc: 'Big case studies with process and credits. Best for directors and leads.', bg: '#F5F1E8', fg: '#2B2B2E', hero: '#5B3A2E', heroH: '34%', font: 'Georgia,serif' },
+      { name: 'The Minimalist', desc: 'Lots of white, small type, nothing in the way.', bg: '#FFFFFF', fg: '#141414', hero: '#E2E2DE', heroH: '22%', font: "'IBM Plex Sans',sans-serif" }
+    ];
+    var tones = ['#5B3A2E', '#2E4A5B', '#4E5B2E'];
+    var layouts = lay.map(function (l, i) {
+      var on = i === s.layout;
+      return { first: first, name: l.name, desc: l.desc, ctaText: on ? 'Selected' : 'I choose you',
+        pick: function () { self.setState({ layout: i }); },
+        box: 'display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:14px;background:#FFFFFF;cursor:pointer;font:inherit;color:#141414;text-align:left;border:2px solid ' + (on ? '#141414' : '#E2E2DE') + ';',
+        pic: 'display:flex;flex-direction:column;gap:6px;height:118px;padding:10px;border-radius:8px;box-sizing:border-box;background:' + l.bg + ';',
+        logo: 'font-family:' + l.font + ';font-weight:800;font-size:13px;color:' + l.fg + ';',
+        hero: 'display:block;height:' + l.heroH + ';border-radius:4px;background:' + l.hero + ';',
+        row: 'display:grid;grid-template-columns:repeat(3,1fr);gap:4px;flex:1;',
+        t: 'display:block;border-radius:3px;background:' + tones[i % 3] + ';opacity:.85;',
+        cta: 'font-size:12px;font-weight:600;padding:3px 8px;border-radius:6px;background:' + (on ? '#C6F432' : '#F4F4F2') + ';' };
+    });
+    var L = lay[s.layout];
+    var base = (s.name || 'yourname').toLowerCase().replace(/[^a-z0-9]+/g, '');
+    var user = s.user || base;
+    var reserved = ['www', 'app', 'admin', 'api', 'fannan', 'help'];
+    var bad = !/^[a-z][a-z0-9-]{2,29}$/.test(user) || reserved.indexOf(user) > -1;
+    var parts = (s.name || '').toLowerCase().split(/\s+/).filter(Boolean);
+    var sugs = [parts.join('-'), (parts[0] || 'me') + 'draws', (parts[0] || 'me') + '-' + job.toLowerCase().split(' ')[0]].filter(function (x) { return x && x !== user; }).slice(0, 3)
+      .map(function (u) { return { label: u, pick: function () { self.setState({ user: u.replace(/[^a-z0-9-]/g, '') }); } }; });
+    var plural = { 'Storyboard artist': 'storyboard artists', 'Animation director': 'animation directors' }[job] || (job.toLowerCase() + 's');
+    var loadLines = isAnim ? 'Giving your reel the top spot' : 'Choosing layouts for ' + plural;
+    return {
+      dots: dots, s1: s.step === 1, s2: s.step === 2, s3: s.step === 3, s4: s.step === 4, s5: s.step === 5, s6: s.step === 6,
+      next: go(s.step + 1), back: go(s.step - 1),
+      name: s.name, setName: function (e) { self.setState({ name: e.target.value }); },
+      first: first, job: s.job, setJob: function (e) { self.setState({ job: e.target.value }); }, jobs: jobs,
+      jobLower: job.toLowerCase(), jobPlural: plural, loadLine: loadLines, layouts: layouts,
+      user: user, setUser: function (e) { self.setState({ user: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }); },
+      userMsg: bad ? 'Use 3–30 letters, numbers or hyphens, starting with a letter. Some names are reserved.' : '✓ ' + user + '.fannan.net is available',
+      userMsgStyle: 'font-size:14px;font-weight:600;color:' + (bad ? '#A33' : '#4A6400') + ';',
+      userSugs: sugs, email: s.email, setEmail: function (e) { self.setState({ email: e.target.value }); },
+      nameShown: s.name || 'Your Name', jobShown: s.step >= 2 ? job : '',
+      pvBody: 'display:flex;flex-direction:column;gap:14px;padding:20px;min-height:330px;background:' + (s.step >= 4 ? L.bg : '#FFFFFF') + ';',
+      pvLogo: 'font-family:' + (s.step >= 4 ? L.font : "'Bricolage Grotesque',sans-serif") + ';font-size:22px;font-weight:800;letter-spacing:-0.02em;color:' + (s.step >= 4 ? L.fg : '#141414') + ';',
+      pvNav: 'font-size:11px;color:' + (s.step >= 4 && L.bg === '#141414' ? '#BDBDB7' : '#6A6A70') + ';',
+      pvJob: 'font-size:14px;color:' + (s.step >= 4 && L.bg === '#141414' ? '#BDBDB7' : '#6A6A70') + ';margin-top:-8px;',
+      pvHero: 'height:' + (s.step >= 4 ? (L.heroH === '0%' ? '0px' : '120px') : '120px') + ';border-radius:8px;background:' + (s.step >= 4 ? L.hero : '#F4F4F2') + ';',
+      pvT1: 'aspect-ratio:1/1;border-radius:6px;background:' + (s.step >= 3 ? tones[0] : '#F4F4F2') + ';',
+      pvT2: 'aspect-ratio:1/1;border-radius:6px;background:' + (s.step >= 3 ? tones[1] : '#F4F4F2') + ';',
+      pvT3: 'aspect-ratio:1/1;border-radius:6px;background:' + (s.step >= 3 ? tones[2] : '#F4F4F2') + ';'
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fannan site settings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@800&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Sans+Arabic:wght@500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F4F2}
+a{color:#141414}a:hover{color:#4A6400}
+.fld{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:#3A3A40}
+.inp{height:40px;padding:0 12px;border:1px solid #E2E2DE;border-radius:10px;background:#FFFFFF;font:inherit;font-size:14px;font-weight:400;color:#141414;box-sizing:border-box;width:100%}
+.card{background:#FFFFFF;border:1px solid #E2E2DE;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px}
+.h{font-family:'Bricolage Grotesque',sans-serif;font-size:19px;font-weight:800}
+.sub{font-size:13px;color:#6A6A70;margin-top:-8px}
+.btn{height:40px;padding:0 14px;border:1px solid #E2E2DE;border-radius:10px;background:#FFFFFF;font:inherit;font-weight:600;cursor:pointer;color:#141414}
+.tg{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:#F4F4F2;cursor:pointer}
+.tg input{width:20px;height:20px;accent-color:#141414}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1200px; display: flex; flex-wrap: wrap; background: #F4F4F2; color: #141414; font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; line-height: 1.5">
+
+<aside style="flex: 1 1 236px; max-width: 236px; min-width: 200px; background: #FFFFFF; border-right: 1px solid #E2E2DE; padding: 22px 14px; display: flex; flex-direction: column; gap: 24px">
+<a href="Main.dc.html" style="padding: 0 8px; text-decoration: none; font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1"><span style="position: relative; display: inline-block"><span style="position: absolute; left: -0.18em; right: -0.09em; top: 44%; bottom: 6%; background: #C6F432; transform: skewX(-14deg) rotate(-1.5deg)"></span><span style="position: relative">fannan</span></span>.net</a>
+<nav aria-label="App" style="display: flex; flex-direction: column; gap: 2px">
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="5">
+<a href="{{n.href}}" style="{{n.style}}"><img src="{{n.icon}}" alt="" width="20" height="20" style="{{n.mark}}">{{n.label}}</a>
+</sc-for>
+</nav>
+<nav aria-label="Settings sections" style="display: flex; flex-direction: column; gap: 2px; padding: 0 10px; font-size: 13px; color: #6A6A70">
+<span style="font-size: 11px; font-weight: 600; letter-spacing: .06em; margin-bottom: 4px">ON THIS PAGE</span>
+<span>Domain</span><span>Privacy</span><span>Contact &amp; hiring</span><span>Language</span><span>Search &amp; sharing</span><span>Integrations</span><span>Plan &amp; billing</span>
+</nav>
+</aside>
+
+<main style="flex: 999 1 560px; min-width: 0; padding: 30px 36px 48px; display: flex; flex-direction: column; gap: 18px; max-width: 1100px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px">
+<div>
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 34px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1">Site settings</h1>
+<div style="color: #6A6A70; margin-top: 4px">Your address, who can see it, and how studios reach you.</div>
+</div>
+<button style="height: 44px; padding: 0 20px; border: 0; border-radius: 12px; background: #141414; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer; display: flex; align-items: center"><span style="display: inline-flex; margin-right: 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true" style="display:block;flex:none;overflow:visible"><path d="M21 3L3 10.5l7 3 3 7z" fill="none"/><line x1="10" y1="13.5" x2="21" y2="3" fill="none"/></svg></span>Save changes</button>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 16px; align-items: start">
+
+<section class="card" aria-label="Domain">
+<span class="h">Domain</span>
+<span class="sub">Where people find your site.</span>
+<div role="radiogroup" aria-label="Domain type" style="display: flex; gap: 8px">
+<sc-for list="{{domains}}" as="d" hint-placeholder-count="2"><button role="radio" aria-checked="{{d.on}}" onClick="{{d.pick}}" style="{{d.style}}">{{d.label}}</button></sc-for>
+</div>
+<sc-if test="{{isFannan}}">
+<label class="fld">Your Fannan address<span style="display: flex; align-items: center; border: 1px solid #E2E2DE; border-radius: 10px; overflow: hidden"><input class="inp" value="yourname" style="border: 0; border-radius: 0; text-align: right; padding-right: 2px"><span style="padding: 0 12px 0 0; height: 40px; display: flex; align-items: center; color: #6A6A70; font-weight: 400">.fannan.net</span></span></label><span style="font-size: 12px; font-weight: 400; color: #6A6A70">Letters, numbers and hyphens. Free SSL included.</span>
+</sc-if>
+<sc-if test="{{isCustom}}">
+<label class="fld">Your domain<input class="inp" value="yourname.com"></label>
+<div style="padding: 12px; border-radius: 10px; background: #F4F4F2; font-size: 12px; color: #3A3A40; display: flex; flex-direction: column; gap: 4px">
+<span style="font-weight: 600; color: #141414">Point your domain to Fannan</span>
+<span>CNAME · www → sites.fannan.net</span>
+<span>A · @ → [IP address]</span>
+<span style="display: flex; align-items: center; gap: 6px; margin-top: 4px"><span style="width: 8px; height: 8px; border-radius: 50%; background: #E0A100"></span>Waiting for DNS · free SSL turns on automatically</span>
+</div>
+<button class="btn" style="align-self: flex-start">Buy a domain through Fannan</button>
+</sc-if>
+</section>
+
+<section class="card" aria-label="Privacy">
+<span class="h">Privacy</span>
+<label class="tg"><span style="display: flex; flex-direction: column"><span style="font-weight: 600">Password-protect the whole site</span><span style="font-size: 12px; color: #6A6A70">Visitors need a password to see anything</span></span><input type="checkbox" checked="{{sitePw}}" onChange="{{toggleSitePw}}"></label>
+<sc-if test="{{sitePw}}"><label class="fld">Site password<input class="inp" value="showreel2026"></label></sc-if>
+<label class="tg"><span style="display: flex; flex-direction: column"><span style="font-weight: 600">Protect images</span><span style="font-size: 12px; color: #6A6A70">Turn off right-click save and add a light watermark</span></span><input type="checkbox" checked></label>
+<label class="tg"><span style="display: flex; flex-direction: column"><span style="font-weight: 600">Show in Fannan search</span><span style="font-size: 12px; color: #6A6A70">Studios searching Fannan can find you</span></span><input type="checkbox" checked></label>
+<label class="tg"><span style="display: flex; flex-direction: column"><span style="font-weight: 600">Let Google index my site</span></span><input type="checkbox" checked></label>
+</section>
+
+<section class="card" aria-label="Contact and hiring">
+<span class="h">Contact &amp; hiring</span>
+<span class="sub">Messages from your contact form and “Hire me” button go to:</span>
+<label class="tg"><span style="font-weight: 600">Fannan inbox</span><input type="checkbox" checked disabled></label>
+<label class="tg"><span style="display: flex; flex-direction: column"><span style="font-weight: 600">Email</span><span style="font-size: 12px; color: #6A6A70">you@email.com</span></span><input type="checkbox" checked="{{toEmail}}" onChange="{{toggleEmail}}"></label>
+<label class="tg"><span style="display: flex; flex-direction: column"><span style="font-weight: 600">WhatsApp</span><span style="font-size: 12px; color: #6A6A70">Get a WhatsApp message for each new enquiry</span></span><input type="checkbox" checked="{{toWa}}" onChange="{{toggleWa}}"></label>
+<sc-if test="{{toWa}}"><label class="fld">WhatsApp number<input class="inp" value="+20 1X XXXX XXXX"></label></sc-if>
+<label class="fld">Ask visitors for<span style="display: flex; flex-wrap: wrap; gap: 6px; font-weight: 400"><span style="padding: 4px 10px; border-radius: 999px; background: #141414; color: #FFFFFF; font-size: 12px; font-weight: 600">Name</span><span style="padding: 4px 10px; border-radius: 999px; background: #141414; color: #FFFFFF; font-size: 12px; font-weight: 600">Email</span><span style="padding: 4px 10px; border-radius: 999px; background: #141414; color: #FFFFFF; font-size: 12px; font-weight: 600">Project type</span><span style="padding: 4px 10px; border-radius: 999px; background: #F4F4F2; font-size: 12px; font-weight: 600">Budget</span><span style="padding: 4px 10px; border-radius: 999px; background: #F4F4F2; font-size: 12px; font-weight: 600">Deadline</span><span style="padding: 4px 10px; border-radius: 999px; background: #F4F4F2; font-size: 12px; font-weight: 600">+ Custom question</span></span></label>
+<label class="fld">Social links<span style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px"><input class="inp" value="instagram.com/yourname"><input class="inp" value="linkedin.com/in/yourname"><input class="inp" value="artstation.com/yourname"><input class="inp" placeholder="Behance, Vimeo, X, TikTok…"></span></label>
+<label class="fld">Résumé / CV (PDF)<button class="btn" style="align-self: flex-start">Upload CV</button></label>
+</section>
+
+<section class="card" aria-label="Language">
+<span class="h">Language</span>
+<span class="sub">Your site’s language. The Arabic version flips the layout right-to-left.</span>
+<div role="radiogroup" aria-label="Site language" style="display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{langs}}" as="l" hint-placeholder-count="3"><button role="radio" aria-checked="{{l.on}}" onClick="{{l.pick}}" style="{{l.style}}"><span style="font-weight: 600">{{l.label}}</span><span style="font-size: 12px; color: #6A6A70">{{l.desc}}</span></button></sc-for>
+</div>
+<span class="h" style="margin-top: 8px">Search &amp; sharing</span>
+<label class="fld">Site title<input class="inp" value="Your Name · Character designer &amp; animator"></label>
+<label class="fld">Description<input class="inp" value="Character design, 2D animation and storyboards from Cairo."></label>
+<div style="display: flex; gap: 12px; align-items: flex-start">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600; color: #3A3A40">Share image<div style="aspect-ratio: 1200 / 630; border-radius: 10px; background: #141414; display: flex; align-items: flex-end; padding: 10px; box-sizing: border-box; color: #FFFFFF; font-family: 'Bricolage Grotesque', sans-serif; font-size: 16px; font-weight: 800">Your Name</div></div>
+<div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600; color: #3A3A40">Favicon<div style="width: 64px; height: 64px; border-radius: 14px; background: #C6F432; display: flex; align-items: center; justify-content: center; font-family: 'Bricolage Grotesque', sans-serif; font-size: 30px; font-weight: 800">Y</div></div>
+</div>
+</section>
+
+<section class="card" aria-label="Integrations">
+<span class="h">Integrations</span>
+<label class="fld">Google Analytics ID<input class="inp" placeholder="G-XXXXXXXXXX"></label>
+<label class="fld">Meta Pixel ID<input class="inp" placeholder="Optional"></label>
+<label class="fld">Custom code in &lt;head&gt; <span style="font-weight: 400; color: #6A6A70">(Pro)</span><input class="inp" placeholder="&lt;script&gt;…" disabled style="background: #F4F4F2"></label>
+<div style="display: flex; flex-wrap: wrap; gap: 8px"><button class="btn">Import from ArtStation</button><button class="btn">Import from Behance</button><button class="btn">Export my site (.zip)</button></div>
+</section>
+
+<section class="card" aria-label="Plan and billing" style="grid-column: 1 / -1">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px">
+<span class="h">Plan &amp; billing</span>
+<div role="radiogroup" aria-label="Pricing region (preview only)" style="display: flex; padding: 4px; border-radius: 12px; background: #F4F4F2; gap: 2px">
+<sc-for list="{{cycles}}" as="c" hint-placeholder-count="2"><button role="radio" aria-checked="{{c.on}}" onClick="{{c.pick}}" style="{{c.style}}">{{c.label}}</button></sc-for>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px">
+<sc-for list="{{plans}}" as="p" hint-placeholder-count="4">
+<div style="{{p.box}}">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 22px; font-weight: 800">{{p.name}}</span><span style="{{p.tagStyle}}">{{p.tag}}</span></div>
+<div><span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 30px; font-weight: 800">{{p.price}}</span><span style="color: #6A6A70"> {{p.per}}</span></div>
+<div style="font-size: 13px; color: #3A3A40">{{p.blurb}}</div>
+<div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px">
+<sc-for list="{{p.feats}}" as="f" hint-placeholder-count="6"><span style="display: flex; gap: 8px"><span style="flex: none; width: 10px; height: 5px; margin-top: 8px; background: #C6F432; transform: skewX(-14deg)"></span>{{f}}</span></sc-for>
+</div>
+<button style="{{p.btn}}">{{p.cta}}</button>
+</div>
+</sc-for>
+</div>
+<div style="font-size: 12px; color: #6A6A70">Prices follow your country automatically: EGP in Egypt, USD everywhere else. Pro is prepaid: we email you 14 days and 3 days before it ends, and buying again adds the time on top. If it runs out, your site stays up on Free and nothing is deleted.</div>
+</section>
+
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1200}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { domain: 'fannan', sitePw: false, toEmail: true, toWa: true, lang: 'both', cycle: 'egp' }; }
+  renderVals() {
+    var IC = {"Dashboard": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%228%22%20height%3D%2210%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%2213%22%20y%3D%223%22%20width%3D%228%22%20height%3D%226%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%2213%22%20y%3D%2211%22%20width%3D%228%22%20height%3D%2210%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%2215%22%20width%3D%228%22%20height%3D%226%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Site editor": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Cpath%20d%3D%22M14.5%204.5l5%205L9%2020H4v-5z%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%2212.5%22%20y1%3D%226.5%22%20x2%3D%2217.5%22%20y2%3D%2211.5%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Projects": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Crect%20x%3D%225%22%20y%3D%228%22%20width%3D%2216%22%20height%3D%2212%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M3%2016V6a2%202%200%200%201%202-2h12%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Stats": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Cline%20x1%3D%223.5%22%20y1%3D%2220.5%22%20x2%3D%2220.5%22%20y2%3D%2220.5%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%225%22%20y%3D%2212%22%20width%3D%223%22%20height%3D%228.5%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%2210.5%22%20y%3D%226%22%20width%3D%223%22%20height%3D%2214.5%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3Crect%20x%3D%2216%22%20y%3D%229.5%22%20width%3D%223%22%20height%3D%2211%22%20rx%3D%220%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E", "Settings": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23141414%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%20aria-hidden%3D%22true%22%20style%3D%22display%3Ablock%3Bflex%3Anone%3Boverflow%3Avisible%22%3E%3Cline%20x1%3D%224%22%20y1%3D%227%22%20x2%3D%2220%22%20y2%3D%227%22%20fill%3D%22none%22%2F%3E%3Cline%20x1%3D%224%22%20y1%3D%2217%22%20x2%3D%2220%22%20y2%3D%2217%22%20fill%3D%22none%22%2F%3E%3Ccircle%20cx%3D%229%22%20cy%3D%227%22%20r%3D%222.2%22%20fill%3D%22%23FFFFFF%22%2F%3E%3Ccircle%20cx%3D%2215%22%20cy%3D%2217%22%20r%3D%222.2%22%20fill%3D%22%23FFFFFF%22%2F%3E%3C%2Fsvg%3E"};
+    var self = this, s = this.state;
+    var base = 'display:flex;align-items:center;gap:10px;height:40px;padding:0 10px;border-radius:10px;text-decoration:none;color:#3A3A40;font-weight:500;';
+    var nav = [
+      { label: 'Dashboard', href: 'Main.dc.html' },
+      { label: 'Site editor', href: 'Editor.dc.html' },
+      { label: 'Projects', href: 'Project.dc.html' },
+      { label: 'Stats', href: 'Stats.dc.html' },
+      { label: 'Settings', href: 'Settings.dc.html', on: true }
+    ].map(function (n) {
+      return { label: n.label, href: n.href,
+        style: base + (n.on ? 'background:#F4F4F2;color:#141414;font-weight:600;' : ''),
+        icon: IC[n.label], mark: 'display:block;flex:none;width:20px;height:20px;padding:4px;margin-left:-4px;border-radius:6px;background:' + (n.on ? '#C6F432' : 'transparent') + ';' };
+    });
+    function seg(on) { return 'flex:1;height:40px;padding:0 14px;border-radius:10px;font:inherit;font-weight:600;cursor:pointer;border:2px solid ' + (on ? '#141414' : '#E2E2DE') + ';background:' + (on ? '#F4F4F2' : '#FFFFFF') + ';color:#141414;'; }
+    var domains = [{ id: 'fannan', label: 'yourname.fannan.net' }, { id: 'custom', label: 'My own domain' }].map(function (d) {
+      var on = s.domain === d.id;
+      return { label: d.label, on: on ? 'true' : 'false', style: seg(on), pick: function () { self.setState({ domain: d.id }); } };
+    });
+    var langs = [
+      { id: 'en', label: 'English only', desc: 'Default' },
+      { id: 'ar', label: 'Arabic only', desc: 'Right-to-left, Arabic fonts' },
+      { id: 'both', label: 'English and Arabic', desc: 'Visitors switch with a toggle; untranslated projects fall back to English' }
+    ].map(function (l) {
+      var on = s.lang === l.id;
+      return { label: l.label, desc: l.desc, on: on ? 'true' : 'false', pick: function () { self.setState({ lang: l.id }); },
+        style: 'display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;border-radius:10px;cursor:pointer;font:inherit;color:#141414;text-align:left;background:' + (on ? '#F4F4F2' : '#FFFFFF') + ';border:2px solid ' + (on ? '#141414' : '#E2E2DE') + ';' };
+    });
+    var cycles = [{ id: 'egp', label: 'Egypt · EGP' }, { id: 'usd', label: 'Elsewhere · USD' }].map(function (c) {
+      var on = s.cycle === c.id;
+      return { label: c.label, on: on ? 'true' : 'false', pick: function () { self.setState({ cycle: c.id }); },
+        style: 'height:34px;padding:0 14px;border:0;border-radius:8px;font:inherit;font-weight:600;cursor:pointer;background:' + (on ? '#141414' : 'transparent') + ';color:' + (on ? '#FFFFFF' : '#3A3A40') + ';' };
+    });
+    var egp = s.cycle !== 'usd';
+    var P = egp ? [['450 EGP', '150 EGP a month'], ['800 EGP', '133 EGP a month · save 11%'], ['1,350 EGP', '112 EGP a month · save 25%']]
+                : [['$24', '$8 a month'], ['$42', '$7 a month · save 12%'], ['$72', '$6 a month · save 25%']];
+    var proFeats = ['Unlimited projects', 'Your own domain + free SSL', 'Much more storage', 'Password pages and full-site password', 'Full stats: 90 days, referrers, countries', 'No Fannan credit in the footer'];
+    var plans = [
+      { name: 'Free', tag: 'Current plan', price: egp ? '0 EGP' : '$0', per: 'forever', blurb: 'Everything you need to get your work out there.', cta: 'Current plan', cur: true,
+        feats: ['8 projects', 'yourname.fannan.net', 'All themes and blocks', 'Available-for-work badge + contact form', 'Stats for the last 30 days', 'Small “Made with Fannan” credit'] },
+      { name: 'Pro · 3 months', tag: 'Try it', price: P[0][0], per: P[0][1], blurb: 'Paid once. Nothing renews automatically.', cta: 'Get 3 months', feats: proFeats },
+      { name: 'Pro · 6 months', tag: 'Popular', price: P[1][0], per: P[1][1], blurb: 'Paid once. Nothing renews automatically.', cta: 'Get 6 months', feats: proFeats },
+      { name: 'Pro · 12 months', tag: 'Best value', price: P[2][0], per: P[2][1], blurb: 'Paid once. Nothing renews automatically.', cta: 'Get 12 months', hot: true, feats: proFeats }
+    ].map(function (p) {
+      return Object.assign({}, p, {
+        box: 'display:flex;flex-direction:column;gap:12px;padding:20px;border-radius:14px;border:2px solid ' + (p.hot ? '#141414' : '#E2E2DE') + ';background:#FFFFFF;',
+        tagStyle: 'padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;background:' + (p.hot ? '#C6F432' : '#F4F4F2') + ';',
+        btn: 'margin-top:auto;height:42px;border-radius:10px;font:inherit;font-weight:600;cursor:pointer;' + (p.hot ? 'border:0;background:#141414;color:#FFFFFF;' : p.cur ? 'border:1px solid #E2E2DE;background:#F4F4F2;color:#6A6A70;' : 'border:1px solid #E2E2DE;background:#FFFFFF;color:#141414;')
+      });
+    });
+    return {
+      nav: nav, domains: domains, langs: langs, cycles: cycles, plans: plans,
+      isFannan: s.domain === 'fannan', isCustom: s.domain === 'custom',
+      sitePw: s.sitePw, toEmail: s.toEmail, toWa: s.toWa,
+      toggleSitePw: function () { self.setState({ sitePw: !self.state.sitePw }); },
+      toggleEmail: function () { self.setState({ toEmail: !self.state.toEmail }); },
+      toggleWa: function () { self.setState({ toWa: !self.state.toWa }); }
+    };
+  }
+}
+</script>
+</body>
+</html>
