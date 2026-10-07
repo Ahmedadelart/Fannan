@@ -38,7 +38,11 @@ export async function processMedia(input: {
   if (firebaseEnv() !== "emulator") {
     auth ??= new GoogleAuth();
     const client = await auth.getIdTokenClient(URL_);
-    Object.assign(headers, await client.getRequestHeaders());
+    // Newer versions return a fetch Headers object, older ones a plain object.
+    const h = (await client.getRequestHeaders()) as unknown as Headers | Record<string, string>;
+    const authorization = h instanceof Headers ? h.get("authorization") : (h.Authorization ?? h.authorization);
+    if (!authorization) throw new Error("no identity token for the media function");
+    headers.authorization = authorization;
   }
   const res = await fetch(URL_, {
     method: "POST",
