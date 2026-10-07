@@ -34,7 +34,7 @@ _Last updated: 7 Oct 2026, end of phase 0._
 - Nothing.
 
 ## Blocked on Ahmed
-- See the end-of-phase message. Java install for the local emulators was waiting on a Windows permission prompt.
+- Error colour decision, Firestore location (recommend europe-west1), billing on fannan-staging (before phase 2).
 
 ## Known issues and notes
 - **SWC pinned:** `@swc/core` is pinned to 1.15.47 in `package.json` → `overrides`. Version 1.16 refuses to start on this Windows machine because of folder permissions on its cache. Remove the override once that's fixed upstream.
