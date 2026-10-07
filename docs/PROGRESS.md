@@ -34,7 +34,7 @@ _Last updated: 7 Oct 2026, end of phase 0._
 - Nothing.
 
 ## Blocked on Ahmed
-- Error colour decision, Firestore location (recommend europe-west1), billing on fannan-staging (before phase 2).
+- Billing on `fannan-staging` (needed before phase 2): Google refused to link it because the billing account already has its 5-project limit (fannan, zareef, feshar, artgym, klaket). Ahmed to request a higher limit or free a slot.
 
 ## Known issues and notes
 - **SWC pinned:** `@swc/core` is pinned to 1.15.47 in `package.json` → `overrides`. Version 1.16 refuses to start on this Windows machine because of folder permissions on its cache. Remove the override once that's fixed upstream.
@@ -43,6 +43,6 @@ _Last updated: 7 Oct 2026, end of phase 0._
 - **Staging Cloud Run lives in the production Google Cloud project** (one image store, one deploy identity) but uses the **fannan-staging Firebase project** for data. `fannan-staging` needs billing linked before phase 2 (Cloud Storage needs it).
 - **New icons** added following ICONS.md: `chevron-down`, `close`, `check` (needed for selects, modals and checkboxes).
 - **Two greys** from the screens that `tokens.json` doesn't name were added as `ink-soft` #3A3A40 and `line-strong` #CFCFC8.
-- **Error colour:** there's no red in the brand. Form errors use a 2px ink border and a small lime bar before the message. Waiting for Ahmed's call.
+- **Error colour (decided):** no red. Form errors use a 2px ink border and a small lime bar before the message.
 - **Cards** use 22px corners per CLAUDE.md (Shapes screen shows 16px).
-- Firestore database location not chosen yet (needed in phase 1; recommendation: `europe-west1`, same as Cloud Run).
+- **Firestore (decided):** databases created in `europe-west1` (Belgium) in both `fannan-510913` and `fannan-staging`.
