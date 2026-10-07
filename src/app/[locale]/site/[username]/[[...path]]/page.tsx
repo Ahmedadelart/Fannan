@@ -1,0 +1,490 @@
+import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
+import type { ReactNode } from "react";
+import { StagingBar } from "@/components/StagingBar";
+import { ContactForm } from "@/components/site/live/ContactForm";
+import { MatureGate } from "@/components/site/live/MatureGate";
+import { SiteEnhancer } from "@/components/site/live/SiteEnhancer";
+import { SiteRender, type GalleryProject, type SiteMedia } from "@/components/site/SiteRender";
+import type { Locale } from "@/i18n/locales";
+import { imageSources, posterSources } from "@/lib/media";
+import { surfaceOfRequest } from "@/lib/server/host";
+import { accessCookieName, checkAccessCookie, liveSite, mediaToken, type LiveSite } from "@/lib/server/public";
+import type { PublishedProject } from "@/lib/server/site";
+import { TURNSTILE_SITE_KEY } from "@/lib/server/turnstile";
+import type { SiteDraft } from "@/lib/site/types";
+import { parseVideoLink, videoPoster } from "@/lib/video";
+import { unlock } from "../actions";
+
+// Public artist sites: {username}.fannan.net/{page-or-project}. Reads only the published snapshot.
+
+type Params = { locale: Locale; username: string; path?: string[] };
+
+function resolve(site: LiveSite, path: string[] | undefined) {
+  if (path && path.length > 1) return null;
+  const slug = path?.[0] ?? "";
+  const page = site.pages.find((p) => p.slug === slug && p.type !== "link");
+  if (page) return { kind: "page" as const, page, scope: page.id, hash: page.passwordHash };
+  const project = slug ? site.projects.find((p) => p.slug === slug) : undefined;
+  if (project)
+    return {
+      kind: "project" as const,
+      project,
+      scope: project.id,
+      hash: project.visibility === "password" ? project.passwordHash : null,
+    };
+  return null;
+}
+
+const asDraft = (s: LiveSite): SiteDraft => ({
+  language: s.language,
+  title: s.title,
+  tagline: s.tagline,
+  theme: s.theme,
+  pages: s.pages,
+});
+
+function galleryProjects(s: LiveSite): GalleryProject[] {
+  return s.projects
+    .filter((p) => p.visibility !== "hidden")
+    .map((p) => ({
+      id: p.id,
+      slug: p.slug,
+      title: projectText(s, p).title,
+      category: p.category,
+      client: p.client,
+      role: projectText(s, p).role,
+      visibility: p.visibility,
+      coverId: p.visibility === "password" ? null : p.coverId,
+      mature: p.mature,
+    }));
+}
+
+function projectText(s: LiveSite, p: PublishedProject) {
+  const ar = s.language === "ar" && p.arabic;
+  return {
+    title: (ar && p.ar.title) || p.title,
+    role: (ar && p.ar.role) || p.role,
+    description: (ar && p.ar.description) || p.description,
+  };
+}
+
+function mediaFor(s: LiveSite, id: string | null | undefined, base: string, want = 1600) {
+  const m = id ? s.media[id] : null;
+  return m ? (posterSources(m, want, base) ?? imageSources(m, want, base)) : null;
+}
+
+/* ---------- metadata (title, description, Open Graph, favicon) ---------- */
+
+export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+  const { username, path } = await params;
+  const site = await liveSite(username);
+  if (!site) return { title: username, robots: { index: false } };
+  const r = resolve(site, path);
+  const { origin } = await surfaceOfRequest();
+  const abs = (u: string | undefined | null) => (u ? new URL(u, origin).toString() : undefined);
+  const firstCover = site.projects.find((p) => p.visibility === "public" && p.coverId)?.coverId;
+  const favicon = mediaFor(site, site.theme.faviconMediaId, "/m/", 400)?.src;
+  const base: Metadata = {
+    metadataBase: new URL(origin),
+    icons: { icon: favicon ?? "data:," },
+    alternates: { canonical: abs(`/${path?.join("/") ?? ""}`) },
+  };
+  if (!r) return { ...base, title: site.title, robots: { index: false } };
+  const locked = !!r.hash;
+  if (r.kind === "project") {
+    const p = r.project;
+    const text = projectText(site, p);
+    const title = p.seo.title || `${text.title} · ${site.title}`;
+    const description = p.seo.description || text.description.slice(0, 200) || site.tagline;
+    const image = locked ? undefined : abs(mediaFor(site, p.coverId, "/m/")?.src);
+    return {
+      ...base,
+      title: { absolute: title },
+      description,
+      robots: { index: !locked && p.visibility === "public" },
+      openGraph: { title, description, type: "article", images: image ? [image] : undefined },
+      twitter: { card: image ? "summary_large_image" : "summary" },
+    };
+  }
+  const title = r.page.slug
+    ? `${r.page.title} · ${site.title}`
+    : `${site.title}${site.tagline ? ` · ${site.tagline}` : ""}`;
+  const image = abs(mediaFor(site, firstCover ?? site.theme.logoMediaId, "/m/")?.src);
+  return {
+    ...base,
+    title: { absolute: title },
+    description: site.tagline || site.title,
+    robots: { index: !locked },
+    openGraph: { title, description: site.tagline, type: "profile", images: image ? [image] : undefined },
+    twitter: { card: image ? "summary_large_image" : "summary" },
+  };
+}
+
+/* ---------- pieces ---------- */
+
+async function PasswordScreen({
+  username,
+  scope,
+  back,
+  wrong,
+}: {
+  username: string;
+  scope: string;
+  back: string;
+  wrong: boolean;
+}) {
+  const t = await getTranslations("site.password");
+  const field = {
+    border: "1px solid var(--site-line)",
+    borderRadius: "var(--site-radius)",
+    background: "var(--site-bg)",
+    color: "var(--site-text)",
+  };
+  return (
+    <form action={unlock} className="mx-auto flex w-full max-w-[420px] flex-col gap-4 py-16 text-center">
+      <h1 className="m-0 text-[32px]" style={{ fontFamily: "var(--site-heading)" }}>
+        {t("title")}
+      </h1>
+      <p className="m-0" style={{ color: "var(--site-muted)" }}>
+        {t("text")}
+      </p>
+      <input type="hidden" name="username" value={username} />
+      <input type="hidden" name="scope" value={scope} />
+      <input type="hidden" name="back" value={back} />
+      <label className="grid gap-1.5 text-start text-[14px] font-semibold">
+        {t("label")}
+        <input
+          name="password"
+          type="password"
+          required
+          autoFocus
+          className="w-full px-3.5 py-3 text-[16px]"
+          style={field}
+        />
+      </label>
+      {wrong && (
+        <p role="alert" className="m-0 text-[14px] font-semibold">
+          {t("wrong")}
+        </p>
+      )}
+      <button
+        type="submit"
+        className="site-button justify-center border-0"
+        style={{ cursor: "pointer", font: "inherit", fontWeight: 600 }}
+      >
+        {t("open")}
+      </button>
+    </form>
+  );
+}
+
+async function ProjectView({ site, project, base }: { site: LiveSite; project: PublishedProject; base: string }) {
+  const t = await getTranslations("site.project");
+  const tm = await getTranslations("site.mature");
+  const tp = await getTranslations("projects");
+  const text = projectText(site, project);
+  const credits: Array<[string, string]> = [
+    [t("role"), text.role],
+    [t("client"), project.client],
+    [t("studio"), project.studio],
+    [t("year"), project.year],
+    [t("team"), project.team],
+  ].filter(([, v]) => v) as Array<[string, string]>;
+
+  const items = project.mediaIds
+    .map(
+      (id) =>
+        site.media[id] as
+          | (SiteMedia & {
+              display?: { fullWidth: boolean; lightbox: boolean; autoplay: boolean };
+              text?: string;
+              original?: string | null;
+            })
+          | undefined,
+    )
+    .filter(Boolean);
+  const full = { marginInline: "calc(var(--site-pad) * -1)" };
+  const mediaList: ReactNode = (
+    <div className="flex flex-col gap-6">
+      {items.map((m) => {
+        if (!m) return null;
+        const style = m.display?.fullWidth ? full : undefined;
+        if (m.type === "text") {
+          return (
+            <div key={m.id} className="max-w-[760px] text-[18px] leading-[1.6] whitespace-pre-line">
+              {m.text}
+            </div>
+          );
+        }
+        if (m.type === "embed") {
+          const v = parseVideoLink(m.embed?.url ?? "");
+          const poster = m.embed?.poster ?? videoPoster(v);
+          return (
+            <figure key={m.id} className="m-0 flex flex-col gap-2" style={style}>
+              <div
+                className="relative overflow-hidden"
+                data-video={m.embed?.url}
+                style={{ aspectRatio: "16 / 9", background: "#141414", borderRadius: "var(--site-radius)" }}
+              >
+                {poster && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={poster}
+                    alt={m.embed?.title ?? ""}
+                    loading="lazy"
+                    className="block h-full w-full object-cover"
+                  />
+                )}
+                <span
+                  aria-hidden
+                  className="absolute inset-0 m-auto flex size-16 items-center justify-center rounded-full"
+                  style={{ background: "rgba(20,20,20,.55)" }}
+                >
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFFFFF">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </span>
+              </div>
+              {m.caption && <figcaption style={{ color: "var(--site-muted)" }}>{m.caption}</figcaption>}
+            </figure>
+          );
+        }
+        if (m.type === "loop" && m.loop) {
+          return (
+            <figure key={m.id} className="m-0 flex flex-col gap-2" style={style}>
+              <video
+                src={`${base}${m.loop}`}
+                poster={imageSources(m, 1600, base)?.src}
+                muted
+                loop
+                playsInline
+                autoPlay={m.display?.autoplay !== false}
+                controls={m.display?.autoplay === false}
+                className="block w-full"
+                style={{ borderRadius: "var(--site-radius)" }}
+              />
+              {m.caption && <figcaption style={{ color: "var(--site-muted)" }}>{m.caption}</figcaption>}
+            </figure>
+          );
+        }
+        if (m.type === "pdf") {
+          const cover = imageSources(m, 800, base);
+          return (
+            <div key={m.id} className="flex flex-wrap items-center gap-5">
+              {cover && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={cover.src}
+                  alt=""
+                  className="w-[200px]"
+                  style={{ border: "1px solid var(--site-line)", borderRadius: "var(--site-radius)" }}
+                />
+              )}
+              <div className="flex flex-col gap-2">
+                <span className="font-semibold">{m.caption || m.alt || "PDF"}</span>
+                {m.pages ? <span style={{ color: "var(--site-muted)" }}>{t("pages", { count: m.pages })}</span> : null}
+                <a
+                  href={`${base.replace(/\/$/, "")}/pdf/${site.siteId}/${m.id}`}
+                  className="site-button self-start"
+                  style={{ textDecoration: "none" }}
+                >
+                  {t("download")}
+                </a>
+              </div>
+            </div>
+          );
+        }
+        const src = imageSources(m, 2560, base);
+        if (!src) return null;
+        return (
+          <figure
+            key={m.id}
+            className="m-0 flex flex-col gap-2"
+            style={style}
+            data-lightbox={m.display?.lightbox !== false ? src.src : undefined}
+            data-lightbox-caption={m.caption || m.alt || undefined}
+          >
+            <picture
+              className="block overflow-hidden"
+              style={{ borderRadius: m.display?.fullWidth ? 0 : "var(--site-radius)" }}
+            >
+              {src.avifSet && (
+                <source type="image/avif" srcSet={src.avifSet} sizes="(min-width: 1200px) 1200px, 100vw" />
+              )}
+              <img
+                src={src.src}
+                srcSet={src.srcSet}
+                sizes="(min-width: 1200px) 1200px, 100vw"
+                alt={m.alt ?? ""}
+                width={m.width}
+                height={m.height}
+                loading="lazy"
+                decoding="async"
+                className="block h-auto w-full"
+              />
+            </picture>
+            {m.caption && (
+              <figcaption
+                style={{ color: "var(--site-muted)", padding: m.display?.fullWidth ? "0 var(--site-pad)" : undefined }}
+              >
+                {m.caption}
+              </figcaption>
+            )}
+          </figure>
+        );
+      })}
+    </div>
+  );
+
+  return (
+    <article className="flex flex-col gap-8">
+      <a href="/" style={{ color: "var(--site-muted)", textDecoration: "none" }} className="text-[14px]">
+        <span aria-hidden className="inline-block rtl:-scale-x-100">
+          ←
+        </span>{" "}
+        {t("back")}
+      </a>
+      <header className="flex flex-col gap-4">
+        <h1
+          className="m-0 text-[48px] leading-[1.05] @max-2xl:text-[34px]"
+          style={{ fontFamily: "var(--site-heading)", fontWeight: "var(--site-heading-weight)" as unknown as number }}
+        >
+          {text.title}
+        </h1>
+        {project.category && <span style={{ color: "var(--site-muted)" }}>{tp(`categories.${project.category}`)}</span>}
+        {credits.length > 0 && (
+          <dl className="m-0 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-x-8 gap-y-3">
+            {credits.map(([k, v]) => (
+              <div key={k} className="flex flex-col">
+                <dt className="text-[13px]" style={{ color: "var(--site-muted)" }}>
+                  {k}
+                </dt>
+                <dd className="m-0 font-semibold">{v}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        {text.description && (
+          <p className="m-0 max-w-[760px] text-[18px] leading-[1.6] whitespace-pre-line">{text.description}</p>
+        )}
+      </header>
+      {project.mature ? (
+        <MatureGate text={tm("text")} button={tm("view")}>
+          {mediaList}
+        </MatureGate>
+      ) : (
+        mediaList
+      )}
+    </article>
+  );
+}
+
+function jsonLd(site: LiveSite, origin: string, project?: PublishedProject) {
+  const person = {
+    "@type": "Person",
+    name: site.title,
+    jobTitle: site.tagline || undefined,
+    url: origin,
+    sameAs: site.pages.flatMap((p) =>
+      p.blocks.flatMap((b) => (b.type === "social" ? b.links.map((l) => l.url).filter(Boolean) : [])),
+    ),
+  };
+  const data = project
+    ? {
+        "@context": "https://schema.org",
+        "@type": "CreativeWork",
+        name: projectText(site, project).title,
+        creator: person,
+        dateCreated: project.year || undefined,
+        description: project.description || undefined,
+        url: `${origin}/${project.slug}`,
+      }
+    : { "@context": "https://schema.org", ...person };
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }}
+    />
+  );
+}
+
+/* ---------- the page ---------- */
+
+export default async function ArtistSite({
+  params,
+  searchParams,
+}: {
+  params: Promise<Params>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const { locale, username, path } = await params;
+  setRequestLocale(locale);
+  const site = await liveSite(username);
+  const ts = await getTranslations("site");
+  if (!site) {
+    return (
+      <>
+        <StagingBar />
+        <main className="mx-auto flex min-h-[80dvh] max-w-[720px] flex-col justify-center gap-3 px-6">
+          <h1 dir="ltr" className="text-[40px] font-semibold tracking-tight">
+            {username}
+          </h1>
+          <p className="text-muted">{ts("unpublishedText")}</p>
+        </main>
+      </>
+    );
+  }
+  const r = resolve(site, path);
+  if (!r) notFound();
+
+  const { origin } = await surfaceOfRequest();
+  const sp = await searchParams;
+  const jar = await cookies();
+  const unlocked =
+    !r.hash || checkAccessCookie(jar.get(accessCookieName(r.scope))?.value, site.siteId, r.scope, site.version);
+  const back = `/${path?.join("/") ?? ""}`;
+  const base = r.kind === "project" && r.hash ? `/m/t/${mediaToken(site.siteId, r.scope)}/` : "/m/";
+
+  const contactPage = site.pages.find((p) => p.blocks.some((b) => b.type === "contact"));
+  const contactHref =
+    r.kind === "page" && r.page.blocks.some((b) => b.type === "contact")
+      ? "#contact"
+      : contactPage
+        ? `/${contactPage.slug}#contact`
+        : undefined;
+  const credit = site.plan === "free" ? ts("credit") : null;
+
+  let content: ReactNode | undefined;
+  if (!unlocked) content = <PasswordScreen username={username} scope={r.scope} back={back} wrong={sp.wrong === "1"} />;
+  else if (r.kind === "project") content = <ProjectView site={site} project={r.project} base={base} />;
+
+  // Visitors only download the text the site needs.
+  const messages = (await getMessages()) as Record<string, unknown>;
+  return (
+    <NextIntlClientProvider locale={locale} messages={{ site: messages.site }}>
+      <StagingBar />
+      <SiteRender
+        site={asDraft(site)}
+        pageId={r.kind === "page" ? r.page.id : "__project"}
+        media={site.media}
+        projects={galleryProjects(site)}
+        mediaBase={base}
+        live
+        content={content}
+        credit={credit}
+        contactHref={contactHref}
+        available={{ on: site.available.on, label: ts("available"), hire: ts("hireMe") }}
+        renderContact={(b) => <ContactForm button={b.button} turnstileKey={TURNSTILE_SITE_KEY} />}
+      />
+      <SiteEnhancer
+        protectImages={!!(site as { privacy?: { protectImages?: boolean } }).privacy?.protectImages}
+        closeLabel={ts("close")}
+      />
+      {unlocked && jsonLd(site, origin, r.kind === "project" ? r.project : undefined)}
+    </NextIntlClientProvider>
+  );
+}

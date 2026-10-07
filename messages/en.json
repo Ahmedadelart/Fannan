@@ -28,7 +28,46 @@
   },
   "site": {
     "placeholder": "This is where {username}'s portfolio will live. Artist sites arrive in phase 4.",
-    "credit": "Made with Fannan"
+    "credit": "Made with Fannan",
+    "hireMe": "Hire me",
+    "available": "Available for work",
+    "close": "Close",
+    "notFoundTitle": "Nothing here",
+    "notFoundText": "This page doesn’t exist, or it moved.",
+    "home": "Back to the work",
+    "unpublishedTitle": "Coming soon",
+    "unpublishedText": "This portfolio isn’t published yet.",
+    "contact": {
+      "name": "Your name",
+      "email": "Your email",
+      "message": "Message",
+      "sending": "Sending…",
+      "sent": "Thanks! Your message is on its way.",
+      "missing": "Please fill in your name, a valid email and a message.",
+      "slowDown": "That’s a lot of messages. Please try again in a few minutes.",
+      "error": "The message didn’t go through. Please try again."
+    },
+    "password": {
+      "title": "This page is private",
+      "text": "Enter the password the artist gave you.",
+      "label": "Password",
+      "open": "Open",
+      "wrong": "That password isn’t right."
+    },
+    "mature": {
+      "text": "This project contains mature artwork. View?",
+      "view": "View"
+    },
+    "project": {
+      "role": "Role",
+      "client": "Client",
+      "studio": "Studio",
+      "year": "Year",
+      "team": "Team",
+      "download": "Download PDF",
+      "back": "All work",
+      "pages": "{count, plural, one {# page} other {# pages}}"
+    }
   },
   "kitchen": {
     "metaTitle": "Interface kit",

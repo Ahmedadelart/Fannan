@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 7 Oct 2026, end of phase 3 (waiting for Ahmed's test)._
+_Last updated: 8 Oct 2026, phase 4 code done; domain setup waiting on Ahmed's Cloudflare and Resend keys._
 
 ## Done
 
@@ -78,10 +78,27 @@ _Last updated: 7 Oct 2026, end of phase 3 (waiting for Ahmed's test)._
 - **Dashboard** preview now shows real media and projects; "Edit site" opens the editor; the checklist ticks "Write your About" and "Publish your site".
 - **Tests:** 66 (64 run per size). New: build → phone preview → publish → edit again, checking in the database that the published copy did not change; editor on a phone in Arabic.
 
+### Phase 4: Public artist sites (code)
+- **Renderer route** `src/app/[locale]/site/[username]/[[...path]]`: reads only the published snapshot (`liveSite()` in `src/lib/server/public.ts`, 30 s per-instance cache). Pages by address, project pages by slug (hidden projects open by direct link), 404 for anything else, "not published yet" before the first publish.
+- **Project pages:** title, category, credits (role, client, studio, year, team), description, media in order (images with lightbox, animated GIFs, loops, PDFs with cover and download, YouTube/Vimeo click-to-play, text), mature click-through, Arabic fields on Arabic sites.
+- **Live behaviours** (`src/components/site/live/SiteEnhancer.tsx`, tiny): lightbox with keyboard and swipe, click-to-play videos (youtube-nocookie / Vimeo), before/after drag, loops play on hover in galleries, optional image protection.
+- **Available for work:** badge + "Hire me" (jumps to the contact form) show straight away without publishing again.
+- **Contact form:** saves to `messages` (the inbox in phase 5) and emails the artist via Resend (reply goes straight to the sender). Spam: honeypot, 5 per 10 min per IP, 60 per hour per site, Turnstile when its secret is set. Without a Resend key, emails go to `.local-storage/outbox.log` (dev/tests only).
+- **Passwords:** pages and projects (Pro) ask on the server and set a signed, site-only cookie (30 days); their media is served only with a 1-hour signed token, so guessed image addresses get 403. Password projects show no cover in galleries.
+- **Public media route** `/m/...`: only files in the published snapshot; never other originals (PDF downloads are the one exception). Drafts and unpublished uploads return 404.
+- **SEO:** real titles/descriptions, canonical, Open Graph image from the cover, favicon, JSON-LD (Person / CreativeWork), noindex for password/hidden; `robots.txt` and `sitemap.xml` per address (artist, marketing, app never indexed).
+- **Language:** the proxy looks up the published language so Arabic sites are served as `<html lang="ar" dir="rtl">`.
+- **Free plan credit** "Made with Fannan" → fannan.net.
+- **Cache purge** on publish and on Available changes (Cloudflare by hostname; active once the token is set).
+- **Speed (Lighthouse, phone, local):** performance 97–99, accessibility 100, best practices 100, SEO 100.
+- **Tests:** 72 (68 run). New: published site end to end (gallery → project → lightbox; contact form → inbox + email; Hire me; drafts and draft media never public; sitemap/robots; 404), password project incl. guessed image URL refused, Arabic site RTL on a phone.
+
 ## In progress
+- Domain setup: load balancer for `fannan.net` + `*.fannan.net`, Cloudflare DNS, certificates, email sending domain, Turnstile.
 - Nothing.
 
 ## Blocked on Ahmed
+- **Cloudflare API token** and **Resend API key**, pasted into Google Secret Manager (`cloudflare-api-token`, `resend-api-key`).
 - Billing on `fannan-staging` (needed before phase 2): Google refused to link it because the billing account already has its 5-project limit (fannan, zareef, feshar, artgym, klaket). Ahmed to request a higher limit or free a slot.
 
 ## Known issues and notes

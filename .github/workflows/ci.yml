@@ -82,6 +82,7 @@ jobs:
             --image "$IMAGE:${{ github.sha }}" \
             --service-account web-staging@fannan-510913.iam.gserviceaccount.com \
             --set-env-vars FIREBASE_ENV=staging,ROOT_DOMAIN=staging.fannan.net,SURFACE_SWITCHER=true,MEDIA_BUCKET=fannan-media-staging,MEDIA_FUNCTION_URL=https://fannan-media-staging-mtxig4fw3a-ew.a.run.app \
+            --set-secrets SITE_SIGNING_SECRET=site-signing-secret-staging:latest \
             --cpu 1 --memory 512Mi --min-instances 0 --max-instances 2 \
             --no-invoker-iam-check --quiet
           echo "### Staging: $(gcloud run services describe fannan-staging --project "$PROJECT_ID" --region "$REGION" --format='value(status.url)')" >> "$GITHUB_STEP_SUMMARY"

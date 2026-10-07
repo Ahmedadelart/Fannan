@@ -47,6 +47,14 @@ export interface SiteRenderProps {
   /** "Made with Fannan" footer credit on the Free plan. */
   credit?: string | null;
   categoryLabel?: (id: string) => string;
+  /** Public site: real links between pages and projects, lightbox and hover-play markers. */
+  live?: boolean;
+  /** Public site: the working contact form in place of the picture of one. */
+  renderContact?: (b: BlockOf<"contact">) => ReactNode;
+  /** Address of the contact form on the live site (Hire me button). */
+  contactHref?: string;
+  /** Replaces the page's blocks (project pages, password screens) while keeping the site's header and theme. */
+  content?: ReactNode;
 }
 
 const RATIO_CSS: Record<ThumbRatio, string | undefined> = {
@@ -78,6 +86,8 @@ function Picture({
   want = 1600,
   className,
   still,
+  eager,
+  sizes = "(min-width: 1200px) 1200px, 100vw",
 }: {
   m?: SiteMedia | null;
   base: string;
@@ -87,6 +97,9 @@ function Picture({
   want?: number;
   className?: string;
   still?: boolean;
+  /** Pictures near the top load straight away (and the first one first). */
+  eager?: boolean;
+  sizes?: string;
 }) {
   const src = m ? (still ? posterSources(m, want, base) : imageSources(m, want, base)) : null;
   if (!src) {
@@ -105,13 +118,14 @@ function Picture({
   }
   return (
     <picture className={cx("block overflow-hidden", className)} style={{ borderRadius: "var(--site-radius)" }}>
-      {src.avifSet && <source type="image/avif" srcSet={src.avifSet} sizes="(min-width: 1200px) 1200px, 100vw" />}
+      {src.avifSet && <source type="image/avif" srcSet={src.avifSet} sizes={sizes} />}
       <img
         src={src.src}
         srcSet={src.srcSet}
-        sizes="(min-width: 1200px) 1200px, 100vw"
+        sizes={sizes}
         alt={alt ?? m?.alt ?? ""}
-        loading="lazy"
+        loading={eager ? "eager" : "lazy"}
+        fetchPriority={eager ? "high" : undefined}
         decoding="async"
         className="block h-full w-full object-cover"
         style={{ aspectRatio: ratio ?? (m?.width && m?.height ? `${m.width} / ${m.height}` : undefined) }}
@@ -177,6 +191,7 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
   const ratio = RATIO_CSS[b.ratio];
   const tiles: Array<{
     key: string;
+    slug?: string;
     title?: string;
     meta?: string;
     m?: SiteMedia | null;
@@ -186,6 +201,7 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
   }> = projects.length
     ? projects.map((p) => ({
         key: p.id,
+        slug: p.slug,
         title: p.title,
         meta: [p.client, p.role].filter(Boolean).join(" · "),
         m: p.coverId ? ctx.media[p.coverId] : null,
@@ -196,43 +212,62 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
       : [];
   if (!tiles.length) return null;
 
-  const tile = (t: (typeof tiles)[number]) => (
-    <figure
-      key={t.key}
-      className="m-0 flex flex-col gap-2"
-      style={b.layout === "masonry" ? { breakInside: "avoid", marginBottom: b.gap } : undefined}
-    >
-      <div className="relative">
-        <Picture
-          m={t.m}
-          base={ctx.base}
-          tone={t.tone}
-          ratio={ratio ?? t.ratio}
-          alt={t.title}
-          want={b.columns <= 2 ? 1600 : 800}
-          still={!b.hoverPlay}
-        />
-        {t.locked && (
-          <span
-            className="absolute end-2 top-2 rounded-[6px] px-2 py-0.5 text-[11px] font-semibold"
-            style={{ background: "var(--site-text)", color: "var(--site-bg)" }}
-          >
-            🔒
-          </span>
-        )}
-      </div>
-      {(b.captions || b.credits) && t.title && (
-        <figcaption className="flex flex-col gap-0.5" style={fullscreen ? { padding: "0 12px" } : undefined}>
-          {b.captions && <span className="font-semibold">{t.title}</span>}
-          {b.credits && t.meta && (
-            <span className="text-[14px]" style={{ color: "var(--site-muted)" }}>
-              {t.meta}
+  const tile = (t: (typeof tiles)[number]) => {
+    const inner = (
+      <>
+        <div
+          className="relative"
+          data-hover-loop={ctx.live && b.hoverPlay && t.m?.loop ? `${ctx.base}${t.m.loop}` : undefined}
+        >
+          <Picture
+            m={t.m}
+            base={ctx.base}
+            tone={t.tone}
+            ratio={ratio ?? t.ratio}
+            alt={b.captions ? "" : t.title}
+            want={b.columns <= 2 ? 1600 : 800}
+            sizes={`(min-width: 1200px) ${Math.round(1200 / cols)}px, ${cols > 1 ? "50vw" : "100vw"}`}
+            eager={(ctx.index ?? 9) <= 1 && tiles.indexOf(t) < cols}
+            still={!b.hoverPlay || !!t.m?.loop}
+          />
+          {t.locked && (
+            <span
+              className="absolute end-2 top-2 rounded-[6px] px-2 py-0.5 text-[11px] font-semibold"
+              style={{ background: "var(--site-text)", color: "var(--site-bg)" }}
+            >
+              🔒
             </span>
           )}
-        </figcaption>
-      )}
-    </figure>
-  );
+        </div>
+        {(b.captions || b.credits) && t.title && (
+          <figcaption className="flex flex-col gap-0.5" style={fullscreen ? { padding: "0 12px" } : undefined}>
+            {b.captions && <span className="font-semibold">{t.title}</span>}
+            {b.credits && t.meta && (
+              <span className="text-[14px]" style={{ color: "var(--site-muted)" }}>
+                {t.meta}
+              </span>
+            )}
+          </figcaption>
+        )}
+      </>
+    );
+    const style =
+      b.layout === "masonry" ? { breakInside: "avoid" as const, marginBottom: b.gap, display: "flex" } : undefined;
+    return ctx.live && t.slug ? (
+      <a
+        key={t.key}
+        href={`/${t.slug}`}
+        className="site-tile m-0 flex flex-col gap-2 no-underline"
+        style={{ color: "inherit", ...style }}
+      >
+        {inner}
+      </a>
+    ) : (
+      <figure key={t.key} className="m-0 flex flex-col gap-2" style={style}>
+        {inner}
+      </figure>
+    );
+  };
 
   const categories = [...new Set(projects.map((p) => p.category).filter(Boolean))];
   return (
@@ -423,6 +458,8 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
         <figure
           className="m-0 flex flex-col gap-2"
           style={b.fullWidth ? { marginInline: "calc(var(--site-pad) * -1)" } : undefined}
+          data-lightbox={ctx.live && img ? imageSources(img, 2560, ctx.base)?.src : undefined}
+          data-lightbox-caption={ctx.live ? b.caption || img?.alt || undefined : undefined}
         >
           <Picture
             m={img}
@@ -430,6 +467,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
             tone={b.tone}
             ratio={img ? undefined : "16 / 9"}
             want={2560}
+            eager={(ctx.index ?? 9) <= 1}
             className={b.fullWidth ? "!rounded-none" : undefined}
           />
           {b.caption && (
@@ -569,6 +607,23 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       );
     }
     case "contact":
+      if (ctx.live && ctx.renderContact) {
+        return (
+          <div
+            id="contact"
+            className="flex flex-col items-start gap-3 p-10 @max-xl:p-6"
+            style={{ background: "var(--site-surface)", borderRadius: "calc(var(--site-radius) * 2)" }}
+          >
+            <h2 style={heading(32)}>{b.heading}</h2>
+            {b.text && (
+              <p className="m-0" style={{ color: "var(--site-muted)" }}>
+                {b.text}
+              </p>
+            )}
+            {ctx.renderContact(b)}
+          </div>
+        );
+      }
       return (
         <div
           className="flex flex-col items-start gap-3 p-10 @max-xl:p-6"
@@ -668,6 +723,11 @@ interface Ctx {
   editing: boolean;
   available?: SiteRenderProps["available"];
   categoryLabel?: (id: string) => string;
+  live: boolean;
+  renderContact?: SiteRenderProps["renderContact"];
+  contactHref?: string;
+  /** Position of the block on the page (0 = first). */
+  index?: number;
 }
 
 /* ---------- the site ---------- */
@@ -676,7 +736,7 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
   const { theme } = site;
   const logo = theme.logoMediaId ? ctx.media[theme.logoMediaId] : null;
   const links = site.pages.filter((p) => p.showInNav);
-  const brand = logo ? (
+  const brandInner = logo ? (
     <span className="block h-10 w-36">
       <Picture
         m={logo}
@@ -697,22 +757,55 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
       )}
     </span>
   );
+  const brand = ctx.live ? (
+    <a href="/" style={{ color: "inherit", textDecoration: "none" }}>
+      {brandInner}
+    </a>
+  ) : (
+    brandInner
+  );
   const linkList = (
     <span className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[15px]" style={{ color: "var(--site-muted)" }}>
-      {links.map((p) => (
-        <span key={p.id} style={p.id === page.id ? { color: "var(--site-text)", fontWeight: 600 } : undefined}>
-          {p.title}
-        </span>
-      ))}
+      {links.map((p) => {
+        const style = p.id === page.id ? { color: "var(--site-text)", fontWeight: 600 } : undefined;
+        if (!ctx.live) {
+          return (
+            <span key={p.id} style={style}>
+              {p.title}
+            </span>
+          );
+        }
+        const href = p.type === "link" ? p.url || "#" : `/${p.slug}`;
+        return (
+          <a
+            key={p.id}
+            href={href}
+            style={{ color: "inherit", textDecoration: "none", ...style }}
+            aria-current={p.id === page.id ? "page" : undefined}
+            {...(p.type === "link" ? { target: "_blank", rel: "noopener" } : {})}
+          >
+            {p.title}
+          </a>
+        );
+      })}
     </span>
   );
+  const hireStyle = { background: "var(--site-accent)", color: "var(--site-on-accent)", textDecoration: "none" };
   const hire = ctx.available?.on ? (
-    <span
-      className="rounded-full px-4 py-2 text-[14px] font-semibold"
-      style={{ background: "var(--site-accent)", color: "var(--site-on-accent)" }}
-    >
-      {ctx.available.hire}
-    </span>
+    ctx.live && ctx.contactHref ? (
+      <a
+        href={ctx.contactHref}
+        className="rounded-full px-4 py-2 text-[14px] font-semibold"
+        style={hireStyle}
+        data-hire
+      >
+        {ctx.available.hire}
+      </a>
+    ) : (
+      <span className="rounded-full px-4 py-2 text-[14px] font-semibold" style={hireStyle}>
+        {ctx.available.hire}
+      </span>
+    )
   ) : null;
 
   if (theme.nav === "centered") {
@@ -766,10 +859,24 @@ export function SiteRender({
   selectedBlockId,
   credit,
   categoryLabel,
+  live = false,
+  renderContact,
+  contactHref,
+  content,
 }: SiteRenderProps) {
   const page = site.pages.find((p) => p.id === pageId) ?? site.pages[0];
   const { theme } = site;
-  const ctx: Ctx = { media, projects, base: mediaBase, editing, available, categoryLabel };
+  const ctx: Ctx = {
+    media,
+    projects,
+    base: mediaBase,
+    editing,
+    available,
+    categoryLabel,
+    live,
+    renderContact,
+    contactHref,
+  };
   const arabic = site.language === "ar";
   const h = headingFonts[theme.fonts.heading];
   const vars = {
@@ -790,15 +897,17 @@ export function SiteRender({
       : `${bodyFonts[theme.fonts.body].family}, system-ui, sans-serif`,
   } as CSSProperties;
 
-  const body = (
+  const body = content ? (
+    <main className="flex flex-col gap-10">{content}</main>
+  ) : (
     <main className="flex flex-col" style={{ gap: theme.nav === "minimal" ? 72 : 48 }}>
-      {page.blocks.map((b) => (
+      {page.blocks.map((b, i) => (
         <section
           key={b.id}
           data-block-id={b.id}
           className={cx(editing && "site-block", selectedBlockId === b.id && "site-block-selected")}
         >
-          <BlockView b={b} ctx={ctx} />
+          <BlockView b={b} ctx={{ ...ctx, index: i }} />
         </section>
       ))}
       {editing && page.blocks.length === 0 && <Empty show>+</Empty>}
@@ -824,7 +933,13 @@ export function SiteRender({
         {body}
         {credit && (
           <footer className="pt-8 text-center text-[12px]" style={{ color: "var(--site-muted)" }}>
-            {credit}
+            {live ? (
+              <a href="https://fannan.net" style={{ color: "inherit" }}>
+                {credit}
+              </a>
+            ) : (
+              credit
+            )}
           </footer>
         )}
       </div>

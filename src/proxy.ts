@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { siteLanguage } from "@/lib/server/site-language";
 import { defaultLocale, LOCALE_COOKIE, isLocale, type Locale } from "@/i18n/locales";
 import { hostname, surfaceForHost, surfaceFromCookie, SURFACE_COOKIE, type Surface } from "@/lib/surface";
 
@@ -42,7 +43,7 @@ function rewrite(request: NextRequest, path: string, surface: Surface, locale: L
   return NextResponse.rewrite(url, { request: { headers } });
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
   const host = hostname(request.headers.get("host"));
 
@@ -92,8 +93,13 @@ export function proxy(request: NextRequest) {
         url.pathname = rest;
         return NextResponse.redirect(url, 308);
       }
-      const base = surface.kind === "site" ? `/${locale}/site/${surface.username}` : `/${locale}/marketing`;
-      return rewrite(request, base + rest, surface, locale);
+      if (surface.kind === "site") {
+        // Artist sites speak the language they were published in, unless the address says otherwise.
+        const explicit = isLocale(pathname.split("/")[1]);
+        const lang = explicit ? locale : await siteLanguage(surface.username);
+        return rewrite(request, `/${lang}/site/${surface.username}${rest}`, surface, lang);
+      }
+      return rewrite(request, `/${locale}/marketing${rest}`, surface, locale);
     }
   }
 }

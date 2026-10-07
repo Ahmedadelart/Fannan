@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Logo } from "@/components/ui/Logo";
 import type { Locale } from "@/i18n/locales";
 import { DashNav, LanguageButton, LogoutButton } from "./DashClient";
@@ -7,6 +7,7 @@ import { loadDashboard } from "./load";
 // Dashboard shell matching design/screens/product/Dashboard.dc.html: white sidebar, flat mist main area.
 export default async function DashLayout({ children, params }: LayoutProps<"/[locale]/app">) {
   const { locale } = (await params) as { locale: Locale };
+  setRequestLocale(locale);
   const { user, site, projects, limits } = await loadDashboard();
   const t = await getTranslations("dashboard");
   const tp = await getTranslations("projects");

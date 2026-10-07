@@ -8,6 +8,7 @@ import { aboutWritten } from "@/lib/site/blocks";
 import { normalizeDraft } from "@/lib/site/normalize";
 import type { Block, PageDraft, SiteDraft } from "@/lib/site/types";
 import { getSite, type SiteDoc } from "./data";
+import { forgetLiveSite } from "./public";
 import { checkPassword, scryptHash } from "./passwords";
 import { ProjectError, type MediaDoc, type Owner, type ProjectDoc } from "./projects";
 
@@ -33,6 +34,8 @@ export function toSiteMedia(id: string, m: MediaDoc): SiteMedia & { display?: Me
       ? { poster: m.embed.poster, url: m.embed.url, title: m.embed.title, provider: m.embed.provider }
       : null,
     display: m.display,
+    // PDFs are the one kind visitors download as the original file.
+    ...(m.type === "pdf" ? { original: m.original ?? null } : {}),
     ...(m.type === "text" ? { text: m.text ?? "" } : {}),
   };
 }
@@ -104,6 +107,7 @@ export async function saveDraft(o: Owner, raw: unknown): Promise<{ savedAt: numb
     title: draft.title,
     tagline: draft.tagline,
     theme: draft.theme,
+    language: draft.language,
     aboutWritten: aboutWritten(draft.pages),
     draftUpdatedAt: FieldValue.serverTimestamp(),
   });
@@ -265,7 +269,7 @@ export async function publish(o: Owner): Promise<{ version: number }> {
   const now = Timestamp.now();
   const batch = db().batch();
   batch.set(ref.collection("published").doc(String(version)), snapshot);
-  batch.update(ref, { publishedVersion: version, publishedAt: now });
+  batch.update(ref, { publishedVersion: version, publishedAt: now, publishedLanguage: draft.language });
   projectSnap.docs.forEach((d) => batch.update(d.ref, { publishedAt: now }));
   await batch.commit();
 
@@ -275,13 +279,24 @@ export async function publish(o: Owner): Promise<{ version: number }> {
     .where("version", "<=", version - KEEP_VERSIONS)
     .get();
   await Promise.all(old.docs.map((d) => d.ref.delete()));
+  forgetLiveSite(site.username);
   await purgeSiteCache(site.username);
   return { version };
 }
 
-/** Clears the edge cache for an artist site. Cloudflare is wired up in phase 4. */
+/** Clears Cloudflare's copy of an artist site so visitors see the new version straight away. */
 export async function purgeSiteCache(username: string) {
-  void username;
+  const token = process.env.CLOUDFLARE_API_TOKEN;
+  const zone = process.env.CLOUDFLARE_ZONE_ID;
+  const root = process.env.ROOT_DOMAIN ?? "fannan.net";
+  if (!token || !zone) return;
+  const res = await fetch(`https://api.cloudflare.com/client/v4/zones/${zone}/purge_cache`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ hosts: [`${username}.${root}`] }),
+    signal: AbortSignal.timeout(8000),
+  }).catch(() => null);
+  if (!res?.ok) console.error("purgeSiteCache failed", username, res?.status, await res?.text().catch(() => ""));
 }
 
 export async function readPublished(siteId: string, version: number): Promise<PublishedSite | null> {

@@ -47,5 +47,6 @@ jobs:
             --image "$IMAGE:${{ steps.sha.outputs.sha }}" \
             --service-account web-production@fannan-510913.iam.gserviceaccount.com \
             --set-env-vars FIREBASE_ENV=production,ROOT_DOMAIN=fannan.net,SURFACE_SWITCHER=false,MEDIA_BUCKET=fannan-media-production,MEDIA_FUNCTION_URL=https://fannan-media-mtxig4fw3a-ew.a.run.app \
+            --set-secrets SITE_SIGNING_SECRET=site-signing-secret-production:latest \
             --cpu 1 --memory 512Mi --min-instances 0 --max-instances 5 \
             --no-invoker-iam-check --quiet

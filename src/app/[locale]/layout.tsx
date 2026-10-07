@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, IBM_Plex_Sans, IBM_Plex_Sans_Arabic, Marhey } from "next/font/google";
 import { notFound } from "next/navigation";
-import { NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { dirFor, isLocale, locales } from "@/i18n/locales";
 import { ToastProvider } from "@/components/ui/Toast";
@@ -13,11 +12,13 @@ const plexArabic = IBM_Plex_Sans_Arabic({
   subsets: ["arabic"],
   weight: ["400", "500", "600"],
   variable: "--font-plex-arabic",
+  preload: false,
 });
-const marhey = Marhey({ subsets: ["arabic"], weight: "700", variable: "--font-marhey" });
+const marhey = Marhey({ subsets: ["arabic"], weight: "700", variable: "--font-marhey", preload: false });
 
 export const metadata: Metadata = {
   title: { default: "Fannan", template: "%s · Fannan" },
+  icons: { icon: "/icon.svg" },
 };
 
 export function generateStaticParams() {
@@ -36,9 +37,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
       className={`${bricolage.variable} ${plex.variable} ${plexArabic.variable} ${marhey.variable}`}
     >
       <body className="min-h-dvh">
-        <NextIntlClientProvider>
-          <ToastProvider>{children}</ToastProvider>
-        </NextIntlClientProvider>
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );

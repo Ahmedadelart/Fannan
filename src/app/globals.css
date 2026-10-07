@@ -212,3 +212,68 @@
   outline: 2px solid #141414;
   box-shadow: 0 0 0 8px #c6f432;
 }
+
+/* Public site lightbox (SiteEnhancer). */
+.site-lightbox {
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: rgba(10, 10, 10, 0.94);
+  color: #fff;
+}
+.site-lightbox[open] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.site-lightbox figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 92vw;
+}
+.site-lightbox img {
+  max-width: 92vw;
+  max-height: 84dvh;
+  object-fit: contain;
+}
+.site-lightbox figcaption {
+  font-size: 14px;
+  opacity: 0.8;
+}
+.site-lightbox button {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+.site-lightbox .site-lightbox-close {
+  top: 16px;
+  inset-inline-end: 16px;
+}
+.site-lightbox .site-lightbox-prev {
+  inset-inline-start: 16px;
+  top: 50%;
+}
+.site-lightbox .site-lightbox-next {
+  inset-inline-end: 16px;
+  top: 50%;
+}
+.site-lightbox [hidden] {
+  display: none;
+}
+.site-root a.site-tile:hover img {
+  opacity: 0.92;
+}

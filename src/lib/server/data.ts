@@ -230,6 +230,12 @@ const WORK_TYPES = ["freelance", "full-time", "remote", "part-time", "commission
 export async function setAvailability(uid: string, on: boolean, types: string[]) {
   const ref = await ownedSiteRef(uid);
   await ref.update({ available: { on, types: types.filter((t) => WORK_TYPES.includes(t)) } });
+  // The badge shows on the live site without publishing again.
+  const username = ((await ref.get()).data() as SiteDoc).username;
+  const { forgetLiveSite } = await import("./public");
+  const { purgeSiteCache } = await import("./site");
+  forgetLiveSite(username);
+  await purgeSiteCache(username);
 }
 
 export async function markShared(uid: string) {

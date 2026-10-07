@@ -53,7 +53,7 @@ test.describe("three surfaces, one app", () => {
   test("username.fannan.net is an artist site", async ({ page }) => {
     await page.goto(at("ahmed"));
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("ahmed");
-    await expect(page.getByRole("link", { name: "Made with Fannan" })).toBeVisible();
+    await expect(page.getByText("This portfolio isn’t published yet.")).toBeVisible();
   });
 
   test("artist sites can't see the dashboard's cookies", async ({ page }) => {

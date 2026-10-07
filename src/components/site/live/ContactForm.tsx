@@ -1,0 +1,119 @@
+"use client";
+
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useTranslations } from "next-intl";
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (
+        el: HTMLElement,
+        opts: { sitekey: string; callback: (t: string) => void; "expired-callback"?: () => void },
+      ) => string;
+      reset: (id?: string) => void;
+    };
+  }
+}
+
+const field = "w-full border px-3.5 py-3 text-[16px] outline-none focus:border-[var(--site-text)]";
+
+/** The working contact form on an artist's live site. Styled by the artist's theme. */
+export function ContactForm({ button, turnstileKey }: { button: string; turnstileKey: string }) {
+  const t = useTranslations("site.contact");
+  const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [problem, setProblem] = useState<string | null>(null);
+  const token = useRef("");
+  const widget = useRef<HTMLDivElement>(null);
+  const widgetId = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (!turnstileKey || !widget.current) return;
+    const render = () => {
+      if (!widget.current || !window.turnstile || widgetId.current) return;
+      widgetId.current = window.turnstile.render(widget.current, {
+        sitekey: turnstileKey,
+        callback: (v) => (token.current = v),
+        "expired-callback": () => (token.current = ""),
+      });
+    };
+    if (window.turnstile) return render();
+    const s = document.createElement("script");
+    s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    s.async = true;
+    s.onload = render;
+    document.head.appendChild(s);
+  }, [turnstileKey]);
+
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.currentTarget)) as Record<string, string>;
+    if (!data.name?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email ?? "") || !data.message?.trim()) {
+      setProblem(t("missing"));
+      return;
+    }
+    setState("sending");
+    setProblem(null);
+    const res = await fetch("/api/contact", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...data, turnstile: token.current, page: window.location.pathname }),
+    }).catch(() => null);
+    if (res?.ok) {
+      setState("sent");
+      return;
+    }
+    setState("error");
+    setProblem(res?.status === 429 ? t("slowDown") : t("error"));
+    if (widgetId.current) window.turnstile?.reset(widgetId.current);
+  }
+
+  if (state === "sent") {
+    return (
+      <p role="status" className="m-0 text-[18px] font-semibold" data-testid="contact-sent">
+        {t("sent")}
+      </p>
+    );
+  }
+
+  const box = {
+    borderColor: "var(--site-line)",
+    borderRadius: "var(--site-radius)",
+    background: "var(--site-bg)",
+    color: "var(--site-text)",
+  };
+  return (
+    <form onSubmit={submit} className="mt-2 grid w-full max-w-[560px] gap-3" noValidate>
+      <label className="grid gap-1.5 text-[14px] font-semibold">
+        {t("name")}
+        <input name="name" autoComplete="name" maxLength={120} className={field} style={box} />
+      </label>
+      <label className="grid gap-1.5 text-[14px] font-semibold">
+        {t("email")}
+        <input name="email" type="email" dir="ltr" autoComplete="email" maxLength={200} className={field} style={box} />
+      </label>
+      <label className="grid gap-1.5 text-[14px] font-semibold">
+        {t("message")}
+        <textarea name="message" rows={5} maxLength={5000} className={field} style={box} />
+      </label>
+      {/* Hidden from people; bots fill it in. */}
+      <label aria-hidden className="absolute -start-[9999px] h-px w-px overflow-hidden">
+        Website
+        <input name="website" tabIndex={-1} autoComplete="off" />
+      </label>
+      <div ref={widget} />
+      {problem && (
+        <p role="alert" className="m-0 text-[14px] font-semibold">
+          {problem}
+        </p>
+      )}
+      <button
+        type="submit"
+        className="site-button justify-self-start border-0"
+        disabled={state === "sending"}
+        style={{ cursor: "pointer", font: "inherit", fontWeight: 600 }}
+      >
+        {state === "sending" ? t("sending") : button}
+      </button>
+    </form>
+  );
+}
