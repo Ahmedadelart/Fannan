@@ -3,13 +3,16 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { adminDb } from "@/lib/firebase/admin";
 import type { SiteDoc } from "./data";
+import { sharedMap } from "./shared-memory";
 import { readPublished, type PublishedSite } from "./site";
 
 // Everything the public renderer reads: username → site → published snapshot.
 // One small in-memory cache per server instance; Cloudflare caches pages in front of it.
 
 const TTL_MS = 30_000;
-const cache = new Map<string, { at: number; value: (PublishedSite & { siteId: string; ownerUid: string }) | null }>();
+const cache = sharedMap<string, { at: number; value: (PublishedSite & { siteId: string; ownerUid: string }) | null }>(
+  "liveSite",
+);
 
 export type LiveSite = PublishedSite & { siteId: string; ownerUid: string };
 

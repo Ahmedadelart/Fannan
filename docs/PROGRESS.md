@@ -130,3 +130,7 @@ _Last updated: 8 Oct 2026, phase 4 code done; domain setup waiting on Ahmed's Cl
 - **Editing in place** on the canvas (typing directly into headings) isn't built; text is edited in the right panel with a live canvas. Candidate for a later polish pass.
 - **Contact form and lightbox** look right in the editor; they start working on the live site in phase 4.
 - **Project order in galleries** is newest first; manual ordering can come later if artists ask.
+- **Production builds use webpack** (`next build --webpack`, Tailwind via `postcss.config.mjs`). Turbopack intermittently failed to fetch Google fonts at build time (it broke two CI runs). Dev still uses Turbopack.
+- **No server-side redirects from server actions.** With host-based rewrites, Next renders the redirect target at its internal path (404). Actions return a result and the browser navigates (`NewProjectButton`, delete project, password unlock).
+- **In-memory caches are process-wide** (`src/lib/server/shared-memory.ts`); webpack can load a module once per route bundle.
+- **Domain setup script:** `infra/setup-domain.sh` (load balancer, certificate, Cloudflare DNS). Not run yet: it starts the load balancer charge (~$18–20/month).

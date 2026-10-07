@@ -10,6 +10,8 @@ const eslintConfig = defineConfig([
       // Pages are routed by host (src/proxy.ts), so this rule's file-system view of routes is wrong,
       // and links between surfaces must be plain <a> anyway.
       "@next/next/no-html-link-for-pages": "off",
+      // Same reason: navigating by full page load keeps the request going through the proxy.
+      "@next/next/no-location-assign-relative-destination": "off",
     },
   },
   // Override default ignores of eslint-config-next.

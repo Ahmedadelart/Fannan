@@ -1,6 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/server/session";
 import { rateLimit } from "@/lib/server/rate-limit";
 import {
@@ -39,16 +38,10 @@ async function attempt<T extends object>(fn: () => Promise<T>): Promise<Result<T
   }
 }
 
-export async function newProject(formData: FormData) {
-  const o = await owner();
-  let id: string;
-  try {
-    id = await createProject(o, String(formData.get("title") ?? ""));
-  } catch (e) {
-    if (e instanceof ProjectError && e.code === "limit") redirect("/projects?limit=1");
-    throw e;
-  }
-  redirect(`/projects/${id}`);
+// Navigation after these happens in the browser: a server-side redirect from an action would
+// skip the host-based routing in src/proxy.ts and land on an internal path.
+export async function newProject(title: string): Promise<Result<{ id: string }>> {
+  return attempt(async () => ({ id: await createProject(await owner(), String(title ?? "")) }));
 }
 
 export async function saveProject(projectId: string, patch: ProjectPatch) {
@@ -56,8 +49,10 @@ export async function saveProject(projectId: string, patch: ProjectPatch) {
 }
 
 export async function removeProject(projectId: string) {
-  await deleteProject(await owner(), projectId);
-  redirect("/projects");
+  return attempt(async () => {
+    await deleteProject(await owner(), projectId);
+    return {};
+  });
 }
 
 export async function beginUpload(

@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { StagingBar } from "@/components/StagingBar";
 import { ContactForm } from "@/components/site/live/ContactForm";
 import { MatureGate } from "@/components/site/live/MatureGate";
+import { PasswordForm } from "@/components/site/live/PasswordForm";
 import { SiteEnhancer } from "@/components/site/live/SiteEnhancer";
 import { SiteRender, type GalleryProject, type SiteMedia } from "@/components/site/SiteRender";
 import type { Locale } from "@/i18n/locales";
@@ -126,59 +127,15 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
 /* ---------- pieces ---------- */
 
-async function PasswordScreen({
-  username,
-  scope,
-  back,
-  wrong,
-}: {
-  username: string;
-  scope: string;
-  back: string;
-  wrong: boolean;
-}) {
+async function PasswordScreen({ username, scope }: { username: string; scope: string }) {
   const t = await getTranslations("site.password");
-  const field = {
-    border: "1px solid var(--site-line)",
-    borderRadius: "var(--site-radius)",
-    background: "var(--site-bg)",
-    color: "var(--site-text)",
-  };
   return (
-    <form action={unlock} className="mx-auto flex w-full max-w-[420px] flex-col gap-4 py-16 text-center">
-      <h1 className="m-0 text-[32px]" style={{ fontFamily: "var(--site-heading)" }}>
-        {t("title")}
-      </h1>
-      <p className="m-0" style={{ color: "var(--site-muted)" }}>
-        {t("text")}
-      </p>
-      <input type="hidden" name="username" value={username} />
-      <input type="hidden" name="scope" value={scope} />
-      <input type="hidden" name="back" value={back} />
-      <label className="grid gap-1.5 text-start text-[14px] font-semibold">
-        {t("label")}
-        <input
-          name="password"
-          type="password"
-          required
-          autoFocus
-          className="w-full px-3.5 py-3 text-[16px]"
-          style={field}
-        />
-      </label>
-      {wrong && (
-        <p role="alert" className="m-0 text-[14px] font-semibold">
-          {t("wrong")}
-        </p>
-      )}
-      <button
-        type="submit"
-        className="site-button justify-center border-0"
-        style={{ cursor: "pointer", font: "inherit", fontWeight: 600 }}
-      >
-        {t("open")}
-      </button>
-    </form>
+    <PasswordForm
+      username={username}
+      scope={scope}
+      unlock={unlock}
+      labels={{ title: t("title"), text: t("text"), label: t("label"), open: t("open"), wrong: t("wrong") }}
+    />
   );
 }
 
@@ -414,13 +371,7 @@ function jsonLd(site: LiveSite, origin: string, project?: PublishedProject) {
 
 /* ---------- the page ---------- */
 
-export default async function ArtistSite({
-  params,
-  searchParams,
-}: {
-  params: Promise<Params>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
+export default async function ArtistSite({ params }: { params: Promise<Params> }) {
   const { locale, username, path } = await params;
   setRequestLocale(locale);
   const site = await liveSite(username);
@@ -442,11 +393,9 @@ export default async function ArtistSite({
   if (!r) notFound();
 
   const { origin } = await surfaceOfRequest();
-  const sp = await searchParams;
   const jar = await cookies();
   const unlocked =
     !r.hash || checkAccessCookie(jar.get(accessCookieName(r.scope))?.value, site.siteId, r.scope, site.version);
-  const back = `/${path?.join("/") ?? ""}`;
   const base = r.kind === "project" && r.hash ? `/m/t/${mediaToken(site.siteId, r.scope)}/` : "/m/";
 
   const contactPage = site.pages.find((p) => p.blocks.some((b) => b.type === "contact"));
@@ -459,7 +408,7 @@ export default async function ArtistSite({
   const credit = site.plan === "free" ? ts("credit") : null;
 
   let content: ReactNode | undefined;
-  if (!unlocked) content = <PasswordScreen username={username} scope={r.scope} back={back} wrong={sp.wrong === "1"} />;
+  if (!unlocked) content = <PasswordScreen username={username} scope={r.scope} />;
   else if (r.kind === "project") content = <ProjectView site={site} project={r.project} base={base} />;
 
   // Visitors only download the text the site needs.

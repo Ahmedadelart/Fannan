@@ -39,8 +39,13 @@ const get = (page: Page, path: string) =>
 async function openEditor(page: Page) {
   await page.goto(at("app", "/editor"));
   const dialog = page.getByRole("dialog");
-  if (await dialog.isVisible({ timeout: 3000 }).catch(() => false)) {
-    for (let i = 0; i < 3; i++) await page.getByRole("button", { name: /^(Next|Got it)$/ }).click();
+  await dialog.waitFor({ timeout: 3000 }).catch(() => {});
+  for (let i = 0; i < 6 && (await dialog.isVisible().catch(() => false)); i++) {
+    const before = await dialog.getAttribute("aria-label");
+    await page.getByRole("button", { name: /^(Next|Got it)$/ }).click();
+    await expect
+      .poll(async () => ((await dialog.isVisible()) ? await dialog.getAttribute("aria-label") : "closed"))
+      .not.toBe(before);
   }
 }
 
@@ -53,7 +58,12 @@ async function newProjectWithPhoto(page: Page, title: string) {
   await page.goto(at("app", "/projects"));
   await page.getByRole("button", { name: "New project" }).click();
   await expect(page).toHaveURL(/\/projects\/[\w-]+$/);
-  await page.getByTestId("file-input").setInputFiles("tests/fixtures/photo.jpg");
+  await page.waitForLoadState("networkidle");
+  // Pick the file again if the page wasn't interactive yet the first time.
+  await expect(async () => {
+    if (!(await page.getByTestId("media-item").count())) await page.getByTestId("file-input").setInputFiles("tests/fixtures/photo.jpg");
+    await expect(page.getByTestId("media-item")).toHaveCount(1, { timeout: 3000 });
+  }).toPass({ timeout: 30_000 });
   await expect(page.getByText(/Uploading|Making web versions/)).toHaveCount(0, { timeout: 60_000 });
   await page.getByRole("textbox", { name: "Project title" }).fill(title);
   await page.getByRole("textbox", { name: "Your role" }).fill("Character designer");

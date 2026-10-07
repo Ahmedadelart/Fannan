@@ -2,12 +2,11 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { buttonClasses } from "@/components/ui/Button";
-import { Icon } from "@/components/ui/Icon";
 import { EmptyState } from "@/components/ui/Surfaces";
 import type { Locale } from "@/i18n/locales";
 import { listProjects } from "@/lib/server/projects";
 import { loadDashboard, priceLabel } from "../load";
-import { newProject } from "./actions";
+import { NewProjectButton } from "./NewProjectButton";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/app/projects">): Promise<Metadata> {
   const { locale } = await params;
@@ -40,15 +39,7 @@ export default async function ProjectsPage({ params, searchParams }: PageProps<"
           </h1>
           <p className="text-muted mt-1">{t("sub")}</p>
         </div>
-        {!atLimit && (
-          <form action={newProject}>
-            <input type="hidden" name="title" value={t("newTitle")} />
-            <button type="submit" className={buttonClasses("primary", "lg")}>
-              <Icon name="add" size={18} />
-              {t("new")}
-            </button>
-          </form>
-        )}
+        {!atLimit && <NewProjectButton label={t("new")} title={t("newTitle")} size="lg" />}
       </div>
 
       {(atLimit || sp.limit) && limit !== null && (

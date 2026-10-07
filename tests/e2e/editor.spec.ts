@@ -21,8 +21,13 @@ async function siteIdFor(username: string) {
 
 async function closeTips(page: Page) {
   const tips = page.getByRole("dialog");
-  if (await tips.isVisible().catch(() => false)) {
-    for (let i = 0; i < 3; i++) await page.getByRole("button", { name: /^(Next|Got it|التالي|فهمت)$/ }).click();
+  // Click through the tips one at a time, waiting for each to change before the next click.
+  for (let i = 0; i < 6 && (await tips.isVisible().catch(() => false)); i++) {
+    const before = await tips.getAttribute("aria-label");
+    await page.getByRole("button", { name: /^(Next|Got it|التالي|فهمت)$/ }).click();
+    await expect
+      .poll(async () => ((await tips.isVisible()) ? await tips.getAttribute("aria-label") : "closed"))
+      .not.toBe(before);
   }
 }
 

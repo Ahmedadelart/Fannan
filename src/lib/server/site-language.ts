@@ -2,9 +2,10 @@ import "server-only";
 
 import { adminDb } from "@/lib/firebase/admin";
 import type { Locale } from "@/i18n/locales";
+import { sharedMap } from "./shared-memory";
 
 // The published language of an artist site, for the proxy (so <html lang/dir> is right).
-const cache = new Map<string, { at: number; lang: Locale }>();
+const cache = sharedMap<string, { at: number; lang: Locale }>("siteLanguage");
 const TTL = 60_000;
 
 export async function siteLanguage(username: string): Promise<Locale> {

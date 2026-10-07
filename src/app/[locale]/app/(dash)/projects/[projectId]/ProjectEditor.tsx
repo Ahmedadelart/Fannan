@@ -1044,7 +1044,14 @@ export function ProjectEditor({
             <Button variant="outline" onClick={() => setConfirmDelete(false)}>
               {t("cancel")}
             </Button>
-            <Button icon="delete" onClick={() => removeProject(p.id)}>
+            <Button
+              icon="delete"
+              onClick={async () => {
+                const r = await removeProject(p.id);
+                if (r.ok) window.location.assign("/projects");
+                else setProblem(errorText(r.error));
+              }}
+            >
               {t("deleteProject")}
             </Button>
           </>

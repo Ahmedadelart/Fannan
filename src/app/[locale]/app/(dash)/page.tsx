@@ -12,7 +12,7 @@ import { ProjectCard } from "@/components/projects/ProjectCard";
 import { listProjects } from "@/lib/server/projects";
 import { AvailabilityCard, HideChecklistButton, ShareButton, TurnOnButton } from "./DashClient";
 import { loadDashboard } from "./load";
-import { newProject } from "./projects/actions";
+import { NewProjectButton } from "./projects/NewProjectButton";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/app">): Promise<Metadata> {
   const { locale } = await params;
@@ -184,13 +184,7 @@ export default async function Dashboard({ params }: PageProps<"/[locale]/app">) 
           <h2 id="projects-title" className="font-heading font-heading-weight text-[20px]">
             {t("projects.title")}
           </h2>
-          <form action={newProject}>
-            <input type="hidden" name="title" value={tp("newTitle")} />
-            <button type="submit" className={buttonClasses("primary", "md")}>
-              <Icon name="add" size={18} />
-              {t("projects.new")}
-            </button>
-          </form>
+          <NewProjectButton label={t("projects.new")} title={tp("newTitle")} />
         </div>
         {projects.length === 0 ? (
           <EmptyState icon="projects" title={t("projects.emptyTitle")} text={t("projects.emptyText")} />

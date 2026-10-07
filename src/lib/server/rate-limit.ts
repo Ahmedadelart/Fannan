@@ -1,10 +1,12 @@
 import "server-only";
 
+import { sharedMap } from "./shared-memory";
+
 // Simple per-instance limiter: N requests per window per key (usually IP + action).
 // Good enough to stop scripts hammering one server; Cloudflare rate rules add a
 // shared layer in front once the domain is live (phase 4).
 
-const buckets = new Map<string, { count: number; resetAt: number }>();
+const buckets = sharedMap<string, { count: number; resetAt: number }>("rateLimit");
 
 // Automated tests sign up many accounts a minute from one machine.
 const OFF = process.env.RATE_LIMITS === "off";

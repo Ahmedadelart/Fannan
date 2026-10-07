@@ -136,7 +136,7 @@ function Tips({ onDone }: { onDone: () => void }) {
       className="fixed inset-0 z-50"
       role="dialog"
       aria-modal="true"
-      aria-label={t.rich(String(n) as "1", bold) as string}
+      aria-label={(t.raw(String(n)) as string).replace(/<\/?b>/g, "")}
     >
       <div className="bg-ink/45 absolute inset-0" />
       {rect && (
