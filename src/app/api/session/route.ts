@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isLocale, LOCALE_COOKIE, defaultLocale } from "@/i18n/locales";
 import { adminAuth } from "@/lib/firebase/admin";
 import { ensureUser, getUser } from "@/lib/server/data";
+import { welcome } from "@/lib/server/milestones";
 import { rateLimit } from "@/lib/server/rate-limit";
 import { SESSION_COOKIE, SESSION_DAYS } from "@/lib/server/session";
 
@@ -34,6 +35,7 @@ export async function POST(req: NextRequest) {
     const requested = isLocale(body.locale) ? body.locale : defaultLocale;
     await ensureUser(decoded.uid, { locale: requested, isAnonymous, email: decoded.email });
     const user = await getUser(decoded.uid);
+    if (!isAnonymous && user?.siteId) await welcome(decoded.uid).catch((e) => console.error("welcome email", e));
 
     const expiresIn = SESSION_DAYS * 24 * 60 * 60 * 1000;
     const cookie = await adminAuth().createSessionCookie(body.idToken, { expiresIn });

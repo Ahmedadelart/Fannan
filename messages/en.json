@@ -14,11 +14,8 @@
   "marketing": {
     "title": "Your next job is looking for you.",
     "subtitle": "Put your best work on one link, made for the studios and clients who hire.",
-    "placeholder": "The full homepage arrives in phase 7. This page proves the address routing works.",
-    "kitchenSinkLink": "See the interface kit",
-    "claimLabel": "Your username",
-    "claimButton": "Claim it",
-    "claimHint": "Claim your name before someone else does.",
+    "claimLabel": "Claim your name before someone else does",
+    "claimButton": "Claim it — free",
     "claimChecking": "Checking…"
   },
   "app": {
@@ -71,7 +68,8 @@
       "back": "All work",
       "pages": "{count, plural, one {# page} other {# pages}}"
     },
-    "cv": "Résumé (PDF)"
+    "cv": "Résumé (PDF)",
+    "report": "Report this site"
   },
   "kitchen": {
     "metaTitle": "Interface kit",
@@ -1143,7 +1141,6 @@
     "find": "Find",
     "noUsers": "No one found.",
     "noPayments": "No payments yet.",
-    "reportsSoon": "Reports arrive with the “Report this site” link in the next phase.",
     "runDaily": "Run daily jobs now",
     "dailyDone": "Daily jobs done",
     "grace": "grace",
@@ -1190,7 +1187,605 @@
       "provider": "Paymob refused the refund.",
       "bad-plan": "Choose between 1 and 36 months.",
       "not-found": "Not found.",
-      "error": "Something went wrong."
+      "error": "Something went wrong.",
+      "no-project": "Couldn't find a project at that address. Use Unpublish or Suspend instead."
+    },
+    "feature": "Show on Examples",
+    "unfeature": "Remove from Examples",
+    "featuredDone": "Shown on the Examples page",
+    "unfeatured": "Removed from Examples",
+    "reasons": {
+      "porn": "Pornography",
+      "minors": "Minors",
+      "illegal": "Illegal",
+      "hate": "Hate",
+      "threats": "Threats",
+      "private": "Private info",
+      "stolen": "Stolen work",
+      "impersonation": "Impersonation",
+      "spam": "Spam",
+      "other": "Other",
+      "copyright": "Copyright"
+    },
+    "copyrightNotice": "copyright notice",
+    "openSite": "Open the site",
+    "noteToArtist": "Note to the artist (optional, included in the email)",
+    "actions": {
+      "dismiss": "Dismiss",
+      "hide-project": "Hide project",
+      "unpublish": "Unpublish site",
+      "suspend": "Suspend account",
+      "ban": "Ban"
+    },
+    "actionConfirm": "{action}? The artist gets an email with the reason.",
+    "actionDone": "Done",
+    "openReports": "{count, plural, =0 {No open reports} one {# open report} other {# open reports}}",
+    "noReports": "Nothing to review.",
+    "doneReports": "Handled reports"
+  },
+  "mnav": {
+    "home": "fannan.net home",
+    "main": "Main",
+    "footer": "More",
+    "how": "How it works",
+    "examples": "Examples",
+    "pricing": "Pricing",
+    "help": "Help",
+    "login": "Log in",
+    "claim": "Claim your name",
+    "contact": "Contact",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "policy": "Content policy",
+    "copyright": "Copyright",
+    "tagline": "Where work finds you",
+    "operator": "© {year} Fannan, operated by Big Cat Animation LLC, Cairo."
+  },
+  "home": {
+    "metaTitle": "Fannan · Portfolios for Arab artists",
+    "metaDescription": "Put your best work on one link, made for the studios and clients who hire. Build it in minutes, free.",
+    "eyebrow": "Portfolios for Arab artists",
+    "title": "Your next job is <hl>looking for you.</hl>",
+    "sub": "Put your best work on one link, made for the studios and clients who hire. Build it in minutes. No code, no developer.",
+    "freeForever": "The free plan has no time limit.",
+    "mock": {
+      "name": "Your Name",
+      "role": "Character designer · Cairo",
+      "available": "Available for work",
+      "messageTitle": "New message from a studio",
+      "messageText": "We saw your work. Are you free for a project next month?"
+    },
+    "kinds": {
+      "animation": "Animation",
+      "character": "Character design",
+      "storyboard": "Storyboard",
+      "illustration": "Illustration",
+      "comics": "Comics",
+      "motion": "Motion",
+      "concept": "Concept art"
+    },
+    "howTitle": "How work finds you",
+    "howSub": "Three steps from a folder full of drawings to a link you can send to any studio.",
+    "steps": {
+      "upload": {
+        "title": "Bring your work",
+        "body": "Upload images, GIFs, short loops and PDFs, and add your reel from YouTube or Vimeo."
+      },
+      "credits": {
+        "title": "Add your credits",
+        "body": "For each project: the show, the studio or client, your role, the year. The details studios look for first."
+      },
+      "share": {
+        "title": "Send one link",
+        "body": "Your site is live at yourname.fannan.net or your own domain. Put it in every application, bio and email."
+      }
+    },
+    "featuresTitle": "Built to get you <hl>hired</hl>",
+    "featuresSub": "Everything here exists for one reason: to make the person looking at your work say yes.",
+    "features": {
+      "credits": {
+        "title": "Credits studios trust",
+        "body": "Show, client, role and year on every project, so nobody has to guess what you actually did."
+      },
+      "available": {
+        "title": "Available-for-work badge",
+        "body": "One switch tells every visitor you are taking projects right now."
+      },
+      "messages": {
+        "title": "Messages that reach you",
+        "body": "A contact form that lands in your Fannan inbox and your email, not lost in someone’s DMs."
+      },
+      "google": {
+        "title": "Found on Google",
+        "body": "Your name, your discipline, your city: built so search engines can find you."
+      },
+      "reels": {
+        "title": "Reels and loops",
+        "body": "Your reel up top, and project thumbnails that move when someone hovers."
+      },
+      "nda": {
+        "title": "NDA pages",
+        "body": "Password-protect unreleased work and share it only with the people who should see it."
+      }
+    },
+    "examplesTitle": "Every artist, their own way",
+    "examplesSub": "One tool. Every site looks like the person who made it.",
+    "examples": {
+      "animator": "Animator",
+      "illustrator": "Illustrator",
+      "character": "Character designer"
+    },
+    "pricingTitle": "Pricing",
+    "free": {
+      "name": "Free",
+      "templates": "Every template",
+      "badge": "Available-for-work badge",
+      "form": "A contact form that reaches you",
+      "cta": "Start free"
+    },
+    "pro": {
+      "name": "Pro",
+      "tag": "For working artists",
+      "perMonth": "/ month, paid yearly",
+      "durations": "Or {p3} for 3 months, {p6} for 6. Paid once, never auto-renews.",
+      "egypt": "In Egypt, from {n} EGP a month.",
+      "domain": "Your own domain",
+      "nda": "Password pages for NDA work",
+      "unlimited": "Unlimited projects and full stats",
+      "space": "More space, no Fannan badge",
+      "cta": "See Pro"
+    },
+    "offer": "Launch offer: 12 months for the price of 6, for our first artists.",
+    "closing": "Let the work find you.",
+    "closingCta": "Claim your name on Fannan"
+  },
+  "pricing": {
+    "title": "Pricing",
+    "sub": "Free forever, or Pro paid once for 3, 6 or 12 months. Nothing renews by itself.",
+    "inEgp": "Prices in Egyptian pounds.",
+    "inUsd": "Prices in US dollars. In Egypt, prices are in Egyptian pounds.",
+    "free": "Free",
+    "freeBlurb": "Everything you need to get your work out there.",
+    "startFree": "Start free",
+    "pro": "Pro · {months} months",
+    "tags": {
+      "3": "Try it",
+      "6": "Popular",
+      "12": "Best value"
+    },
+    "perMonth": "{price} a month",
+    "once": "Paid once. Nothing renews automatically.",
+    "get": "Get {months} months",
+    "compareTitle": "What you get",
+    "feature": "Feature",
+    "rows": {
+      "projects": {
+        "label": "Projects",
+        "free": "8",
+        "pro": "Unlimited"
+      },
+      "address": {
+        "label": "yourname.fannan.net",
+        "free": "Yes",
+        "pro": "Yes"
+      },
+      "domain": {
+        "label": "Your own domain with SSL",
+        "free": "–",
+        "pro": "Yes"
+      },
+      "themes": {
+        "label": "Every theme and block",
+        "free": "Yes",
+        "pro": "Yes"
+      },
+      "contact": {
+        "label": "Contact form and inbox",
+        "free": "Yes",
+        "pro": "Yes"
+      },
+      "available": {
+        "label": "Available-for-work badge",
+        "free": "Yes",
+        "pro": "Yes"
+      },
+      "stats": {
+        "label": "Stats",
+        "free": "30 days",
+        "pro": "90 days, referrers, countries"
+      },
+      "passwords": {
+        "label": "Password pages and a full-site password",
+        "free": "–",
+        "pro": "Yes"
+      },
+      "storage": {
+        "label": "Storage",
+        "free": "Enough to start",
+        "pro": "Much more"
+      },
+      "credit": {
+        "label": "“Made with Fannan” in the footer",
+        "free": "Small credit",
+        "pro": "None"
+      }
+    },
+    "faqTitle": "Questions about paying",
+    "faq": {
+      "renew": {
+        "q": "Does Pro renew automatically?",
+        "a": "No. You pay once for 3, 6 or 12 months. We email you 14 days and 3 days before it ends, and you decide whether to add more time."
+      },
+      "stack": {
+        "q": "What if I buy more while Pro is still on?",
+        "a": "The new months are added after your current end date, so you never lose a day."
+      },
+      "ends": {
+        "q": "What happens when Pro ends?",
+        "a": "You get 7 days of grace. Then your site moves to Free: projects beyond your newest 8, password pages and your own domain are hidden, and the small Fannan credit returns. Nothing is deleted, and it all comes back when you go Pro again."
+      },
+      "currency": {
+        "q": "Why do I see EGP or USD?",
+        "a": "Prices follow your country: Egyptian pounds in Egypt, US dollars everywhere else. The currency is fixed once you start paying."
+      },
+      "refund": {
+        "q": "Can I get a refund?",
+        "a": "Yes, within 14 days of paying, as long as your site wasn’t published on your own domain. Write to support@fannan.net."
+      },
+      "pay": {
+        "q": "How can I pay?",
+        "a": "By card through Paymob, Egypt’s payment company. Depending on your country you may also see mobile wallets or Fawry."
+      }
+    }
+  },
+  "examplesPage": {
+    "title": "Examples",
+    "sub": "Real portfolios made with Fannan, shared with their artists’ permission.",
+    "emptyTitle": "The first artists are building their sites right now",
+    "emptyText": "Their portfolios will appear here as they go live. Yours could be one of the first.",
+    "cta": "Claim your name"
+  },
+  "help": {
+    "title": "Help",
+    "sub": "Short answers to the questions artists ask most.",
+    "groups": {
+      "start": "Getting started",
+      "site": "Your site",
+      "hired": "Getting hired",
+      "account": "Your account"
+    },
+    "more": "Didn’t find your answer? <a>Write to us</a> and a person will reply.",
+    "q": {
+      "what": {
+        "q": "What is Fannan?",
+        "a": "A portfolio builder for Arab artists: animators, character designers, storyboard artists, illustrators and comic artists. You get one link that shows your best work with clear credits, made for the studios and clients who hire."
+      },
+      "free": {
+        "q": "Is it really free?",
+        "a": "Yes. The free plan has no time limit: 8 projects, every theme, your yourname.fannan.net address, a contact form and stats for 30 days. Pro adds your own domain, unlimited projects, password pages and full stats."
+      },
+      "time": {
+        "q": "How long does it take to make a site?",
+        "a": "A few minutes to get it live. Pick a layout, upload a few projects with credits, press Publish. You can keep improving it any time."
+      },
+      "arabic": {
+        "q": "Can my site be in Arabic?",
+        "a": "Yes. In the editor, choose Arabic as your site’s language: the layout flips right to left and uses Arabic fonts. Projects have optional Arabic titles and descriptions."
+      },
+      "upload": {
+        "q": "What can I upload?",
+        "a": "Images (JPG, PNG, WebP, GIF, SVG), short MP4 loops up to 30 seconds, and PDFs like comics or pitch decks. We make web versions automatically and never show your originals."
+      },
+      "video": {
+        "q": "How do I add my reel?",
+        "a": "Paste a YouTube or Vimeo link in a project or in the Reel block. Fannan doesn’t host long videos; loops up to 30 seconds can be uploaded directly."
+      },
+      "publish": {
+        "q": "Why don’t my changes show on my site?",
+        "a": "Editing never changes your live site until you press Publish in the site editor. That way you can work on it without visitors seeing half-finished pages."
+      },
+      "password": {
+        "q": "Can I hide work under NDA?",
+        "a": "Yes. Set a project to Hidden (it opens only by its direct link) or, on Pro, protect a project, a page or the whole site with a password."
+      },
+      "domain": {
+        "q": "Can I use my own domain?",
+        "a": "Yes, with Pro. In Settings → Domain type the domain you bought (for example yourname.com). Fannan shows you exactly which records to add at your domain company and turns on SSL by itself."
+      },
+      "seo": {
+        "q": "Will Google find my site?",
+        "a": "Yes. Every page has a real title and description, a sitemap and share images. You can turn indexing off in Settings → Privacy."
+      },
+      "available": {
+        "q": "What does “Available for work” do?",
+        "a": "It shows a badge and a “Hire me” button on your site, straight away, without publishing again. Turn it off when you’re busy."
+      },
+      "messages": {
+        "q": "Where do messages go?",
+        "a": "Into Messages in your dashboard, and to your email too unless you turn that off in Settings. Reply by email with one click."
+      },
+      "stats": {
+        "q": "How are visitors counted?",
+        "a": "By Fannan itself, without cookies and without storing anyone’s IP address. Bots don’t count. You can also add your own Google Analytics ID."
+      },
+      "username": {
+        "q": "Can I change my address?",
+        "a": "Yes, in Settings → Domain. Your old address keeps forwarding visitors to the new one for 30 days."
+      },
+      "export": {
+        "q": "Can I take my work with me?",
+        "a": "Always. Settings → Integrations → Export my site gives you a zip with every original file and your texts."
+      },
+      "delete": {
+        "q": "How do I delete my account?",
+        "a": "Settings → Account. Your site goes offline at once and everything is deleted for good after 14 days. Log in before then if you change your mind."
+      },
+      "pay": {
+        "q": "How do I pay for Pro?",
+        "a": "Once, for 3, 6 or 12 months, by card through Paymob. Nothing renews by itself. See the Pricing page for details."
+      }
+    }
+  },
+  "publicForm": {
+    "sending": "Sending…",
+    "missing": "Please fill in the required fields.",
+    "slowDown": "That’s a lot of messages. Please try again in a few minutes.",
+    "error": "That didn’t go through. Please try again."
+  },
+  "contactPage": {
+    "title": "Contact us",
+    "sub": "Questions, problems, ideas: a person from the Fannan team reads every message.",
+    "name": "Your name",
+    "email": "Your email",
+    "topic": "About",
+    "message": "Message",
+    "send": "Send",
+    "sent": "Thanks! We’ll reply by email, usually within two working days.",
+    "topics": {
+      "general": "Something else",
+      "account": "My account or site",
+      "billing": "Payments and Pro",
+      "domain": "My own domain",
+      "press": "Press and partnerships"
+    },
+    "direct": "You can also email <a>support@fannan.net</a>."
+  },
+  "reportPage": {
+    "title": "Report this site",
+    "sub": "Tell us about a Fannan site that breaks our content policy.",
+    "subSite": "Tell us what’s wrong with {site}.fannan.net. Reports are private.",
+    "url": "Address of the site or page",
+    "urlHint": "For example https://name.fannan.net/project",
+    "reason": "What’s the problem?",
+    "reasons": {
+      "porn": "Pornography or sexual services",
+      "minors": "Sexual content involving minors",
+      "illegal": "Illegal content",
+      "hate": "Hate against a group of people",
+      "threats": "Threats, harassment or incitement to violence",
+      "private": "Someone’s private information or intimate images",
+      "stolen": "Someone else’s work shown as their own",
+      "impersonation": "Pretending to be someone else",
+      "spam": "Spam, scam or phishing",
+      "other": "Something else"
+    },
+    "details": "What did you see? (optional)",
+    "email": "Your email (optional)",
+    "emailHint": "Only if you’d like us to follow up.",
+    "send": "Send report",
+    "sent": "Thank you. We review every report and act on anything that breaks our rules.",
+    "copyright": "Reporting your own work used without permission? Use the <a>copyright form</a> instead."
+  },
+  "copyrightPage": {
+    "title": "Copyright notice",
+    "sub": "If a Fannan site shows your work without permission, tell us here.",
+    "how": [
+      "We hide the work once we receive a complete notice, and let the artist know. The artist can reply with a counter-notice if they believe it’s a mistake.",
+      "Please only send a notice for work you own or are authorised to act for. False notices can have legal consequences."
+    ],
+    "name": "Your full name",
+    "email": "Your email",
+    "url": "Address of the page on Fannan",
+    "urlHint": "For example https://name.fannan.net/project",
+    "original": "Your original work",
+    "details": "Anything else we should know (optional)",
+    "goodFaith": "I believe in good faith that this use isn’t authorised by me, my agent or the law.",
+    "accurate": "The information in this notice is accurate, and I own the work or may act for its owner.",
+    "signature": "Type your full name as your signature",
+    "send": "Send notice",
+    "sent": "Thank you. We’ll review your notice and reply by email."
+  },
+  "legal": {
+    "terms": {
+      "title": "Terms of use",
+      "updated": "Last updated: 8 October 2026",
+      "intro": "These terms are the agreement between you and Fannan when you use fannan.net, app.fannan.net and the sites made with Fannan.",
+      "sections": [
+        {
+          "h": "Who we are",
+          "p": [
+            "Fannan is operated by Big Cat Animation LLC, Cairo, Egypt (“Fannan”, “we”). You can reach us at support@fannan.net."
+          ]
+        },
+        {
+          "h": "Your account",
+          "p": [
+            "You need to be at least 16 years old to make a Fannan account. Keep your sign-in email secure; you’re responsible for what happens on your account.",
+            "One person per account. Your username must follow our rules (no offensive or misleading names) and we may take back names that are reserved or used to impersonate someone."
+          ]
+        },
+        {
+          "h": "Your work stays yours",
+          "p": [
+            "You own everything you upload. You give Fannan a limited permission to store, copy, resize and show your work so we can run your site, make web versions of your files and show your site where you choose (for example in previews and, if you agree, on our Examples page).",
+            "This permission ends when you delete the work or your account, except for copies in backups that are deleted on their normal schedule."
+          ]
+        },
+        {
+          "h": "What you may post",
+          "p": [
+            "You may only post work you made or have the right to show, and you must follow our Content policy, which is part of these terms. Artistic nudity and mature themes are allowed; pornography is not.",
+            "We may hide work, unpublish a site or suspend an account that breaks these rules, and we’ll tell you why."
+          ]
+        },
+        {
+          "h": "Free and Pro",
+          "p": [
+            "The Free plan has no time limit. Pro is paid once for 3, 6 or 12 months and never renews automatically. Prices are shown in Egyptian pounds in Egypt and US dollars elsewhere; the currency is fixed when you start paying.",
+            "Buying more Pro while it’s active adds the time after your current end date. When Pro ends you have 7 days of grace; then your site moves to Free and anything Free doesn’t include is hidden, not deleted.",
+            "Refunds: within 14 days of paying, as long as your site wasn’t published on your own domain. Write to support@fannan.net."
+          ]
+        },
+        {
+          "h": "Your own domain",
+          "p": [
+            "You’re responsible for the domain you connect and its renewal with your domain company. If Pro ends, your domain stops showing your site and visitors are sent to your Fannan address."
+          ]
+        },
+        {
+          "h": "Ending your account",
+          "p": [
+            "You can delete your account in Settings at any time. Your site goes offline at once and everything is deleted after 14 days. You can export your site before that.",
+            "We may end accounts that seriously or repeatedly break these terms."
+          ]
+        },
+        {
+          "h": "The service",
+          "p": [
+            "We work hard to keep Fannan fast and online, but we can’t promise it will never be interrupted. We may change or improve features; if a change takes away something you paid for, we’ll make it right.",
+            "Fannan is provided as is. To the extent the law allows, we aren’t liable for indirect losses, and our total liability is limited to what you paid us in the 12 months before the claim."
+          ]
+        },
+        {
+          "h": "Changes to these terms",
+          "p": [
+            "If we change these terms in a way that matters, we’ll tell you by email or in your dashboard before the change takes effect."
+          ]
+        },
+        {
+          "h": "Law",
+          "p": [
+            "These terms are governed by the laws of the Arab Republic of Egypt, and the courts of Cairo handle any dispute, unless the law of your country gives you other rights."
+          ]
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Privacy policy",
+      "updated": "Last updated: 8 October 2026",
+      "intro": "What we collect, why, and what you can do about it. Short version: we collect what we need to run your portfolio, we don’t sell anything to anyone, and visitor stats work without cookies.",
+      "sections": [
+        {
+          "h": "Who is responsible",
+          "p": [
+            "Big Cat Animation LLC, Cairo, Egypt, operates Fannan. Contact: support@fannan.net."
+          ]
+        },
+        {
+          "h": "What we collect from artists",
+          "p": [
+            "Your sign-in email, your name, your username and your plan; what you put on your site (work, credits, texts, settings); your payment records (amount, date, months bought). We never see or store your card number: Paymob handles payments.",
+            "Basic technical logs (for example errors and security events), kept for a short time."
+          ]
+        },
+        {
+          "h": "What we collect from visitors to artist sites",
+          "p": [
+            "Visitor counts without cookies: we turn the visitor’s IP address and browser into a scrambled code that changes every day and can’t be reversed. We don’t store IP addresses for stats. We record the page, the site that sent the visitor and the country (from Cloudflare).",
+            "If a visitor uses a contact form, the artist receives their name, email and message. Artists may add their own Google Analytics or Meta Pixel; then those companies’ policies apply on that artist’s site."
+          ]
+        },
+        {
+          "h": "Cookies",
+          "p": [
+            "On app.fannan.net we use a sign-in cookie and a language cookie. On artist sites, a cookie is only set when you enter a password for a protected page. We don’t use advertising cookies."
+          ]
+        },
+        {
+          "h": "Why we use it",
+          "p": [
+            "To run your account and site, deliver messages, process payments, prevent spam and abuse, send the emails you need (sign-in links, receipts, reminders) and improve Fannan. We don’t sell personal data and don’t use it for advertising."
+          ]
+        },
+        {
+          "h": "Who helps us",
+          "p": [
+            "Google Cloud and Firebase (hosting, database and files, in Belgium), Cloudflare (network and security), Resend (email) and Paymob (payments). They only process data for us, under contract."
+          ]
+        },
+        {
+          "h": "How long we keep it",
+          "p": [
+            "As long as your account exists. When you delete your account, everything is deleted after 14 days; backups are overwritten within a few weeks. Payment records are kept as long as tax law requires."
+          ]
+        },
+        {
+          "h": "Your choices and rights",
+          "p": [
+            "You can see and change your information in your dashboard, export your site at any time, stop email copies of messages, turn off search indexing and delete your account. Write to support@fannan.net for anything else, including access to or correction of your data."
+          ]
+        },
+        {
+          "h": "Children",
+          "p": [
+            "Fannan isn’t for children under 16, and we don’t knowingly collect their data."
+          ]
+        },
+        {
+          "h": "Changes",
+          "p": [
+            "We’ll tell you by email or in your dashboard before important changes to this policy."
+          ]
+        }
+      ]
+    },
+    "policy": {
+      "title": "Content policy",
+      "updated": "Last updated: 8 October 2026",
+      "intro": "Artists are free to show what’s in their portfolio. That includes artistic nudity, violence in film or game work and mature themes. Pornography isn’t allowed, and the standard rules every hosting platform has apply.",
+      "sections": [
+        {
+          "h": "Allowed",
+          "p": [
+            "Artistic nudity: figure drawing, life studies, anatomy, fine art, character design.",
+            "Mature themes, horror, violence, gore, and political or religious subjects in artistic and professional work.",
+            "Work for clients, with your credit, when you have the right to show it."
+          ]
+        },
+        {
+          "h": "Not allowed",
+          "p": [
+            "Pornography: sexually explicit content whose main purpose is sexual arousal, and sexual services.",
+            "Any sexual or sexualised content involving minors, including drawn, animated or AI-generated depictions. Zero tolerance: removed at once, account suspended, records kept and reported to the authorities as the law requires.",
+            "Content that’s illegal in Egypt or where it’s viewed.",
+            "Hate: attacking or dehumanising people for their religion, ethnicity, nationality, gender, disability and similar.",
+            "Threats, harassment and incitement to violence against real people.",
+            "Other people’s private information, and intimate images shared without consent.",
+            "Someone else’s work shown as your own.",
+            "Impersonating a real person, studio or brand.",
+            "Spam, scams, phishing, malware, or using a Fannan site to collect passwords or payments under false pretences."
+          ]
+        },
+        {
+          "h": "Mature work",
+          "p": [
+            "You can mark a project as mature. Visitors then see a short notice before the images load. This is your choice, never required for artistic nudity; it’s a courtesy for when you send your link to studios."
+          ]
+        },
+        {
+          "h": "Reporting",
+          "p": [
+            "Every Fannan site has a “Report this site” link at the bottom. Reports are private and reviewed by a person.",
+            "If your own work is shown without permission, send a copyright notice at fannan.net/copyright. We hide the work after a complete notice, and the artist can reply with a counter-notice."
+          ]
+        },
+        {
+          "h": "What we do",
+          "p": [
+            "Depending on what we find: no action, hiding a project, unpublishing a site, suspending an account or, for serious or repeated cases, closing it. We email the artist with the reason each time."
+          ]
+        }
+      ]
     }
   }
 }

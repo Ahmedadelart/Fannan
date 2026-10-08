@@ -4,6 +4,7 @@ import { adminDb } from "@/lib/firebase/admin";
 import { getUser } from "@/lib/server/data";
 import { escapeHtml, sendEmail } from "@/lib/server/email";
 import { artistFromRequest } from "@/lib/server/host";
+import { firstMessage } from "@/lib/server/milestones";
 import { liveSite } from "@/lib/server/public";
 import { rateLimit } from "@/lib/server/rate-limit";
 import { verifyTurnstile } from "@/lib/server/turnstile";
@@ -70,6 +71,7 @@ export async function POST(req: NextRequest) {
       createdAt: FieldValue.serverTimestamp(),
     });
 
+  const first = await firstMessage(site.ownerUid, asked.email).catch(() => false);
   // Every message lands in the Fannan inbox; the email copy is optional (Settings → Contact).
   const owner = asked.email ? await getUser(site.ownerUid) : null;
   if (owner?.email) {
@@ -83,7 +85,13 @@ export async function POST(req: NextRequest) {
     await sendEmail({
       to: owner.email,
       replyTo: email,
-      subject: ar ? `رسالة جديدة من ${name} عبر موقعك على فنان` : `New message from ${name} via your Fannan site`,
+      subject: first
+        ? ar
+          ? `أول رسالة لك على فنان: من ${name}`
+          : `Your first message on Fannan: from ${name}`
+        : ar
+          ? `رسالة جديدة من ${name} عبر موقعك على فنان`
+          : `New message from ${name} via your Fannan site`,
       text: `${name} <${email}>\n\n${extra ? `${extra}\n\n` : ""}${message}\n\n— ${username}.fannan.net`,
       html: `<p><b>${escapeHtml(name)}</b> &lt;${escapeHtml(email)}&gt;</p>${extra ? `<p style="white-space:pre-line;color:#3A3A40">${escapeHtml(extra)}</p>` : ""}<p style="white-space:pre-line">${escapeHtml(message)}</p><p style="color:#6A6A70">— ${escapeHtml(username!)}.fannan.net · ${ar ? "اضغط «رد» للرد مباشرة" : "Press Reply to answer them directly"}</p>`,
     });

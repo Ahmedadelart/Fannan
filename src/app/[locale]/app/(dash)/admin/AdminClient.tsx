@@ -6,8 +6,8 @@ import { useFormatter, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
-import type { AdminUser } from "@/lib/server/admin";
-import { adminGivePro, adminRefund, adminRunDaily, adminSetProUntil, adminSuspend } from "./actions";
+import type { AdminUser, ModerationAction, Report } from "@/lib/server/admin";
+import { adminFeature, adminGivePro, adminModerate, adminRefund, adminRunDaily, adminSetProUntil, adminSuspend } from "./actions";
 
 function useRun() {
   const t = useTranslations("admin");
@@ -120,6 +120,14 @@ export function UserRow({ user }: { user: AdminUser }) {
             >
               {user.suspended ? t("unsuspend") : t("suspend")}
             </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy || !user.siteId || !user.published}
+              onClick={() => run(() => adminFeature(user.uid, !user.featured), user.featured ? t("unfeatured") : t("featuredDone"))}
+            >
+              {user.featured ? t("unfeature") : t("feature")}
+            </Button>
           </div>
         </div>
       )}
@@ -172,6 +180,75 @@ export function PaymentRow({ order }: { order: PaymentRowData }) {
           </Button>
         )}
       </span>
+    </li>
+  );
+}
+
+const ACTIONS: ModerationAction[] = ["dismiss", "hide-project", "unpublish", "suspend", "ban"];
+
+export function ReportRow({ report, siteHref }: { report: Report; siteHref: string | null }) {
+  const { busy, run, t } = useRun();
+  const format = useFormatter();
+  const [note, setNote] = useState("");
+  return (
+    <li className="flex flex-col gap-2.5 py-4 text-[14px]" data-testid="admin-report">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <span className="font-semibold">
+          {t(`reasons.${report.reason}`)} · {report.username ? `${report.username}` : "–"}
+        </span>
+        <span className="text-muted text-[12px]">
+          {format.dateTime(new Date(report.createdAt), { dateStyle: "medium", timeStyle: "short" })}
+          {report.kind === "copyright" ? ` · ${t("copyrightNotice")}` : ""}
+        </span>
+      </div>
+      <div className="flex flex-col gap-1 text-[13px]">
+        {report.url && (
+          <a href={report.url} target="_blank" rel="noreferrer" dir="ltr" className="break-all underline">
+            {report.url}
+          </a>
+        )}
+        {siteHref && !report.url && (
+          <a href={siteHref} target="_blank" rel="noreferrer" className="underline">
+            {t("openSite")}
+          </a>
+        )}
+        {report.details && <p className="text-ink-soft whitespace-pre-line">{report.details}</p>}
+        {report.kind === "copyright" && (
+          <p className="text-ink-soft">
+            {report.name} · {report.original}
+          </p>
+        )}
+        {report.email && <span className="text-muted" dir="ltr">{report.email}</span>}
+      </div>
+      {report.status === "open" ? (
+        <div className="bg-mist flex flex-col gap-2 rounded-[10px] p-3">
+          <input
+            aria-label={t("noteToArtist")}
+            placeholder={t("noteToArtist")}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            className="border-line bg-paper h-9 rounded-md border px-2"
+          />
+          <div className="flex flex-wrap gap-1.5">
+            {ACTIONS.map((a) => (
+              <Button
+                key={a}
+                size="sm"
+                variant={a === "dismiss" ? "ghost" : "outline"}
+                disabled={busy}
+                onClick={() => {
+                  if (a !== "dismiss" && !window.confirm(t("actionConfirm", { action: t(`actions.${a}`) }))) return;
+                  void run(() => adminModerate(report.id, a, note), t("actionDone"));
+                }}
+              >
+                {t(`actions.${a}`)}
+              </Button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <span className="text-muted text-[12px]">{t(`actions.${report.action ?? "dismiss"}`)}</span>
+      )}
     </li>
   );
 }

@@ -41,3 +41,19 @@ export async function surfaceUrls(): Promise<SurfaceUrls> {
     site: (u, path) => at(u, path),
   };
 }
+
+/** A link into the dashboard for emails (no request to read the address from). */
+
+export function appLink(path: string) {
+
+  const origin = process.env.APP_ORIGIN;
+
+  if (origin && process.env.SURFACE_SWITCHER === "true") {
+
+    return `${origin}/__surface?to=app&next=${encodeURIComponent(path)}`;
+
+  }
+
+  return `${origin ?? `https://app.${ROOT_DOMAIN}`}${path}`;
+
+}

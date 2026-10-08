@@ -1,11 +1,12 @@
 import "server-only";
 
-import { Timestamp } from "firebase-admin/firestore";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { isAdminEmail } from "@/config/admins";
-import { adminDb } from "@/lib/firebase/admin";
+import { adminAuth, adminDb } from "@/lib/firebase/admin";
 import { DAY_MS } from "@/lib/plan";
 import { listOrders, type Order } from "./billing";
 import { userPlan, type UserDoc } from "./data";
+import { escapeHtml, sendEmail } from "./email";
 import { forgetDomainsFor } from "./domains";
 import { forgetLiveSite } from "./public";
 import { getSession } from "./session";
@@ -34,6 +35,7 @@ export interface AdminUser {
   proUntil: number | null;
   inGrace: boolean;
   suspended: boolean;
+  featured: boolean;
   published: boolean;
   createdAt: number;
 }
@@ -56,6 +58,7 @@ async function withSites(docs: Array<{ id: string; data: UserDoc }>): Promise<Ad
       proUntil: p.proUntil,
       inGrace: p.inGrace,
       suspended: !!site?.suspended,
+      featured: !!site?.featured,
       published: site?.publishedVersion != null,
       createdAt: data.createdAt?.toMillis() ?? 0,
     };
@@ -127,4 +130,129 @@ export async function setSuspended(uid: string, suspended: boolean) {
     forgetDomainsFor(username);
     await purgeSiteCache(username);
   }
+}
+
+/* ---------- reports queue (CONTENT-POLICY.md) ---------- */
+
+export interface Report {
+  id: string;
+  kind: "report" | "copyright";
+  username: string | null;
+  siteId: string | null;
+  url: string;
+  reason: string;
+  details: string;
+  email: string;
+  name?: string;
+  original?: string;
+  status: "open" | "done";
+  action?: string;
+  createdAt: number;
+}
+
+export async function listReports(status: "open" | "done" = "open"): Promise<Report[]> {
+  const snap = await adminDb().collection("reports").where("status", "==", status).orderBy("createdAt", "desc").limit(100).get();
+  return snap.docs.map((d) => {
+    const r = d.data();
+    return { id: d.id, ...r, createdAt: (r.createdAt as Timestamp | undefined)?.toMillis() ?? 0 } as Report;
+  });
+}
+
+export type ModerationAction = "dismiss" | "hide-project" | "unpublish" | "suspend" | "ban";
+
+const REASON_TEXT: Record<string, { en: string; ar: string }> = {
+  porn: { en: "pornography or sexual services", ar: "إباحية أو خدمات جنسية" },
+  minors: { en: "sexual content involving minors", ar: "محتوى جنسي يتضمن قاصرين" },
+  illegal: { en: "illegal content", ar: "محتوى مخالف للقانون" },
+  hate: { en: "hate against a group of people", ar: "كراهية ضد مجموعة من الناس" },
+  threats: { en: "threats, harassment or incitement to violence", ar: "تهديد أو تحرش أو تحريض على العنف" },
+  private: { en: "someone's private information or intimate images", ar: "معلومات خاصة أو صور حميمة لشخص آخر" },
+  stolen: { en: "someone else's work shown as your own", ar: "عرض عمل غيرك على أنه عملك" },
+  impersonation: { en: "impersonation", ar: "انتحال شخصية" },
+  spam: { en: "spam, scam or phishing", ar: "سبام أو نصب أو تصيّد" },
+  copyright: { en: "a copyright notice from the owner of the work", ar: "إخطار حقوق نشر من صاحب العمل" },
+  other: { en: "a breach of our content policy", ar: "مخالفة لسياسة المحتوى" },
+};
+
+/** Acts on a report and tells the artist why (every action except dismiss). */
+export async function actOnReport(id: string, action: ModerationAction, note: string, by: string) {
+  const db = adminDb();
+  const ref = db.collection("reports").doc(id);
+  const report = (await ref.get()).data() as Omit<Report, "id"> | undefined;
+  if (!report) throw new Error("not-found");
+  const site = report.siteId ? (await db.collection("sites").doc(report.siteId).get()).data() : undefined;
+  const uid = site?.ownerUid as string | undefined;
+
+  if (action !== "dismiss") {
+    if (!report.siteId || !uid) throw new Error("not-found");
+    const siteRef = db.collection("sites").doc(report.siteId);
+    if (action === "hide-project") {
+      const slug = (() => {
+        try {
+          return new URL(report.url).pathname.split("/").filter(Boolean).filter((s) => s !== "ar" && s !== "en")[0] ?? "";
+        } catch {
+          return "";
+        }
+      })();
+      const project = slug
+        ? (await siteRef.collection("projects").where("slug", "==", slug).limit(1).get()).docs[0]
+        : undefined;
+      if (!project) throw new Error("no-project");
+      await siteRef.update({ "moderation.hiddenProjects": FieldValue.arrayUnion(project.id) });
+      await project.ref.update({ visibility: "hidden" });
+    }
+    if (action === "unpublish") await siteRef.update({ publishedVersion: null });
+    if (action === "suspend" || action === "ban") await setSuspended(uid, true);
+    if (action === "ban") {
+      await db.collection("users").doc(uid).set({ banned: true }, { merge: true });
+      await adminAuth().updateUser(uid, { disabled: true }).catch(() => {});
+    }
+    if (site?.username) {
+      forgetLiveSite(site.username);
+      await purgeSiteCache(site.username);
+    }
+    const user = (await db.collection("users").doc(uid).get()).data() as UserDoc | undefined;
+    if (user?.email) await sendEmail(moderationEmail(user, action, report.reason, note));
+  }
+  await ref.update({ status: "done", action, note: note.slice(0, 500), actedBy: by, actedAt: FieldValue.serverTimestamp() });
+}
+
+function moderationEmail(user: UserDoc, action: ModerationAction, reason: string, note: string) {
+  const ar = user.locale === "ar";
+  const why = (REASON_TEXT[reason] ?? REASON_TEXT.other)[ar ? "ar" : "en"];
+  const what = {
+    "hide-project": ar ? "أخفينا أحد مشاريعك" : "We've hidden one of your projects",
+    unpublish: ar ? "ألغينا نشر موقعك" : "We've unpublished your site",
+    suspend: ar ? "أوقفنا موقعك" : "We've suspended your site",
+    ban: ar ? "أغلقنا حسابك" : "We've closed your account",
+    dismiss: "",
+  }[action];
+  const lines = ar
+    ? [
+        `${what} على فنان بسبب: ${why}.`,
+        ...(note ? [note] : []),
+        action === "ban"
+          ? "إن كنت ترى أن هذا خطأ فراسل support@fannan.net."
+          : "إن كنت ترى أن هذا خطأ، أو بعد تصحيح المشكلة، راسل support@fannan.net وسنراجع الأمر.",
+      ]
+    : [
+        `${what} on Fannan because of ${why}.`,
+        ...(note ? [note] : []),
+        action === "ban"
+          ? "If you believe this is a mistake, write to support@fannan.net."
+          : "If you believe this is a mistake, or once you've fixed the problem, write to support@fannan.net and we'll take another look.",
+      ];
+  return {
+    to: user.email!,
+    subject: ar ? "إشعار بخصوص موقعك على فنان" : "About your Fannan site",
+    text: lines.join("\n\n"),
+    html: lines.map((l) => `<p${ar ? ' dir="rtl"' : ""}>${escapeHtml(l)}</p>`).join(""),
+  };
+}
+
+/** "Show on Examples" (the artist agreed to be featured on fannan.net/examples). */
+export async function setFeatured(uid: string, featured: boolean) {
+  const user = (await adminDb().collection("users").doc(uid).get()).data() as UserDoc | undefined;
+  if (!user?.siteId) throw new Error("not-found");
+  await adminDb().collection("sites").doc(user.siteId).update({ featured });
 }

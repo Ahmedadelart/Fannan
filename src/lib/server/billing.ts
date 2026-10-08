@@ -25,6 +25,7 @@ import { forgetLiveSite } from "./public";
 import { sharedMap } from "./shared-memory";
 
 import { purgeSiteCache } from "./site";
+import { appLink } from "./urls";
 
 
 
@@ -112,25 +113,6 @@ export class BillingError extends Error {
 
 const orders = () => adminDb().collection("orders");
 
-const ROOT_DOMAIN = process.env.ROOT_DOMAIN ?? "fannan.net";
-
-
-
-/** A link into the dashboard for emails (no request to read the address from). */
-
-export function appLink(path: string) {
-
-  const origin = process.env.APP_ORIGIN;
-
-  if (origin && process.env.SURFACE_SWITCHER === "true") {
-
-    return `${origin}/__surface?to=app&next=${encodeURIComponent(path)}`;
-
-  }
-
-  return `${origin ?? `https://app.${ROOT_DOMAIN}`}${path}`;
-
-}
 
 
 

@@ -17,7 +17,7 @@ test("English: from the homepage claim box to a saved site, then back in on anot
 
   // Homepage claim box hands the name to sign-up and holds it.
   await page.goto(at(""));
-  await page.getByRole("textbox", { name: "Your username" }).fill(username);
+  await page.getByRole("textbox", { name: "Claim your name before someone else does" }).fill(username);
   await page.getByRole("button", { name: "Claim it" }).click();
   await expect(page).toHaveURL(at("app", `/signup?username=${username}`));
   await expect(page.getByText(`${username}.fannan.localhost is held for you`)).toBeVisible({ timeout: 15_000 });
@@ -126,7 +126,7 @@ test("Arabic: the whole sign-up in Arabic, right to left", async ({ browser }) =
 
 test("reserved names can't be claimed from the homepage", async ({ page }) => {
   await page.goto(at(""));
-  await page.getByRole("textbox", { name: "Your username" }).fill("app");
+  await page.getByRole("textbox", { name: "Claim your name before someone else does" }).fill("app");
   await page.getByRole("button", { name: "Claim it" }).click();
   await expect(page.getByText("That name is kept for Fannan. Try another one.")).toBeVisible();
 });

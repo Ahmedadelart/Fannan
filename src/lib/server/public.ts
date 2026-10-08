@@ -74,8 +74,12 @@ export async function liveSite(username: string): Promise<LiveSite | null> {
         }
         const owner = (await db.collection("users").doc(site.ownerUid).get()).data() as UserDoc | undefined;
         const plan = userPlan(owner).plan;
+        // Projects hidden by moderation are gone from the live site at once, even by direct link.
+        const blocked = new Set((raw as { moderation?: { hiddenProjects?: string[] } }).moderation?.hiddenProjects ?? []);
+        const shown = applyPlan(snap, plan);
         value = {
-          ...applyPlan(snap, plan),
+          ...shown,
+          projects: blocked.size ? shown.projects.filter((p) => !blocked.has(p.id)) : shown.projects,
           media,
           available: site.available,
           siteId: name.siteId,

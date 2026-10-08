@@ -19,6 +19,7 @@ import {
   setUserLocale,
   type Availability,
 } from "@/lib/server/data";
+import { welcome } from "@/lib/server/milestones";
 import { rateLimit } from "@/lib/server/rate-limit";
 import { clientIp, getSession, isHttps, requireSession } from "@/lib/server/session";
 import { layoutIds } from "@/lib/site/starter";
@@ -84,6 +85,7 @@ export async function completeSignIn(token: string | null): Promise<{ moved: boo
   if (session.isAnonymous) return { moved: false, hasSite: false };
   const res = await finishClaim(token, session.uid, session.email, await currentLocale());
   const user = await getUser(session.uid);
+  if (user?.siteId) await welcome(session.uid).catch((e) => console.error("welcome email", e));
   // The account's language follows them to every device.
   if (user?.locale) await setLocaleCookie(user.locale);
   return { moved: res.moved, hasSite: !!user?.siteId };

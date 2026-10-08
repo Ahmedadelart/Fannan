@@ -3,9 +3,10 @@ import { notFound } from "next/navigation";
 import { getFormatter, getTranslations, setRequestLocale } from "next-intl/server";
 import type { Locale } from "@/i18n/locales";
 import { cx } from "@/lib/cx";
-import { findUsers, isAdmin, overview, refundAdvice } from "@/lib/server/admin";
+import { findUsers, isAdmin, listReports, overview, refundAdvice } from "@/lib/server/admin";
+import { surfaceUrls } from "@/lib/server/urls";
 import { checkoutProvider } from "@/lib/server/billing";
-import { PaymentRow, RunDaily, UserRow } from "./AdminClient";
+import { PaymentRow, ReportRow, RunDaily, UserRow } from "./AdminClient";
 
 // Admin (Ahmed only): numbers, users, payments, Pro gifts, refunds, suspending sites.
 // Anyone else gets a plain 404, so the page's existence isn't revealed.
@@ -25,7 +26,13 @@ export default async function AdminPage({ params, searchParams }: PageProps<"/[l
   const sp = await searchParams;
   const tab = TABS.includes(sp.tab as "users") ? (sp.tab as (typeof TABS)[number]) : "users";
   const q = typeof sp.q === "string" ? sp.q : "";
-  const [stats, users] = await Promise.all([overview(), tab === "users" ? findUsers(q) : Promise.resolve([])]);
+  const [stats, users, reports, done] = await Promise.all([
+    overview(),
+    tab === "users" ? findUsers(q) : Promise.resolve([]),
+    listReports("open"),
+    tab === "reports" ? listReports("done") : Promise.resolve([]),
+  ]);
+  const urls = await surfaceUrls();
   const advice =
     tab === "payments"
       ? await Promise.all(stats.orders.map(async (o) => [o.id, o.status === "paid" ? await refundAdvice(o) : "ok"] as const))
@@ -72,6 +79,7 @@ export default async function AdminPage({ params, searchParams }: PageProps<"/[l
             )}
           >
             {t(`tabs.${k}`)}
+            {k === "reports" && reports.length > 0 && ` (${reports.length})`}
           </a>
         ))}
       </nav>
@@ -128,8 +136,24 @@ export default async function AdminPage({ params, searchParams }: PageProps<"/[l
       )}
 
       {tab === "reports" && (
-        <section className="border-line bg-paper rounded-lg border p-5 text-[14px]">
-          <p className="text-ink-soft">{t("reportsSoon")}</p>
+        <section className="border-line bg-paper flex flex-col gap-3 rounded-lg border p-5">
+          <h2 className="text-[16px] font-semibold">{t("openReports", { count: reports.length })}</h2>
+          {reports.length === 0 && <p className="text-muted text-[13px]">{t("noReports")}</p>}
+          <ul className="divide-line divide-y">
+            {reports.map((r) => (
+              <ReportRow key={r.id} report={r} siteHref={r.username ? urls.site(r.username, "/") : null} />
+            ))}
+          </ul>
+          {done.length > 0 && (
+            <details>
+              <summary className="text-ink-soft cursor-pointer text-[14px] font-semibold">{t("doneReports")}</summary>
+              <ul className="divide-line divide-y">
+                {done.slice(0, 30).map((r) => (
+                  <ReportRow key={r.id} report={r} siteHref={null} />
+                ))}
+              </ul>
+            </details>
+          )}
         </section>
       )}
     </>

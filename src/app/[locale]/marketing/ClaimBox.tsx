@@ -31,14 +31,17 @@ export function ClaimBox({ signupUrl, domain }: { signupUrl: string; domain: str
   }
 
   return (
-    <form onSubmit={submit} className="flex max-w-[560px] flex-col gap-2">
-      <div className="flex flex-wrap gap-2">
-        <label
+    <form onSubmit={submit} className="flex max-w-[560px] flex-col gap-2.5">
+      <label htmlFor="claim-name" className="text-[14px] font-semibold">
+        {t("claimLabel")}
+      </label>
+      <div className="flex flex-wrap gap-2.5">
+        <div
           dir="ltr"
-          className="border-ink bg-paper flex h-[52px] min-w-0 flex-1 items-center rounded-md border-2 px-4 text-[17px] focus-within:shadow-[0_0_0_4px_var(--color-lime)]"
+          className="border-ink bg-paper flex h-14 min-w-0 flex-[1_1_260px] items-center rounded-md border-2 px-4 text-[17px] focus-within:shadow-[0_0_0_4px_var(--color-lime)]"
         >
-          <span className="sr-only">{t("claimLabel")}</span>
           <input
+            id="claim-name"
             value={name}
             onChange={(e) => {
               setProblem(null);
@@ -51,23 +54,21 @@ export function ClaimBox({ signupUrl, domain }: { signupUrl: string; domain: str
             aria-invalid={problem ? true : undefined}
             className="placeholder:text-muted min-w-0 flex-1 bg-transparent text-end outline-none focus-visible:shadow-none"
           />
-          <span className="text-muted">.{domain}</span>
-        </label>
+          <span className="text-muted font-medium">.{domain}</span>
+        </div>
         <button
           type="submit"
           disabled={busy}
-          className="bg-lime text-ink h-[52px] rounded-md px-6 text-[16px] font-semibold hover:brightness-95 disabled:opacity-50"
+          className="bg-lime text-ink border-ink h-14 rounded-md border-2 px-[26px] text-[17px] font-semibold hover:brightness-95 disabled:opacity-50"
         >
           {busy ? t("claimChecking") : t("claimButton")}
         </button>
       </div>
-      {problem ? (
+      {problem && (
         <p role="alert" className="flex items-center gap-2 text-[14px] font-semibold">
           <span aria-hidden className="hl-bar h-[6px] w-3" />
           {tp(problem)}
         </p>
-      ) : (
-        <p className="text-muted text-[13px]">{t("claimHint")}</p>
       )}
     </form>
   );

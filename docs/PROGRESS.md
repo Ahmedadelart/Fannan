@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 8 Oct 2026, phase 6 (Pro, payments, own domains, admin) with a practice checkout; Paymob connects later._
+_Last updated: 8 Oct 2026, phase 7 (marketing site, legal, reports, launch readiness). Waiting on Ahmed's beta sign-off (docs/BETA-CHECKLIST.md)._
 
 ## Done
 
@@ -133,6 +133,17 @@ _Last updated: 8 Oct 2026, phase 6 (Pro, payments, own domains, admin) with a pr
 
 ## In progress
 - Nothing.
+
+### Phase 7: Marketing site, legal, launch readiness
+- **fannan.net** (Home-EN/AR.dc.html): header, hero with the claim box, disciplines strip, how it works, built to get you hired, examples, pricing (EGP in Egypt, USD elsewhere, from `config/plans.json`), closing CTA, footer. Arabic at /ar in the design's Egyptian voice. Copy adjusted where the design promised things not built yet (WhatsApp, ArtStation/Behance import).
+- **Pages (EN + AR):** /pricing (all durations, comparison, payment FAQ), /examples (real sites Ahmed features from Admin → Show on Examples), /help (17 questions), /contact (to support@fannan.net), /terms, /privacy, /content-policy (drafts naming Big Cat Animation LLC; **lawyer review needed**), /copyright (takedown notice form), /report.
+- **Report this site:** link in every artist site's footer → /report with the site and page filled in → `reports` → Admin → Reports (with a count on the tab and an email to support@). Actions: dismiss, hide project (gone from the live site at once, even by direct link), unpublish site, suspend account, ban (also blocks sign-in). Every action emails the artist the reason, with an optional note.
+- **Onboarding emails** (once each): welcome (account saved), "your site is live" (first publish), "your first message" (first contact message; folded into the message email when email copies are on).
+- **Accessibility:** automatic axe checks (WCAG A/AA) on the homepage EN/AR, dashboard, settings and an artist site, now in the tests; fixed two unlabelled "images" (site previews and empty project placeholders). Focus ring, contrast and alt-text nudges were already in place.
+- **Running it (fannan-510913):** daily Firestore backups (14 days); Cloud Scheduler job `fannan-daily` at 03:00 Cairo calls `/api/cron/cleanup` with `CRON_SECRET` (Secret Manager `cron-secret`); uptime checks (fannan.net, app.fannan.net/login, www.ranakorany.com) every 5 minutes; alert policies "Fannan is down" and "Fannan server errors" email fannan.team@gmail.com; Error Reporting picks up server errors on its own (instead of Sentry: no extra account). Staging has no backups (no billing; test data only).
+- **Load test** (autocannon, 20 connections, 30 s, production artist site through Cloudflare): ~43 requests/s, median 397 ms, p97.5 677 ms. Pages aren't edge-cached yet; that's the next lever if traffic grows.
+- **Tests:** `tests/e2e/launch.spec.ts` (marketing EN/AR on desktop and phone, prices by country, every page 200 in both languages, contact form, onboarding emails, report → hide project → artist email, Examples).
+- **Beta sign-off:** `docs/BETA-CHECKLIST.md`.
 
 ## Not done yet from the phase 6 "done when"
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).

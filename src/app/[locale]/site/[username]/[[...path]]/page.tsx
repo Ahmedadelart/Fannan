@@ -14,6 +14,7 @@ import { SiteRender, type GalleryProject, type SiteMedia } from "@/components/si
 import type { Locale } from "@/i18n/locales";
 import { imageSources, posterSources } from "@/lib/media";
 import { surfaceOfRequest } from "@/lib/server/host";
+import { surfaceUrls } from "@/lib/server/urls";
 import { accessCookieName, checkAccessCookie, liveSite, mediaToken, type LiveSite } from "@/lib/server/public";
 import { usernameRedirect } from "@/lib/server/settings";
 import type { PublishedProject } from "@/lib/server/site";
@@ -505,6 +506,12 @@ export default async function ArtistSite({ params }: { params: Promise<Params> }
         content={content}
         credit={credit}
         footerLinks={footerLinks(site, ts("cv"))}
+        report={{
+          label: ts("report"),
+          href: (await surfaceUrls()).marketing(
+            `${site.language === "ar" ? "/ar" : ""}/report?site=${username}&url=${encodeURIComponent(`${origin}/${path?.join("/") ?? ""}`)}`,
+          ),
+        }}
         contactHref={contactHref}
         available={{ on: site.available.on, label: ts("available"), hire: ts("hireMe") }}
         renderContact={(b) => (

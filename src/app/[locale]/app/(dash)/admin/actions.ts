@@ -1,6 +1,6 @@
 "use server";
 
-import { requireAdmin, setSuspended } from "@/lib/server/admin";
+import { actOnReport, requireAdmin, setFeatured, setSuspended, type ModerationAction } from "@/lib/server/admin";
 import { BillingError, grantPro, refundOrder, runProReminders, setProUntil } from "@/lib/server/billing";
 import { cleanupAnonymousDrafts, cleanupDeletedAccounts } from "@/lib/server/data";
 
@@ -62,5 +62,26 @@ export async function adminRunDaily() {
       cleanupDeletedAccounts(),
     ]);
     return { reminders, removed, deleted };
+  });
+}
+
+export async function adminModerate(reportId: string, action: ModerationAction, note: string): Promise<Result> {
+  try {
+    const admin = await requireAdmin();
+    if (!["dismiss", "hide-project", "unpublish", "suspend", "ban"].includes(action)) return { ok: false, error: "error" };
+    await actOnReport(String(reportId), action, String(note ?? ""), admin.email ?? "admin");
+    return { ok: true };
+  } catch (e) {
+    const code = e instanceof Error && ["no-project", "not-found", "not-admin"].includes(e.message) ? e.message : "error";
+    if (code === "error") console.error(e);
+    return { ok: false, error: code };
+  }
+}
+
+export async function adminFeature(uid: string, featured: boolean) {
+  return attempt(async () => {
+    await requireAdmin();
+    await setFeatured(String(uid), !!featured);
+    return {};
   });
 }

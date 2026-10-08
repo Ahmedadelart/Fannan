@@ -8,6 +8,7 @@ import { aboutWritten } from "@/lib/site/blocks";
 import { normalizeDraft } from "@/lib/site/normalize";
 import type { Block, PageDraft, SiteDraft } from "@/lib/site/types";
 import { getSite, type SiteDoc } from "./data";
+import { siteLive } from "./milestones";
 import { forgetLiveSite } from "./public";
 import { checkPassword, scryptHash } from "./passwords";
 import { ProjectError, type MediaDoc, type Owner, type ProjectDoc } from "./projects";
@@ -293,6 +294,7 @@ export async function publish(o: Owner): Promise<{ version: number }> {
   await Promise.all(old.docs.map((d) => d.ref.delete()));
   forgetLiveSite(site.username);
   await purgeSiteCache(site.username);
+  if (site.publishedVersion == null) await siteLive(o.uid, site.username).catch((e) => console.error("live email", e));
   return { version };
 }
 

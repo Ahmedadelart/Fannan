@@ -38,8 +38,10 @@ export function ScaledSite({
   return (
     <div
       ref={box}
-      role="img"
+      // A described preview is one image; an undescribed one is decoration next to its own label.
+      role={label ? "img" : undefined}
       aria-label={label}
+      aria-hidden={label ? undefined : true}
       className={cx("relative w-full overflow-hidden", className)}
       style={{ height: viewHeight * scale }}
     >

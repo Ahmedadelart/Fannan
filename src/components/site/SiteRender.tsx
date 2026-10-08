@@ -48,6 +48,8 @@ export interface SiteRenderProps {
   credit?: string | null;
   /** Social links and CV from Settings, shown in the footer of live sites. */
   footerLinks?: Array<{ href: string; label: string; download?: boolean }>;
+  /** "Report this site" (live sites only). */
+  report?: { href: string; label: string } | null;
   categoryLabel?: (id: string) => string;
   /** Public site: real links between pages and projects, lightbox and hover-play markers. */
   live?: boolean;
@@ -107,8 +109,9 @@ function Picture({
   if (!src) {
     return (
       <div
-        role="img"
-        aria-label={alt}
+        role={alt ? "img" : undefined}
+        aria-label={alt || undefined}
+        aria-hidden={alt ? undefined : true}
         className={className}
         style={{
           aspectRatio: ratio ?? "4 / 3",
@@ -861,6 +864,7 @@ export function SiteRender({
   selectedBlockId,
   credit,
   footerLinks = [],
+  report = null,
   categoryLabel,
   live = false,
   renderContact,
@@ -934,7 +938,7 @@ export function SiteRender({
       <div className={cx("flex flex-col gap-12 p-[var(--site-pad)]", theme.nav === "sidebar" && "site-with-sidebar")}>
         <Nav site={site} page={page} ctx={ctx} />
         {body}
-        {(credit || footerLinks.length > 0) && (
+        {(credit || footerLinks.length > 0 || report) && (
           <footer
             className="flex flex-col items-center gap-3 pt-8 text-center text-[12px]"
             style={{ color: "var(--site-muted)" }}
@@ -954,14 +958,23 @@ export function SiteRender({
                 ))}
               </nav>
             )}
-            {credit &&
-              (live ? (
-                <a href="https://fannan.net" style={{ color: "inherit" }}>
-                  {credit}
-                </a>
-              ) : (
-                credit
-              ))}
+            {(credit || report) && (
+              <span className="flex flex-wrap justify-center gap-x-4 gap-y-1">
+                {credit &&
+                  (live ? (
+                    <a href="https://fannan.net" style={{ color: "inherit" }}>
+                      {credit}
+                    </a>
+                  ) : (
+                    credit
+                  ))}
+                {report && (
+                  <a href={report.href} rel="nofollow" style={{ color: "inherit" }}>
+                    {report.label}
+                  </a>
+                )}
+              </span>
+            )}
           </footer>
         )}
       </div>

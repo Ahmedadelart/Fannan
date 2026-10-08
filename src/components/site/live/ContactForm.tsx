@@ -3,18 +3,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 
-declare global {
-  interface Window {
-    turnstile?: {
-      render: (
-        el: HTMLElement,
-        opts: { sitekey: string; callback: (t: string) => void; "expired-callback"?: () => void },
-      ) => string;
-      reset: (id?: string) => void;
-    };
-  }
-}
-
 const field = "w-full border px-3.5 py-3 text-[16px] outline-none focus:border-[var(--site-text)]";
 
 /** The working contact form on an artist's live site. Styled by the artist's theme. */
