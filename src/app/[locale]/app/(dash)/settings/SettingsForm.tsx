@@ -695,7 +695,7 @@ function OwnDomain({ data }: { data: SettingsData }) {
         <Input
           label={t("label")}
           dir="ltr"
-          placeholder="www.yourname.com"
+          placeholder="yourname.com"
           autoCapitalize="none"
           spellCheck={false}
           value={input}
@@ -722,30 +722,43 @@ function OwnDomain({ data }: { data: SettingsData }) {
         </span>
       </div>
       {domain.status !== "active" && (
-        <div className="bg-mist flex flex-col gap-2 rounded-[10px] p-3 text-[12px]">
-          <span className="text-ink text-[13px] font-semibold">{t("pointTitle")}</span>
-          <span className="text-ink-soft">{t("pointText")}</span>
-          <table className="w-full text-start" dir="ltr">
-            <thead className="text-muted">
-              <tr>
-                <th className="pe-3 text-start font-semibold">{t("type")}</th>
-                <th className="pe-3 text-start font-semibold">{t("name")}</th>
-                <th className="text-start font-semibold">{t("value")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {domain.records.map((r) => (
-                <tr key={`${r.type}${r.name}`} className="align-top">
-                  <td className="pe-3 font-semibold">{r.type}</td>
-                  <td className="pe-3 break-all">{r.name}</td>
-                  <td className="break-all">{r.value}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <span className="text-ink-soft">{t("apex")}</span>
-          {domain.error && <span className="text-ink font-semibold">{domain.error}</span>}
-        </div>
+        <ol className="bg-mist flex list-none flex-col gap-3 rounded-[10px] p-3 text-[13px]" data-testid="domain-steps">
+          <li className="flex flex-col gap-1">
+            <span className="text-ink font-semibold">1. {t("step1", { apex: domain.apex })}</span>
+          </li>
+          <li className="flex flex-col gap-2">
+            <span className="text-ink font-semibold">2. {t("step2")}</span>
+            <div className="bg-paper overflow-x-auto rounded-[8px] p-2">
+              <table className="w-full text-start text-[12px]" dir="ltr">
+                <thead className="text-muted">
+                  <tr>
+                    <th className="pe-3 text-start font-semibold">{t("type")}</th>
+                    <th className="pe-3 text-start font-semibold">{t("name")}</th>
+                    <th className="text-start font-semibold">{t("value")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {domain.records.map((r) => (
+                    <tr key={`${r.type}${r.name}`} className="align-top">
+                      <td className="pe-3 py-1 font-semibold">{r.type}</td>
+                      <td className="pe-3 py-1 font-semibold break-all">{r.host}</td>
+                      <td className="py-1 break-all">{r.value}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <span className="text-ink-soft">{t("step2Note", { apex: domain.apex })}</span>
+          </li>
+          {domain.forwardApex && (
+            <li className="flex flex-col gap-1">
+              <span className="text-ink font-semibold">3. {t("step3", { apex: domain.apex, hostname: domain.hostname })}</span>
+              <span className="text-ink-soft">{t("step3Note")}</span>
+            </li>
+          )}
+          <li className="text-ink-soft">{t("wait")}</li>
+          {domain.error && <li className="text-ink font-semibold">{domain.error}</li>}
+        </ol>
       )}
       {domain.status === "active" && <p className="text-ink-soft text-[13px]">{t("activeText", { address: `${data.username}.${data.domain}` })}</p>}
       <div className="flex flex-wrap gap-2">

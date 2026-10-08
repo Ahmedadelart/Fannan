@@ -144,12 +144,15 @@ test("buying Pro, an own domain, reminders, the move to Free and back", async ({
   await page.getByRole("radio", { name: /Your own domain/ }).click();
   await page.getByRole("textbox", { name: "Your domain" }).fill(domain);
   await page.getByRole("button", { name: "Connect domain" }).click();
-  await expect(page.getByTestId("own-domain")).toContainText("sites.fannan.net");
+  // A bare domain connects as www., with the parts to type and the forwarding step.
+  await expect(page.getByTestId("own-domain")).toContainText(`www.${domain}`);
+  await expect(page.getByTestId("domain-steps").getByRole("row", { name: /CNAME www sites\.fannan\.net/ })).toBeVisible();
+  await expect(page.getByTestId("domain-steps")).toContainText(`Forward ${domain} to https://www.${domain}`);
   await page.getByRole("button", { name: "Check now" }).click();
   await expect(page.getByTestId("domain-status")).toHaveAttribute("data-status", "active");
 
   const visitor = await newVisitor(browser);
-  const own = `http://${domain}:3100`;
+  const own = `http://www.${domain}:3100`;
   await visitor.goto(`${own}/`);
   await expect(visitor).toHaveTitle(/Nour Adel/);
   await expect(visitor.getByRole("link", { name: "Made with Fannan" })).toHaveCount(0);

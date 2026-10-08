@@ -1014,7 +1014,7 @@
       "proOnly": "Use yourname.com instead of yourname.fannan.net. Part of Pro.",
       "getPro": "Go Pro",
       "label": "Your domain",
-      "hint": "We recommend www.yourname.com. Buy one from any domain company first.",
+      "hint": "Type the domain you bought, like yourname.com. We connect www.yourname.com and show you exactly what to add.",
       "connect": "Connect domain",
       "errors": {
         "domain-invalid": "That doesn’t look like a domain. Try something like www.yourname.com.",
@@ -1029,16 +1029,19 @@
         "active": "Active",
         "failed": "Something’s wrong"
       },
-      "pointTitle": "Point your domain to Fannan",
-      "pointText": "At the company where you bought the domain, open its DNS settings and add:",
       "type": "Type",
       "name": "Name",
       "value": "Value",
-      "apex": "For yourname.com without www, turn on “forwarding” to www.yourname.com at your domain company. This page updates by itself; it can take from a few minutes to a few hours.",
       "activeText": "Your site is live on your domain with free SSL. {address} now forwards visitors here.",
       "checkNow": "Check now",
       "remove": "Disconnect",
-      "removeConfirm": "Disconnect {domain}? Your site goes back to your Fannan address."
+      "removeConfirm": "Disconnect {domain}? Your site goes back to your Fannan address.",
+      "step1": "Sign in where you bought {apex} (GoDaddy, Namecheap…) and open its DNS settings.",
+      "step2": "Add these records:",
+      "step2Note": "In the Name (or Host) box type only what's shown above: your domain company adds .{apex} by itself. If a www record already exists, edit it instead of adding a second one.",
+      "step3": "Forward {apex} to https://{hostname}",
+      "step3Note": "Look for “Forwarding” in your domain company's settings and choose permanent (301). This way both addresses open your site.",
+      "wait": "That's it. This page updates by itself; it can take from a few minutes to a few hours."
     }
   },
   "upgrade": {
