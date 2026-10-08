@@ -51,7 +51,7 @@ test("build, preview on phone size, publish, then edit without changing the live
   // Open the editor from the dashboard; the first-run tips show once.
   await page.getByRole("link", { name: "Edit site" }).click();
   await expect(page).toHaveURL(at("app", "/editor"));
-  await expect(page.getByRole("dialog")).toContainText("Everything on your site is a block");
+  await expect(page.getByRole("dialog")).toContainText("Your site is made of sections");
   await closeTips(page);
   await expect(page.getByTestId("editor-status")).toHaveText("Not published yet");
 
@@ -78,7 +78,7 @@ test("build, preview on phone size, publish, then edit without changing the live
   await expect(canvas(page).locator(".site-root")).toHaveCSS("background-color", "rgb(245, 241, 232)");
 
   // A design block with a picture: click the picture, upload through the media picker.
-  await page.getByRole("button", { name: "Pages & blocks" }).click();
+  await page.getByRole("button", { name: "Pages & sections" }).click();
   await page.getByTestId("add-d-image-caption").click();
   const picture = canvas(page).locator('[data-testid="free-item"][data-kind="image"]').last();
   await picture.scrollIntoViewIfNeeded();
@@ -102,7 +102,7 @@ test("build, preview on phone size, publish, then edit without changing the live
 
   // Preview shows the site as visitors will see it.
   await switchPage(page, "Work");
-  await page.getByRole("button", { name: "Preview", exact: true }).click();
+  await page.getByTestId("preview-button").click();
   await expect(page.getByTestId("preview")).toContainText("Characters people remember.");
   await page.getByRole("button", { name: "Close preview" }).click();
 

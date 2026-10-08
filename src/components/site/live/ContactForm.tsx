@@ -2,26 +2,13 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
+import type { ContactForm as FormShape } from "@/lib/site/types";
 
 const field = "w-full border px-3.5 py-3 text-[16px] outline-none focus:border-[var(--site-text)]";
 
-/** The working contact form on an artist's live site. Styled by the artist's theme. */
-export interface ContactFields {
-  projectType: boolean;
-  budget: boolean;
-  deadline: boolean;
-  customQuestion: string;
-}
-
-export function ContactForm({
-  button,
-  turnstileKey,
-  fields,
-}: {
-  button: string;
-  turnstileKey: string;
-  fields?: ContactFields;
-}) {
+/** The working contact form on an artist's live site. Styled by the artist's theme; its fields and
+ * words come from the contact section's settings. */
+export function ContactForm({ button, turnstileKey, form }: { button: string; turnstileKey: string; form: FormShape }) {
   const t = useTranslations("site.contact");
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [problem, setProblem] = useState<string | null>(null);
@@ -87,7 +74,7 @@ export function ContactForm({
   if (state === "sent") {
     return (
       <p role="status" className="m-0 text-[18px] font-semibold" data-testid="contact-sent">
-        {t("sent")}
+        {form.success || t("sent")}
       </p>
     );
   }
@@ -107,39 +94,39 @@ export function ContactForm({
       noValidate
     >
       <label className="grid gap-1.5 text-[14px] font-semibold">
-        {t("name")}
+        {form.labels.name || t("name")}
         <input name="name" autoComplete="name" maxLength={120} className={field} style={box} />
       </label>
       <label className="grid gap-1.5 text-[14px] font-semibold">
-        {t("email")}
+        {form.labels.email || t("email")}
         <input name="email" type="email" dir="ltr" autoComplete="email" maxLength={200} className={field} style={box} />
       </label>
-      {fields?.projectType && (
+      {form.projectType && (
         <label className="grid gap-1.5 text-[14px] font-semibold">
           {t("projectType")}
           <input name="f_projectType" maxLength={200} className={field} style={box} />
         </label>
       )}
-      {fields?.budget && (
+      {form.budget && (
         <label className="grid gap-1.5 text-[14px] font-semibold">
           {t("budget")}
           <input name="f_budget" maxLength={200} className={field} style={box} />
         </label>
       )}
-      {fields?.deadline && (
+      {form.deadline && (
         <label className="grid gap-1.5 text-[14px] font-semibold">
           {t("deadline")}
           <input name="f_deadline" maxLength={200} className={field} style={box} />
         </label>
       )}
-      {fields?.customQuestion && (
+      {form.custom && (
         <label className="grid gap-1.5 text-[14px] font-semibold">
-          {fields.customQuestion}
+          {form.custom}
           <input name="f_custom" maxLength={500} className={field} style={box} />
         </label>
       )}
       <label className="grid gap-1.5 text-[14px] font-semibold">
-        {t("message")}
+        {form.labels.message || t("message")}
         <textarea name="message" rows={5} maxLength={5000} className={field} style={box} />
       </label>
       {/* Hidden from people; bots fill it in. */}

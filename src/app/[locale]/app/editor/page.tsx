@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Locale } from "@/i18n/locales";
+import { settingsFrom } from "@/lib/server/settings";
 import { loadDashboard } from "../(dash)/load";
 import { Editor } from "./Editor";
 
@@ -23,8 +24,11 @@ export default async function EditorPage({ params }: PageProps<"/[locale]/app/ed
   const draftAt = (site as { draftUpdatedAt?: { toMillis(): number } }).draftUpdatedAt?.toMillis() ?? 0;
   const publishedAt = (site as { publishedAt?: { toMillis(): number } }).publishedAt?.toMillis() ?? 0;
 
+  const settings = settingsFrom(site as Parameters<typeof settingsFrom>[0]);
+
   return (
     <Editor
+      initialSettings={{ social: settings.social, cvMediaId: settings.cvMediaId, contact: settings.contact }}
       initialDraft={draft}
       media={render.media}
       projects={render.projects}

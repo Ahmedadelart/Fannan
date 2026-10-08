@@ -1,6 +1,7 @@
 // Free-form sections (phase 8C): new items, finding room for them, and ready-made layouts.
 import type { Locale } from "@/i18n/locales";
 import { newId } from "./ids";
+import { sampleTone } from "./samples";
 import type { Block, FreeItem, FreeKind, FreePlace } from "./types";
 
 export const FREE_COLS = 24;
@@ -43,7 +44,7 @@ export function freeItem(kind: FreeKind, language: Locale, place?: Partial<FreeP
     shape: "rect",
     link: "",
     url: "",
-    tone: "#5B3A2E",
+    tone: sampleTone(0),
     ...extra,
   };
 }
@@ -91,16 +92,16 @@ export function freeTemplate(name: FreeTemplate, language: Locale): Extract<Bloc
     case "collage":
       // Overlapping, slightly turned pictures with a heading on top: the "make it yours" layout.
       items = [
-        it("image", { x: 1, y: 1, w: 9, h: 11 }, { rotate: -4, tone: "#5B3A2E", z: 1 }),
-        it("image", { x: 8, y: 4, w: 9, h: 10 }, { rotate: 3, tone: "#4E5B2E", z: 2 }),
-        it("image", { x: 15, y: 0, w: 8, h: 9 }, { rotate: -2, tone: "#5B2E4F", z: 3 }),
+        it("image", { x: 1, y: 1, w: 9, h: 11 }, { rotate: -4, tone: sampleTone(1), z: 1 }),
+        it("image", { x: 8, y: 4, w: 9, h: 10 }, { rotate: 3, tone: sampleTone(4), z: 2 }),
+        it("image", { x: 15, y: 0, w: 8, h: 9 }, { rotate: -2, tone: sampleTone(10), z: 3 }),
         it("heading", { x: 14, y: 11, w: 10, h: 3 }, { z: 4, text: language === "ar" ? "أعمال مختارة" : "Selected work" }),
       ];
       rows = 15;
       break;
     case "split":
       items = [
-        it("image", { x: 0, y: 0, w: 12, h: 12 }, { tone: "#7A5A2E" }),
+        it("image", { x: 0, y: 0, w: 12, h: 12 }, { tone: sampleTone(13) }),
         it("heading", { x: 13, y: 2, w: 10, h: 3 }),
         it("text", { x: 13, y: 6, w: 10, h: 4 }),
         it("button", { x: 13, y: 10, w: 5, h: 2 }, { text: w.button, link: "/contact" }),

@@ -23,10 +23,10 @@ export interface BlockKind {
 
 export { newId } from "./ids";
 import { newId } from "./ids";
+import { sampleTone } from "./samples";
 
-const SAMPLE_TONES = ["#5B3A2E", "#4E5B2E", "#5B2E4F", "#7A5A2E", "#3A3A3A", "#6B3A3A"];
 export const sampleArt = (n: number, ratio: SampleArt["ratio"] = "4/3"): SampleArt[] =>
-  Array.from({ length: n }, (_, i) => ({ tone: SAMPLE_TONES[i % SAMPLE_TONES.length], ratio }));
+  Array.from({ length: n }, (_, i) => ({ tone: sampleTone(i), ratio }));
 
 const copy = {
   en: {
@@ -111,7 +111,7 @@ export const blockKinds: BlockKind[] = [
       id: newId(),
       type: "cover",
       mediaId: null,
-      tone: "#2A2622",
+      tone: sampleTone(0),
       heading: copy[l].cover,
       subheading: copy[l].coverSub,
       height: "large",
@@ -152,7 +152,7 @@ export const blockKinds: BlockKind[] = [
     type: "image",
     group: "media",
     icon: "image",
-    make: () => ({ id: newId(), type: "image", mediaId: null, tone: "#5B3A2E", caption: "", fullWidth: false }),
+    make: () => ({ id: newId(), type: "image", mediaId: null, tone: sampleTone(0), caption: "", fullWidth: false }),
   },
   {
     key: "video",
@@ -196,7 +196,7 @@ export const blockKinds: BlockKind[] = [
     group: "hire",
     icon: "reel",
     fannan: true,
-    make: (l) => ({ id: newId(), type: "reel", url: "", mediaId: null, title: copy[l].reel, tone: "#2A2622" }),
+    make: (l) => ({ id: newId(), type: "reel", url: "", mediaId: null, title: copy[l].reel, tone: sampleTone(8) }),
   },
   {
     key: "credits",
@@ -332,6 +332,28 @@ export function kindOf(b: Block): BlockKind {
   if (b.type === "free" && b.design) return blockKinds.find((k) => k.key === b.design) ?? blockKinds[0];
   if (b.type === "gallery") return blockKinds.find((k) => k.key === (b.layout === "fullscreen" ? "grid" : b.layout))!;
   return blockKinds.find((k) => k.type === b.type)!;
+}
+
+const NETWORK_NAMES: Record<string, string> = {
+  instagram: "Instagram",
+  artstation: "ArtStation",
+  behance: "Behance",
+  linkedin: "LinkedIn",
+  youtube: "YouTube",
+  vimeo: "Vimeo",
+  x: "X",
+  tiktok: "TikTok",
+  facebook: "Facebook",
+};
+
+/** How a social link is named in footers: the network, or the site's address. */
+export function networkName(network: string, url: string): string {
+  if (NETWORK_NAMES[network]) return NETWORK_NAMES[network];
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
 }
 
 export const SOCIAL_NETWORKS = [

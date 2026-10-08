@@ -147,6 +147,7 @@ export interface Report {
   original?: string;
   status: "open" | "done";
   action?: string;
+  actedAt?: number | null;
   createdAt: number;
 }
 
@@ -154,7 +155,13 @@ export async function listReports(status: "open" | "done" = "open"): Promise<Rep
   const snap = await adminDb().collection("reports").where("status", "==", status).orderBy("createdAt", "desc").limit(100).get();
   return snap.docs.map((d) => {
     const r = d.data();
-    return { id: d.id, ...r, createdAt: (r.createdAt as Timestamp | undefined)?.toMillis() ?? 0 } as Report;
+    // Only plain values reach the admin page (handled reports also carry actedAt).
+    return {
+      id: d.id,
+      ...r,
+      createdAt: (r.createdAt as Timestamp | undefined)?.toMillis() ?? 0,
+      actedAt: (r.actedAt as Timestamp | undefined)?.toMillis?.() ?? null,
+    } as Report;
   });
 }
 

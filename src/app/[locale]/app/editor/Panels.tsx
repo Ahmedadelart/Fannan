@@ -5,21 +5,38 @@ import { useLocale, useTranslations } from "next-intl";
 import { moveTo, startSortDrag } from "@/components/editor/sortDrag";
 import { ScaledSite } from "@/components/site/ScaledSite";
 import { SiteRender, type GalleryProject, type SiteMedia } from "@/components/site/SiteRender";
-import { arabicFonts, bodyFonts, headingFonts } from "@/components/site/fonts";
+import { arabicFonts, bodyFonts, headingFonts, siteFontVars } from "@/components/site/fonts";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Toggle } from "@/components/ui/Controls";
 import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Overlays";
+import { useToast } from "@/components/ui/Toast";
 import type { Locale } from "@/i18n/locales";
 import { cx } from "@/lib/cx";
 import { imageSources } from "@/lib/media";
-import { kindByKey, kindOf, LIBRARY, newId, SOCIAL_NETWORKS, type BlockKind } from "@/lib/site/blocks";
+import { kindByKey, kindOf, LIBRARY, networkName, newId, SOCIAL_NETWORKS, type BlockKind, type LibraryGroup } from "@/lib/site/blocks";
+import { CONTACT_WORDS, contactFormOf, type LegacyContactFields } from "@/lib/site/contact";
+import { normalizeFooter, normalizeHeader } from "@/lib/site/normalize";
+import { toneBase } from "@/lib/site/samples";
 import { presetIds, themes } from "@/lib/site/starter";
 import { freeBottom } from "@/lib/site/free";
-import type { Block, BlockOf, FreeItem, NavLayout, PageDraft, PageType, SiteDraft, Theme } from "@/lib/site/types";
+import type {
+  Block,
+  BlockOf,
+  ContactForm as ContactFormShape,
+  FooterSettings,
+  FreeItem,
+  HeaderSettings,
+  NavLayout,
+  PageDraft,
+  PageType,
+  SiteDraft,
+  Theme,
+} from "@/lib/site/types";
 import { parseVideoLink } from "@/lib/video";
 import { beginUpload, completeUpload, newProject } from "../(dash)/projects/actions";
+import { saveSiteSettings } from "../(dash)/settings/actions";
 
 /* ---------- small form pieces (Editor.dc.html right panel) ---------- */
 
@@ -450,7 +467,13 @@ export function BlocksTab({
 }) {
   const t = useTranslations("editor");
   const [q, setQ] = useState("");
+  const [only, setOnly] = useState<LibraryGroup | "all">("all");
   const match = (k: BlockKind) => !q || t(`blocks.${k.key}`).toLowerCase().includes(q.toLowerCase());
+  const chip = (on: boolean) =>
+    cx(
+      "h-8 flex-none rounded-pill px-3 text-[12px] font-semibold transition-colors",
+      on ? "bg-lime text-on-lime" : "bg-mist text-ink-soft hover:text-ink",
+    );
   return (
     <div className="flex flex-col gap-4 px-3 pt-3 pb-6" data-tip="blocks">
       <label className="border-line text-muted flex h-10 items-center gap-2 rounded-[10px] border px-3">
@@ -463,13 +486,27 @@ export function BlocksTab({
           onChange={(e) => setQ(e.target.value)}
         />
       </label>
+      {/* Categories: one tap shows just that kind of section. */}
+      <div className="-mx-3 flex gap-1.5 overflow-x-auto px-3 pb-1" role="group" aria-label={t("library.label")}>
+        <button type="button" aria-pressed={only === "all"} className={chip(only === "all")} onClick={() => setOnly("all")}>
+          {t("library.all")}
+        </button>
+        {LIBRARY.map(({ group }) => (
+          <button key={group} type="button" aria-pressed={only === group} className={chip(only === group)} onClick={() => setOnly(group)}>
+            {t(`library.${group}`)}
+          </button>
+        ))}
+      </div>
       <p className="text-muted -mt-2 text-[12px]">{t("dragHint")}</p>
-      {LIBRARY.map(({ group, keys }) => {
+      {LIBRARY.filter(({ group }) => only === "all" || only === group).map(({ group, keys }) => {
         const items = keys.map(kindByKey).filter((k): k is BlockKind => !!k && match(k));
         if (!items.length) return null;
         return (
           <section key={group} className="flex flex-col gap-2.5" aria-label={t(`library.${group}`)}>
-            <h3 className="text-muted text-[11px] font-semibold tracking-[0.1em] uppercase">{t(`library.${group}`)}</h3>
+            <h3 className="bg-paper text-ink sticky top-0 z-10 -mx-3 flex items-baseline justify-between px-3 pt-3 pb-2 text-[14px] font-semibold">
+              {t(`library.${group}`)}
+              <span className="text-muted text-[12px] font-medium">{items.length}</span>
+            </h3>
             {items.map((k) => (
               <button
                 key={k.key}
@@ -492,7 +529,7 @@ export function BlocksTab({
                   <Icon name="add" size={16} className="opacity-0 transition-opacity group-hover:opacity-100" />
                 </span>
                 {k.pro && (
-                  <span className="bg-lime text-ink absolute end-2 top-2 rounded-pill px-2 py-0.5 text-[10px] font-bold tracking-[0.06em]">
+                  <span className="bg-lime text-on-lime absolute end-2 top-2 rounded-pill px-2 py-0.5 text-[10px] font-bold tracking-[0.06em]">
                     PRO
                   </span>
                 )}
@@ -643,9 +680,6 @@ export function StyleTab({
       <div className="flex flex-col gap-3 text-[13px]">
         <p className="text-ink-soft">{t("footerAbout")}</p>
         {credit && <p className="text-muted">{t("footerCredit")}</p>}
-        <a href="/settings#contact" className="text-ink font-semibold underline underline-offset-2">
-          {t("footerSocial")}
-        </a>
       </div>
     );
   }
@@ -722,19 +756,31 @@ export function StyleTab({
           ))}
         </select>
       </Label>
-      <Label title={t("arabicFont")}>
-        <select
-          className={inputCls}
-          value={th.fonts.arabic}
-          onChange={(e) => setTheme({ fonts: { ...th.fonts, arabic: e.target.value as Theme["fonts"]["arabic"] } })}
-        >
+      {/* Arabic fonts, each shown in its own letters. */}
+      <div className="flex flex-col gap-2" role="radiogroup" aria-label={t("arabicFont")}>
+        <span className="text-[13px] font-semibold">{t("arabicFont")}</span>
+        <div className={cx("grid grid-cols-2 gap-2", siteFontVars)}>
           {Object.entries(arabicFonts).map(([id, f]) => (
-            <option key={id} value={id}>
-              {f.label}
-            </option>
+            <button
+              key={id}
+              type="button"
+              role="radio"
+              aria-checked={th.fonts.arabic === id}
+              aria-label={f.label}
+              onClick={() => setTheme({ fonts: { ...th.fonts, arabic: id as Theme["fonts"]["arabic"] } })}
+              className={cx(
+                "flex flex-col items-start gap-1 rounded-[10px] border px-3 py-2 text-start",
+                th.fonts.arabic === id ? "border-lime border-2" : "border-line hover:border-line-strong",
+              )}
+            >
+              <span dir="rtl" className="w-full text-[20px] leading-tight" style={{ fontFamily: f.family, fontWeight: 700 }}>
+                فنان
+              </span>
+              <span className="text-muted text-[11px]">{f.label}</span>
+            </button>
           ))}
-        </select>
-      </Label>
+        </div>
+      </div>
       <Range title={t("radius")} value={th.radius} min={0} max={24} unit="px" onChange={(v) => setTheme({ radius: v }, "radius")} />
       <Choice
         title={t("language")}
@@ -974,6 +1020,207 @@ export function PagesTab({
 
 /* ---------- Block settings (right panel) ---------- */
 
+/* ---------- the header and footer, clicked on the canvas (round 4) ---------- */
+
+/** Site-wide settings the editor shows: social links and CV (footer), older contact fields. */
+export interface EditorSiteSettings {
+  social: Array<{ network: string; url: string }>;
+  cvMediaId: string | null;
+  contact: LegacyContactFields;
+}
+
+export function SitePartSettings({
+  part,
+  draft,
+  setDraft,
+  media,
+  openPicker,
+  credit,
+  siteSettings,
+  onSiteSettings,
+}: {
+  part: "header" | "footer";
+  draft: SiteDraft;
+  setDraft: (fn: (d: SiteDraft) => SiteDraft, key?: string) => void;
+  media: Record<string, SiteMedia>;
+  openPicker: (kind: MediaKind, done: (id: string) => void) => void;
+  credit: boolean;
+  siteSettings: EditorSiteSettings;
+  onSiteSettings: (s: EditorSiteSettings) => void;
+}) {
+  const t = useTranslations("editor.parts");
+  const st = useTranslations("editor.style");
+  const toast = useToast();
+  const header = draft.header ?? normalizeHeader(null);
+  const footer = draft.footer ?? normalizeFooter(null);
+  const setHeader = (patch: Partial<HeaderSettings>, key?: string) =>
+    setDraft((d) => ({ ...d, header: { ...(d.header ?? normalizeHeader(null)), ...patch } }), key);
+  const setFooter = (patch: Partial<FooterSettings>, key?: string) =>
+    setDraft((d) => ({ ...d, footer: { ...(d.footer ?? normalizeFooter(null)), ...patch } }), key);
+
+  // Social links and the CV apply straight away (they're site settings, not part of the draft).
+  const [social, setSocial] = useState(siteSettings.social);
+  async function saveSettings(patch: Pick<Partial<EditorSiteSettings>, "social" | "cvMediaId">) {
+    const next = { ...siteSettings, ...patch };
+    onSiteSettings(next);
+    const r = await saveSiteSettings(patch).catch(() => ({ ok: false as const }));
+    if (!r.ok) toast(t("notSaved"), "close");
+  }
+
+  if (part === "header") {
+    const bg = header.background;
+    return (
+      <div className="flex flex-col gap-5" data-testid="header-settings">
+        <h3 className="text-[15px] font-semibold">{t("header")}</h3>
+        <StyleTab section="nav" draft={draft} media={media} setDraft={setDraft} openPicker={openPicker} />
+        <StyleTab section="logo" draft={draft} media={media} setDraft={setDraft} openPicker={openPicker} />
+        <Switch title={t("showTagline")} checked={header.tagline} onChange={(v) => setHeader({ tagline: v })} />
+        <div className="border-line flex flex-col gap-3 border-t pt-4">
+          <span className="text-[13px] font-semibold">{t("menu")}</span>
+          {draft.pages.map((pg) => (
+            <Switch
+              key={pg.id}
+              title={pg.title || "—"}
+              checked={pg.showInNav}
+              onChange={(v) =>
+                setDraft((d) => ({ ...d, pages: d.pages.map((x) => (x.id === pg.id ? { ...x, showInNav: v } : x)) }))
+              }
+            />
+          ))}
+          <p className="text-muted text-[12px]">{t("menuHint")}</p>
+        </div>
+        <div className="border-line flex flex-col gap-3 border-t pt-4">
+          <span className="text-[13px] font-semibold">{t("hire")}</span>
+          <Choice
+            title={t("hireShow")}
+            value={header.hire.on === null ? "auto" : header.hire.on ? "on" : "off"}
+            options={[
+              ["auto", t("hireAuto")],
+              ["on", t("hireOn")],
+              ["off", t("hireOff")],
+            ]}
+            onChange={(v) => setHeader({ hire: { ...header.hire, on: v === "auto" ? null : v === "on" } })}
+          />
+          <Text
+            title={t("hireLabel")}
+            value={header.hire.label}
+            placeholder={draft.language === "ar" ? "وظّفني" : "Hire me"}
+            onChange={(v) => setHeader({ hire: { ...header.hire, label: v } }, "hire-label")}
+          />
+          <Text
+            title={t("hireLink")}
+            value={header.hire.link}
+            dir="ltr"
+            placeholder="/contact"
+            onChange={(v) => setHeader({ hire: { ...header.hire, link: v } }, "hire-link")}
+          />
+        </div>
+        <div className="border-line flex flex-col gap-3 border-t pt-4">
+          <Choice
+            title={t("background")}
+            value={bg === "none" || bg === "surface" ? bg : "colour"}
+            options={[
+              ["none", t("bgNone")],
+              ["surface", t("bgSoft")],
+              ["colour", t("bgColour")],
+            ]}
+            onChange={(v) => setHeader({ background: v === "colour" ? (bg.startsWith("#") ? bg : "#F4F4F2") : v })}
+          />
+          {bg.startsWith("#") && (
+            <input
+              type="color"
+              aria-label={t("bgColour")}
+              value={bg}
+              onChange={(e) => setHeader({ background: e.target.value.toUpperCase() }, "header-bg")}
+              className="border-line h-9 w-full cursor-pointer rounded-[8px] border bg-white p-1"
+            />
+          )}
+          <Switch title={t("sticky")} checked={header.sticky} onChange={(v) => setHeader({ sticky: v })} />
+          <p className="text-muted text-[12px]">{t("stickyHint")}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-5" data-testid="footer-settings">
+      <h3 className="text-[15px] font-semibold">{t("footer")}</h3>
+      <Area title={t("footerText")} value={footer.text} onChange={(v) => setFooter({ text: v }, "footer-text")} hint={t("footerTextHint")} />
+      <Choice
+        title={t("align")}
+        value={footer.align}
+        options={[
+          ["center", t("alignCenter")],
+          ["start", t("alignStart")],
+        ]}
+        onChange={(v) => setFooter({ align: v })}
+      />
+      <div className="border-line flex flex-col gap-3 border-t pt-4">
+        <Switch title={t("showSocial")} checked={footer.social} onChange={(v) => setFooter({ social: v })} />
+        {social.map((l, i) => (
+          <div key={i} className="flex items-center gap-1.5">
+            <select
+              aria-label={t("network")}
+              className={cx(inputCls, "w-[42%] flex-none px-2")}
+              value={l.network}
+              onChange={(e) => {
+                const next = social.map((x, j) => (j === i ? { ...x, network: e.target.value } : x));
+                setSocial(next);
+                void saveSettings({ social: next });
+              }}
+            >
+              {SOCIAL_NETWORKS.map((n) => (
+                <option key={n} value={n}>
+                  {networkName(n, "https://" + n)}
+                </option>
+              ))}
+            </select>
+            <input
+              aria-label={t("linkUrl")}
+              className={inputCls}
+              dir="ltr"
+              placeholder="https://"
+              value={l.url}
+              onChange={(e) => setSocial(social.map((x, j) => (j === i ? { ...x, url: e.target.value } : x)))}
+              onBlur={() => void saveSettings({ social })}
+            />
+            <button
+              type="button"
+              aria-label={t("removeLink")}
+              className="text-muted hover:text-ink flex size-9 flex-none items-center justify-center"
+              onClick={() => {
+                const next = social.filter((_, j) => j !== i);
+                setSocial(next);
+                void saveSettings({ social: next });
+              }}
+            >
+              <Icon name="close" size={16} />
+            </button>
+          </div>
+        ))}
+        {social.length < 12 && (
+          <Button size="sm" variant="outline" icon="add" onClick={() => setSocial([...social, { network: "instagram", url: "" }])}>
+            {t("addLink")}
+          </Button>
+        )}
+      </div>
+      <div className="border-line flex flex-col gap-3 border-t pt-4">
+        <Switch title={t("showCv")} checked={footer.cv} onChange={(v) => setFooter({ cv: v })} />
+        <MediaField
+          title={t("cv")}
+          id={siteSettings.cvMediaId}
+          kind="pdf"
+          media={media}
+          onChange={(id) => void saveSettings({ cvMediaId: id })}
+          openPicker={openPicker}
+        />
+        <p className="text-muted text-[12px]">{t("rightAway")}</p>
+      </div>
+      {credit && <p className="text-muted text-[12px]">{st("footerCredit")}</p>}
+    </div>
+  );
+}
+
 export function BlockSettings({
   block,
   media,
@@ -982,7 +1229,13 @@ export function BlockSettings({
   openPicker,
   freeItem = null,
   onFreeItem,
+  contactFallback,
+  language,
 }: {
+  /** Site-wide contact settings from before contact sections had their own. */
+  contactFallback?: LegacyContactFields;
+  /** The site's language: default field names on the contact form follow it. */
+  language: Locale;
   freeItem?: string | null;
   onFreeItem?: (id: string | null) => void;
   block: Block;
@@ -995,6 +1248,7 @@ export function BlockSettings({
   const f = useTranslations("editor.fields");
   const g = useTranslations("editor.gallery");
   const fr = useTranslations("editor.free");
+  const c = useTranslations("editor.contactForm");
   const k = (name: string) => `${block.id}-${name}`;
   const set = <T extends Block>(patch: Partial<T>, key?: string) => update(patch as Partial<Block>, key);
   const mediaField = (title: string, id: string | null, kind: MediaKind, apply: (id: string | null) => void) => (
@@ -1063,7 +1317,7 @@ export function BlockSettings({
           <Label title={f("colour")}>
             <input
               type="color"
-              value={block.tone}
+              value={toneBase(block.tone)}
               onChange={(e) => set({ tone: e.target.value.toUpperCase() }, k("tone"))}
               className="border-line h-9 w-full rounded-[8px] border p-0.5"
             />
@@ -1296,16 +1550,54 @@ export function BlockSettings({
         </>
       );
       break;
-    case "contact":
+    case "contact": {
+      const form = contactFormOf(block, contactFallback);
+      const words = CONTACT_WORDS[language];
+      const setForm = (patch: Partial<ContactFormShape>, key?: string) => set({ form: { ...form, ...patch } }, key);
+      const setLabel = (name: keyof ContactFormShape["labels"], v: string) =>
+        setForm({ labels: { ...form.labels, [name]: v } }, k(`l-${name}`));
       body = (
         <>
           <Text title={f("heading")} value={block.heading} onChange={(v) => set({ heading: v }, k("h"))} />
           <Area title={f("text")} value={block.text} onChange={(v) => set({ text: v }, k("t"))} />
-          <Text title={f("button")} value={block.button} onChange={(v) => set({ button: v }, k("b"))} />
-          <p className="text-muted text-[12px]">{f("contactNote")}</p>
+          <Choice
+            title={c("layout")}
+            value={form.layout}
+            options={[
+              ["stacked", c("stacked")],
+              ["split", c("split")],
+            ]}
+            onChange={(v) => setForm({ layout: v })}
+          />
+          <div className="border-line flex flex-col gap-3 border-t pt-4">
+            <span className="text-[13px] font-semibold">{c("fields")}</span>
+            <Text title={c("nameLabel")} value={form.labels.name} placeholder={words.name} onChange={(v) => setLabel("name", v)} />
+            <Text title={c("emailLabel")} value={form.labels.email} placeholder={words.email} onChange={(v) => setLabel("email", v)} />
+            <Text
+              title={c("messageLabel")}
+              value={form.labels.message}
+              placeholder={words.message}
+              onChange={(v) => setLabel("message", v)}
+            />
+            <Switch title={words.projectType} checked={form.projectType} onChange={(v) => setForm({ projectType: v })} />
+            <Switch title={words.budget} checked={form.budget} onChange={(v) => setForm({ budget: v })} />
+            <Switch title={words.deadline} checked={form.deadline} onChange={(v) => setForm({ deadline: v })} />
+            <Text
+              title={c("custom")}
+              value={form.custom}
+              placeholder={c("customPlaceholder")}
+              onChange={(v) => setForm({ custom: v }, k("custom"))}
+            />
+          </div>
+          <div className="border-line flex flex-col gap-3 border-t pt-4">
+            <Text title={f("button")} value={block.button} onChange={(v) => set({ button: v }, k("b"))} />
+            <Text title={c("success")} value={form.success} placeholder={words.sent} onChange={(v) => setForm({ success: v }, k("ok"))} />
+            <p className="text-muted text-[12px]">{f("contactNote")}</p>
+          </div>
         </>
       );
       break;
+    }
     case "hire":
       body = (
         <>

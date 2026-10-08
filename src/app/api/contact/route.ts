@@ -8,6 +8,8 @@ import { firstMessage } from "@/lib/server/milestones";
 import { liveSite } from "@/lib/server/public";
 import { rateLimit } from "@/lib/server/rate-limit";
 import { verifyTurnstile } from "@/lib/server/turnstile";
+import { contactFormOf } from "@/lib/site/contact";
+import type { Block } from "@/lib/site/types";
 
 // The contact form on artist sites. Saves to the artist's Fannan inbox and emails them.
 // Spam guards: a hidden honeypot field, per-IP and per-site limits, and Turnstile.
@@ -45,17 +47,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "check-failed" }, { status: 400 });
   }
 
-  // Extra questions the artist turned on in Settings.
+  // Extra questions the artist asks: set on the contact sections (or, for older sites, in Settings).
   const asked = site.settings.contact;
+  const forms = site.pages
+    .flatMap((p) => p.blocks)
+    .filter((b): b is Extract<Block, { type: "contact" }> => b.type === "contact")
+    .map((b) => contactFormOf(b, asked));
+  const custom = forms.find((f) => f.custom)?.custom ?? "";
   const fields: Record<string, string> = {};
   const add = (on: boolean, label: string, v: unknown, max = 200) => {
     const x = clean(v, max);
     if (on && x) fields[label] = x;
   };
-  add(asked.projectType, "projectType", body.f_projectType);
-  add(asked.budget, "budget", body.f_budget);
-  add(asked.deadline, "deadline", body.f_deadline);
-  add(!!asked.customQuestion, asked.customQuestion, body.f_custom, 500);
+  add(forms.some((f) => f.projectType), "projectType", body.f_projectType);
+  add(forms.some((f) => f.budget), "budget", body.f_budget);
+  add(forms.some((f) => f.deadline), "deadline", body.f_deadline);
+  add(!!custom, custom, body.f_custom, 500);
 
   await adminDb()
     .collection("messages")

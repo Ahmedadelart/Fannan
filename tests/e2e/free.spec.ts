@@ -59,7 +59,7 @@ test("a free-form section: place, resize, turn, layer, type, publish", async ({ 
   // Add a ready-made collage from the library.
   // Collage is a Pro showpiece: a Free artist is told, and can still try it in the editor.
   await page.getByTestId("add-d-collage").click();
-  await expect(page.getByRole("dialog", { name: "A Pro block" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "A Pro section" })).toBeVisible();
   await page.getByRole("button", { name: "Try it here" }).click();
   const grid = page.getByTestId("free-grid");
   await expect(grid).toBeVisible();
@@ -101,7 +101,7 @@ test("a free-form section: place, resize, turn, layer, type, publish", async ({ 
   await expect.poll(async () => (await vars(page, 0)).z).toBe(4);
 
   // Add a text block and type in it.
-  await page.getByRole("button", { name: "Add block" }).click();
+  await page.getByRole("button", { name: "Add element" }).click();
   await page.getByRole("menuitem", { name: "Text" }).click();
   await expect(page.getByTestId("free-item")).toHaveCount(5);
   const text = page.getByTestId("free-item").last();
@@ -137,7 +137,7 @@ test("a free-form section: place, resize, turn, layer, type, publish", async ({ 
   // In Arabic the grid mirrors: the reading start is on the right.
   await openEditor(page);
   await page.getByRole("button", { name: "Design" }).click();
-  await page.getByRole("radio", { name: "Arabic" }).click();
+  await page.getByRole("radio", { name: "Arabic", exact: true }).click();
   await page.getByRole("button", { name: "Publish" }).click();
   await expect(page.getByTestId("editor-status")).toHaveText("Live site is up to date", { timeout: 20_000 });
   await visitor.goto(at(username));

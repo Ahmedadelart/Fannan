@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @import "../styles/tokens.generated.css";
 
+/* Text on lime is always ink, even inside the dark editor panels. */
+@theme {
+  --color-on-lime: #141414;
+}
+
 /* Font families. The variables are set by next/font in the root layout. */
 @theme inline {
   --font-*: initial;
@@ -226,6 +231,12 @@
   --color-white: #141414;
   color-scheme: dark;
 }
+/* Lime always carries real ink, even inside the dark panels (where "ink" is light). */
+.fannan-dark .bg-lime {
+  --color-ink: #141414;
+  --color-ink-soft: #141414;
+  color: #141414;
+}
 .fannan-dark input[type="color"] {
   background: #2a2a2e;
 }
@@ -349,13 +360,22 @@
   content: attr(data-placeholder);
   opacity: 0.45;
 }
-.site-root [data-inline-text]:hover {
-  outline: 1px dashed color-mix(in srgb, currentColor 45%, transparent);
-  outline-offset: 3px;
+/* A wrapped line of text gets one box, not one outline per line. */
+.site-root span[data-inline-text] {
+  display: inline-block;
+  max-width: 100%;
 }
-.site-root [data-inline-text]:focus {
-  outline: 2px solid currentColor;
-  outline-offset: 3px;
+/* Hints only inside the selected section; a single soft outline while typing. */
+.site-root .site-block-selected [data-inline-text]:hover {
+  outline: 1px dashed color-mix(in srgb, currentColor 40%, transparent);
+  outline-offset: 4px;
+}
+.site-root [data-inline-text]:focus,
+.site-root [data-inline-text]:focus-visible {
+  outline: 1.5px solid color-mix(in srgb, currentColor 70%, transparent);
+  outline-offset: 4px;
+  /* Not the lime keyboard ring: on wrapped text it was drawn around every line. */
+  box-shadow: none;
 }
 /* Reorder view: whole sections are grabbed, nothing inside them is clickable. */
 .fannan-reorder [data-block-id] {

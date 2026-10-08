@@ -64,7 +64,7 @@ export type Block =
   | B<"credits", { heading: string; items: Array<{ year: string; title: string; role: string; studio: string }> }>
   | B<"logos", { heading: string; items: Array<{ name: string; mediaId: string | null }> }>
   | B<"about", { heading: string; text: string; photoId: string | null; cvId: string | null }>
-  | B<"contact", { heading: string; text: string; button: string }>
+  | B<"contact", { heading: string; text: string; button: string; form?: ContactForm }>
   | B<"hire", { text: string }>
   | B<"social", { links: Array<{ network: string; url: string }> }>
   | B<"quote", { text: string; author: string }>
@@ -147,12 +147,47 @@ export interface PageDraft {
   blocks: Block[];
 }
 
+/** The contact form's shape, set from the contact section's settings (round 4). */
+export interface ContactForm {
+  projectType: boolean;
+  budget: boolean;
+  deadline: boolean;
+  /** An extra question of the artist's own; empty means none. */
+  custom: string;
+  /** Own words for the built-in fields; empty uses the default. */
+  labels: { name: string; email: string; message: string };
+  /** Shown after sending; empty uses the default. */
+  success: string;
+  /** Text beside the form, or above it. */
+  layout: "stacked" | "split";
+}
+
+/** The site header, edited by clicking it on the canvas (round 4). */
+export interface HeaderSettings {
+  sticky: boolean;
+  /** "none" sits on the page; "surface" is a soft band; or a #hex colour. */
+  background: string;
+  tagline: boolean;
+  /** The Hire me button. `on` null follows the "available for work" switch. */
+  hire: { on: boolean | null; label: string; link: string };
+}
+
+/** The site footer, edited by clicking it on the canvas (round 4). */
+export interface FooterSettings {
+  text: string;
+  align: "center" | "start";
+  social: boolean;
+  cv: boolean;
+}
+
 export interface SiteDraft {
   language: Locale;
   title: string;
   tagline: string;
   theme: Theme;
   pages: PageDraft[];
+  header?: HeaderSettings;
+  footer?: FooterSettings;
   /** Which starter it came from (sign-up step 4). */
   layout?: LayoutId;
 }

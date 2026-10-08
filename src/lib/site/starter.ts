@@ -69,29 +69,29 @@ const layoutTheme: Record<LayoutId, ThemePreset> = {
   minimalist: "gallery",
 };
 
-// Earthy sample tones per kind of work (no blue: brand rule).
+// Sample drawings per kind of work (public/samples), shown until the artist adds their own.
 const palettes: Record<DisciplineKind, string[]> = {
-  animation: ["#5B3A2E", "#4E5B2E", "#5B2E4F", "#7A5A2E", "#3A3A3A", "#6B3A3A"],
-  "3d": ["#4A4A44", "#5B4C2E", "#3E4A3A", "#6B5A4A", "#2E2E2E", "#5A3E3A"],
-  motion: ["#141414", "#5B2E4F", "#7A5A2E", "#4E5B2E", "#6B3A3A", "#3A3A3A"],
-  direction: ["#2E2E2E", "#5B3A2E", "#4E5B2E", "#5B2E4F", "#7A5A2E", "#3A3A3A"],
-  story: ["#6A6A70", "#8A8478", "#5B5B55", "#7A746A", "#4A4A44", "#9A9488"],
-  illustration: ["#9C5B34", "#5B2E4F", "#4E5B2E", "#B07A3A", "#6B3A3A", "#7A5A2E"],
-  concept: ["#3E4A3A", "#5B4C2E", "#4A3E3A", "#6B5A4A", "#2E3A2E", "#7A6A58"],
-  comics: ["#141414", "#9C2E2E", "#B0903A", "#3A3A3A", "#6B3A3A", "#7A5A2E"],
-  games: ["#4E5B2E", "#5B2E4F", "#7A5A2E", "#3A3A3A", "#9C5B34", "#5B3A2E"],
-  design: ["#141414", "#9C5B34", "#B0903A", "#5B2E4F", "#7A5A2E", "#4E5B2E"],
-  photo: ["#3A3A3A", "#6B5A4A", "#8A8478", "#2E2E2E", "#5B4C2E", "#7A746A"],
-  film: ["#141414", "#5B3A2E", "#3A3A3A", "#6B3A3A", "#4A4A44", "#7A5A2E"],
-  fineart: ["#9C5B34", "#6B3A3A", "#B0903A", "#4E5B2E", "#5B2E4F", "#7A6A58"],
-  architecture: ["#8A8478", "#5B5B55", "#B8B0A0", "#4A4A44", "#6B6458", "#9A9488"],
-  fashion: ["#5B2E4F", "#9C5B34", "#141414", "#B07A3A", "#6B3A3A", "#8A6A5A"],
-  craft: ["#7A5A2E", "#9C5B34", "#5B4C2E", "#4E5B2E", "#B0903A", "#6B4A3A"],
-  music: ["#141414", "#5B2E4F", "#3A3A3A", "#9C5B34", "#4E5B2E", "#6B3A3A"],
-  performance: ["#2E2E2E", "#6B3A3A", "#5B2E4F", "#7A5A2E", "#3A3A3A", "#9C5B34"],
-  beauty: ["#8A5A5A", "#5B2E4F", "#B07A6A", "#6B3A3A", "#9C7A6A", "#4A3A3A"],
-  writing: ["#24221F", "#8A8478", "#5B5B55", "#9C5B34", "#4A4A44", "#B8B0A0"],
-  other: ["#5B3A2E", "#4E5B2E", "#5B2E4F", "#3A3A44", "#5B4C2E", "#6B4A3A"],
+  animation: ["sample:15", "sample:02", "sample:08", "sample:01", "sample:03", "sample:04"],
+  "3d": ["sample:12", "sample:07", "sample:05", "sample:01", "sample:16", "sample:10"],
+  motion: ["sample:15", "sample:05", "sample:07", "sample:12", "sample:13", "sample:16"],
+  direction: ["sample:03", "sample:01", "sample:09", "sample:10", "sample:14", "sample:06"],
+  story: ["sample:03", "sample:04", "sample:08", "sample:15", "sample:02", "sample:14"],
+  illustration: ["sample:02", "sample:11", "sample:14", "sample:06", "sample:01", "sample:10"],
+  concept: ["sample:01", "sample:10", "sample:09", "sample:12", "sample:07", "sample:11"],
+  comics: ["sample:04", "sample:03", "sample:02", "sample:08", "sample:05", "sample:13"],
+  games: ["sample:08", "sample:12", "sample:02", "sample:09", "sample:15", "sample:07"],
+  design: ["sample:05", "sample:13", "sample:07", "sample:16", "sample:12", "sample:04"],
+  photo: ["sample:01", "sample:10", "sample:09", "sample:14", "sample:06", "sample:11"],
+  film: ["sample:09", "sample:10", "sample:01", "sample:14", "sample:03", "sample:05"],
+  fineart: ["sample:06", "sample:11", "sample:14", "sample:07", "sample:01", "sample:16"],
+  architecture: ["sample:09", "sample:07", "sample:12", "sample:01", "sample:05", "sample:10"],
+  fashion: ["sample:14", "sample:16", "sample:02", "sample:11", "sample:05", "sample:13"],
+  craft: ["sample:16", "sample:06", "sample:11", "sample:12", "sample:07", "sample:01"],
+  music: ["sample:05", "sample:09", "sample:13", "sample:07", "sample:15", "sample:16"],
+  performance: ["sample:14", "sample:09", "sample:10", "sample:05", "sample:02", "sample:15"],
+  beauty: ["sample:14", "sample:11", "sample:02", "sample:06", "sample:16", "sample:10"],
+  writing: ["sample:13", "sample:04", "sample:03", "sample:06", "sample:11", "sample:05"],
+  other: ["sample:01", "sample:02", "sample:05", "sample:06", "sample:11", "sample:12"],
 };
 
 const pageTitles = {
@@ -158,7 +158,8 @@ export function generateStarter(input: StarterInput): SiteDraft {
   const what = disciplineText(input.discipline, l) || (l === "ar" ? "فنان" : "Artist");
   const first = firstName(input.name) || input.name;
   const samples = (n: number, ratio: SampleArt["ratio"]) =>
-    sampleArt(n, ratio).map((s, i) => ({ ...s, tone: tones[i % tones.length] }));
+    // The first drawing goes to the big picture at the top, so the gallery starts with the next one.
+    sampleArt(n, ratio).map((s, i) => ({ ...s, tone: tones[(i + 1) % tones.length] }));
   const gallery = (
     columns: number,
     gap: number,

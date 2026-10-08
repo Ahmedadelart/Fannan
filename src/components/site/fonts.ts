@@ -1,5 +1,7 @@
 // Fonts artists can choose in the Style tab. Declared once; the browser only downloads the ones a
 // site actually uses. Bricolage, IBM Plex Sans/Arabic and Marhey come from the root layout.
+// Latin fonts get no Arial stand-in (adjustFontFallback: false): Arial has Arabic letters and would
+// otherwise draw Arabic text before the chosen Arabic font is reached in the stack.
 import localFont from "next/font/local";
 import type { ArabicFont, BodyFont, HeadingFont } from "@/lib/site/types";
 
@@ -8,24 +10,28 @@ const fraunces = localFont({
   weight: "600",
   variable: "--font-fraunces",
   preload: false,
+  adjustFontFallback: false,
 });
 const syne = localFont({
   src: "../../fonts/syne-latin-700-normal.woff2",
   weight: "700",
   variable: "--font-syne",
   preload: false,
+  adjustFontFallback: false,
 });
 const spaceGrotesk = localFont({
   src: "../../fonts/space-grotesk-latin-600-normal.woff2",
   weight: "600",
   variable: "--font-space-grotesk",
   preload: false,
+  adjustFontFallback: false,
 });
 const instrumentSerif = localFont({
   src: "../../fonts/instrument-serif-latin-400-normal.woff2",
   weight: "400",
   variable: "--font-instrument-serif",
   preload: false,
+  adjustFontFallback: false,
 });
 const dmSans = localFont({
   src: [
@@ -34,6 +40,7 @@ const dmSans = localFont({
   ],
   variable: "--font-dm-sans",
   preload: false,
+  adjustFontFallback: false,
 });
 const workSans = localFont({
   src: [
@@ -42,6 +49,7 @@ const workSans = localFont({
   ],
   variable: "--font-work-sans",
   preload: false,
+  adjustFontFallback: false,
 });
 const readex = localFont({
   src: "../../fonts/readex-pro-arabic-wght-normal.woff2",

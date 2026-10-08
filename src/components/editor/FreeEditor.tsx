@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { FreeItemContent, freeItemStyle, freeOrder, type SiteMedia } from "@/components/site/SiteRender";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { cx } from "@/lib/cx";
-import { FREE_COLS, FREE_KINDS, freeBottom } from "@/lib/site/free";
+import { FREE_COLS, freeBottom } from "@/lib/site/free";
 import type { BlockOf, FreeItem, FreeKind, FreePlace } from "@/lib/site/types";
 import { InlineText } from "./InlineText";
 
@@ -26,7 +26,6 @@ export interface FreeEditorProps {
   onSelectItem: (id: string | null) => void;
   /** One change to the section. `key` merges a run of changes into one undo step. */
   onChange: (fn: (b: Free) => Free, key?: string) => void;
-  onAdd: (kind: FreeKind) => void;
   typeHere: string;
 }
 
@@ -79,7 +78,6 @@ export function FreeEditor({
   selectedItem,
   onSelectItem,
   onChange,
-  onAdd,
   typeHere,
 }: FreeEditorProps) {
   const t = useTranslations("editor.free");
@@ -88,7 +86,6 @@ export function FreeEditor({
   const [live, setLive] = useState<{ id: string; place: FreePlace; rotate: number } | null>(null);
   const [liveRows, setLiveRows] = useState<number | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
-  const [menu, setMenu] = useState(false);
   const rtl = typeof document !== "undefined" && document.documentElement.dir === "rtl";
   const order = freeOrder(b.items);
   const rows = liveRows ?? Math.max(b.rows, live ? live.place.y + live.place.h : 0);
@@ -421,44 +418,6 @@ export function FreeEditor({
 
       {active && (
         <>
-          {/* Add a block inside this section. */}
-          <div
-            className="absolute start-2 bottom-2 z-[1001] flex flex-col-reverse"
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              aria-expanded={menu}
-              className="bg-ink shadow-float flex h-9 items-center gap-1.5 rounded-[10px] px-3 text-[13px] font-semibold text-white"
-              onClick={() => setMenu(!menu)}
-            >
-              <Icon name="add" size={16} />
-              {t("addBlock")}
-            </button>
-            {menu && (
-              <div
-                role="menu"
-                className="bg-paper text-ink shadow-float border-line mb-1.5 grid w-[280px] grid-cols-2 gap-1 rounded-[12px] border p-2"
-              >
-                {FREE_KINDS.map((k) => (
-                  <button
-                    key={k}
-                    type="button"
-                    role="menuitem"
-                    className="hover:bg-mist flex h-10 items-center gap-2 rounded-[8px] px-2.5 text-start text-[13px] font-semibold"
-                    onClick={() => {
-                      setMenu(false);
-                      onAdd(k);
-                    }}
-                  >
-                    <Icon name={KIND_ICONS[k]} size={18} />
-                    {t(`kinds.${k}`)}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
           {/* Section height. */}
           <button
             type="button"

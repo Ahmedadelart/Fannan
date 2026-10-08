@@ -1,10 +1,23 @@
 // Brings stored drafts up to the current shape. Sites created in phases 1–2 used an earlier set of
 // blocks and theme fields; anything unknown is dropped rather than breaking the editor.
 
+import { isSampleTone, upgradeTone } from "./samples";
 import { blockKinds, newId, sampleArt } from "./blocks";
 import { FREE_COLS, FREE_KINDS } from "./free";
 import { themes } from "./starter";
-import type { Block, FreeItem, PageDraft, PageType, SampleArt, SiteDraft, Theme, ThemePreset } from "./types";
+import type {
+  Block,
+  ContactForm,
+  FooterSettings,
+  FreeItem,
+  HeaderSettings,
+  PageDraft,
+  PageType,
+  SampleArt,
+  SiteDraft,
+  Theme,
+  ThemePreset,
+} from "./types";
 
 type Any = Record<string, unknown>;
 const str = (v: unknown, max = 4000) => (typeof v === "string" ? v.slice(0, max) : "");
@@ -12,6 +25,8 @@ const bool = (v: unknown, d = false) => (typeof v === "boolean" ? v : d);
 const num = (v: unknown, lo: number, hi: number, d: number) =>
   typeof v === "number" && Number.isFinite(v) ? Math.min(hi, Math.max(lo, Math.round(v))) : d;
 const color = (v: unknown, d: string) => (typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v) ? v.toUpperCase() : d);
+/** A placeholder's look: a colour or one of the sample drawings. */
+const tone = (v: unknown, d: string) => (isSampleTone(v) ? v : upgradeTone(color(v, d)));
 const idOrNull = (v: unknown) => (typeof v === "string" && /^[\w-]{1,64}$/.test(v) ? v : null);
 const pick = <T extends string>(v: unknown, allowed: readonly T[], d: T): T =>
   allowed.includes(v as T) ? (v as T) : d;
@@ -63,7 +78,7 @@ const samples = (v: unknown): SampleArt[] =>
   Array.isArray(v)
     ? v
         .slice(0, 24)
-        .map((s) => ({ tone: color((s as Any)?.tone, "#5B3A2E"), ratio: pick((s as Any)?.ratio, RATIOS, "4/3") }))
+        .map((s) => ({ tone: tone((s as Any)?.tone, "#5B3A2E"), ratio: pick((s as Any)?.ratio, RATIOS, "4/3") }))
     : sampleArt(6);
 
 const list = <T>(v: unknown, max: number, f: (x: Any) => T): T[] =>
@@ -78,7 +93,7 @@ export function normalizeBlock(raw: unknown): Block | null {
         id,
         type: "cover",
         mediaId: idOrNull(b.mediaId),
-        tone: color(b.tone, "#2A2622"),
+        tone: tone(b.tone, "#2A2622"),
         heading: str(b.heading, 200),
         subheading: str(b.subheading, 300),
         height: pick(b.height, ["full", "large"], "large"),
@@ -143,7 +158,7 @@ export function normalizeBlock(raw: unknown): Block | null {
         id,
         type: "image",
         mediaId: idOrNull(b.mediaId),
-        tone: color(b.tone, "#5B3A2E"),
+        tone: tone(b.tone, "#5B3A2E"),
         caption: str(b.caption, 300),
         fullWidth: bool(b.fullWidth),
       };
@@ -152,7 +167,7 @@ export function normalizeBlock(raw: unknown): Block | null {
         id,
         type: "image",
         mediaId: null,
-        tone: color((b.art as Any)?.tone, "#5B3A2E"),
+        tone: tone((b.art as Any)?.tone, "#5B3A2E"),
         caption: "",
         fullWidth: true,
       };
@@ -178,7 +193,7 @@ export function normalizeBlock(raw: unknown): Block | null {
         url: str(b.url, 300),
         mediaId: idOrNull(b.mediaId),
         title: str(b.title, 120),
-        tone: color(b.tone ?? (b.art as Any)?.tone, "#2A2622"),
+        tone: tone(b.tone ?? (b.art as Any)?.tone, "#2A2622"),
       };
     case "credits":
       return {
@@ -209,7 +224,14 @@ export function normalizeBlock(raw: unknown): Block | null {
         cvId: idOrNull(b.cvId),
       };
     case "contact":
-      return { id, type: "contact", heading: str(b.heading, 120), text: str(b.text, 600), button: str(b.button, 60) };
+      return {
+        id,
+        type: "contact",
+        heading: str(b.heading, 120),
+        text: str(b.text, 600),
+        button: str(b.button, 60),
+        ...(b.form ? { form: normalizeContactForm(b.form) } : {}),
+      };
     case "hire":
       return { id, type: "hire", text: str(b.text, 300) };
     case "social":
@@ -268,7 +290,7 @@ function normalizeFreeItem(raw: Any): FreeItem {
     shape: pick(raw.shape, ["rect", "circle"], "rect"),
     link: safeLink(raw.link),
     url: str(raw.url, 500),
-    tone: color(raw.tone, "#5B3A2E"),
+    tone: tone(raw.tone, "#5B3A2E"),
   };
 }
 
@@ -306,6 +328,48 @@ export function normalizePage(raw: unknown, i: number): PageDraft {
   };
 }
 
+export function normalizeContactForm(raw: unknown): ContactForm {
+  const f = (raw && typeof raw === "object" ? raw : {}) as Any;
+  const l = (f.labels && typeof f.labels === "object" ? f.labels : {}) as Any;
+  return {
+    projectType: f.projectType === true,
+    budget: f.budget === true,
+    deadline: f.deadline === true,
+    custom: str(f.custom, 160),
+    labels: { name: str(l.name, 60), email: str(l.email, 60), message: str(l.message, 60) },
+    success: str(f.success, 200),
+    layout: f.layout === "split" ? "split" : "stacked",
+  };
+}
+
+const HEX = /^#[0-9a-f]{6}$/i;
+
+export function normalizeHeader(raw: unknown): HeaderSettings {
+  const h = (raw && typeof raw === "object" ? raw : {}) as Any;
+  const hire = (h.hire && typeof h.hire === "object" ? h.hire : {}) as Any;
+  const bg = typeof h.background === "string" ? h.background : "none";
+  return {
+    sticky: h.sticky === true,
+    background: bg === "surface" || HEX.test(bg) ? bg : "none",
+    tagline: h.tagline !== false,
+    hire: {
+      on: typeof hire.on === "boolean" ? hire.on : null,
+      label: str(hire.label, 40),
+      link: safeLink(hire.link),
+    },
+  };
+}
+
+export function normalizeFooter(raw: unknown): FooterSettings {
+  const f = (raw && typeof raw === "object" ? raw : {}) as Any;
+  return {
+    text: str(f.text, 300),
+    align: f.align === "start" ? "start" : "center",
+    social: f.social !== false,
+    cv: f.cv !== false,
+  };
+}
+
 export function normalizeDraft(raw: Any & { pages?: unknown[] }): SiteDraft {
   const pages = (raw.pages ?? []).slice(0, 30).map(normalizePage);
   return {
@@ -313,6 +377,8 @@ export function normalizeDraft(raw: Any & { pages?: unknown[] }): SiteDraft {
     title: str(raw.title, 80),
     tagline: str(raw.tagline, 120),
     theme: normalizeTheme(raw.theme),
+    header: normalizeHeader(raw.header),
+    footer: normalizeFooter(raw.footer),
     pages: pages.length
       ? pages
       : [{ id: "home", slug: "", title: "Work", type: "gallery", showInNav: true, blocks: [] }],

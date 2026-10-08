@@ -40,7 +40,7 @@ export function InlineText({
       ref={ref}
       contentEditable="plaintext-only"
       suppressContentEditableWarning
-      spellCheck
+      spellCheck={false}
       role="textbox"
       aria-multiline={multiline || undefined}
       aria-placeholder={placeholder}

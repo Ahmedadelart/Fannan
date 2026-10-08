@@ -10,6 +10,8 @@ import { ContactForm } from "@/components/site/live/ContactForm";
 import { MatureGate } from "@/components/site/live/MatureGate";
 import { PasswordForm } from "@/components/site/live/PasswordForm";
 import { SiteEnhancer } from "@/components/site/live/SiteEnhancer";
+import { networkName } from "@/lib/site/blocks";
+import { contactFormOf } from "@/lib/site/contact";
 import { SiteRender, type GalleryProject, type SiteMedia } from "@/components/site/SiteRender";
 import type { Locale } from "@/i18n/locales";
 import { imageSources, posterSources } from "@/lib/media";
@@ -48,6 +50,8 @@ const asDraft = (s: LiveSite): SiteDraft => ({
   title: s.title,
   tagline: s.tagline,
   theme: s.theme,
+  header: s.header,
+  footer: s.footer,
   pages: s.pages,
 });
 
@@ -404,26 +408,13 @@ function Integrations({ ga, pixel }: { ga: string; pixel: string }) {
   );
 }
 
-const NETWORK_NAMES: Record<string, string> = {
-  instagram: "Instagram",
-  artstation: "ArtStation",
-  behance: "Behance",
-  linkedin: "LinkedIn",
-  youtube: "YouTube",
-  vimeo: "Vimeo",
-  x: "X",
-  tiktok: "TikTok",
-  facebook: "Facebook",
-};
-
 /** Social links and the CV from Settings. */
 function footerLinks(site: LiveSite, cvLabel: string) {
-  const links: Array<{ href: string; label: string; download?: boolean }> = site.settings.social.map((l) => ({
-    href: l.url,
-    label: NETWORK_NAMES[l.network] ?? new URL(l.url).hostname.replace(/^www\./, ""),
-  }));
+  const links: Array<{ href: string; label: string; download?: boolean; kind: "social" | "cv" }> = site.settings.social.map(
+    (l) => ({ href: l.url, label: networkName(l.network, l.url), kind: "social" }),
+  );
   const cv = site.settings.cvMediaId;
-  if (cv && site.media[cv]) links.push({ href: `/m/pdf/${site.siteId}/${cv}`, label: cvLabel, download: true });
+  if (cv && site.media[cv]) links.push({ href: `/m/pdf/${site.siteId}/${cv}`, label: cvLabel, download: true, kind: "cv" });
   return links;
 }
 
@@ -514,8 +505,9 @@ export default async function ArtistSite({ params }: { params: Promise<Params> }
         }}
         contactHref={contactHref}
         available={{ on: site.available.on, label: ts("available"), hire: ts("hireMe") }}
+        contactFallback={site.settings.contact}
         renderContact={(b) => (
-          <ContactForm button={b.button} turnstileKey={TURNSTILE_SITE_KEY} fields={site.settings.contact} />
+          <ContactForm button={b.button} turnstileKey={TURNSTILE_SITE_KEY} form={contactFormOf(b, site.settings.contact)} />
         )}
       />
       <SiteEnhancer protectImages={site.settings.privacy.protectImages} closeLabel={ts("close")} />

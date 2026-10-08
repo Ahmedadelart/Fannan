@@ -608,11 +608,11 @@
     "published": "Published. Your live site now shows these changes.",
     "publishFailed": "Couldn’t publish. Please try again.",
     "tabs": {
-      "blocks": "Blocks",
+      "blocks": "Sections",
       "style": "Style",
       "pages": "Pages"
     },
-    "searchBlocks": "Search blocks",
+    "searchBlocks": "Search sections",
     "groups": {
       "layout": "Layout",
       "galleries": "Galleries",
@@ -665,15 +665,15 @@
       "d-contact-me": "Contact me",
       "d-logo-wall": "Client logos"
     },
-    "addHint": "Click to add below the selected block, or drag onto the page.",
-    "dropHere": "Drop a block here",
-    "emptyPage": "This page is empty. Add a block from the left.",
-    "noBlock": "Click a block on the page to change it.",
+    "addHint": "Click to add below the selected section, or drag onto the page.",
+    "dropHere": "Drop the section here",
+    "emptyPage": "This page is empty. Add a section from the left.",
+    "noBlock": "Click a section on the page to change it.",
     "blockActions": {
       "up": "Move up",
       "down": "Move down",
       "duplicate": "Duplicate",
-      "remove": "Remove block"
+      "remove": "Remove section"
     },
     "style": {
       "presets": "Theme presets",
@@ -825,14 +825,14 @@
       "close": "Close"
     },
     "tips": {
-      "1": "Everything on your site is a <b>block</b>. Add one from here.",
-      "2": "<b>Click</b> a block to change it. Use the arrows to reorder.",
+      "1": "Your site is made of <b>sections</b>. Drag one from here onto your page.",
+      "2": "<b>Click</b> anything on the page to change it. Text is typed right where it is.",
       "3": "When you’re happy, <b>Publish</b>. Until then, only you can see it.",
       "next": "Next",
       "done": "Got it",
       "count": "{n} of 3"
     },
-    "editBlock": "Edit block",
+    "editBlock": "Edit section",
     "typeHere": "Type here",
     "reorder": "Reorder",
     "reorderDone": "Done",
@@ -840,21 +840,22 @@
       "toolbar": "Section",
       "drag": "Drag to move (or use the arrow keys)",
       "settings": "Settings",
-      "add": "Add a block below",
+      "add": "Add a section below",
       "duplicate": "Duplicate",
       "remove": "Delete",
       "hint": "Tip: click any text on the page to type in it. Drag the ⠿ handle on the section to move it.",
       "reorderHint": "Drag sections to change their order, then press Done.",
-      "close": "Close"
+      "close": "Close",
+      "addSection": "Add section"
     },
     "free": {
-      "item": "Block",
+      "item": "Element",
       "editText": "Edit text",
       "front": "Bring to front",
       "back": "Send to back",
       "duplicate": "Duplicate",
       "delete": "Delete",
-      "addBlock": "Add block",
+      "addBlock": "Add element",
       "height": "Height",
       "kinds": {
         "text": "Text",
@@ -865,11 +866,11 @@
         "line": "Line",
         "video": "Video"
       },
-      "sectionHint": "A free-form section: put blocks anywhere. Use + Add block on the section, drag blocks to move them, drag the corners to resize and the round handle to turn them.",
+      "sectionHint": "A free-form section: put elements anywhere. Use + Add element under the section, drag elements to move them, drag the corners to resize and the round handle to turn them.",
       "background": "Background",
       "backgroundImage": "Background image",
       "theme": "Theme",
-      "phoneHint": "On phones, blocks stack from top to bottom in reading order. Hide any block on phones from its settings.",
+      "phoneHint": "On phones, elements stack from top to bottom in reading order. Hide any element on phones from its settings.",
       "backToSection": "← Section settings",
       "label": "Label",
       "text": "Text",
@@ -891,11 +892,11 @@
       "rotate": "Turn",
       "opacity": "Opacity",
       "hideOnPhone": "Hide on phones",
-      "itemHint": "Double-click text to type in it. Arrow keys move the block one step; Delete removes it."
+      "itemHint": "Double-click text to type in it. Arrow keys move the element one step; Delete removes it."
     },
     "rail": {
       "label": "Editor",
-      "blocks": "Pages & blocks",
+      "blocks": "Pages & sections",
       "projects": "Projects",
       "design": "Design",
       "stats": "Stats",
@@ -904,7 +905,7 @@
     },
     "currentlyEditing": "Currently editing",
     "panelTabs": {
-      "blocks": "Blocks",
+      "blocks": "Sections",
       "page": "Page settings"
     },
     "design": {
@@ -915,7 +916,7 @@
     },
     "statsText": "See who visits your site, which projects they look at and where they come from.",
     "openStats": "Open stats",
-    "dragHint": "Drag a block onto your page, or click it to add it below the selected one.",
+    "dragHint": "Drag a section onto your page, or click it to add it below the selected one.",
     "library": {
       "intro": "Intro",
       "work": "Your work",
@@ -923,11 +924,13 @@
       "text": "Text",
       "about": "About & contact",
       "media": "Video & media",
-      "blank": "Start from scratch"
+      "blank": "Start from scratch",
+      "label": "Kinds of sections",
+      "all": "All"
     },
     "proBlock": {
-      "title": "A Pro block",
-      "text": "“{block}” is one of the Pro showpiece blocks. Try it here as much as you like: it shows on your live site once you go Pro.",
+      "title": "A Pro section",
+      "text": "“{block}” is one of the Pro showpiece sections. Try it here as much as you like: it shows on your live site once you go Pro.",
       "try": "Try it here",
       "upgrade": "See Pro"
     },
@@ -939,6 +942,53 @@
       "creating": "Creating…",
       "createButton": "Create project",
       "empty": "No projects yet."
+    },
+    "device": "Screen size",
+    "contactForm": {
+      "layout": "Layout",
+      "stacked": "Form below",
+      "split": "Side by side",
+      "fields": "Form fields",
+      "nameLabel": "Name field",
+      "emailLabel": "Email field",
+      "messageLabel": "Message field",
+      "custom": "Your own question",
+      "customPlaceholder": "e.g. How did you find me?",
+      "success": "Message after sending"
+    },
+    "parts": {
+      "header": "Header",
+      "footer": "Footer",
+      "showTagline": "Show the tagline",
+      "menu": "Pages in the menu",
+      "menuHint": "Drag pages in Pages & sections to change their order.",
+      "hire": "Hire me button",
+      "hireShow": "Show it",
+      "hireAuto": "When available",
+      "hireOn": "Always",
+      "hireOff": "Never",
+      "hireLabel": "Button words",
+      "hireLink": "Button link",
+      "background": "Background",
+      "bgNone": "None",
+      "bgSoft": "Soft",
+      "bgColour": "Colour",
+      "sticky": "Stays on top while scrolling",
+      "stickyHint": "Shows on your live site; the editor keeps it in place.",
+      "footerText": "Footer text",
+      "footerTextHint": "You can also click the footer on the page and type.",
+      "align": "Alignment",
+      "alignCenter": "Centre",
+      "alignStart": "Start",
+      "showSocial": "Show social links",
+      "network": "Network",
+      "linkUrl": "Link",
+      "removeLink": "Remove link",
+      "addLink": "Add a link",
+      "showCv": "Show the CV link",
+      "cv": "CV (PDF)",
+      "rightAway": "Links and the CV change your live site straight away.",
+      "notSaved": "That didn’t save. Please try again."
     }
   },
   "inbox": {

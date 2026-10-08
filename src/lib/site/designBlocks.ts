@@ -4,6 +4,7 @@
 import type { Locale } from "@/i18n/locales";
 import { freeItem } from "./free";
 import { newId } from "./ids";
+import { sampleTone } from "./samples";
 import type { Block, FreeItem, FreeKind, FreePlace } from "./types";
 
 export type DesignKey =
@@ -88,7 +89,8 @@ const W = {
   },
 };
 
-const TONES = ["#5B3A2E", "#4A4A44", "#4E5B2E", "#5B2E4F", "#3A3A44", "#5B4C2E", "#7A5A2E", "#6B3A3A"];
+// Sample drawings (public/samples) in a pleasing order for side-by-side pictures.
+const TONES = [1, 5, 11, 2, 12, 14, 6, 10].map((n) => sampleTone(n - 1));
 
 export function designBlock(key: DesignKey, language: Locale): Extract<Block, { type: "free" }> {
   const w = W[language];

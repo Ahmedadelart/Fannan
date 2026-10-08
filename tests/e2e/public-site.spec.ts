@@ -236,7 +236,7 @@ test("an Arabic site is served right to left, and it fits a phone", async ({ pag
   const { username } = await signUp(page);
   await openEditor(page);
   await page.getByRole("button", { name: "Design" }).click();
-  await page.getByRole("radio", { name: "Arabic" }).click();
+  await page.getByRole("radio", { name: "Arabic", exact: true }).click();
   await page.getByRole("button", { name: "Logo & title" }).click();
   await page.getByRole("textbox", { name: "Site name" }).fill("نور عادل");
   // On a phone the panel floats over the page: tap outside to close it.

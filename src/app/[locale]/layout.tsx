@@ -12,6 +12,8 @@ const bricolage = localFont({
   src: "../../fonts/bricolage-grotesque-latin-800-normal.woff2",
   weight: "800",
   variable: "--font-bricolage",
+  // No Arial stand-in: it has Arabic letters and would win over the Arabic font in the stack.
+  adjustFontFallback: false,
 });
 const plex = localFont({
   src: [
@@ -20,12 +22,14 @@ const plex = localFont({
     { path: "../../fonts/ibm-plex-sans-latin-600-normal.woff2", weight: "600" },
   ],
   variable: "--font-plex",
+  adjustFontFallback: false,
 });
 const plexArabic = localFont({
   src: [
     { path: "../../fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2", weight: "400" },
     { path: "../../fonts/ibm-plex-sans-arabic-arabic-500-normal.woff2", weight: "500" },
     { path: "../../fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2", weight: "600" },
+    { path: "../../fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2", weight: "700" },
   ],
   variable: "--font-plex-arabic",
   preload: false,

@@ -1,10 +1,13 @@
 import type { CSSProperties, ReactNode } from "react";
-import { dirFor } from "@/i18n/locales";
+import { dirFor, type Locale } from "@/i18n/locales";
 import { cx } from "@/lib/cx";
 import { imageSources, posterSources, type MediaLike } from "@/lib/media";
 import type { Block, BlockOf, FreeItem, PageDraft, SiteDraft, ThumbRatio } from "@/lib/site/types";
 import { parseVideoLink, videoPoster } from "@/lib/video";
 import { InlineText } from "@/components/editor/InlineText";
+import { CONTACT_WORDS, contactFormOf, type LegacyContactFields } from "@/lib/site/contact";
+import { normalizeFooter, normalizeHeader } from "@/lib/site/normalize";
+import { isSampleTone, toneFill } from "@/lib/site/samples";
 import { arabicFonts, bodyFonts, headingFonts, siteFontVars } from "./fonts";
 
 // Renders an artist site from its draft (or a published snapshot). Artist sites use the artist's
@@ -47,8 +50,8 @@ export interface SiteRenderProps {
   selectedBlockId?: string | null;
   /** Editor canvas: text is typed in place. Path is the field inside the block, e.g. "items.2.title". */
   onText?: (blockId: string, path: string, value: string) => void;
-  /** Editor canvas: the site name and tagline in the header, typed in place. */
-  onSiteText?: (field: "title" | "tagline", value: string) => void;
+  /** Editor canvas: the site name and tagline in the header, and the footer text, typed in place. */
+  onSiteText?: (field: "title" | "tagline" | "footer", value: string) => void;
   /** Placeholder for empty text fields on the editor canvas ("Type here"). */
   typeHere?: string;
   /** Only the blocks, without header and footer (block previews in the editor's library). */
@@ -57,8 +60,10 @@ export interface SiteRenderProps {
   renderFree?: (b: BlockOf<"free">) => ReactNode;
   /** "Made with Fannan" footer credit on the Free plan. */
   credit?: string | null;
-  /** Social links and CV from Settings, shown in the footer of live sites. */
-  footerLinks?: Array<{ href: string; label: string; download?: boolean }>;
+  /** Social links and CV from Settings, shown in the footer. */
+  footerLinks?: Array<{ href: string; label: string; download?: boolean; kind?: "social" | "cv" }>;
+  /** Site-wide contact form settings, for contact sections made before they had their own. */
+  contactFallback?: LegacyContactFields | null;
   /** "Report this site" (live sites only). */
   report?: { href: string; label: string } | null;
   categoryLabel?: (id: string) => string;
@@ -126,7 +131,7 @@ function Picture({
         className={className}
         style={{
           aspectRatio: ratio ?? "4 / 3",
-          background: tone ?? "var(--site-surface)",
+          background: toneFill(tone) ?? "var(--site-surface)",
           borderRadius: "var(--site-radius)",
         }}
       />
@@ -375,7 +380,7 @@ function VideoView({
       <div
         className="relative overflow-hidden"
         data-video={url}
-        style={{ aspectRatio: "16 / 9", background: tone ?? "#141414", borderRadius: "var(--site-radius)" }}
+        style={{ aspectRatio: "16 / 9", background: toneFill(tone) ?? "#141414", borderRadius: "var(--site-radius)" }}
       >
         {poster && (
           // eslint-disable-next-line @next/next/no-img-element
@@ -506,7 +511,7 @@ export function FreeItemContent({
           <VideoView url={it.url} caption="" ctx={{ media, base, editing: !live, live } as Ctx} />
         </div>
       ) : (
-        <div className="h-full w-full" style={{ background: it.tone, borderRadius: it.radius }} />
+        <div className="h-full w-full" style={{ background: toneFill(it.tone), borderRadius: it.radius }} />
       );
   }
 }
@@ -550,7 +555,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
           style={{
             minHeight: b.height === "full" ? "min(88vh, 900px)" : "min(60vh, 560px)",
             marginInline: "calc(var(--site-pad) * -1)",
-            background: b.tone,
+            background: toneFill(b.tone),
           }}
         >
           {img && (
@@ -561,8 +566,9 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
           <div
             className="relative flex flex-col gap-3 p-[var(--site-pad)]"
             style={{
-              color: readableOn(b.tone),
-              background: img ? "linear-gradient(transparent, rgba(0,0,0,.45))" : undefined,
+              // On a picture or a sample drawing: white words over a soft shade.
+              color: img || isSampleTone(b.tone) ? "#FFFFFF" : readableOn(b.tone),
+              background: img || isSampleTone(b.tone) ? "linear-gradient(transparent, rgba(0,0,0,.45))" : undefined,
             }}
           >
             <T ctx={ctx} path="heading" value={b.heading} as="h1" style={heading(52)} className="@max-2xl:!text-[34px]" />
@@ -674,13 +680,13 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       if (!before && !after && !ctx.editing) return null;
       return (
         <div className="relative overflow-hidden" data-before-after style={{ borderRadius: "var(--site-radius)" }}>
-          <Picture m={after} base={ctx.base} tone="#D8C7B8" ratio={after ? undefined : "16 / 9"} />
+          <Picture m={after} base={ctx.base} tone="sample:06" ratio={after ? undefined : "16 / 9"} />
           <div className="absolute inset-y-0 start-0 w-1/2 overflow-hidden">
             <div className="h-full" style={{ width: "200%" }}>
               <Picture
                 m={before}
                 base={ctx.base}
-                tone="#5B3A2E"
+                tone="sample:03"
                 ratio={after ? undefined : "16 / 9"}
                 className="h-full"
               />
@@ -808,55 +814,64 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
         </div>
       );
     }
-    case "contact":
-      if (ctx.live && ctx.renderContact) {
-        return (
-          <div
-            id="contact"
-            className="flex flex-col items-start gap-3 p-10 @max-xl:p-6"
-            style={{ background: "var(--site-surface)", borderRadius: "calc(var(--site-radius) * 2)" }}
-          >
-            <h2 style={heading(32)}>{b.heading}</h2>
-            {b.text && (
-              <p className="m-0" style={{ color: "var(--site-muted)" }}>
-                {b.text}
-              </p>
-            )}
-            {ctx.renderContact(b)}
-          </div>
-        );
-      }
-      return (
-        <div
-          className="flex flex-col items-start gap-3 p-10 @max-xl:p-6"
-          style={{ background: "var(--site-surface)", borderRadius: "calc(var(--site-radius) * 2)" }}
-        >
+    case "contact": {
+      const form = contactFormOf(b, ctx.contactFallback);
+      const words = CONTACT_WORDS[ctx.language];
+      const split = form.layout === "split";
+      const intro = ctx.live ? (
+        <div className="flex flex-col items-start gap-3">
+          <h2 style={heading(32)}>{b.heading}</h2>
+          {b.text && (
+            <p className="m-0" style={{ color: "var(--site-muted)" }}>
+              {b.text}
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-col items-start gap-3">
           <T ctx={ctx} path="heading" value={b.heading} as="h2" style={heading(32)} />
           <T ctx={ctx} path="text" value={b.text} as="p" className="m-0" style={{ color: "var(--site-muted)" }} multiline />
-          <div className="mt-2 grid w-full max-w-[520px] gap-2.5" aria-hidden>
-            {[0, 1].map((i) => (
-              <span
-                key={i}
-                className="block h-11"
-                style={{
-                  border: "1px solid var(--site-line)",
-                  borderRadius: "var(--site-radius)",
-                  background: "var(--site-bg)",
-                }}
-              />
-            ))}
-            <span
-              className="block h-24"
-              style={{
-                border: "1px solid var(--site-line)",
-                borderRadius: "var(--site-radius)",
-                background: "var(--site-bg)",
-              }}
-            />
-          </div>
-          <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path="button" value={b.button} className="site-button mt-1" />
         </div>
       );
+      const boxStyle = {
+        border: "1px solid var(--site-line)",
+        borderRadius: "var(--site-radius)",
+        background: "var(--site-bg)",
+      };
+      const fake = (label: string, tall?: boolean) => (
+        <span key={label} className="grid gap-1.5 text-[14px] font-semibold">
+          {label}
+          <span className={cx("block", tall ? "h-24" : "h-11")} style={boxStyle} />
+        </span>
+      );
+      const formPart =
+        ctx.live && ctx.renderContact ? (
+          ctx.renderContact(b)
+        ) : (
+          <div className="flex w-full max-w-[560px] flex-col items-start gap-3" data-testid="contact-preview">
+            <div className="grid w-full gap-3" aria-hidden>
+              {fake(form.labels.name || words.name)}
+              {fake(form.labels.email || words.email)}
+              {form.projectType && fake(words.projectType)}
+              {form.budget && fake(words.budget)}
+              {form.deadline && fake(words.deadline)}
+              {form.custom && fake(form.custom)}
+              {fake(form.labels.message || words.message, true)}
+            </div>
+            <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path="button" value={b.button} className="site-button mt-1" />
+          </div>
+        );
+      return (
+        <div
+          id={ctx.live ? "contact" : undefined}
+          className={cx("gap-8 p-10 @max-xl:p-6", split ? "grid grid-cols-2 items-start @max-2xl:grid-cols-1" : "flex flex-col items-start gap-3")}
+          style={{ background: "var(--site-surface)", borderRadius: "calc(var(--site-radius) * 2)" }}
+        >
+          {intro}
+          {formPart}
+        </div>
+      );
+    }
     case "hire":
       if (!ctx.available?.on) {
         return <Empty show={ctx.editing}>{ctx.available?.label ?? "Available for work"} · off</Empty>;
@@ -930,6 +945,8 @@ interface Ctx {
   onSiteText?: SiteRenderProps["onSiteText"];
   typeHere?: string;
   renderFree?: SiteRenderProps["renderFree"];
+  contactFallback?: LegacyContactFields | null;
+  language: Locale;
 }
 
 /**
@@ -978,8 +995,120 @@ function T({
 
 /* ---------- the site ---------- */
 
+function Footer({
+  site,
+  ctx,
+  links: all,
+  credit,
+  report,
+}: {
+  site: SiteDraft;
+  ctx: Ctx;
+  links: NonNullable<SiteRenderProps["footerLinks"]>;
+  credit?: string | null;
+  report?: SiteRenderProps["report"];
+}) {
+  const settings = site.footer ?? normalizeFooter(null);
+  const selected = ctx.selectedBlockId === "__footer";
+  const links = all.filter((l) => (l.kind === "cv" ? settings.cv : settings.social));
+  const editable = !!ctx.onSiteText;
+  if (!editable && !credit && !links.length && !report && !settings.text) return null;
+  const start = settings.align === "start";
+  return (
+    <footer
+      data-site-part="footer"
+      className={cx(
+        "flex flex-col gap-3 pt-8 text-[12px]",
+        start ? "items-start text-start" : "items-center text-center",
+        ctx.editing && "site-block",
+        selected && "site-block-selected",
+      )}
+      style={{ color: "var(--site-muted)" }}
+    >
+      {editable && (settings.text || selected) ? (
+        <InlineText
+          as="p"
+          value={settings.text}
+          multiline
+          placeholder={ctx.typeHere ?? "Type here"}
+          className="m-0 text-[14px]"
+          style={{ color: "var(--site-text)" }}
+          onChange={(v) => ctx.onSiteText!("footer", v)}
+        />
+      ) : (
+        settings.text && (
+          <p className="m-0 text-[14px]" style={{ color: "var(--site-text)", whiteSpace: "pre-line" }}>
+            {settings.text}
+          </p>
+        )
+      )}
+      {links.length > 0 && (
+        <nav className={cx("flex flex-wrap gap-x-4 gap-y-1 text-[14px]", start ? "justify-start" : "justify-center")} data-testid="footer-links">
+          {links.map((l) =>
+            ctx.live ? (
+              <a
+                key={l.href}
+                href={l.href}
+                rel={l.download ? undefined : "me noopener"}
+                target={l.download ? undefined : "_blank"}
+                style={{ color: "var(--site-text)" }}
+              >
+                {l.label}
+              </a>
+            ) : (
+              <span key={l.href} style={{ color: "var(--site-text)" }}>
+                {l.label}
+              </span>
+            ),
+          )}
+        </nav>
+      )}
+      {(credit || report) && (
+        <span className={cx("flex flex-wrap gap-x-4 gap-y-1", start ? "justify-start" : "justify-center")}>
+          {credit &&
+            (ctx.live ? (
+              <a href="https://fannan.net" style={{ color: "inherit" }}>
+                {credit}
+              </a>
+            ) : (
+              credit
+            ))}
+          {report && (
+            <a href={report.href} rel="nofollow" style={{ color: "inherit" }}>
+              {report.label}
+            </a>
+          )}
+        </span>
+      )}
+    </footer>
+  );
+}
+
 function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }) {
   const { theme } = site;
+  const settings = site.header ?? normalizeHeader(null);
+  const selected = ctx.selectedBlockId === "__header";
+  // On the canvas the header is clicked like a section; its settings open beside it.
+  const band = settings.background !== "none" || (settings.sticky && ctx.live && theme.nav !== "sidebar");
+  const bandColor =
+    settings.background === "surface"
+      ? "var(--site-surface)"
+      : settings.background.startsWith("#")
+        ? settings.background
+        : "var(--site-bg)";
+  const part = {
+    "data-site-part": "header",
+    style: band
+      ? ({
+          background: bandColor,
+          color: settings.background.startsWith("#") ? readableOn(settings.background) : undefined,
+          margin: "calc(var(--site-pad) * -1) calc(var(--site-pad) * -1) 0",
+          padding: "20px var(--site-pad)",
+          ...(settings.sticky && ctx.live && theme.nav !== "sidebar" ? { position: "sticky", top: 0, zIndex: 30 } : {}),
+        } as CSSProperties)
+      : undefined,
+  };
+  const partClass = cx(ctx.editing && "site-block", selected && "site-block-selected");
   const logo = theme.logoMediaId ? ctx.media[theme.logoMediaId] : null;
   const links = site.pages.filter((p) => p.showInNav);
   const brandInner = logo ? (
@@ -1005,11 +1134,23 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
       ) : (
         <span style={heading(theme.nav === "minimal" ? 20 : 26)}>{site.title}</span>
       )}
-      {site.tagline && theme.nav !== "minimal" && (
-        <span className="text-[14px]" style={{ color: "var(--site-muted)" }}>
-          {site.tagline}
-        </span>
-      )}
+      {settings.tagline &&
+        theme.nav !== "minimal" &&
+        (ctx.onSiteText && (site.tagline || selected) ? (
+          <InlineText
+            value={site.tagline}
+            placeholder={ctx.typeHere ?? "Type here"}
+            className="text-[14px]"
+            style={{ color: "var(--site-muted)" }}
+            onChange={(v) => ctx.onSiteText!("tagline", v)}
+          />
+        ) : (
+          site.tagline && (
+            <span className="text-[14px]" style={{ color: "var(--site-muted)" }}>
+              {site.tagline}
+            </span>
+          )
+        ))}
     </span>
   );
   const brand = ctx.live ? (
@@ -1046,26 +1187,25 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
     </span>
   );
   const hireStyle = { background: "var(--site-accent)", color: "var(--site-on-accent)", textDecoration: "none" };
-  const hire = ctx.available?.on ? (
-    ctx.live && ctx.contactHref ? (
-      <a
-        href={ctx.contactHref}
-        className="rounded-full px-4 py-2 text-[14px] font-semibold"
-        style={hireStyle}
-        data-hire
-      >
-        {ctx.available.hire}
+  // The Hire me button: shown when "available for work" is on, unless the header settings say otherwise.
+  const hireOn = settings.hire.on ?? !!ctx.available?.on;
+  const hireLabel = settings.hire.label || ctx.available?.hire || "Hire me";
+  const hireHref = settings.hire.link || ctx.contactHref;
+  const hire = hireOn ? (
+    ctx.live && hireHref ? (
+      <a href={hireHref} className="rounded-full px-4 py-2 text-[14px] font-semibold" style={hireStyle} data-hire>
+        {hireLabel}
       </a>
     ) : (
       <span className="rounded-full px-4 py-2 text-[14px] font-semibold" style={hireStyle}>
-        {ctx.available.hire}
+        {hireLabel}
       </span>
     )
   ) : null;
 
   if (theme.nav === "centered") {
     return (
-      <header className="flex flex-col items-center gap-3 text-center">
+      <header {...part} className={cx("flex flex-col items-center gap-3 text-center", partClass)}>
         {brand}
         {linkList}
         {hire}
@@ -1074,7 +1214,7 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
   }
   if (theme.nav === "minimal") {
     return (
-      <header className="flex items-center justify-between gap-4">
+      <header {...part} className={cx("flex items-center justify-between gap-4", partClass)}>
         {brand}
         <span className="flex items-center gap-4 text-[15px] font-semibold">
           {hire}
@@ -1085,7 +1225,8 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
   }
   return (
     <header
-      className={cx("flex flex-wrap items-center justify-between gap-4", theme.nav === "sidebar" && "site-sidebar-nav")}
+      {...part}
+      className={cx("flex flex-wrap items-center justify-between gap-4", theme.nav === "sidebar" && "site-sidebar-nav", partClass)}
     >
       {brand}
       {theme.nav === "split" ? (
@@ -1125,6 +1266,7 @@ export function SiteRender({
   typeHere,
   renderFree,
   bare = false,
+  contactFallback,
 }: SiteRenderProps) {
   const page = site.pages.find((p) => p.id === pageId) ?? site.pages[0];
   const { theme } = site;
@@ -1143,6 +1285,8 @@ export function SiteRender({
     onSiteText,
     typeHere,
     renderFree,
+    contactFallback,
+    language: site.language,
   };
   const arabic = site.language === "ar";
   const h = headingFonts[theme.fonts.heading];
@@ -1155,13 +1299,15 @@ export function SiteRender({
     "--site-line": `color-mix(in srgb, ${theme.colors.text} 16%, ${theme.colors.background})`,
     "--site-surface": `color-mix(in srgb, ${theme.colors.text} 6%, ${theme.colors.background})`,
     "--site-radius": `${theme.radius}px`,
+    // The chosen Arabic font is always in the stack: Arabic sites lead with it, and on English
+    // sites any Arabic words fall through the Latin font (which has no Arabic letters) to it.
     "--site-heading": arabic
-      ? `${arabicFonts[theme.fonts.arabic].family}, ${h.family}`
-      : `${h.family}, system-ui, sans-serif`,
+      ? `${arabicFonts[theme.fonts.arabic].family}, ${h.family}, sans-serif`
+      : `${h.family}, ${arabicFonts[theme.fonts.arabic].family}, system-ui, sans-serif`,
     "--site-heading-weight": arabic ? 700 : h.weight,
     "--site-body": arabic
       ? `${arabicFonts[theme.fonts.arabic].family}, ${bodyFonts[theme.fonts.body].family}, system-ui`
-      : `${bodyFonts[theme.fonts.body].family}, system-ui, sans-serif`,
+      : `${bodyFonts[theme.fonts.body].family}, ${arabicFonts[theme.fonts.arabic].family}, system-ui, sans-serif`,
   } as CSSProperties;
 
   const body = content ? (
@@ -1198,45 +1344,7 @@ export function SiteRender({
       <div className={cx("flex flex-col gap-12 p-[var(--site-pad)]", theme.nav === "sidebar" && "site-with-sidebar")}>
         {!bare && <Nav site={site} page={page} ctx={ctx} />}
         {body}
-        {!bare && (credit || footerLinks.length > 0 || report) && (
-          <footer
-            className="flex flex-col items-center gap-3 pt-8 text-center text-[12px]"
-            style={{ color: "var(--site-muted)" }}
-          >
-            {footerLinks.length > 0 && (
-              <nav className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[14px]" data-testid="footer-links">
-                {footerLinks.map((l) => (
-                  <a
-                    key={l.href}
-                    href={l.href}
-                    rel={l.download ? undefined : "me noopener"}
-                    target={l.download ? undefined : "_blank"}
-                    style={{ color: "var(--site-text)" }}
-                  >
-                    {l.label}
-                  </a>
-                ))}
-              </nav>
-            )}
-            {(credit || report) && (
-              <span className="flex flex-wrap justify-center gap-x-4 gap-y-1">
-                {credit &&
-                  (live ? (
-                    <a href="https://fannan.net" style={{ color: "inherit" }}>
-                      {credit}
-                    </a>
-                  ) : (
-                    credit
-                  ))}
-                {report && (
-                  <a href={report.href} rel="nofollow" style={{ color: "inherit" }}>
-                    {report.label}
-                  </a>
-                )}
-              </span>
-            )}
-          </footer>
-        )}
+        {!bare && <Footer site={site} ctx={ctx} links={footerLinks} credit={credit} report={report} />}
       </div>
     </div>
   );

@@ -111,6 +111,8 @@ export async function saveDraft(o: Owner, raw: unknown): Promise<{ savedAt: numb
     title: draft.title,
     tagline: draft.tagline,
     theme: draft.theme,
+    header: draft.header ?? null,
+    footer: draft.footer ?? null,
     language: draft.language,
     aboutWritten: aboutWritten(draft.pages),
     draftUpdatedAt: FieldValue.serverTimestamp(),
@@ -168,6 +170,8 @@ export interface PublishedSite {
   title: string;
   tagline: string;
   theme: SiteDraft["theme"];
+  header?: SiteDraft["header"];
+  footer?: SiteDraft["footer"];
   available: SiteDoc["available"];
   plan: "free" | "pro";
   pages: Array<PageDraft & { passwordHash: string | null }>;
@@ -263,6 +267,8 @@ export async function publish(o: Owner): Promise<{ version: number }> {
     title: draft.title,
     tagline: draft.tagline,
     theme: draft.theme,
+    header: draft.header,
+    footer: draft.footer,
     available: site.available,
     plan: o.plan,
     pages: draft.pages.map((p) => ({
