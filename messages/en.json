@@ -263,7 +263,8 @@
     "previewFor": "Preview of {address}",
     "error": "Something went wrong. Please try again.",
     "googleFailed": "Google sign-in didn’t finish. Try again, or use your email.",
-    "saving": "Saving…"
+    "saving": "Saving…",
+    "notYou": "Not you? Sign out"
   },
   "login": {
     "metaTitle": "Log in",

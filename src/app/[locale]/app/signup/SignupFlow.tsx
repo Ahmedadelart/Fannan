@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { GoogleAuthProvider, sendSignInLinkToEmail, signInAnonymously, signInWithPopup } from "firebase/auth";
-import { currentUser, EMAIL_KEY, startServerSession, useAuth } from "@/components/auth/AuthProvider";
+import { GoogleAuthProvider, sendSignInLinkToEmail, signInAnonymously, signInWithPopup, signOut } from "firebase/auth";
+import { currentUser, EMAIL_KEY, endServerSession, startServerSession, useAuth } from "@/components/auth/AuthProvider";
 import { ScaledSite } from "@/components/site/ScaledSite";
 import { SiteRender } from "@/components/site/SiteRender";
 import { Icon } from "@/components/ui/Icon";
@@ -25,6 +25,8 @@ export interface SignupInitial {
   username: string;
   hasSite: boolean;
   fromHomepage?: string;
+  /** Signed in with a real email but no site yet (e.g. Google with the wrong account). */
+  signedInAs?: string;
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -375,12 +377,32 @@ export function SignupFlow({
           ))}
         </nav>
         <div className="text-muted flex items-center gap-3 text-[14px]">
-          <span className="hidden sm:inline">
-            {t("alreadyHave")}{" "}
-            <a href="/login" className="text-ink font-semibold underline-offset-2 hover:underline">
-              {t("login")}
-            </a>
-          </span>
+          {initial.signedInAs ? (
+            <span className="flex flex-wrap items-center gap-x-2" data-testid="signed-in-as">
+              <span dir="ltr" className="max-w-[200px] truncate">
+                {initial.signedInAs}
+              </span>
+              <button
+                type="button"
+                onClick={async () => {
+                  await signOut(getAuth()).catch(() => {});
+                  await endServerSession();
+                  // Start over as a brand-new visitor.
+                  window.location.href = "/signup";
+                }}
+                className="text-ink font-semibold underline-offset-2 hover:underline"
+              >
+                {t("notYou")}
+              </button>
+            </span>
+          ) : (
+            <span className="hidden sm:inline">
+              {t("alreadyHave")}{" "}
+              <a href="/login" className="text-ink font-semibold underline-offset-2 hover:underline">
+                {t("login")}
+              </a>
+            </span>
+          )}
           <button
             type="button"
             onClick={switchLanguage}

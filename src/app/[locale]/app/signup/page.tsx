@@ -33,6 +33,7 @@ export default async function SignupPage({ params, searchParams }: PageProps<"/[
     username: user?.onboarding?.username ?? "",
     hasSite: !!user?.siteId,
     fromHomepage: fromHomepage && checkUsername(fromHomepage) === null ? fromHomepage : undefined,
+    signedInAs: session && !session.isAnonymous ? (session.email ?? user?.email ?? "") || undefined : undefined,
   };
   // Never resume onto the loader step.
   if (initial.step === 3) initial.step = 4;

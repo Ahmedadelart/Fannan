@@ -16,7 +16,7 @@ export async function MarketingHeader({ locale, path = "/" }: { locale: Locale; 
   const otherHref = other === "ar" ? mHref("ar", path) : path;
   const link = "hover:text-ink text-ink-soft whitespace-nowrap";
   return (
-    <header className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-4 px-4 py-5 md:px-6">
+    <header className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center justify-between gap-4 px-4 py-5 md:px-6">
       <a href={mHref(locale, "/")} aria-label={t("home")}>
         <Logo lang={locale} size={28} />
       </a>
