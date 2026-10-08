@@ -148,11 +148,15 @@ test("the published site: pages, projects, lightbox, contact form, sitemap, draf
   // Drafts never leak: an unpublished change and its media stay off the live site.
   await openEditor(page);
   await page.getByTestId("add-quote").click();
-  await page.getByTestId("right-panel").getByRole("textbox", { name: "Text" }).fill("Draft-only words");
-  await page.getByTestId("add-image").click();
-  await page.getByTestId("right-panel").getByRole("button", { name: "Choose" }).click();
+  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await page.getByTestId("block-settings").getByRole("textbox", { name: "Text" }).fill("Draft-only words");
+  await page.getByTestId("add-d-image-caption").click();
+  const picture = page.getByTestId("canvas").locator('[data-testid="free-item"][data-kind="image"]').last();
+  await picture.scrollIntoViewIfNeeded();
+  await picture.click();
+  await page.getByTestId("block-settings").getByRole("button", { name: "Choose" }).click();
   await page.getByTestId("picker-file").setInputFiles("tests/fixtures/anim.gif");
-  await expect(page.getByRole("dialog")).toBeHidden({ timeout: 60_000 });
+  await expect(page.getByRole("dialog", { name: "Choose media" })).toBeHidden({ timeout: 60_000 });
   const draftImg = await page
     .getByTestId("canvas")
     .locator("img[src*='/api/media/variants/']")
@@ -231,10 +235,15 @@ test("an Arabic site is served right to left, and it fits a phone", async ({ pag
   test.setTimeout(180_000);
   const { username } = await signUp(page);
   await openEditor(page);
-  if (info.project.name === "mobile") await page.getByRole("button", { name: "Style" }).click();
-  else await page.getByRole("tab", { name: "Style" }).click();
+  await page.getByRole("button", { name: "Design" }).click();
   await page.getByRole("radio", { name: "Arabic" }).click();
+  await page.getByRole("button", { name: "Logo & title" }).click();
   await page.getByRole("textbox", { name: "Site name" }).fill("نور عادل");
+  // On a phone the panel floats over the page: tap outside to close it.
+  if (info.project.name === "mobile") {
+    const box = (await page.getByTestId("panel-backdrop").boundingBox())!;
+    await page.mouse.click(box.x + box.width - 12, box.y + box.height / 2);
+  }
   await publish(page);
 
   const visitor = await (await browser.newContext({ ...info.project.use })).newPage();

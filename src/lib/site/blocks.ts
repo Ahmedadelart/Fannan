@@ -1,6 +1,8 @@
 // The editor's block catalogue: which group each block sits in, its icon, and a fresh copy.
 import type { IconName } from "@/components/ui/icons.generated";
 import type { Locale } from "@/i18n/locales";
+import { plansConfig } from "@/config/plans";
+import { designBlock, type DesignKey } from "./designBlocks";
 import { freeTemplate } from "./free";
 import type { Block, BlockType, SampleArt } from "./types";
 
@@ -14,10 +16,13 @@ export interface BlockKind {
   icon: IconName;
   /** Fannan-only blocks get a small lime "Fannan" tag. */
   fannan?: boolean;
+  /** Showpiece blocks only Pro sites can publish (config/plans.json → proBlocks). */
+  pro?: boolean;
   make: (locale: Locale) => Block;
 }
 
-export const newId = () => Math.random().toString(36).slice(2, 10);
+export { newId } from "./ids";
+import { newId } from "./ids";
 
 const SAMPLE_TONES = ["#5B3A2E", "#4E5B2E", "#5B2E4F", "#7A5A2E", "#3A3A3A", "#6B3A3A"];
 export const sampleArt = (n: number, ratio: SampleArt["ratio"] = "4/3"): SampleArt[] =>
@@ -267,8 +272,64 @@ export const blockKinds: BlockKind[] = [
 
 export const blockGroups: BlockGroup[] = ["freeform", "layout", "galleries", "media", "hire"];
 
+/* ---------- the library as artists see it (Carbonmade-style list of real previews) ---------- */
+
+const DESIGN_ICONS: Record<DesignKey, IconName> = {
+  "d-cover": "fullscreen-cover",
+  "d-title": "hero-headline",
+  "d-statement": "hero-headline",
+  "d-info": "text",
+  "d-long-text": "text",
+  "d-project-info": "columns",
+  "d-resume": "columns",
+  "d-image-caption": "image",
+  "d-grid-4": "grid",
+  "d-two-images": "columns",
+  "d-headline-image": "image",
+  "d-split-headline": "columns",
+  "d-brand-pair": "columns",
+  "d-big-type": "hero-headline",
+  "d-collage": "masonry",
+  "d-about": "about-cv",
+  "d-contact-me": "contact-form",
+  "d-logo-wall": "logo-wall",
+};
+
+export const designKinds: BlockKind[] = (Object.keys(DESIGN_ICONS) as DesignKey[]).map((key) => ({
+  key,
+  type: "free",
+  group: "freeform",
+  icon: DESIGN_ICONS[key],
+  pro: plansConfig.proBlocks.keys.includes(key),
+  make: (l) => designBlock(key, l),
+}));
+blockKinds.push(...designKinds);
+
+export type LibraryGroup = "intro" | "work" | "images" | "text" | "about" | "media" | "blank";
+
+/** What the library shows, in this order. Older block kinds still work on existing pages. */
+export const LIBRARY: Array<{ group: LibraryGroup; keys: string[] }> = [
+  { group: "intro", keys: ["d-cover", "d-title", "d-statement"] },
+  { group: "work", keys: ["grid", "masonry", "slider"] },
+  {
+    group: "images",
+    keys: ["d-image-caption", "d-grid-4", "d-two-images", "d-headline-image", "d-split-headline", "d-brand-pair", "d-big-type", "d-collage"],
+  },
+  { group: "text", keys: ["d-info", "d-long-text", "d-project-info", "d-resume", "quote"] },
+  { group: "about", keys: ["d-about", "d-contact-me", "contact", "hire", "social", "credits", "d-logo-wall"] },
+  { group: "media", keys: ["reel", "video", "loop", "beforeAfter", "pdf"] },
+  { group: "blank", keys: ["free-blank"] },
+];
+
+export const kindByKey = (key: string) => blockKinds.find((k) => k.key === key);
+
+/** Is this block on the page one of the Pro showpieces? */
+export const isProBlock = (b: Block) =>
+  b.type === "free" && !!b.design && plansConfig.proBlocks.keys.includes(b.design);
+
 /** The catalogue entry for a block on the page (galleries map back to their layout). */
 export function kindOf(b: Block): BlockKind {
+  if (b.type === "free" && b.design) return blockKinds.find((k) => k.key === b.design) ?? blockKinds[0];
   if (b.type === "gallery") return blockKinds.find((k) => k.key === (b.layout === "fullscreen" ? "grid" : b.layout))!;
   return blockKinds.find((k) => k.type === b.type)!;
 }

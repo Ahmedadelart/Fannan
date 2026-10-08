@@ -6,6 +6,20 @@ import { at, signUp } from "./helpers";
 
 test.describe.configure({ mode: "serial" });
 
+const DB = "http://127.0.0.1:8080/v1/projects/demo-fannan/databases/(default)/documents";
+const admin = { Authorization: "Bearer owner", "Content-Type": "application/json" };
+
+/** The Collage is a Pro block: it only shows on the live site of a Pro artist. */
+async function makePro(username: string) {
+  const res = await fetch(`${DB}/usernames/${username}`, { headers: admin });
+  const uid = ((await res.json()) as { fields: { uid: { stringValue: string } } }).fields.uid.stringValue;
+  await fetch(`${DB}/users/${uid}?updateMask.fieldPaths=plan`, {
+    method: "PATCH",
+    headers: admin,
+    body: JSON.stringify({ fields: { plan: { stringValue: "pro" } } }),
+  });
+}
+
 async function openEditor(page: Page) {
   await page.goto(at("app", "/editor"));
   const dialog = page.getByRole("dialog");
@@ -43,7 +57,10 @@ test("a free-form section: place, resize, turn, layer, type, publish", async ({ 
   await openEditor(page);
 
   // Add a ready-made collage from the library.
-  await page.getByRole("button", { name: "Collage" }).click();
+  // Collage is a Pro showpiece: a Free artist is told, and can still try it in the editor.
+  await page.getByTestId("add-d-collage").click();
+  await expect(page.getByRole("dialog", { name: "A Pro block" })).toBeVisible();
+  await page.getByRole("button", { name: "Try it here" }).click();
   const grid = page.getByTestId("free-grid");
   await expect(grid).toBeVisible();
   await grid.scrollIntoViewIfNeeded();
@@ -94,12 +111,13 @@ test("a free-form section: place, resize, turn, layer, type, publish", async ({ 
   await editable.click();
   await page.keyboard.press("Control+A");
   await page.keyboard.type("Free-form works");
-  await expect(page.getByTestId("right-panel").getByRole("textbox").first()).toHaveValue("Free-form works");
+  await expect(page.getByTestId("block-settings").getByRole("textbox").first()).toHaveValue("Free-form works");
   await page.screenshot({ path: `test-results/free-${info.project.name}.png` });
 
   // Publish, then look at the live site.
   await page.getByRole("button", { name: "Publish" }).click();
   await expect(page.getByTestId("editor-status")).toHaveText("Live site is up to date", { timeout: 20_000 });
+  await makePro(username);
   const visitor = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
   await visitor.goto(at(username));
   await expect(visitor.getByText("Free-form works")).toBeVisible();
@@ -118,7 +136,7 @@ test("a free-form section: place, resize, turn, layer, type, publish", async ({ 
 
   // In Arabic the grid mirrors: the reading start is on the right.
   await openEditor(page);
-  await page.getByRole("tab", { name: "Style" }).click();
+  await page.getByRole("button", { name: "Design" }).click();
   await page.getByRole("radio", { name: "Arabic" }).click();
   await page.getByRole("button", { name: "Publish" }).click();
   await expect(page.getByTestId("editor-status")).toHaveText("Live site is up to date", { timeout: 20_000 });

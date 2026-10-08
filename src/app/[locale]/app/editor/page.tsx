@@ -34,6 +34,7 @@ export default async function EditorPage({ params }: PageProps<"/[locale]/app/ed
       canPassword={limits.passwordProtection}
       showTips={!(user as { editorTipsSeen?: boolean }).editorTipsSeen}
       credit={limits.footerCredit}
+      isPro={limits.customDomain}
     />
   );
 }

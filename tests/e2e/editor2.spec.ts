@@ -52,7 +52,7 @@ test("type on the page, drag sections and pages, toolbar actions", async ({ page
   await page.keyboard.press("Control+A");
   await page.keyboard.type("Hello, I draw");
   await page.keyboard.press("Enter"); // one-line fields finish on Enter
-  await expect(page.getByTestId("right-panel").getByRole("textbox").first()).toHaveValue("Hello, I draw");
+  await expect(canvas(page).locator(`[data-block-id="${aboutId}"]`)).toContainText("Hello, I draw");
   // The site name in the header too.
   const title = canvas(page).locator("header [data-inline-text], nav [data-inline-text]").first();
   await title.click();
@@ -98,7 +98,7 @@ test("type on the page, drag sections and pages, toolbar actions", async ({ page
   await page.screenshot({ path: `test-results/editor2-${info.project.name}.png` });
 
   /* ---------- pages: drag Contact above About ---------- */
-  await page.getByRole("tab", { name: "Pages" }).click();
+  await page.getByTestId("page-switcher").click();
   const list = page.getByTestId("page-list");
   const names = () => list.locator("[data-page-id]").evaluateAll((els) => els.map((e) => e.textContent?.trim() ?? ""));
   expect((await names())[1]).toMatch(/^About/);

@@ -120,6 +120,8 @@ export interface FreeItem {
 }
 
 export interface FreeSection {
+  /** Which library design it started from (e.g. "d-cover"); Pro designs are hidden on Free sites. */
+  design?: string;
   /** Height in grid rows (one row = one column width). */
   rows: number;
   background: string | null;

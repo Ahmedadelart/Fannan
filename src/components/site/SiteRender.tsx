@@ -51,6 +51,8 @@ export interface SiteRenderProps {
   onSiteText?: (field: "title" | "tagline", value: string) => void;
   /** Placeholder for empty text fields on the editor canvas ("Type here"). */
   typeHere?: string;
+  /** Only the blocks, without header and footer (block previews in the editor's library). */
+  bare?: boolean;
   /** Editor canvas: draws free-form sections with move/resize/rotate handles. */
   renderFree?: (b: BlockOf<"free">) => ReactNode;
   /** "Made with Fannan" footer credit on the Free plan. */
@@ -1122,6 +1124,7 @@ export function SiteRender({
   onSiteText,
   typeHere,
   renderFree,
+  bare = false,
 }: SiteRenderProps) {
   const page = site.pages.find((p) => p.id === pageId) ?? site.pages[0];
   const { theme } = site;
@@ -1193,9 +1196,9 @@ export function SiteRender({
       }}
     >
       <div className={cx("flex flex-col gap-12 p-[var(--site-pad)]", theme.nav === "sidebar" && "site-with-sidebar")}>
-        <Nav site={site} page={page} ctx={ctx} />
+        {!bare && <Nav site={site} page={page} ctx={ctx} />}
         {body}
-        {(credit || footerLinks.length > 0 || report) && (
+        {!bare && (credit || footerLinks.length > 0 || report) && (
           <footer
             className="flex flex-col items-center gap-3 pt-8 text-center text-[12px]"
             style={{ color: "var(--site-muted)" }}

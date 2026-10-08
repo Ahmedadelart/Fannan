@@ -42,6 +42,8 @@ export interface PlansConfig {
   };
   launchOffer: { enabled: boolean; firstBuyers: number; months: number; priceOfMonths: number };
   payments: { chargeUsd: boolean };
+  /** Showpiece editor blocks only Pro sites can publish. */
+  proBlocks: { keys: string[] };
 }
 
 export const plansConfig = raw as PlansConfig;

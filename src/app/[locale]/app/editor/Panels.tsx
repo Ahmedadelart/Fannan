@@ -3,7 +3,8 @@
 import { useRef, useState, type DragEvent, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { moveTo, startSortDrag } from "@/components/editor/sortDrag";
-import type { SiteMedia } from "@/components/site/SiteRender";
+import { ScaledSite } from "@/components/site/ScaledSite";
+import { SiteRender, type GalleryProject, type SiteMedia } from "@/components/site/SiteRender";
 import { arabicFonts, bodyFonts, headingFonts } from "@/components/site/fonts";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -13,12 +14,12 @@ import { Modal } from "@/components/ui/Overlays";
 import type { Locale } from "@/i18n/locales";
 import { cx } from "@/lib/cx";
 import { imageSources } from "@/lib/media";
-import { blockGroups, blockKinds, kindOf, newId, SOCIAL_NETWORKS, type BlockKind } from "@/lib/site/blocks";
+import { kindByKey, kindOf, LIBRARY, newId, SOCIAL_NETWORKS, type BlockKind } from "@/lib/site/blocks";
 import { presetIds, themes } from "@/lib/site/starter";
 import { freeBottom } from "@/lib/site/free";
 import type { Block, BlockOf, FreeItem, NavLayout, PageDraft, PageType, SiteDraft, Theme } from "@/lib/site/types";
 import { parseVideoLink } from "@/lib/video";
-import { beginUpload, completeUpload } from "../(dash)/projects/actions";
+import { beginUpload, completeUpload, newProject } from "../(dash)/projects/actions";
 
 /* ---------- small form pieces (Editor.dc.html right panel) ---------- */
 
@@ -391,14 +392,67 @@ function MediaField({
   );
 }
 
-/* ---------- Blocks tab ---------- */
+/* ---------- Blocks tab: a list of real previews, dragged onto the page (Carbonmade-style) ---------- */
 
-export function BlocksTab({ onAdd }: { onAdd: (k: BlockKind) => void }) {
+/** About how tall a block is on a 1200px page, so its preview isn't cropped or empty. */
+function previewHeight(b: Block): number {
+  switch (b.type) {
+    case "free":
+      return Math.round(b.rows * 47 + 40);
+    case "gallery":
+      return b.layout === "slider" ? 520 : 720;
+    case "credits":
+    case "contact":
+      return 560;
+    case "hire":
+    case "social":
+    case "quote":
+      return 300;
+    default:
+      return 560;
+  }
+}
+
+function BlockPreview({
+  kind,
+  draft,
+  media,
+  projects,
+}: {
+  kind: BlockKind;
+  draft: SiteDraft;
+  media: Record<string, SiteMedia>;
+  projects: GalleryProject[];
+}) {
+  // One sample of the block in the artist's own theme, made once.
+  const [sample] = useState(() => kind.make(draft.language));
+  const site: SiteDraft = {
+    ...draft,
+    pages: [{ id: "preview", slug: "", title: "", type: "custom", showInNav: false, blocks: [sample] }],
+  };
+  return (
+    <ScaledSite width={1200} height={previewHeight(sample)}>
+      <SiteRender site={site} pageId="preview" media={media} projects={projects} editing bare />
+    </ScaledSite>
+  );
+}
+
+export function BlocksTab({
+  onAdd,
+  draft,
+  media,
+  projects,
+}: {
+  onAdd: (k: BlockKind) => void;
+  draft: SiteDraft;
+  media: Record<string, SiteMedia>;
+  projects: GalleryProject[];
+}) {
   const t = useTranslations("editor");
   const [q, setQ] = useState("");
   const match = (k: BlockKind) => !q || t(`blocks.${k.key}`).toLowerCase().includes(q.toLowerCase());
   return (
-    <div className="flex flex-col gap-[18px] px-3 pt-3.5 pb-6" data-tip="blocks">
+    <div className="flex flex-col gap-4 px-3 pt-3 pb-6" data-tip="blocks">
       <label className="border-line text-muted flex h-10 items-center gap-2 rounded-[10px] border px-3">
         <Icon name="search" size={18} />
         <input
@@ -409,71 +463,195 @@ export function BlocksTab({ onAdd }: { onAdd: (k: BlockKind) => void }) {
           onChange={(e) => setQ(e.target.value)}
         />
       </label>
-      <p className="text-muted -mt-2 text-[12px]">{t("addHint")}</p>
-      {blockGroups.map((g) => {
-        const items = blockKinds.filter((k) => k.group === g && match(k));
+      <p className="text-muted -mt-2 text-[12px]">{t("dragHint")}</p>
+      {LIBRARY.map(({ group, keys }) => {
+        const items = keys.map(kindByKey).filter((k): k is BlockKind => !!k && match(k));
         if (!items.length) return null;
         return (
-          <div key={g} className="flex flex-col gap-2">
-            <div className="text-muted text-[11px] font-semibold tracking-[0.08em] uppercase">{t(`groups.${g}`)}</div>
-            <div className="grid grid-cols-2 gap-2">
-              {items.map((k) => (
-                <button
-                  key={k.key}
-                  type="button"
-                  draggable
-                  onDragStart={(e: DragEvent) => {
-                    e.dataTransfer.setData("application/x-fannan-block", k.key);
-                    e.dataTransfer.effectAllowed = "copy";
-                  }}
-                  onClick={() => onAdd(k)}
-                  className="border-line bg-paper hover:bg-mist flex min-h-[52px] cursor-grab items-center gap-2.5 rounded-md border px-2.5 py-1.5 text-start"
-                  data-testid={`add-${k.key}`}
-                >
-                  <Icon name={k.icon} size={24} />
-                  <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5 text-[12px] leading-tight font-semibold">
-                    {t(`blocks.${k.key}`)}
-                    {k.fannan && <Badge variant="brand">{t("fannanTag")}</Badge>}
+          <section key={group} className="flex flex-col gap-2.5" aria-label={t(`library.${group}`)}>
+            <h3 className="text-muted text-[11px] font-semibold tracking-[0.1em] uppercase">{t(`library.${group}`)}</h3>
+            {items.map((k) => (
+              <button
+                key={k.key}
+                type="button"
+                draggable
+                data-block-key={k.key}
+                data-testid={`add-${k.key}`}
+                aria-label={`${t(`blocks.${k.key}`)}${k.pro ? " (Pro)" : ""}`}
+                onDragStart={(e: DragEvent) => {
+                  e.dataTransfer.setData("application/x-fannan-block", k.key);
+                  e.dataTransfer.effectAllowed = "copy";
+                }}
+                onClick={() => onAdd(k)}
+                className="group border-line hover:border-lime relative flex w-full cursor-grab flex-col overflow-hidden rounded-[12px] border bg-[#141414] text-start transition-colors active:cursor-grabbing"
+                style={{ contentVisibility: "auto", containIntrinsicSize: "auto 160px" }}
+              >
+                <BlockPreview kind={k} draft={draft} media={media} projects={projects} />
+                <span className="text-ink flex items-center justify-between gap-2 px-3 py-2 text-[12px] font-semibold">
+                  {t(`blocks.${k.key}`)}
+                  <Icon name="add" size={16} className="opacity-0 transition-opacity group-hover:opacity-100" />
+                </span>
+                {k.pro && (
+                  <span className="bg-lime text-ink absolute end-2 top-2 rounded-pill px-2 py-0.5 text-[10px] font-bold tracking-[0.06em]">
+                    PRO
                   </span>
-                </button>
-              ))}
-            </div>
-          </div>
+                )}
+              </button>
+            ))}
+          </section>
         );
       })}
     </div>
   );
 }
 
-/* ---------- Style tab ---------- */
+/** Little drawings of each navigation layout, so the choice is visual. */
+function NavSketch({ nav }: { nav: NavLayout }) {
+  const bar = "block h-1 rounded-[2px] bg-current opacity-80";
+  const dot = "block h-1 w-3 rounded-[2px] bg-current opacity-40";
+  const links = (
+    <span className="flex gap-1">
+      <span className={dot} />
+      <span className={dot} />
+      <span className={dot} />
+    </span>
+  );
+  switch (nav) {
+    case "top":
+      return (
+        <span className="flex w-full items-center justify-between">
+          <span className={`${bar} w-6`} />
+          {links}
+        </span>
+      );
+    case "centered":
+      return (
+        <span className="flex w-full flex-col items-center gap-1">
+          <span className={`${bar} w-8`} />
+          {links}
+        </span>
+      );
+    case "split":
+      return (
+        <span className="flex w-full items-center justify-between">
+          <span className={dot} />
+          <span className={`${bar} w-6`} />
+          <span className={dot} />
+        </span>
+      );
+    case "sidebar":
+      return (
+        <span className="flex w-full gap-2">
+          <span className="flex flex-col gap-1">
+            <span className={`${bar} w-5`} />
+            <span className={dot} />
+            <span className={dot} />
+          </span>
+          <span className="bg-current/15 block h-6 flex-1 rounded-[2px] opacity-20" />
+        </span>
+      );
+    case "minimal":
+      return (
+        <span className="flex w-full items-center justify-between">
+          <span className={`${bar} w-4`} />
+          <span className="flex flex-col gap-[3px]">
+            <span className="block h-[2px] w-3 bg-current" />
+            <span className="block h-[2px] w-3 bg-current" />
+          </span>
+        </span>
+      );
+  }
+}
+
+export type DesignSection = "logo" | "nav" | "styles" | "footer";
 
 export function StyleTab({
   draft,
   media,
   setDraft,
   openPicker,
+  section,
+  credit,
 }: {
   draft: SiteDraft;
   media: Record<string, SiteMedia>;
   setDraft: (fn: (d: SiteDraft) => SiteDraft, key?: string) => void;
   openPicker: (kind: MediaKind, done: (id: string) => void) => void;
+  section: DesignSection;
+  credit?: boolean;
 }) {
   const t = useTranslations("editor.style");
   const th = draft.theme;
   const setTheme = (patch: Partial<Theme>, key?: string) =>
     setDraft((d) => ({ ...d, theme: { ...d.theme, ...patch } }), key);
+
+  if (section === "logo") {
+    return (
+      <div className="flex flex-col gap-4">
+        <Text title={t("siteTitle")} value={draft.title} onChange={(v) => setDraft((d) => ({ ...d, title: v }), "title")} />
+        <Text title={t("tagline")} value={draft.tagline} onChange={(v) => setDraft((d) => ({ ...d, tagline: v }), "tagline")} />
+        <MediaField
+          title={t("logo")}
+          id={th.logoMediaId}
+          kind="image"
+          media={media}
+          onChange={(id) => setTheme({ logoMediaId: id })}
+          openPicker={openPicker}
+        />
+        <MediaField
+          title={t("favicon")}
+          id={th.faviconMediaId}
+          kind="image"
+          media={media}
+          onChange={(id) => setTheme({ faviconMediaId: id })}
+          openPicker={openPicker}
+        />
+      </div>
+    );
+  }
+
+  if (section === "nav") {
+    return (
+      <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t("nav")}>
+          {(["top", "centered", "sidebar", "split", "minimal"] as NavLayout[]).map((n) => (
+            <button
+              key={n}
+              type="button"
+              role="radio"
+              aria-checked={th.nav === n}
+              aria-label={t(`navNames.${n}`)}
+              onClick={() => setTheme({ nav: n })}
+              className={cx(
+                "bg-paper flex flex-col items-stretch gap-2 rounded-[10px] p-2.5 text-[11px] font-semibold",
+                th.nav === n ? "border-lime border-2" : "border-line border",
+              )}
+            >
+              <span className="bg-mist flex h-10 items-center rounded-[6px] px-2">
+                <NavSketch nav={n} />
+              </span>
+              {t(`navNames.${n}`)}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (section === "footer") {
+    return (
+      <div className="flex flex-col gap-3 text-[13px]">
+        <p className="text-ink-soft">{t("footerAbout")}</p>
+        {credit && <p className="text-muted">{t("footerCredit")}</p>}
+        <a href="/settings#contact" className="text-ink font-semibold underline underline-offset-2">
+          {t("footerSocial")}
+        </a>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-5 px-3.5 pt-4 pb-6">
-      <Text
-        title={t("siteTitle")}
-        value={draft.title}
-        onChange={(v) => setDraft((d) => ({ ...d, title: v }), "title")}
-      />
-      <Text
-        title={t("tagline")}
-        value={draft.tagline}
-        onChange={(v) => setDraft((d) => ({ ...d, tagline: v }), "tagline")}
-      />
+    <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-2">
         <div className="text-muted text-[11px] font-semibold tracking-[0.08em] uppercase">{t("presets")}</div>
         <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={t("presets")}>
@@ -489,17 +667,33 @@ export function StyleTab({
                 onClick={() => setTheme({ ...p, logoMediaId: th.logoMediaId, faviconMediaId: th.faviconMediaId })}
                 className={cx(
                   "bg-paper flex flex-col gap-1.5 rounded-[10px] p-1.5",
-                  on ? "border-ink border-2" : "border-line border",
+                  on ? "border-lime border-2" : "border-line border",
                 )}
               >
                 <span
-                  className="block h-[30px] rounded-[6px] border border-[#EFEFEC]"
+                  className="block h-[30px] rounded-[6px] border border-black/10"
                   style={{ background: `linear-gradient(90deg, ${p.colors.background} 0 70%, ${p.colors.accent} 70%)` }}
                 />
                 <span className="text-[11px] font-semibold">{t(`presetNames.${id}`)}</span>
               </button>
             );
           })}
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        <div className="text-[12px] font-semibold">{t("colours")}</div>
+        <div className="grid grid-cols-3 gap-2">
+          {(["background", "text", "accent"] as const).map((c) => (
+            <label key={c} className="text-muted flex flex-col gap-1 text-[11px]">
+              <input
+                type="color"
+                value={th.colors[c]}
+                onChange={(e) => setTheme({ colors: { ...th.colors, [c]: e.target.value.toUpperCase() } }, `color-${c}`)}
+                className="border-line h-9 w-full cursor-pointer rounded-[8px] border p-0.5"
+              />
+              {t(c)}
+            </label>
+          ))}
         </div>
       </div>
       <Label title={t("headingFont")}>
@@ -541,68 +735,7 @@ export function StyleTab({
           ))}
         </select>
       </Label>
-      <div className="flex flex-col gap-2">
-        <div className="text-[12px] font-semibold">{t("colours")}</div>
-        <div className="grid grid-cols-3 gap-2">
-          {(["background", "text", "accent"] as const).map((c) => (
-            <label key={c} className="text-muted flex flex-col gap-1 text-[11px]">
-              <input
-                type="color"
-                value={th.colors[c]}
-                onChange={(e) =>
-                  setTheme({ colors: { ...th.colors, [c]: e.target.value.toUpperCase() } }, `color-${c}`)
-                }
-                className="border-line h-9 w-full cursor-pointer rounded-[8px] border p-0.5"
-              />
-              {t(c)}
-            </label>
-          ))}
-        </div>
-      </div>
-      <Range
-        title={t("radius")}
-        value={th.radius}
-        min={0}
-        max={24}
-        unit="px"
-        onChange={(v) => setTheme({ radius: v }, "radius")}
-      />
-      <div className="flex flex-col gap-2">
-        <div className="text-[12px] font-semibold">{t("nav")}</div>
-        <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={t("nav")}>
-          {(["top", "centered", "sidebar", "split", "minimal"] as NavLayout[]).map((n) => (
-            <button
-              key={n}
-              type="button"
-              role="radio"
-              aria-checked={th.nav === n}
-              onClick={() => setTheme({ nav: n })}
-              className={cx(
-                "bg-paper rounded-[10px] px-2 py-2 text-[11px] font-semibold",
-                th.nav === n ? "border-ink border-2" : "border-line border",
-              )}
-            >
-              {t(`navNames.${n}`)}
-            </button>
-          ))}
-        </div>
-      </div>
-      <MediaField
-        title={t("logo")}
-        id={th.logoMediaId}
-        kind="image"
-        media={media}
-        onChange={(id) => setTheme({ logoMediaId: id })}
-        openPicker={openPicker}
-      />
-      <MediaField
-        title={t("favicon")}
-        id={th.faviconMediaId}
-        kind="image"
-        media={media}
-        onChange={(id) => setTheme({ faviconMediaId: id })}
-        openPicker={openPicker}
-      />
+      <Range title={t("radius")} value={th.radius} min={0} max={24} unit="px" onChange={(v) => setTheme({ radius: v }, "radius")} />
       <Choice
         title={t("language")}
         value={draft.language}
@@ -625,7 +758,10 @@ export function PagesTab({
   setDraft,
   canPassword,
   onPassword,
+  part = "all",
 }: {
+  /** "list": the page switcher (drag to reorder, add pages); "settings": the current page's settings. */
+  part?: "all" | "list" | "settings";
   draft: SiteDraft;
   pageId: string;
   setPageId: (id: string) => void;
@@ -690,131 +826,148 @@ export function PagesTab({
 
   return (
     <div className="flex flex-col gap-4 px-3.5 pt-4 pb-6">
-      <ul ref={list} className="relative flex flex-col gap-1" data-testid="page-list">
-        {draft.pages.map((p, i) => (
-          <li key={p.id} data-page-id={p.id} data-home={i === 0 ? "1" : undefined} className="flex items-center gap-1">
-            {i === 0 ? (
-              <span className="w-7 flex-none" aria-hidden />
-            ) : (
+      {part !== "settings" && (
+        <ul ref={list} className="relative flex flex-col gap-1" data-testid="page-list">
+          {draft.pages.map((p, i) => (
+            <li
+              key={p.id}
+              data-page-id={p.id}
+              data-home={i === 0 ? "1" : undefined}
+              className="flex items-center gap-1"
+            >
+              {i === 0 ? (
+                <span className="w-7 flex-none" aria-hidden />
+              ) : (
+                <button
+                  type="button"
+                  aria-label={t("drag", { page: p.title })}
+                  title={t("drag", { page: p.title })}
+                  className="text-muted hover:text-ink flex h-[42px] w-7 flex-none cursor-grab touch-none items-center justify-center"
+                  onPointerDown={(e) => dragPage(e, p.id)}
+                  onKeyDown={(e) => {
+                    if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+                    e.preventDefault();
+                    const others = draft.pages.slice(1).map((x) => x.id);
+                    const at = others.indexOf(p.id) + (e.key === "ArrowUp" ? -1 : 1);
+                    if (at >= 0 && at < others.length) movePage(p.id, at);
+                  }}
+                >
+                  <Icon name="drag" size={18} />
+                </button>
+              )}
               <button
                 type="button"
-                aria-label={t("drag", { page: p.title })}
-                title={t("drag", { page: p.title })}
-                className="text-muted hover:text-ink flex h-[42px] w-7 flex-none cursor-grab touch-none items-center justify-center"
-                onPointerDown={(e) => dragPage(e, p.id)}
-                onKeyDown={(e) => {
-                  if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
-                  e.preventDefault();
-                  const others = draft.pages.slice(1).map((x) => x.id);
-                  const at = others.indexOf(p.id) + (e.key === "ArrowUp" ? -1 : 1);
-                  if (at >= 0 && at < others.length) movePage(p.id, at);
-                }}
+                onClick={() => setPageId(p.id)}
+                aria-current={p.id === page.id}
+                className={cx(
+                  "flex h-[42px] min-w-0 flex-1 items-center justify-between rounded-[10px] px-2.5 text-start",
+                  p.id === page.id ? "bg-mist font-semibold" : "hover:bg-mist/60",
+                )}
               >
-                <Icon name="drag" size={18} />
+                <span className="truncate">{p.title}</span>
+                <span className="text-muted text-[12px]">
+                  {i === 0 ? t("home") : p.hasPassword ? "🔒" : t(`types.${p.type}`)}
+                </span>
               </button>
-            )}
-            <button
-              type="button"
-              onClick={() => setPageId(p.id)}
-              aria-current={p.id === page.id}
-              className={cx(
-                "flex h-[42px] min-w-0 flex-1 items-center justify-between rounded-[10px] px-2.5 text-start",
-                p.id === page.id ? "bg-mist font-semibold" : "hover:bg-mist/60",
-              )}
+            </li>
+          ))}
+          {mark !== null && (
+            <li
+              aria-hidden
+              className="bg-ink pointer-events-none absolute inset-x-0 h-1 rounded"
+              style={{ top: mark - 3 }}
+            />
+          )}
+        </ul>
+      )}
+
+      {part !== "list" && (
+        <div className="border-line flex flex-col gap-3 rounded-md border p-3">
+          <Text title={t("name")} value={page.title} onChange={(v) => setPage({ title: v }, `page-title-${page.id}`)} />
+          {index > 0 && page.type !== "link" && (
+            <Text
+              title={t("slug")}
+              dir="ltr"
+              value={page.slug}
+              onChange={(v) => setPage({ slug: v.toLowerCase().replace(/[^a-z0-9-]/g, "") }, `page-slug-${page.id}`)}
+            />
+          )}
+          {page.type === "link" && (
+            <Text
+              title={t("url")}
+              dir="ltr"
+              placeholder="https://"
+              value={page.url ?? ""}
+              onChange={(v) => setPage({ url: v }, `page-url-${page.id}`)}
+            />
+          )}
+          <Switch title={t("inNav")} checked={page.showInNav} onChange={(v) => setPage({ showInNav: v })} />
+          <div className="flex flex-wrap gap-1.5">
+            <Button
+              size="sm"
+              variant="outline"
+              icon="delete"
+              disabled={draft.pages.length <= 1 || index === 0}
+              onClick={() => {
+                setDraft((d) => ({ ...d, pages: d.pages.filter((p) => p.id !== page.id) }));
+                setPageId(draft.pages[0].id);
+              }}
             >
-              <span className="truncate">{p.title}</span>
-              <span className="text-muted text-[12px]">
-                {i === 0 ? t("home") : p.hasPassword ? "🔒" : t(`types.${p.type}`)}
-              </span>
-            </button>
-          </li>
-        ))}
-        {mark !== null && (
-          <li aria-hidden className="bg-ink pointer-events-none absolute inset-x-0 h-1 rounded" style={{ top: mark - 3 }} />
-        )}
-      </ul>
-
-      <div className="border-line flex flex-col gap-3 rounded-md border p-3">
-        <Text title={t("name")} value={page.title} onChange={(v) => setPage({ title: v }, `page-title-${page.id}`)} />
-        {index > 0 && page.type !== "link" && (
-          <Text
-            title={t("slug")}
-            dir="ltr"
-            value={page.slug}
-            onChange={(v) => setPage({ slug: v.toLowerCase().replace(/[^a-z0-9-]/g, "") }, `page-slug-${page.id}`)}
-          />
-        )}
-        {page.type === "link" && (
-          <Text
-            title={t("url")}
-            dir="ltr"
-            placeholder="https://"
-            value={page.url ?? ""}
-            onChange={(v) => setPage({ url: v }, `page-url-${page.id}`)}
-          />
-        )}
-        <Switch title={t("inNav")} checked={page.showInNav} onChange={(v) => setPage({ showInNav: v })} />
-        <div className="flex flex-wrap gap-1.5">
-          <Button
-            size="sm"
-            variant="outline"
-            icon="delete"
-            disabled={draft.pages.length <= 1 || index === 0}
-            onClick={() => {
-              setDraft((d) => ({ ...d, pages: d.pages.filter((p) => p.id !== page.id) }));
-              setPageId(draft.pages[0].id);
-            }}
-          >
-            {t("delete")}
-          </Button>
-        </div>
-        {page.type !== "link" && (
-          <div className="border-line flex flex-col gap-1.5 border-t pt-3">
-            {canPassword ? (
-              <form
-                className="flex flex-col gap-1.5"
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  if (await onPassword(page.id, pw)) setPw("");
-                }}
-              >
-                <Label title={t("password")} hint={page.hasPassword ? t("passwordSet") : undefined}>
-                  <input
-                    type="password"
-                    autoComplete="new-password"
-                    className={inputCls}
-                    value={pw}
-                    onChange={(e) => setPw(e.target.value)}
-                  />
-                </Label>
-                <div className="flex gap-1.5">
-                  <Button size="sm" type="submit" variant="outline" disabled={!pw}>
-                    {t("savePassword")}
-                  </Button>
-                  {page.hasPassword && (
-                    <Button size="sm" variant="ghost" onClick={() => onPassword(page.id, "")}>
-                      {t("removePassword")}
-                    </Button>
-                  )}
-                </div>
-              </form>
-            ) : (
-              <p className="text-muted flex items-center gap-2 text-[12px]">
-                <Badge variant="brand">Pro</Badge> {t("proOnly")}
-              </p>
-            )}
+              {t("delete")}
+            </Button>
           </div>
-        )}
-      </div>
+          {page.type !== "link" && (
+            <div className="border-line flex flex-col gap-1.5 border-t pt-3">
+              {canPassword ? (
+                <form
+                  className="flex flex-col gap-1.5"
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (await onPassword(page.id, pw)) setPw("");
+                  }}
+                >
+                  <Label title={t("password")} hint={page.hasPassword ? t("passwordSet") : undefined}>
+                    <input
+                      type="password"
+                      autoComplete="new-password"
+                      className={inputCls}
+                      value={pw}
+                      onChange={(e) => setPw(e.target.value)}
+                    />
+                  </Label>
+                  <div className="flex gap-1.5">
+                    <Button size="sm" type="submit" variant="outline" disabled={!pw}>
+                      {t("savePassword")}
+                    </Button>
+                    {page.hasPassword && (
+                      <Button size="sm" variant="ghost" onClick={() => onPassword(page.id, "")}>
+                        {t("removePassword")}
+                      </Button>
+                    )}
+                  </div>
+                </form>
+              ) : (
+                <p className="text-muted flex items-center gap-2 text-[12px]">
+                  <Badge variant="brand">Pro</Badge> {t("proOnly")}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
-      <div className="text-muted text-[11px] font-semibold tracking-[0.08em] uppercase">{t("add")}</div>
-      <div className="grid grid-cols-2 gap-2">
-        {(["gallery", "custom", "about", "link"] as PageType[]).map((type) => (
-          <Button key={type} size="sm" variant="outline" onClick={() => add(type)}>
-            {t(`types.${type}`)}
-          </Button>
-        ))}
-      </div>
+      {part !== "settings" && (
+        <>
+          <div className="text-muted text-[11px] font-semibold tracking-[0.08em] uppercase">{t("add")}</div>
+          <div className="grid grid-cols-2 gap-2">
+            {(["gallery", "custom", "about", "link"] as PageType[]).map((type) => (
+              <Button key={type} size="sm" variant="outline" onClick={() => add(type)}>
+                {t(`types.${type}`)}
+              </Button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -1240,7 +1393,9 @@ export function BlockSettings({
               themeLabel={fr("theme")}
               onChange={(v) => set<BlockOf<"free">>({ background: v }, k("bg"))}
             />
-            {mediaField(fr("backgroundImage"), block.bgMediaId, "image", (id) => set<BlockOf<"free">>({ bgMediaId: id }))}
+            {mediaField(fr("backgroundImage"), block.bgMediaId, "image", (id) =>
+              set<BlockOf<"free">>({ bgMediaId: id }),
+            )}
             <p className="text-muted text-[12px]">{fr("phoneHint")}</p>
           </>
         );
@@ -1269,7 +1424,14 @@ export function BlockSettings({
               <Area title={fr("text")} value={it.text} onChange={(v) => setItem({ text: v }, ik("t"))} />
             ))}
           {textual && (
-            <Range title={fr("size")} value={it.size} min={8} max={160} unit="px" onChange={(v) => setItem({ size: v }, ik("size"))} />
+            <Range
+              title={fr("size")}
+              value={it.size}
+              min={8}
+              max={160}
+              unit="px"
+              onChange={(v) => setItem({ size: v }, ik("size"))}
+            />
           )}
           {textual && (
             <Choice
@@ -1315,10 +1477,21 @@ export function BlockSettings({
             />
           )}
           {(it.kind === "button" || it.kind === "shape" || it.kind === "line") && (
-            <ColorField title={fr("color")} value={it.fill} themeLabel={fr("theme")} onChange={(v) => setItem({ fill: v }, ik("fill"))} />
+            <ColorField
+              title={fr("color")}
+              value={it.fill}
+              themeLabel={fr("theme")}
+              onChange={(v) => setItem({ fill: v }, ik("fill"))}
+            />
           )}
           {it.kind === "line" && (
-            <Range title={fr("thickness")} value={it.size} min={8} max={160} onChange={(v) => setItem({ size: v }, ik("size"))} />
+            <Range
+              title={fr("thickness")}
+              value={it.size}
+              min={8}
+              max={160}
+              onChange={(v) => setItem({ size: v }, ik("size"))}
+            />
           )}
           {pictureLike && (
             <Range
@@ -1331,13 +1504,39 @@ export function BlockSettings({
             />
           )}
           {linkable && (
-            <Text title={fr("link")} dir="ltr" placeholder={fr("linkPlaceholder")} value={it.link} onChange={(v) => setItem({ link: v }, ik("link"))} />
+            <Text
+              title={fr("link")}
+              dir="ltr"
+              placeholder={fr("linkPlaceholder")}
+              value={it.link}
+              onChange={(v) => setItem({ link: v }, ik("link"))}
+            />
           )}
           {it.kind === "video" && (
-            <Text title={fr("videoLink")} dir="ltr" placeholder="https://youtu.be/" value={it.url} onChange={(v) => setItem({ url: v }, ik("url"))} />
+            <Text
+              title={fr("videoLink")}
+              dir="ltr"
+              placeholder="https://youtu.be/"
+              value={it.url}
+              onChange={(v) => setItem({ url: v }, ik("url"))}
+            />
           )}
-          <Range title={fr("rotate")} value={it.rotate} min={-180} max={180} unit="°" onChange={(v) => setItem({ rotate: v }, ik("rot"))} />
-          <Range title={fr("opacity")} value={it.opacity} min={0} max={100} unit="%" onChange={(v) => setItem({ opacity: v }, ik("op"))} />
+          <Range
+            title={fr("rotate")}
+            value={it.rotate}
+            min={-180}
+            max={180}
+            unit="°"
+            onChange={(v) => setItem({ rotate: v }, ik("rot"))}
+          />
+          <Range
+            title={fr("opacity")}
+            value={it.opacity}
+            min={0}
+            max={100}
+            unit="%"
+            onChange={(v) => setItem({ opacity: v }, ik("op"))}
+          />
           <Switch title={fr("hideOnPhone")} checked={it.hideOnPhone} onChange={(v) => setItem({ hideOnPhone: v })} />
           <p className="text-muted text-[12px]">{fr("itemHint")}</p>
         </>
@@ -1358,6 +1557,54 @@ export function BlockSettings({
         </div>
       </div>
       {body}
+    </div>
+  );
+}
+
+/* ---------- Projects panel (rail) ---------- */
+
+export function ProjectsPanel({
+  projects,
+  media,
+}: {
+  projects: Array<{ id: string; title: string; coverId: string | null }>;
+  media: Record<string, SiteMedia>;
+}) {
+  const t = useTranslations("editor.projectsPanel");
+  const [title, setTitle] = useState("");
+  const [busy, setBusy] = useState(false);
+  return (
+    <div className="flex flex-col gap-4 p-4">
+      <h2 className="text-muted text-[11px] font-semibold tracking-[0.1em] uppercase">{t("title")}</h2>
+      <form
+        className="bg-mist flex flex-col gap-2.5 rounded-[12px] p-3.5"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setBusy(true);
+          const r = await newProject(title);
+          if (r.ok) window.location.href = `/projects/${r.id}`;
+          else setBusy(false);
+        }}
+      >
+        <span className="font-heading font-heading-weight text-[20px] leading-tight">{t("create")}</span>
+        <span className="text-muted text-[12px]">{t("createHint")}</span>
+        <Text title={t("projectTitle")} value={title} onChange={setTitle} />
+        <Button type="submit" variant="lime" size="sm" disabled={busy} className="self-start">
+          {busy ? t("creating") : t("createButton")}
+        </Button>
+      </form>
+      {projects.length === 0 && <p className="text-muted text-[13px]">{t("empty")}</p>}
+      <ul className="flex flex-col gap-1.5">
+        {projects.map((p) => (
+          <li key={p.id}>
+            <a href={`/projects/${p.id}`} className="hover:bg-mist flex items-center gap-3 rounded-[10px] p-1.5">
+              <Thumb m={p.coverId ? media[p.coverId] : undefined} className="h-10 w-14 flex-none rounded-[8px]" />
+              <span className="min-w-0 flex-1 truncate text-[14px] font-semibold">{p.title}</span>
+              <Icon name="site-editor" size={16} />
+            </a>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

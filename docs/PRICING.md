@@ -7,7 +7,7 @@ The numbers live in `config/plans.json`. This file explains them.
 **Free (forever)**
 - 8 projects
 - `yourname.fannan.net`
-- every theme and block
+- every theme and almost every block (a few showpiece blocks are Pro: `config/plans.json` → `proBlocks`)
 - Available-for-work badge and contact form
 - stats for 30 days
 - a small "Made with Fannan" footer credit
@@ -19,6 +19,7 @@ The numbers live in `config/plans.json`. This file explains them.
 - password pages and a full-site password
 - full stats (90 days, referrers, countries)
 - no footer credit
+- the showpiece blocks (big type + image, split headline, brand pair, logo wall, collage). Free artists can try them in the editor and see a friendly upgrade prompt.
 
 There's no Studio plan for now.
 

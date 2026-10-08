@@ -3,6 +3,7 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { adminDb } from "@/lib/firebase/admin";
 import { limitsFor } from "@/config/plans";
+import { isProBlock } from "@/lib/site/blocks";
 import { userPlan, type SiteDoc, type UserDoc } from "./data";
 import { settingsFrom, type SiteSettings } from "./settings";
 import { sharedMap } from "./shared-memory";
@@ -39,7 +40,10 @@ export function applyPlan(snap: PublishedSite, plan: "free" | "pro"): PublishedS
       shown += 1;
       return shown > limit ? { ...p, visibility: "hidden" as const } : p;
     });
-  const pages = snap.pages.filter((p, i) => i === 0 || !p.passwordHash);
+  const pages = snap.pages
+    .filter((p, i) => i === 0 || !p.passwordHash)
+    // Pro showpiece blocks stay in the draft and come back with Pro.
+    .map((p) => ({ ...p, blocks: p.blocks.filter((b) => !isProBlock(b)) }));
   return { ...snap, plan, projects, pages };
 }
 

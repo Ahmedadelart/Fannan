@@ -73,5 +73,15 @@
   "payments": {
     "_note": "chargeUsd: whether the Paymob account can charge in USD. While false, USD prices are charged as the EGP equivalent at that day's rate.",
     "chargeUsd": false
+  },
+  "proBlocks": {
+    "_note": "Showpiece blocks only Pro sites can publish (decided by Ahmed, 9 Oct 2026). Free artists see and try them in the editor, with an upgrade prompt. Keys are editor block keys (src/lib/site/blocks.ts).",
+    "keys": [
+      "d-split-headline",
+      "d-brand-pair",
+      "d-big-type",
+      "d-logo-wall",
+      "d-collage"
+    ]
   }
 }

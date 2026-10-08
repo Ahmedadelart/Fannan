@@ -32,6 +32,16 @@ async function closeTips(page: Page) {
 }
 
 const canvas = (page: Page) => page.getByTestId("canvas");
+const settings = (page: Page) => page.getByTestId("block-settings");
+/** The gear on the selected section opens its settings next to it. */
+async function openSettings(page: Page) {
+  if (!(await settings(page).isVisible())) await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await expect(settings(page)).toBeVisible();
+}
+async function switchPage(page: Page, name: string) {
+  await page.getByTestId("page-switcher").click();
+  await page.getByTestId("page-list").getByRole("button", { name: new RegExp(`^${name}`) }).click();
+}
 
 test("build, preview on phone size, publish, then edit without changing the live site", async ({ page }, info) => {
   test.skip(info.project.name === "mobile", "The full editor flow runs at desktop size; phones get their own test.");
@@ -48,9 +58,10 @@ test("build, preview on phone size, publish, then edit without changing the live
   // The starter site is on the canvas.
   await expect(canvas(page)).toContainText("Nour Adel");
 
-  // Add a hero headline and write in it.
-  await page.getByTestId("add-hero").click();
-  const text = page.getByTestId("right-panel").getByRole("textbox", { name: "Text" });
+  // Add a quote from the library and write in it (settings open from the gear).
+  await page.getByTestId("add-quote").click();
+  await openSettings(page);
+  const text = settings(page).getByRole("textbox", { name: "Text" });
   await text.fill("Characters people remember.");
   await expect(canvas(page)).toContainText("Characters people remember.");
   await expect(page.getByTestId("editor-status")).toHaveText("Not published yet", { timeout: 10_000 });
@@ -61,24 +72,28 @@ test("build, preview on phone size, publish, then edit without changing the live
   await page.getByRole("button", { name: "Redo" }).click();
   await expect(canvas(page)).toContainText("Characters people remember.");
 
-  // Style: the Paper preset changes the page colour.
-  await page.getByRole("tab", { name: "Style" }).click();
+  // Design → Global styles: the Paper preset changes the page colour.
+  await page.getByRole("button", { name: "Design" }).click();
   await page.getByRole("radio", { name: "Paper" }).click();
   await expect(canvas(page).locator(".site-root")).toHaveCSS("background-color", "rgb(245, 241, 232)");
 
-  // Image block with an upload through the media picker.
-  await page.getByRole("tab", { name: "Blocks" }).click();
-  await page.getByTestId("add-image").click();
-  await page.getByTestId("right-panel").getByRole("button", { name: "Choose" }).click();
+  // A design block with a picture: click the picture, upload through the media picker.
+  await page.getByRole("button", { name: "Pages & blocks" }).click();
+  await page.getByTestId("add-d-image-caption").click();
+  const picture = canvas(page).locator('[data-testid="free-item"][data-kind="image"]').last();
+  await picture.scrollIntoViewIfNeeded();
+  await picture.click();
+  await settings(page).getByRole("button", { name: "Choose" }).click();
   await page.getByTestId("picker-file").setInputFiles("tests/fixtures/photo.jpg");
-  await expect(page.getByRole("dialog")).toBeHidden({ timeout: 60_000 });
+  await expect(page.getByRole("dialog", { name: "Choose media" })).toBeHidden({ timeout: 60_000 });
   await expect(canvas(page).locator("img[src*='/api/media/variants/']").first()).toBeVisible();
 
-  // Pages: add a custom page and name it.
-  await page.getByRole("tab", { name: "Pages" }).click();
+  // Pages: add a custom page from the page switcher and name it in Page settings.
+  await page.getByTestId("page-switcher").click();
   await page.getByRole("button", { name: "Custom page", exact: true }).click();
+  await page.getByRole("tab", { name: "Page settings" }).click();
   await page.getByRole("textbox", { name: "Page name" }).fill("Process");
-  await expect(page.getByRole("combobox", { name: "Page" })).toContainText("Process");
+  await expect(page.getByTestId("page-switcher")).toContainText("Process");
 
   // Phone size: the canvas becomes 390 px wide and the grid collapses.
   await page.getByRole("radio", { name: "Phone" }).click();
@@ -86,7 +101,7 @@ test("build, preview on phone size, publish, then edit without changing the live
   await page.getByRole("radio", { name: "Desktop" }).click();
 
   // Preview shows the site as visitors will see it.
-  await page.getByRole("combobox", { name: "Page" }).selectOption({ label: "Work" });
+  await switchPage(page, "Work");
   await page.getByRole("button", { name: "Preview", exact: true }).click();
   await expect(page.getByTestId("preview")).toContainText("Characters people remember.");
   await page.getByRole("button", { name: "Close preview" }).click();
@@ -101,7 +116,8 @@ test("build, preview on phone size, publish, then edit without changing the live
 
   // Keep editing: the draft changes, the live copy doesn't.
   await canvas(page).getByText("Characters people remember.").click();
-  await page.getByTestId("right-panel").getByRole("textbox", { name: "Text" }).fill("Stories, frame by frame.");
+  await openSettings(page);
+  await settings(page).getByRole("textbox", { name: "Text" }).fill("Stories, frame by frame.");
   await expect(page.getByTestId("editor-status")).toHaveText("Unpublished changes", { timeout: 10_000 });
   await page.waitForTimeout(1500);
   await page.reload();
@@ -128,12 +144,13 @@ test("the editor works on a phone in Arabic", async ({ page }, info) => {
   await page.goto(at("app", "/editor"));
   await expect(page.getByRole("dialog")).toBeVisible();
   await closeTips(page);
-  // Panels open as drawers on a phone.
+  // On a phone the panel opens from the rail.
   await expect(page.getByTestId("left-panel")).toBeHidden();
-  await page.getByRole("button", { name: "الأقسام" }).click();
+  await page.getByRole("button", { name: "الصفحات والأقسام" }).click();
   await page.getByTestId("add-quote").click();
-  await expect(page.getByTestId("right-panel")).toBeVisible();
-  await expect(page.getByTestId("right-panel")).toContainText("اقتباس");
+  await page.getByTestId("section-toolbar").getByRole("button", { name: "الإعدادات" }).click();
+  await expect(settings(page)).toBeVisible();
+  await expect(settings(page)).toContainText("اقتباس");
   await page.getByRole("button", { name: "نشر" }).click();
   await expect(page.getByTestId("editor-status")).toHaveText("الموقع المنشور محدّث", { timeout: 20_000 });
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);

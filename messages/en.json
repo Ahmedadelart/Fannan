@@ -642,10 +642,28 @@
       "hire": "Hire-me badge",
       "social": "Social links",
       "quote": "Quote",
-      "free-blank": "Free section",
+      "free-blank": "Blank section",
       "free-collage": "Collage",
       "free-split": "Image + text",
-      "free-statement": "Big statement"
+      "free-statement": "Big statement",
+      "d-cover": "Big cover",
+      "d-title": "Title",
+      "d-statement": "Big statement",
+      "d-info": "Info",
+      "d-long-text": "Long text",
+      "d-project-info": "Project details",
+      "d-resume": "Résumé",
+      "d-image-caption": "Image + caption",
+      "d-grid-4": "Four images",
+      "d-two-images": "Two images",
+      "d-headline-image": "Headline + image",
+      "d-split-headline": "Split headline",
+      "d-brand-pair": "Brand pair",
+      "d-big-type": "Big type + image",
+      "d-collage": "Collage",
+      "d-about": "About me",
+      "d-contact-me": "Contact me",
+      "d-logo-wall": "Client logos"
     },
     "addHint": "Click to add below the selected block, or drag onto the page.",
     "dropHere": "Drop a block here",
@@ -694,7 +712,10 @@
       "languages": {
         "en": "English",
         "ar": "Arabic"
-      }
+      },
+      "footerAbout": "Your footer shows your social links and CV from Settings, plus a small “Report this site” link.",
+      "footerCredit": "On the Free plan it also shows a small “Made with Fannan” credit.",
+      "footerSocial": "Edit social links and CV in Settings"
     },
     "pages": {
       "title": "Pages",
@@ -823,7 +844,8 @@
       "duplicate": "Duplicate",
       "remove": "Delete",
       "hint": "Tip: click any text on the page to type in it. Drag the ⠿ handle on the section to move it.",
-      "reorderHint": "Drag sections to change their order, then press Done."
+      "reorderHint": "Drag sections to change their order, then press Done.",
+      "close": "Close"
     },
     "free": {
       "item": "Block",
@@ -870,6 +892,53 @@
       "opacity": "Opacity",
       "hideOnPhone": "Hide on phones",
       "itemHint": "Double-click text to type in it. Arrow keys move the block one step; Delete removes it."
+    },
+    "rail": {
+      "label": "Editor",
+      "blocks": "Pages & blocks",
+      "projects": "Projects",
+      "design": "Design",
+      "stats": "Stats",
+      "help": "Help",
+      "settings": "Settings"
+    },
+    "currentlyEditing": "Currently editing",
+    "panelTabs": {
+      "blocks": "Blocks",
+      "page": "Page settings"
+    },
+    "design": {
+      "logo": "Logo & title",
+      "nav": "Site navigation",
+      "styles": "Global styles",
+      "footer": "Footer"
+    },
+    "statsText": "See who visits your site, which projects they look at and where they come from.",
+    "openStats": "Open stats",
+    "dragHint": "Drag a block onto your page, or click it to add it below the selected one.",
+    "library": {
+      "intro": "Intro",
+      "work": "Your work",
+      "images": "Images",
+      "text": "Text",
+      "about": "About & contact",
+      "media": "Video & media",
+      "blank": "Start from scratch"
+    },
+    "proBlock": {
+      "title": "A Pro block",
+      "text": "“{block}” is one of the Pro showpiece blocks. Try it here as much as you like: it shows on your live site once you go Pro.",
+      "try": "Try it here",
+      "upgrade": "See Pro"
+    },
+    "projectsPanel": {
+      "title": "Projects",
+      "create": "Create your new project",
+      "createHint": "Focus on your best work. Give it a title; you’ll add pictures and credits next.",
+      "projectTitle": "Project title",
+      "creating": "Creating…",
+      "createButton": "Create project",
+      "empty": "No projects yet."
     }
   },
   "inbox": {
@@ -1163,7 +1232,7 @@
     "freeFeatures": {
       "projects": "8 projects",
       "address": "yourname.fannan.net",
-      "themes": "All themes and blocks",
+      "themes": "Every theme, most blocks",
       "contact": "Available-for-work badge and contact form",
       "stats": "Stats for the last 30 days",
       "credit": "Small “Made with Fannan” credit"
@@ -1421,7 +1490,7 @@
     "pricingTitle": "Pricing",
     "free": {
       "name": "Free",
-      "templates": "Every template",
+      "templates": "Every theme, most blocks",
       "badge": "Available-for-work badge",
       "form": "A contact form that reaches you",
       "cta": "Start free"
@@ -1478,9 +1547,9 @@
         "pro": "Yes"
       },
       "themes": {
-        "label": "Every theme and block",
-        "free": "Yes",
-        "pro": "Yes"
+        "label": "Themes and blocks",
+        "free": "Every theme, most blocks",
+        "pro": "All blocks, including the showpiece ones"
       },
       "contact": {
         "label": "Contact form and inbox",

@@ -278,6 +278,7 @@ function normalizeFree(id: string, b: Any): Block {
   return {
     id,
     type: "free",
+    ...(typeof b.design === "string" && /^d-[a-z0-9-]{1,30}$/.test(b.design) ? { design: b.design } : {}),
     rows: Math.max(num(b.rows, 2, 400, 12), lowest),
     background: b.background === null || b.background === undefined ? null : color(b.background, "#FFFFFF"),
     bgMediaId: idOrNull(b.bgMediaId),

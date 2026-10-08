@@ -1,6 +1,6 @@
 // Free-form sections (phase 8C): new items, finding room for them, and ready-made layouts.
 import type { Locale } from "@/i18n/locales";
-import { newId } from "./blocks";
+import { newId } from "./ids";
 import type { Block, FreeItem, FreeKind, FreePlace } from "./types";
 
 export const FREE_COLS = 24;

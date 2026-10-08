@@ -213,6 +213,23 @@
   box-shadow: 0 0 0 8px #c6f432;
 }
 
+/* Editor panels are dark (Carbonmade-style, decided by Ahmed for the editor only). The colour
+   tokens are swapped inside them, so every control flips without its own dark variant. */
+.fannan-dark {
+  --color-paper: #1f1f22;
+  --color-mist: #2a2a2e;
+  --color-line: #34343a;
+  --color-line-strong: #4a4a50;
+  --color-ink: #f4f4f2;
+  --color-ink-soft: #cfcfcb;
+  --color-muted: #9a9aa2;
+  --color-white: #141414;
+  color-scheme: dark;
+}
+.fannan-dark input[type="color"] {
+  background: #2a2a2e;
+}
+
 /* Free-form sections (phase 8C): a 24-column grid of square cells that scales with the page.
    Items carry their place as CSS variables (freeItemStyle). On phones they stack in reading order. */
 .site-root .site-free-band {
