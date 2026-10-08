@@ -1,32 +1,48 @@
 // Fonts artists can choose in the Style tab. Declared once; the browser only downloads the ones a
 // site actually uses. Bricolage, IBM Plex Sans/Arabic and Marhey come from the root layout.
-import { DM_Sans, Fraunces, Instrument_Serif, Space_Grotesk, Syne, Work_Sans } from "next/font/google";
 import localFont from "next/font/local";
 import type { ArabicFont, BodyFont, HeadingFont } from "@/lib/site/types";
 
-const fraunces = Fraunces({ subsets: ["latin"], weight: ["600"], variable: "--font-fraunces", preload: false });
-const syne = Syne({ subsets: ["latin"], weight: ["700"], variable: "--font-syne", preload: false });
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  weight: ["600"],
+const fraunces = localFont({
+  src: "../../fonts/fraunces-latin-600-normal.woff2",
+  weight: "600",
+  variable: "--font-fraunces",
+  preload: false,
+});
+const syne = localFont({
+  src: "../../fonts/syne-latin-700-normal.woff2",
+  weight: "700",
+  variable: "--font-syne",
+  preload: false,
+});
+const spaceGrotesk = localFont({
+  src: "../../fonts/space-grotesk-latin-600-normal.woff2",
+  weight: "600",
   variable: "--font-space-grotesk",
   preload: false,
 });
-const instrumentSerif = Instrument_Serif({
-  subsets: ["latin"],
+const instrumentSerif = localFont({
+  src: "../../fonts/instrument-serif-latin-400-normal.woff2",
   weight: "400",
   variable: "--font-instrument-serif",
   preload: false,
 });
-const dmSans = DM_Sans({ subsets: ["latin"], weight: ["400", "600"], variable: "--font-dm-sans", preload: false });
-const workSans = Work_Sans({
-  subsets: ["latin"],
-  weight: ["400", "600"],
+const dmSans = localFont({
+  src: [
+    { path: "../../fonts/dm-sans-latin-400-normal.woff2", weight: "400" },
+    { path: "../../fonts/dm-sans-latin-600-normal.woff2", weight: "600" },
+  ],
+  variable: "--font-dm-sans",
+  preload: false,
+});
+const workSans = localFont({
+  src: [
+    { path: "../../fonts/work-sans-latin-400-normal.woff2", weight: "400" },
+    { path: "../../fonts/work-sans-latin-600-normal.woff2", weight: "600" },
+  ],
   variable: "--font-work-sans",
   preload: false,
 });
-// These two are kept in the project (src/fonts, SIL Open Font License): Google Fonts sometimes
-// serves them in a form the build can't read, which broke production builds.
 const readex = localFont({
   src: "../../fonts/readex-pro-arabic-wght-normal.woff2",
   weight: "160 700",

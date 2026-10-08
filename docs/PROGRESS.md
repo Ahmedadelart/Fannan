@@ -100,7 +100,7 @@ _Last updated: 8 Oct 2026, phase 5 (inbox, stats, settings, account)._
 - **Turnstile** widget "Fannan contact forms" (fannan.net + the staging address); secret in Secret Manager (`turnstile-secret`), site key in env. It loads only once a visitor starts using the form (it is ~800 KB).
 - **Secrets wired:** `site-signing-secret-{staging,production}`, `turnstile-secret`, `resend-api-key` (staging + production), `cloudflare-api-token` + zone id (production, for cache purge by hostname; purge by host works on the Free plan).
 - **Checked live:** homepage name box → app.fannan.net sign-up → publish → `{name}.fannan.net` with contact form and credit. Lighthouse (phone, production): performance 92–95, accessibility/best practices/SEO 100.
-- **Fonts:** Readex Pro and Alexandria ship in `src/fonts` (Google Fonts sometimes serves them at extension-less URLs, which crashed next/font in CI).
+- **Fonts:** all 12 fonts ship in `src/fonts` (SIL Open Font License, from Fontsource). Google Fonts sometimes serves files at extension-less URLs, which crashed builds in CI; no font is downloaded at build time any more.
 
 - **Email:** Resend sends from hello@fannan.net (domain verified); Cloudflare Email Routing forwards support@ and hello@fannan.net to fannan.team@gmail.com. DMARC is `p=none` for now; tighten after a few weeks of clean sending.
 

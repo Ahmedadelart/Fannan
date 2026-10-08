@@ -1,20 +1,41 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, IBM_Plex_Sans, IBM_Plex_Sans_Arabic, Marhey } from "next/font/google";
+import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { dirFor, isLocale, locales } from "@/i18n/locales";
 import { ToastProvider } from "@/components/ui/Toast";
 import "../globals.css";
 
-const bricolage = Bricolage_Grotesque({ subsets: ["latin"], weight: "800", variable: "--font-bricolage" });
-const plex = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-plex" });
-const plexArabic = IBM_Plex_Sans_Arabic({
-  subsets: ["arabic"],
-  weight: ["400", "500", "600"],
+// Fonts ship with the app (src/fonts, SIL Open Font License): Google Fonts sometimes serves files
+// the build can't read, which broke deploys.
+const bricolage = localFont({
+  src: "../../fonts/bricolage-grotesque-latin-800-normal.woff2",
+  weight: "800",
+  variable: "--font-bricolage",
+});
+const plex = localFont({
+  src: [
+    { path: "../../fonts/ibm-plex-sans-latin-400-normal.woff2", weight: "400" },
+    { path: "../../fonts/ibm-plex-sans-latin-500-normal.woff2", weight: "500" },
+    { path: "../../fonts/ibm-plex-sans-latin-600-normal.woff2", weight: "600" },
+  ],
+  variable: "--font-plex",
+});
+const plexArabic = localFont({
+  src: [
+    { path: "../../fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2", weight: "400" },
+    { path: "../../fonts/ibm-plex-sans-arabic-arabic-500-normal.woff2", weight: "500" },
+    { path: "../../fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2", weight: "600" },
+  ],
   variable: "--font-plex-arabic",
   preload: false,
 });
-const marhey = Marhey({ subsets: ["arabic"], weight: "700", variable: "--font-marhey", preload: false });
+const marhey = localFont({
+  src: "../../fonts/marhey-arabic-700-normal.woff2",
+  weight: "700",
+  variable: "--font-marhey",
+  preload: false,
+});
 
 export const metadata: Metadata = {
   title: { default: "Fannan", template: "%s · Fannan" },

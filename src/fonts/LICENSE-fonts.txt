@@ -1,0 +1,5 @@
+All font files in this folder are published under the SIL Open Font License 1.1
+(https://openfontlicense.org), taken from Fontsource (https://fontsource.org):
+Bricolage Grotesque, IBM Plex Sans, IBM Plex Sans Arabic, Marhey, Fraunces, Syne,
+Space Grotesk, Instrument Serif, DM Sans, Work Sans, Readex Pro, Alexandria.
+They ship with the app because Google Fonts sometimes serves files the build can't read.
