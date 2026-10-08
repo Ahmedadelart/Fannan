@@ -1,6 +1,7 @@
 import "server-only";
 
 import { headers } from "next/headers";
+import { requestHostHeader } from "@/lib/surface";
 
 // Links between the three surfaces. On the real domain they are full addresses
 // (https://app.fannan.net/...); on staging/local single-host setups they go through the
@@ -19,7 +20,7 @@ export interface SurfaceUrls {
 
 export async function surfaceUrls(): Promise<SurfaceUrls> {
   const h = await headers();
-  const host = (h.get("host") ?? "").toLowerCase();
+  const host = requestHostHeader(h);
   const hostname = host.replace(/:\d+$/, "");
   const port = host.match(/:\d+$/)?.[0] ?? "";
   const onRoot = hostname === ROOT_DOMAIN || hostname.endsWith(`.${ROOT_DOMAIN}`);

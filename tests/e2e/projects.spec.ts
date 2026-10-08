@@ -19,6 +19,7 @@ test("a full project: uploads, embeds, credits, order, crop and cover", async ({
   await page.getByRole("button", { name: "New project" }).first().click();
   await expect(page).toHaveURL(/\/projects\/[\w-]+$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Untitled project");
+  await page.waitForLoadState("networkidle");
 
   // Several files at once, with progress, then web versions.
   await page
@@ -143,6 +144,7 @@ test("the project editor works in Arabic", async ({ page }) => {
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   await page.getByRole("button", { name: "مشروع جديد" }).first().click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("مشروع بلا اسم");
+  await page.waitForLoadState("networkidle");
   await expect(page.getByText("اسحب أعمالك إلى هنا")).toBeVisible();
   await page.getByTestId("file-input").setInputFiles([fixture("photo.jpg")]);
   await expect(page.getByTestId("media-item")).toHaveCount(1);

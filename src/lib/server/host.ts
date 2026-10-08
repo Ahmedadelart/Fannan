@@ -1,7 +1,14 @@
 import "server-only";
 
 import { headers, cookies } from "next/headers";
-import { hostname, surfaceForHost, surfaceFromCookie, SURFACE_COOKIE } from "@/lib/surface";
+import {
+  hostname,
+  requestHostHeader,
+  requestOrigin,
+  surfaceForHost,
+  surfaceFromCookie,
+  SURFACE_COOKIE,
+} from "@/lib/surface";
 
 const ROOT_DOMAIN = process.env.ROOT_DOMAIN ?? "fannan.net";
 const SWITCHER = process.env.SURFACE_SWITCHER === "true";
@@ -9,7 +16,7 @@ const SWITCHER = process.env.SURFACE_SWITCHER === "true";
 /** The artist username this request is for (by Host, or the staging switcher cookie), if any. */
 export async function artistFromRequest(): Promise<string | null> {
   const h = await headers();
-  const surface = surfaceForHost(hostname(h.get("x-forwarded-host") ?? h.get("host")), ROOT_DOMAIN);
+  const surface = surfaceForHost(hostname(requestHostHeader(h)), ROOT_DOMAIN);
   if (surface?.kind === "site") return surface.username;
   if (surface === null && SWITCHER) {
     const s = surfaceFromCookie((await cookies()).get(SURFACE_COOKIE)?.value);
@@ -22,9 +29,8 @@ export type RequestSurface = "marketing" | "app" | "site" | "other";
 
 export async function surfaceOfRequest(): Promise<{ kind: RequestSurface; username?: string; origin: string }> {
   const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "";
-  const proto = h.get("x-forwarded-proto")?.split(",")[0].trim() || (host.includes("localhost") ? "http" : "https");
-  const origin = `${proto}://${host}`;
+  const host = requestHostHeader(h);
+  const origin = requestOrigin(h);
   let surface = surfaceForHost(hostname(host), ROOT_DOMAIN);
   if (surface === null && SWITCHER) surface = surfaceFromCookie((await cookies()).get(SURFACE_COOKIE)?.value);
   if (!surface) return { kind: "other", origin };

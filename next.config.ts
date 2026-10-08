@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
   // and Cloudflare does the edge caching. Revisit for the public renderer in phase 4.
   cacheComponents: false,
   poweredByHeader: false,
+  experimental: {
+    // Production sits behind a Cloudflare Worker; actions may only come from our own addresses.
+    serverActions: { allowedOrigins: ["fannan.net", "*.fannan.net"] },
+  },
   // Tailwind runs through postcss.config.mjs for both builders. Production builds use webpack
   // (`next build --webpack`): Turbopack intermittently fails to fetch Google fonts at build time.
 };

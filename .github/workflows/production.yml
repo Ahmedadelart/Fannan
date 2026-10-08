@@ -46,7 +46,7 @@ jobs:
             --project "$PROJECT_ID" --region "$REGION" \
             --image "$IMAGE:${{ steps.sha.outputs.sha }}" \
             --service-account web-production@fannan-510913.iam.gserviceaccount.com \
-            --set-env-vars FIREBASE_ENV=production,ROOT_DOMAIN=fannan.net,SURFACE_SWITCHER=false,MEDIA_BUCKET=fannan-media-production,MEDIA_FUNCTION_URL=https://fannan-media-mtxig4fw3a-ew.a.run.app \
-            --set-secrets SITE_SIGNING_SECRET=site-signing-secret-production:latest \
+            --set-env-vars FIREBASE_ENV=production,ROOT_DOMAIN=fannan.net,SURFACE_SWITCHER=false,MEDIA_BUCKET=fannan-media-production,MEDIA_FUNCTION_URL=https://fannan-media-mtxig4fw3a-ew.a.run.app,TURNSTILE_SITE_KEY=0x4AAAAAAFRMDypcBeDY2gfK,CLOUDFLARE_ZONE_ID=ee75c783272f2a590bb5c44b0eccf85c \
+            --set-secrets SITE_SIGNING_SECRET=site-signing-secret-production:latest,TURNSTILE_SECRET_KEY=turnstile-secret:latest,RESEND_API_KEY=resend-api-key:latest,CLOUDFLARE_API_TOKEN=cloudflare-api-token:latest \
             --cpu 1 --memory 512Mi --min-instances 0 --max-instances 5 \
             --no-invoker-iam-check --quiet

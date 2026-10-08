@@ -1,7 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { siteLanguage } from "@/lib/server/site-language";
 import { defaultLocale, LOCALE_COOKIE, isLocale, type Locale } from "@/i18n/locales";
-import { hostname, surfaceForHost, surfaceFromCookie, SURFACE_COOKIE, type Surface } from "@/lib/surface";
+import {
+  hostname,
+  requestHostHeader,
+  requestOrigin,
+  surfaceForHost,
+  surfaceFromCookie,
+  SURFACE_COOKIE,
+  type Surface,
+} from "@/lib/surface";
 
 // Every page request lands here first. We decide the surface from the Host header and the
 // language from the path (marketing, artist sites) or a cookie (dashboard), then rewrite to
@@ -44,8 +52,11 @@ function rewrite(request: NextRequest, path: string, surface: Surface, locale: L
 }
 
 export async function proxy(request: NextRequest) {
-  const { pathname, searchParams } = request.nextUrl;
-  const host = hostname(request.headers.get("host"));
+  const { pathname, searchParams, search } = request.nextUrl;
+  const host = hostname(requestHostHeader(request.headers));
+  // Redirects must use the visitor's address, not Cloud Run's internal one.
+  const origin = requestOrigin(request.headers);
+  const to = (path: string) => new URL(path, origin);
 
   let surface = surfaceForHost(host, ROOT_DOMAIN);
   if (surface === null) {
@@ -53,9 +64,9 @@ export async function proxy(request: NextRequest) {
     if (!SWITCHER) return new NextResponse("Not found", { status: 404 });
 
     if (pathname === "/__surface") {
-      const to = searchParams.get("to") ?? "marketing";
-      const res = NextResponse.redirect(new URL(safeBackPath(searchParams.get("next")), request.url));
-      res.cookies.set(SURFACE_COOKIE, to, { path: "/", httpOnly: true, sameSite: "lax", maxAge: YEAR });
+      const target = searchParams.get("to") ?? "marketing";
+      const res = NextResponse.redirect(to(safeBackPath(searchParams.get("next"))));
+      res.cookies.set(SURFACE_COOKIE, target, { path: "/", httpOnly: true, sameSite: "lax", maxAge: YEAR });
       return res;
     }
     surface = surfaceFromCookie(request.cookies.get(SURFACE_COOKIE)?.value);
@@ -63,7 +74,7 @@ export async function proxy(request: NextRequest) {
 
   switch (surface.kind) {
     case "redirect": {
-      const url = request.nextUrl.clone();
+      const url = to(pathname + search);
       url.hostname = surface.host;
       return NextResponse.redirect(url, 308);
     }
@@ -73,10 +84,10 @@ export async function proxy(request: NextRequest) {
     case "app": {
       // Language switch for the dashboard: /__locale?to=ar&back=/somewhere
       if (pathname === "/__locale") {
-        const to = searchParams.get("to");
-        const res = NextResponse.redirect(new URL(safeBackPath(searchParams.get("back")), request.url));
-        if (isLocale(to)) {
-          res.cookies.set(LOCALE_COOKIE, to, { path: "/", httpOnly: true, sameSite: "lax", maxAge: YEAR });
+        const lang = searchParams.get("to");
+        const res = NextResponse.redirect(to(safeBackPath(searchParams.get("back"))));
+        if (isLocale(lang)) {
+          res.cookies.set(LOCALE_COOKIE, lang, { path: "/", httpOnly: true, sameSite: "lax", maxAge: YEAR });
         }
         return res;
       }
@@ -89,9 +100,7 @@ export async function proxy(request: NextRequest) {
       const { locale, rest, explicitDefault } = splitLocalePath(pathname);
       if (explicitDefault) {
         // /en/x -> /x, so each page has one English address.
-        const url = request.nextUrl.clone();
-        url.pathname = rest;
-        return NextResponse.redirect(url, 308);
+        return NextResponse.redirect(to(rest + search), 308);
       }
       if (surface.kind === "site") {
         // Artist sites speak the language they were published in, unless the address says otherwise.

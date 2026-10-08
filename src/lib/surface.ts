@@ -17,6 +17,20 @@ export type Surface =
 
 export const SURFACE_COOKIE = "fannan_preview_surface";
 
+/**
+ * The address the visitor typed. In production a Cloudflare Worker forwards requests to Cloud Run
+ * and passes the original address in X-Forwarded-Host; locally and on staging there is no such header.
+ */
+export function requestHostHeader(h: Headers): string {
+  return (h.get("x-forwarded-host")?.split(",")[0].trim() || h.get("host") || "").toLowerCase();
+}
+
+export function requestOrigin(h: Headers): string {
+  const host = requestHostHeader(h);
+  const proto = h.get("x-forwarded-proto")?.split(",")[0].trim() || (host.includes("localhost") ? "http" : "https");
+  return `${proto}://${host}`;
+}
+
 export function hostname(hostHeader: string | null): string {
   return (hostHeader ?? "").toLowerCase().replace(/:\d+$/, "").replace(/\.$/, "");
 }
