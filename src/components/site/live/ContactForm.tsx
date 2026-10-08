@@ -25,9 +25,14 @@ export function ContactForm({ button, turnstileKey }: { button: string; turnstil
   const token = useRef("");
   const widget = useRef<HTMLDivElement>(null);
   const widgetId = useRef<string | undefined>(undefined);
+  // The human check is heavy (hundreds of KB), so it loads only once someone starts using the form.
+  const [armed, setArmed] = useState(false);
+  const arm = () => {
+    if (turnstileKey && !armed) setArmed(true);
+  };
 
   useEffect(() => {
-    if (!turnstileKey || !widget.current) return;
+    if (!armed || !turnstileKey || !widget.current) return;
     const render = () => {
       if (!widget.current || !window.turnstile || widgetId.current) return;
       widgetId.current = window.turnstile.render(widget.current, {
@@ -42,7 +47,15 @@ export function ContactForm({ button, turnstileKey }: { button: string; turnstil
     s.async = true;
     s.onload = render;
     document.head.appendChild(s);
-  }, [turnstileKey]);
+  }, [armed, turnstileKey]);
+
+  /** Waits briefly for the human check if the visitor was faster than it. */
+  async function turnstileToken() {
+    if (!turnstileKey) return "";
+    arm();
+    for (let i = 0; i < 40 && !token.current; i++) await new Promise((r) => setTimeout(r, 250));
+    return token.current;
+  }
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -53,10 +66,11 @@ export function ContactForm({ button, turnstileKey }: { button: string; turnstil
     }
     setState("sending");
     setProblem(null);
+    const turnstile = await turnstileToken();
     const res = await fetch("/api/contact", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ ...data, turnstile: token.current, page: window.location.pathname }),
+      body: JSON.stringify({ ...data, turnstile, page: window.location.pathname }),
     }).catch(() => null);
     if (res?.ok) {
       setState("sent");
@@ -82,7 +96,13 @@ export function ContactForm({ button, turnstileKey }: { button: string; turnstil
     color: "var(--site-text)",
   };
   return (
-    <form onSubmit={submit} className="mt-2 grid w-full max-w-[560px] gap-3" noValidate>
+    <form
+      onSubmit={submit}
+      onFocusCapture={arm}
+      onPointerDownCapture={arm}
+      className="mt-2 grid w-full max-w-[560px] gap-3"
+      noValidate
+    >
       <label className="grid gap-1.5 text-[14px] font-semibold">
         {t("name")}
         <input name="name" autoComplete="name" maxLength={120} className={field} style={box} />
