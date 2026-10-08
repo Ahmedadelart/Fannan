@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 8 Oct 2026, phase 4 code done; domain setup waiting on Ahmed's Cloudflare and Resend keys._
+_Last updated: 8 Oct 2026, phase 4 live on fannan.net; email domain and forwarding waiting on Ahmed._
 
 ## Done
 
@@ -93,12 +93,23 @@ _Last updated: 8 Oct 2026, phase 4 code done; domain setup waiting on Ahmed's Cl
 - **Speed (Lighthouse, phone, local):** performance 97–99, accessibility 100, best practices 100, SEO 100.
 - **Tests:** 72 (68 run). New: published site end to end (gallery → project → lightbox; contact form → inbox + email; Hire me; drafts and draft media never public; sitemap/robots; 404), password project incl. guessed image URL refused, Arabic site RTL on a phone.
 
+### Phase 4: Live on fannan.net
+- **Front door: a Cloudflare Worker** (`infra/edge-worker.js`, deployed with `infra/deploy-edge.mjs`) instead of a Google load balancer (~$18/month). Free up to 100k requests/day, then $5/month. It forwards every request on `fannan.net/*` and `*.fannan.net/*` to Cloud Run `fannan-production`, passing the visitor's address in `X-Forwarded-Host`. The app reads that header for routing, redirects, links and server-action origin checks. Cloud Run answers 404 to direct visits.
+- **DNS** (all proxied, placeholder 192.0.2.1 because the Worker answers): `fannan.net`, `*.fannan.net`, plus explicit `www` and `app` records. Explicit records were needed: an old site ("Fannan - Digital Sanctuary for Artists", probably on another Cloudflare-based host) still claimed `www.fannan.net` and the wildcard alone didn't outrank it. `www` now redirects to `fannan.net`. Always-HTTPS and TLS 1.2+ on.
+- **Production** `fannan-production` deployed through the "Deploy to production" workflow; Firebase project `fannan-510913`; bucket `fannan-media-production`; media function `fannan-media`.
+- **Turnstile** widget "Fannan contact forms" (fannan.net + the staging address); secret in Secret Manager (`turnstile-secret`), site key in env. It loads only once a visitor starts using the form (it is ~800 KB).
+- **Secrets wired:** `site-signing-secret-{staging,production}`, `turnstile-secret`, `resend-api-key` (staging + production), `cloudflare-api-token` + zone id (production, for cache purge by hostname; purge by host works on the Free plan).
+- **Checked live:** homepage name box → app.fannan.net sign-up → publish → `{name}.fannan.net` with contact form and credit. Lighthouse (phone, production): performance 92–95, accessibility/best practices/SEO 100.
+- **Fonts:** Readex Pro and Alexandria ship in `src/fonts` (Google Fonts sometimes serves them at extension-less URLs, which crashed next/font in CI).
+
 ## In progress
-- Domain setup: load balancer for `fannan.net` + `*.fannan.net`, Cloudflare DNS, certificates, email sending domain, Turnstile.
+- Email: Resend domain verification (needs Ahmed: the key is "sending only") and Cloudflare Email Routing to Ahmed's Gmail (the token can't manage destination addresses).
 - Nothing.
 
 ## Blocked on Ahmed
-- **Cloudflare API token** and **Resend API key**, pasted into Google Secret Manager (`cloudflare-api-token`, `resend-api-key`).
+- **Resend:** add the domain fannan.net (auto-configure with Cloudflare). Until then contact-form emails are not delivered (messages are still saved for the inbox in phase 5).
+- **Email Routing:** forward support@ and hello@fannan.net to his Gmail (Cloudflare dashboard).
+- **Old site:** whoever hosted "Fannan - Digital Sanctuary for Artists" should have fannan.net removed from that service.
 - Billing on `fannan-staging` (needed before phase 2): Google refused to link it because the billing account already has its 5-project limit (fannan, zareef, feshar, artgym, klaket). Ahmed to request a higher limit or free a slot.
 
 ## Known issues and notes
@@ -133,4 +144,6 @@ _Last updated: 8 Oct 2026, phase 4 code done; domain setup waiting on Ahmed's Cl
 - **Production builds use webpack** (`next build --webpack`, Tailwind via `postcss.config.mjs`). Turbopack intermittently failed to fetch Google fonts at build time (it broke two CI runs). Dev still uses Turbopack.
 - **No server-side redirects from server actions.** With host-based rewrites, Next renders the redirect target at its internal path (404). Actions return a result and the browser navigates (`NewProjectButton`, delete project, password unlock).
 - **In-memory caches are process-wide** (`src/lib/server/shared-memory.ts`); webpack can load a module once per route bundle.
-- **Domain setup script:** `infra/setup-domain.sh` (load balancer, certificate, Cloudflare DNS). Not run yet: it starts the load balancer charge (~$18–20/month).
+- **Load balancer script** `infra/setup-domain.sh` kept for later if traffic outgrows the Worker; not used.
+- **Login lifetimes on this PC:** `gcloud` and the Firebase CLI logins expire about daily; re-run `gcloud auth login` / `firebase login --reauth` when commands fail with re-authentication errors.
+- **Cold starts:** production scales to zero; the first visit after a quiet spell takes a few extra seconds. A minimum of 1 instance (~$7/month) would remove that; decide after launch.
