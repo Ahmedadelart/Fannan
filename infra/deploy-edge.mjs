@@ -1,4 +1,4 @@
-// Deploys infra/edge-worker.js to Cloudflare and points fannan.net + *.fannan.net at it.
+// Deploys infra/edge-worker.js to Cloudflare and points fannan.net, *.fannan.net and artists' own domains at it.
 // Usage: CLOUDFLARE_API_TOKEN=... node infra/deploy-edge.mjs <cloud-run-url>
 import { readFileSync } from "node:fs";
 
@@ -66,7 +66,21 @@ for (const pattern of ["fannan.net/*", "*.fannan.net/*"]) {
   console.log("route", pattern);
 }
 
-// 4. HTTPS everywhere.
+// 4. Artists' own domains (Cloudflare for SaaS): they point a CNAME at sites.fannan.net, the fallback
+//    origin; the */* route sends their traffic through the same Worker (more specific routes win).
+{
+  const name = "sites.fannan.net";
+  const existing = await api(`/zones/${ZONE}/dns_records?type=A&name=${name}`);
+  const record = { type: "A", name, content: "192.0.2.1", proxied: true, ttl: 1, comment: "Fallback origin for artists' domains" };
+  if (existing.length) await api(`/zones/${ZONE}/dns_records/${existing[0].id}`, json("PUT", record));
+  else await api(`/zones/${ZONE}/dns_records`, json("POST", record));
+  await api(`/zones/${ZONE}/custom_hostnames/fallback_origin`, json("PUT", { origin: name }));
+  const all = await api(`/zones/${ZONE}/workers/routes`);
+  if (!all.some((r) => r.pattern === "*/*")) await api(`/zones/${ZONE}/workers/routes`, json("POST", { pattern: "*/*", script: NAME }));
+  console.log("custom domains: fallback origin", name, "+ route */*");
+}
+
+// 5. HTTPS everywhere.
 await api(`/zones/${ZONE}/settings/always_use_https`, json("PATCH", { value: "on" }));
 await api(`/zones/${ZONE}/settings/min_tls_version`, json("PATCH", { value: "1.2" }));
 console.log("https on");

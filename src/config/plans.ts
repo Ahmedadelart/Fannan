@@ -40,6 +40,8 @@ export interface PlansConfig {
     graceDays: number;
     stacking: string;
   };
+  launchOffer: { enabled: boolean; firstBuyers: number; months: number; priceOfMonths: number };
+  payments: { chargeUsd: boolean };
 }
 
 export const plansConfig = raw as PlansConfig;
@@ -62,4 +64,9 @@ export function monthlyPrice(d: ProDuration, currency: Currency): number {
 /** The cheapest monthly price across Pro durations. */
 export function lowestMonthlyPrice(currency: Currency): number {
   return Math.min(...plansConfig.plans.pro.durations.map((d) => monthlyPrice(d, currency)));
+}
+
+/** A Pro duration by its length in months. */
+export function proDuration(months: number): ProDuration | undefined {
+  return plansConfig.plans.pro.durations.find((d) => d.months === months);
 }

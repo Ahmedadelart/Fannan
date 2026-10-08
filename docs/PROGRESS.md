@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 8 Oct 2026, phase 5 (inbox, stats, settings, account)._
+_Last updated: 8 Oct 2026, phase 6 (Pro, payments, own domains, admin) with a practice checkout; Paymob connects later._
 
 ## Done
 
@@ -118,11 +118,24 @@ _Last updated: 8 Oct 2026, phase 5 (inbox, stats, settings, account)._
 - **Firestore indexes** for messages (`firestore.indexes.json`); the visitor-code map in stats documents is excluded from indexing.
 - **Tests:** `tests/e2e/settings.spec.ts`: stats move when a (non-bot) visitor arrives and repeat visits don't double count; contact extra questions with the email copy off; inbox read/unread/reply/delete; every live setting shows on the site without publishing; export zip; address change forwards; delete and keep account; whole-site password on Pro; email-change confirmation; Arabic + phone fit.
 
+### Phase 6: Pro (prepaid), payments, own domains, admin
+- **Pro period** (`src/lib/plan.ts`): `proUntil` on the user; buying again stacks after the current end; 7-day grace; then Free. The plan in effect is worked out on every request (`userPlan()`), so nothing has to run at midnight for a site to change.
+- **Move to Free, hide never delete** (`applyPlan()` in `src/lib/server/public.ts`): password pages and projects hidden, projects beyond the newest 8 hidden (open by direct link like any hidden project), the footer credit returns, the own domain forwards to `name.fannan.net`. All of it comes back with Pro. The projects page explains it. (A whole-site password stays on, so private work never becomes public.)
+- **Checkout** (`src/lib/server/billing.ts`): an order records months, the price shown (EGP in Egypt, USD elsewhere, locked when the order is made), what's charged, the exchange rate and the launch offer flag. USD prices are charged in EGP at the day's rate (open.er-api.com, cached 6 h) until `config/plans.json → payments.chargeUsd` is turned on; the page says "your bank may show about X EGP".
+  - **Paymob** (Intention API + Unified Checkout) switches on when `PAYMOB_SECRET_KEY`, `PAYMOB_PUBLIC_KEY`, `PAYMOB_INTEGRATION_IDS` and `PAYMOB_HMAC_SECRET` are set. The signed callback (`/api/paymob/callback`, HMAC-SHA512 over Paymob's 20 fields) is the only thing that marks an order paid; amounts and currency must match; repeats are ignored.
+  - **Practice checkout** stands in until then on local and staging (Pay / Decline buttons, same code path). Never in production: without Paymob, production shows "Buying Pro opens very soon".
+  - Receipt email; return page waits for the confirmation; payment history in Settings → Plan & billing.
+- **Upgrade page** `/upgrade` (Free vs 3/6/12 months, prices from `config/plans.json`, launch offer from config, off). Sidebar shows "Pro plan · until …" and "Add more time".
+- **Reminders:** daily job (`/api/cron/cleanup`) emails at 14, 3 and 0 days and when the site moves to Free, each once per period; dashboard banner at the same moments. The email has an "Add more time" button.
+- **Own domains (Pro)** via Cloudflare for SaaS: Settings → Domain → Your own domain; shows the exact DNS record (CNAME → `sites.fannan.net`, plus any TXT Cloudflare asks for), status updates live (Waiting for DNS → Issuing the certificate → Active); SSL automatic; `name.fannan.net` forwards to the domain once active; disconnect anytime. Cloudflare: fallback origin `sites.fannan.net`, Worker route `*/*` (`infra/deploy-edge.mjs`). Works on fannan.net only (staging isn't behind Cloudflare).
+- **Admin** `app.fannan.net/admin` for adel4art@gmail.com and fannan.team@gmail.com only (others get a 404): accounts, Pro now, revenue in EGP and USD separately (all time and 30 days), users search, give Pro N months (stacks, shows as a gift), set the Pro end date (to try reminders and the move to Free), suspend/unsuspend a site, payments with refunds (takes the months back; warns outside the 14-day / own-domain rule), "Run daily jobs now". The reports queue arrives with the Report link in phase 7.
+- **Tests:** `tests/e2e/pro.spec.ts`: EGP purchase after a declined card, USD charged in EGP and stacked, 9 projects + own domain + no credit, admin refund, 14-day email and banner, grace, Free (credit back, 8 projects shown, domain forwards back), Pro again via gift, suspend; Go Pro page in Arabic on a phone.
+
 ## In progress
 - Nothing.
 
 ## Blocked on Ahmed
-- **Old site:** whoever hosted "Fannan - Digital Sanctuary for Artists" should have fannan.net removed from that service.
+- **Paymob (when he's ready):** test-mode Secret key + HMAC (into Secret Manager as `paymob-secret-key`, `paymob-hmac-secret`), Public key and integration IDs (card, wallet/Fawry if any), and whether the account can charge USD.
 - Billing on `fannan-staging` (needed before phase 2): Google refused to link it because the billing account already has its 5-project limit (fannan, zareef, feshar, artgym, klaket). Ahmed to request a higher limit or free a slot.
 
 ## Known issues and notes

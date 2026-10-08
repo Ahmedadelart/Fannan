@@ -2,7 +2,8 @@ import "server-only";
 
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { adminDb } from "@/lib/firebase/admin";
-import type { SiteDoc } from "./data";
+import { limitsFor } from "@/config/plans";
+import { userPlan, type SiteDoc, type UserDoc } from "./data";
 import { settingsFrom, type SiteSettings } from "./settings";
 import { sharedMap } from "./shared-memory";
 import type { MediaDoc } from "./projects";
@@ -21,6 +22,26 @@ export type LiveSite = PublishedSite & {
   settings: SiteSettings;
   sitePasswordHash: string | null;
 };
+
+/**
+ * What the public site shows on the owner's current plan. When Pro ends (after the grace period):
+ * password pages and projects are hidden, projects beyond the Free limit are hidden (newest stay),
+ * and the footer credit returns. Nothing is deleted; it all comes back with Pro.
+ */
+export function applyPlan(snap: PublishedSite, plan: "free" | "pro"): PublishedSite {
+  if (plan === "pro") return { ...snap, plan };
+  const limit = limitsFor("free").projects ?? Infinity;
+  let shown = 0;
+  const projects = snap.projects
+    .filter((p) => p.visibility !== "password")
+    .map((p) => {
+      if (p.visibility === "hidden") return p;
+      shown += 1;
+      return shown > limit ? { ...p, visibility: "hidden" as const } : p;
+    });
+  const pages = snap.pages.filter((p, i) => i === 0 || !p.passwordHash);
+  return { ...snap, plan, projects, pages };
+}
 
 export async function liveSite(username: string): Promise<LiveSite | null> {
   const key = username.toLowerCase();
@@ -51,8 +72,10 @@ export async function liveSite(username: string): Promise<LiveSite | null> {
             if (m?.status === "ready") media[d.id] = toSiteMedia(d.id, m);
           }
         }
+        const owner = (await db.collection("users").doc(site.ownerUid).get()).data() as UserDoc | undefined;
+        const plan = userPlan(owner).plan;
         value = {
-          ...snap,
+          ...applyPlan(snap, plan),
           media,
           available: site.available,
           siteId: name.siteId,

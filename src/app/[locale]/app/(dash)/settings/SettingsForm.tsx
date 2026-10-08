@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { signOut } from "firebase/auth";
 import { endServerSession, useAuth } from "@/components/auth/AuthProvider";
@@ -12,10 +12,14 @@ import { Icon } from "@/components/ui/Icon";
 import { useToast } from "@/components/ui/Toast";
 import { cx } from "@/lib/cx";
 import { imageSources } from "@/lib/media";
+import type { DomainInfo } from "@/lib/server/domains";
 import type { SiteSettings } from "@/lib/server/settings";
 import { beginUpload, completeUpload } from "../projects/actions";
 import {
   changeEmail,
+  checkOwnDomain,
+  connectOwnDomain,
+  removeOwnDomain,
   deleteAccount,
   renameSite,
   saveBasics,
@@ -41,6 +45,15 @@ export interface SettingsData {
   anonymous: boolean;
   deletionAt: number | null;
   plans: Array<{ months: number; price: string; perMonth: string; label: string }>;
+  canDomain: boolean;
+  ownDomain: DomainInfo | null;
+  billing: {
+    proUntil: number | null;
+    inGrace: boolean;
+    gift: boolean;
+    canBuy: boolean;
+    orders: Array<{ id: string; date: number; months: number; amount: string; status: string; gift: boolean }>;
+  };
 }
 
 const SECTIONS = ["domain", "privacy", "contact", "language", "integrations", "plan", "account"] as const;
@@ -130,6 +143,7 @@ function Chip({ on, onClick, children, disabled }: { on: boolean; onClick?: () =
 export function SettingsForm({ data }: { data: SettingsData }) {
   const t = useTranslations("settings");
   const tp = useTranslations("projects");
+  const format = useFormatter();
   const toast = useToast();
 
   const [s, setS] = useState<SiteSettings>(data.settings);
@@ -469,6 +483,15 @@ export function SettingsForm({ data }: { data: SettingsData }) {
         </Section>
 
         <Section id="plan" title={t("plan.title")} wide>
+          <p className="text-[14px] font-semibold" data-testid="plan-status">
+            {data.billing.gift && data.billing.proUntil === null
+              ? t("plan.statusGift")
+              : data.billing.proUntil !== null && data.pro
+                ? data.billing.inGrace
+                  ? t("plan.statusGrace", { date: format.dateTime(new Date(data.billing.proUntil), { dateStyle: "long" }) })
+                  : t("plan.statusPro", { date: format.dateTime(new Date(data.billing.proUntil), { dateStyle: "long" }) })
+                : t("plan.statusFree")}
+          </p>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-3.5">
             <div className={cx("flex flex-col gap-2 rounded-[14px] border-2 p-4", data.pro ? "border-line" : "border-ink")}>
               <span className="flex items-center justify-between">
@@ -488,13 +511,37 @@ export function SettingsForm({ data }: { data: SettingsData }) {
                   <span className="text-muted text-[13px]"> · {t("plan.perMonth", { price: p.perMonth })}</span>
                 </span>
                 <span className="text-ink-soft text-[13px]">{t("plan.once")}</span>
-                <button type="button" disabled className={cx(buttonClasses("outline", "md"), "mt-auto opacity-60")}>
-                  {t("plan.soon")}
-                </button>
+                {data.billing.canBuy ? (
+                  <a href={`/upgrade?months=${p.months}`} className={cx(buttonClasses("outline", "md"), "mt-auto")}>
+                    {data.pro ? t("plan.addMonths", { months: p.months }) : t("plan.get", { months: p.months })}
+                  </a>
+                ) : (
+                  <button type="button" disabled className={cx(buttonClasses("outline", "md"), "mt-auto opacity-60")}>
+                    {t("plan.soon")}
+                  </button>
+                )}
               </div>
             ))}
           </div>
           <p className="text-muted text-[12px]">{t("plan.note")}</p>
+          {data.billing.orders.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <h3 className="text-[14px] font-semibold">{t("plan.history")}</h3>
+              <ul className="divide-line divide-y text-[13px]" data-testid="payments">
+                {data.billing.orders.map((o) => (
+                  <li key={o.id} className="flex flex-wrap justify-between gap-x-4 gap-y-1 py-2">
+                    <span>
+                      {format.dateTime(new Date(o.date), { dateStyle: "medium" })} · {t("plan.pro", { months: o.months })}
+                      {o.gift && ` · ${t("plan.gift")}`}
+                    </span>
+                    <span className="text-muted">
+                      {o.amount} · {t(`plan.orderStatus.${o.status}`)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </Section>
 
         <AccountSection data={data} />
@@ -526,7 +573,7 @@ function DomainSection({ data }: { data: SettingsData }) {
   const [name, setName] = useState(data.username);
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
-  const [mode, setMode] = useState<"fannan" | "custom">("fannan");
+  const [mode, setMode] = useState<"fannan" | "custom">(data.ownDomain ? "custom" : "fannan");
   return (
     <Section id="domain" title={t("domain.title")} sub={t("domain.sub")}>
       <div role="radiogroup" aria-label={t("domain.type")} className="flex gap-2">
@@ -589,12 +636,151 @@ function DomainSection({ data }: { data: SettingsData }) {
           <p className="text-muted text-[12px]">{t("domain.redirect")}</p>
         </form>
       ) : (
-        <div className="bg-mist text-ink-soft flex flex-col gap-1 rounded-[10px] p-3 text-[13px]">
-          <span className="text-ink font-semibold">{t("domain.customTitle")}</span>
-          <span>{t("domain.customText")}</span>
-        </div>
+        <OwnDomain data={data} />
       )}
     </Section>
+  );
+}
+
+const DOMAIN_STATUS: Record<DomainInfo["status"], { dot: string; key: string }> = {
+  pending: { dot: "bg-line-strong", key: "pending" },
+  issuing: { dot: "bg-ink-soft", key: "issuing" },
+  active: { dot: "bg-lime", key: "active" },
+  failed: { dot: "bg-ink", key: "failed" },
+};
+
+function OwnDomain({ data }: { data: SettingsData }) {
+  const t = useTranslations("settings.ownDomain");
+  const ts = useTranslations("settings");
+  const toast = useToast();
+  const [domain, setDomain] = useState(data.ownDomain);
+  const [input, setInput] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  // Status updates live while Cloudflare checks the DNS and issues the certificate.
+  useEffect(() => {
+    if (!domain || domain.status === "active") return;
+    const timer = setInterval(async () => {
+      const r = await checkOwnDomain();
+      if (r.ok && r.domain) setDomain(r.domain);
+    }, 8000);
+    return () => clearInterval(timer);
+  }, [domain]);
+
+  if (!data.canDomain) {
+    return (
+      <div className="bg-mist text-ink-soft flex flex-col items-start gap-2 rounded-[10px] p-3 text-[13px]">
+        <span className="text-ink font-semibold">{ts("domain.customTitle")}</span>
+        <span>{t("proOnly")}</span>
+        <a href="/upgrade" className={buttonClasses("lime", "sm")}>
+          {t("getPro")}
+        </a>
+      </div>
+    );
+  }
+
+  if (!domain) {
+    return (
+      <form
+        className="flex flex-col gap-2"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setBusy(true);
+          const r = await connectOwnDomain(input);
+          setBusy(false);
+          if (!r.ok) return toast(t.has(`errors.${r.error}`) ? t(`errors.${r.error}`) : ts("error"));
+          setDomain(r.domain);
+        }}
+      >
+        <Input
+          label={t("label")}
+          dir="ltr"
+          placeholder="www.yourname.com"
+          autoCapitalize="none"
+          spellCheck={false}
+          value={input}
+          hint={t("hint")}
+          onChange={(e) => setInput(e.target.value)}
+        />
+        <Button type="submit" variant="outline" disabled={busy || !input.includes(".")} className="self-start">
+          {busy ? ts("saving") : t("connect")}
+        </Button>
+      </form>
+    );
+  }
+
+  const st = DOMAIN_STATUS[domain.status];
+  return (
+    <div className="flex flex-col gap-3" data-testid="own-domain">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span dir="ltr" className="text-[16px] font-semibold">
+          {domain.hostname}
+        </span>
+        <span className="flex items-center gap-2 text-[13px] font-semibold" data-testid="domain-status" data-status={domain.status}>
+          <span aria-hidden className={cx("size-2 rounded-full", st.dot)} />
+          {t(`status.${st.key}`)}
+        </span>
+      </div>
+      {domain.status !== "active" && (
+        <div className="bg-mist flex flex-col gap-2 rounded-[10px] p-3 text-[12px]">
+          <span className="text-ink text-[13px] font-semibold">{t("pointTitle")}</span>
+          <span className="text-ink-soft">{t("pointText")}</span>
+          <table className="w-full text-start" dir="ltr">
+            <thead className="text-muted">
+              <tr>
+                <th className="pe-3 text-start font-semibold">{t("type")}</th>
+                <th className="pe-3 text-start font-semibold">{t("name")}</th>
+                <th className="text-start font-semibold">{t("value")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {domain.records.map((r) => (
+                <tr key={`${r.type}${r.name}`} className="align-top">
+                  <td className="pe-3 font-semibold">{r.type}</td>
+                  <td className="pe-3 break-all">{r.name}</td>
+                  <td className="break-all">{r.value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <span className="text-ink-soft">{t("apex")}</span>
+          {domain.error && <span className="text-ink font-semibold">{domain.error}</span>}
+        </div>
+      )}
+      {domain.status === "active" && <p className="text-ink-soft text-[13px]">{t("activeText", { address: `${data.username}.${data.domain}` })}</p>}
+      <div className="flex flex-wrap gap-2">
+        {domain.status !== "active" && (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              const r = await checkOwnDomain();
+              setBusy(false);
+              if (r.ok && r.domain) setDomain(r.domain);
+            }}
+          >
+            {t("checkNow")}
+          </Button>
+        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={busy}
+          onClick={async () => {
+            if (!window.confirm(t("removeConfirm", { domain: domain.hostname }))) return;
+            setBusy(true);
+            const r = await removeOwnDomain();
+            setBusy(false);
+            if (!r.ok) return toast(ts("error"));
+            setDomain(null);
+          }}
+        >
+          {t("remove")}
+        </Button>
+      </div>
+    </div>
   );
 }
 

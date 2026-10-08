@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { currencyForCountry, limitsFor, lowestMonthlyPrice } from "@/config/plans";
 import type { Locale } from "@/i18n/locales";
-import { countProjects, getSite, getUser } from "@/lib/server/data";
+import { countProjects, getSite, getUser, userPlan } from "@/lib/server/data";
 import { loadDraft, loadRenderData } from "@/lib/server/site";
 import { getSession } from "@/lib/server/session";
 import { DISPLAY_DOMAIN, surfaceUrls } from "@/lib/server/urls";
@@ -33,10 +33,12 @@ export const loadDashboard = cache(async () => {
   ]);
   if (!site || !draft) redirect("/signup");
 
-  const limits = limitsFor(user.plan);
+  const pro = userPlan(user);
+  const limits = limitsFor(pro.plan);
   return {
     session,
     user,
+    pro,
     site,
     draft,
     render,

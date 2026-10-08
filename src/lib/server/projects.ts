@@ -6,7 +6,7 @@ import { limitsFor, plansConfig } from "@/config/plans";
 import { slugify } from "@/config/usernames";
 import { adminDb } from "@/lib/firebase/admin";
 import { parseVideoLink } from "@/lib/video";
-import { getUser, type SiteDoc } from "./data";
+import { getUser, userPlan, type SiteDoc } from "./data";
 import { processMedia, type ProcessKind, type ProcessResult, type Variants } from "./processor";
 import { checkPassword, scryptHash } from "./passwords";
 import { deleteObject, deletePrefix, objectSize, readHead, signedUploadUrl } from "./storage";
@@ -79,7 +79,10 @@ export class ProjectError extends Error {
       | "not-found"
       | "slug-taken"
       | "bad-link"
-      | "pro-only",
+      | "pro-only"
+      | "domain-invalid"
+      | "domain-taken"
+      | "domain-error",
   ) {
     super(code);
   }
@@ -105,7 +108,7 @@ export async function ownerOf(uid: string): Promise<Owner> {
   const snap = await siteRef(user.siteId).get();
   const site = snap.data() as SiteDoc | undefined;
   if (!site || site.ownerUid !== uid) throw new ProjectError("not-found");
-  return { uid, siteId: user.siteId, site, plan: user.plan ?? "free" };
+  return { uid, siteId: user.siteId, site, plan: userPlan(user).plan };
 }
 
 async function getProjectRef(o: Owner, projectId: string) {

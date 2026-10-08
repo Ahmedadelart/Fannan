@@ -5,6 +5,7 @@ import { FieldValue, Timestamp, type Transaction } from "firebase-admin/firestor
 import { checkUsername, normalizeUsername, type UsernameProblem } from "@/config/usernames";
 import type { Locale } from "@/i18n/locales";
 import { adminAuth, adminDb } from "@/lib/firebase/admin";
+import { proStatus } from "@/lib/plan";
 import { generateStarter } from "@/lib/site/starter";
 import { deletePrefix } from "./storage";
 import type { LayoutId, SiteDraft } from "@/lib/site/types";
@@ -28,7 +29,12 @@ export interface UserDoc {
   displayName?: string;
   email?: string;
   locale: Locale;
+  /** Set by hand (gifts, tests). Anyone who bought Pro has `proUntil` instead; see userPlan(). */
   plan: "free" | "pro";
+  /** End of the paid Pro period. */
+  proUntil?: Timestamp | null;
+  /** Reminder emails already sent for the current period ("d14", "d3", "d0", "free"). */
+  proReminders?: Record<string, boolean>;
   isAnonymous: boolean;
   onboarding?: Onboarding;
   siteId?: string;
@@ -67,6 +73,11 @@ const usernames = () => db().collection("usernames");
 const sites = () => db().collection("sites");
 
 /* ---------- users ---------- */
+
+/** The plan this user is on right now, with prepaid end date and grace period applied. */
+export function userPlan(user: Pick<UserDoc, "plan" | "proUntil"> | null | undefined, now = Date.now()) {
+  return proStatus({ plan: user?.plan, proUntil: user?.proUntil?.toMillis() ?? null }, now);
+}
 
 export async function getUser(uid: string): Promise<UserDoc | null> {
   const snap = await users().doc(uid).get();

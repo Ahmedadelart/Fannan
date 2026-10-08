@@ -64,8 +64,10 @@ export async function loadRenderData(siteId: string): Promise<{
       visibility: p.visibility,
       coverId: coverId && media[coverId] ? coverId : null,
       mature: p.mature,
+      createdAt: (p.createdAt as Timestamp | undefined)?.toMillis?.() ?? 0,
     };
   });
+  projects.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
   return { media, projects };
 }
 
@@ -148,6 +150,8 @@ export interface PublishedProject {
   passwordHash: string | null;
   coverId: string | null;
   mediaIds: string[];
+  /** Milliseconds; galleries show newest first. Missing in snapshots made before phase 6. */
+  createdAt?: number;
   seo: ProjectDoc["seo"];
   arabic: boolean;
   ar: ProjectDoc["ar"];
@@ -259,7 +263,9 @@ export async function publish(o: Owner): Promise<{ version: number }> {
     plan: o.plan,
     pages: draft.pages.map((p) => ({
       ...p,
-      passwordHash: limitsFor(o.plan).passwordProtection ? (hashes.get(p.id) ?? null) : null,
+      // Kept even on Free: the public site hides password pages while the plan doesn't include them,
+      // instead of opening them up.
+      passwordHash: hashes.get(p.id) ?? null,
     })),
     projects,
     media,

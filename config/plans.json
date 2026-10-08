@@ -1,6 +1,9 @@
 {
   "_note": "Single source of truth for plans, prices and limits. Prices are in whole units (EGP pounds, US dollars). Pro is PREPAID: one payment buys 3, 6 or 12 months, nothing renews automatically.",
-  "currencyByCountry": { "EG": "EGP", "default": "USD" },
+  "currencyByCountry": {
+    "EG": "EGP",
+    "default": "USD"
+  },
   "plans": {
     "free": {
       "price": 0,
@@ -15,9 +18,24 @@
     },
     "pro": {
       "durations": [
-        { "months": 3,  "EGP": 450,  "USD": 24, "label": "Try it" },
-        { "months": 6,  "EGP": 800,  "USD": 42, "label": "Popular" },
-        { "months": 12, "EGP": 1350, "USD": 72, "label": "Best value" }
+        {
+          "months": 3,
+          "EGP": 450,
+          "USD": 24,
+          "label": "Try it"
+        },
+        {
+          "months": 6,
+          "EGP": 800,
+          "USD": 42,
+          "label": "Popular"
+        },
+        {
+          "months": 12,
+          "EGP": 1350,
+          "USD": 72,
+          "label": "Best value"
+        }
       ],
       "limits": {
         "projects": null,
@@ -37,8 +55,23 @@
     "longVideo": "embed-only (YouTube / Vimeo)"
   },
   "renewal": {
-    "reminderDaysBefore": [14, 3, 0],
+    "reminderDaysBefore": [
+      14,
+      3,
+      0
+    ],
     "graceDays": 7,
     "stacking": "Buying again while Pro is active adds the new months after the current end date."
+  },
+  "launchOffer": {
+    "_note": "Optional launch offer (PRICING.md). When enabled, the first `firstBuyers` paid Pro orders can buy `months` months for the price of `priceOfMonths` months.",
+    "enabled": false,
+    "firstBuyers": 100,
+    "months": 12,
+    "priceOfMonths": 6
+  },
+  "payments": {
+    "_note": "chargeUsd: whether the Paymob account can charge in USD. While false, USD prices are charged as the EGP equivalent at that day's rate.",
+    "chargeUsd": false
   }
 }

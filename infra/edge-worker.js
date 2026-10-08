@@ -1,4 +1,5 @@
-// Cloudflare Worker in front of Fannan (routes: fannan.net/* and *.fannan.net/*).
+// Cloudflare Worker in front of Fannan (routes: fannan.net/*, *.fannan.net/* and */* for artists' own
+// domains through Cloudflare for SaaS).
 // Passes every request to the Cloud Run service, keeping the visitor's address in
 // X-Forwarded-Host so the app knows which surface (marketing, app, artist site) to show.
 // ORIGIN is set when the Worker is deployed (infra/deploy-edge.mjs).

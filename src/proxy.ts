@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { liveDomainFor, siteForHost } from "@/lib/server/domains";
 import { siteLanguage } from "@/lib/server/site-language";
 import { defaultLocale, LOCALE_COOKIE, isLocale, type Locale } from "@/i18n/locales";
 import {
@@ -59,9 +60,26 @@ export async function proxy(request: NextRequest) {
   const to = (path: string) => new URL(path, origin);
 
   let surface = surfaceForHost(host, ROOT_DOMAIN);
+  let ownDomain = false;
+  let fromSwitcher = false;
+  if (surface === null) {
+    // An artist's own domain (Pro)?
+    const custom = await siteForHost(host);
+    if (custom && !custom.live) {
+      // Not active yet, or Pro has ended: their fannan.net address still works.
+      const url = to(pathname + search);
+      url.hostname = `${custom.username}.${ROOT_DOMAIN}`;
+      return NextResponse.redirect(url, 302);
+    }
+    if (custom) {
+      surface = { kind: "site", username: custom.username };
+      ownDomain = true;
+    }
+  }
   if (surface === null) {
     // Not one of our hosts. Only allowed on local/staging, where a cookie picks the surface.
     if (!SWITCHER) return new NextResponse("Not found", { status: 404 });
+    fromSwitcher = true;
 
     if (pathname === "/__surface") {
       const target = searchParams.get("to") ?? "marketing";
@@ -101,6 +119,15 @@ export async function proxy(request: NextRequest) {
       if (explicitDefault) {
         // /en/x -> /x, so each page has one English address.
         return NextResponse.redirect(to(rest + search), 308);
+      }
+      if (surface.kind === "site" && !ownDomain && !fromSwitcher) {
+        // Once an artist's own domain is live, their fannan.net address forwards to it.
+        const domain = await liveDomainFor(surface.username);
+        if (domain) {
+          const url = to(pathname + search);
+          url.hostname = domain;
+          return NextResponse.redirect(url, 302);
+        }
       }
       if (surface.kind === "site") {
         // Artist sites speak the language they were published in, unless the address says otherwise.

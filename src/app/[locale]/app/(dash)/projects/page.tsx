@@ -49,6 +49,11 @@ export default async function ProjectsPage({ params, searchParams }: PageProps<"
               {t("limitTitle", { count: projects.length, limit })}
             </span>
             <span className="text-[14px]">{t("limitText", { price: await priceLabel(locale) })}</span>
+            {projects.length > limit && (
+              <span className="text-[14px]" data-testid="over-limit">
+                {t("overLimit", { limit })}
+              </span>
+            )}
           </div>
           <a href="/upgrade" className={buttonClasses("primary", "md")}>
             {t("upgrade")}

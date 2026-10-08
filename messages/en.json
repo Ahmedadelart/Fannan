@@ -296,7 +296,8 @@
       "projects": "Projects",
       "stats": "Stats",
       "settings": "Settings",
-      "messages": "Messages"
+      "messages": "Messages",
+      "admin": "Admin"
     },
     "navLabel": "App",
     "freePlan": "Free plan",
@@ -376,7 +377,15 @@
     "hireMe": "Hire me",
     "unread": "{count, plural, one {# unread} other {# unread}}",
     "deletionPending": "Your account is set to be deleted. Your site is offline. Open Settings to keep it.",
-    "proPlan": "Pro plan"
+    "proPlan": "Pro plan",
+    "proUntil": "until {date}",
+    "addTime": "Add more time",
+    "proBanner": {
+      "ending": "Your Pro ends on {date}. Add more time so nothing changes on your site.",
+      "grace": "Your Pro has ended. Your site keeps everything until {date}, then moves to Free.",
+      "free": "Your site is on Free now. Projects beyond your newest 8, password pages and your own domain are hidden, not deleted. They come back with Pro.",
+      "action": "Add more time"
+    }
   },
   "projects": {
     "metaTitle": "Projects",
@@ -537,7 +546,8 @@
       "projectTitle": "اسم المشروع",
       "role": "الدور",
       "description": "الوصف"
-    }
+    },
+    "overLimit": "On Free, your newest {limit} projects show on your site. The rest are kept safe and come back when you go Pro."
   },
   "editor": {
     "metaTitle": "Site editor",
@@ -963,7 +973,20 @@
       "once": "Paid once. Nothing renews automatically.",
       "soon": "Available soon",
       "note": "Prices follow your country: EGP in Egypt, USD everywhere else. Pro is prepaid: we email you before it ends, and if it runs out your site stays up on Free and nothing is deleted.",
-      "egp": "{n} EGP"
+      "egp": "{n} EGP",
+      "statusPro": "You’re on Pro until {date}.",
+      "statusGrace": "Your Pro ended on {date}; your site moves to Free after 7 days.",
+      "statusGift": "You have Pro as a gift from Fannan.",
+      "statusFree": "You’re on Free.",
+      "addMonths": "Add {months} months",
+      "get": "Get {months} months",
+      "history": "Payments",
+      "gift": "gift",
+      "orderStatus": {
+        "paid": "Paid",
+        "failed": "Didn’t go through",
+        "refunded": "Refunded"
+      }
     },
     "account": {
       "title": "Account",
@@ -986,6 +1009,185 @@
       "pendingTitle": "Your account is set to be deleted",
       "pendingText": "Your site is offline. Everything is deleted for good on {date}.",
       "cancelDelete": "Keep my account"
+    },
+    "ownDomain": {
+      "proOnly": "Use yourname.com instead of yourname.fannan.net. Part of Pro.",
+      "getPro": "Go Pro",
+      "label": "Your domain",
+      "hint": "We recommend www.yourname.com. Buy one from any domain company first.",
+      "connect": "Connect domain",
+      "errors": {
+        "domain-invalid": "That doesn’t look like a domain. Try something like www.yourname.com.",
+        "domain-taken": "That domain is already connected somewhere else.",
+        "domain-error": "Cloudflare didn’t accept that domain. Check the spelling and try again.",
+        "pro-only": "Your own domain is part of Pro.",
+        "slow-down": "That’s a lot of tries. Please wait a little."
+      },
+      "status": {
+        "pending": "Waiting for DNS",
+        "issuing": "Issuing the certificate",
+        "active": "Active",
+        "failed": "Something’s wrong"
+      },
+      "pointTitle": "Point your domain to Fannan",
+      "pointText": "At the company where you bought the domain, open its DNS settings and add:",
+      "type": "Type",
+      "name": "Name",
+      "value": "Value",
+      "apex": "For yourname.com without www, turn on “forwarding” to www.yourname.com at your domain company. This page updates by itself; it can take from a few minutes to a few hours.",
+      "activeText": "Your site is live on your domain with free SSL. {address} now forwards visitors here.",
+      "checkNow": "Check now",
+      "remove": "Disconnect",
+      "removeConfirm": "Disconnect {domain}? Your site goes back to your Fannan address."
+    }
+  },
+  "upgrade": {
+    "title": "Go Pro",
+    "sub": "Pay once for 3, 6 or 12 months. Nothing renews automatically.",
+    "currencyEgp": "Prices in EGP",
+    "currencyUsd": "Prices in USD",
+    "statusPro": "You’re on Pro until {date}.",
+    "statusGrace": "Your Pro has ended; your site stays as it is until {date}.",
+    "statusGift": "You have Pro as a gift from Fannan.",
+    "stacks": "Buying more adds the months after your current end date.",
+    "practiceTitle": "Practice checkout.",
+    "practiceText": "This is a test version: no card is needed and no real money moves.",
+    "soon": "Buying Pro opens very soon.",
+    "free": "Free",
+    "current": "Current plan",
+    "forever": "forever",
+    "freeBlurb": "Everything you need to get your work out there.",
+    "freeFeatures": {
+      "projects": "8 projects",
+      "address": "yourname.fannan.net",
+      "themes": "All themes and blocks",
+      "contact": "Available-for-work badge and contact form",
+      "stats": "Stats for the last 30 days",
+      "credit": "Small “Made with Fannan” credit"
+    },
+    "pro": "Pro · {months} months",
+    "offer": "Launch offer",
+    "tags": {
+      "3": "Try it",
+      "6": "Popular",
+      "12": "Best value"
+    },
+    "perMonth": "{price} a month",
+    "once": "Paid once. Nothing renews automatically.",
+    "bankEgp": "Charged in Egyptian pounds: your bank may show about {amount} EGP.",
+    "proFeatures": {
+      "projects": "Unlimited projects",
+      "domain": "Your own domain with free SSL",
+      "storage": "Much more storage",
+      "passwords": "Password pages and a full-site password",
+      "stats": "Full stats: 90 days, referrers, countries",
+      "credit": "No Fannan credit in the footer"
+    },
+    "get": "Get {months} months",
+    "note": "Prices follow your country: EGP in Egypt, USD everywhere else. We email you 14 days and 3 days before Pro ends. If it runs out, your site stays up on Free and nothing is deleted.",
+    "egp": "{n} EGP",
+    "opening": "Opening checkout…",
+    "errors": {
+      "unavailable": "Buying Pro isn’t open yet.",
+      "bad-plan": "That plan isn’t available.",
+      "not-found": "Save your site to an email first.",
+      "anonymous": "Save your site to an email first.",
+      "rate": "We couldn’t get today’s exchange rate. Please try again in a minute.",
+      "provider": "The payment page didn’t open. Please try again.",
+      "slow-down": "That’s a lot of tries. Please wait a little.",
+      "error": "Something went wrong. Please try again."
+    }
+  },
+  "checkout": {
+    "title": "Checkout",
+    "item": "Plan",
+    "price": "Price",
+    "charged": "Charged as",
+    "done": "See the result",
+    "pay": "Pay (practice)",
+    "decline": "Decline the card (practice)",
+    "error": "That didn’t work. Please try again.",
+    "paidTitle": "You’re on Pro",
+    "paidText": "Thank you! Pro runs until {date}. We emailed you a receipt.",
+    "toDashboard": "Back to my site",
+    "failedTitle": "The payment didn’t go through",
+    "failedText": "Nothing was charged. You can try again with another card or method.",
+    "tryAgain": "Try again",
+    "pendingTitle": "Confirming your payment…",
+    "pendingText": "This usually takes a few seconds. You can keep this page open.",
+    "refundedTitle": "This payment was refunded"
+  },
+  "admin": {
+    "title": "Admin",
+    "sub": "Only you and the Fannan team account see this page",
+    "provider": {
+      "paymob": "Payments: Paymob",
+      "practice": "Payments: practice checkout",
+      "none": "Payments: not set up"
+    },
+    "users": "Accounts",
+    "proNow": "On Pro now",
+    "revenueEgp": "Revenue in EGP",
+    "revenueUsd": "Revenue in USD",
+    "last30": "{v} in the last 30 days",
+    "sections": "Sections",
+    "tabs": {
+      "users": "Users",
+      "payments": "Payments",
+      "reports": "Reports"
+    },
+    "search": "Email or Fannan name",
+    "find": "Find",
+    "noUsers": "No one found.",
+    "noPayments": "No payments yet.",
+    "reportsSoon": "Reports arrive with the “Report this site” link in the next phase.",
+    "runDaily": "Run daily jobs now",
+    "dailyDone": "Daily jobs done",
+    "grace": "grace",
+    "suspended": "Suspended",
+    "manage": "Manage",
+    "givePro": "Give Pro",
+    "months": "Months",
+    "monthsN": "{n, plural, one {# month} other {# months}}",
+    "note": "Note (e.g. beta artist)",
+    "given": "Pro given",
+    "give": "Give",
+    "setEnd": "Pro end date",
+    "saveEnd": "Set date",
+    "saved": "Saved",
+    "setEndHint": "For testing reminders and the move to Free. Clear it to remove the end date.",
+    "site": "Site",
+    "suspendConfirm": "Suspend {name}? The site goes offline until you unsuspend it.",
+    "unsuspended": "Site is back online",
+    "suspendedDone": "Site suspended",
+    "unsuspend": "Unsuspend",
+    "suspend": "Suspend site",
+    "providers": {
+      "paymob": "Paymob",
+      "practice": "Practice",
+      "gift": "Gift"
+    },
+    "status": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "failed": "Failed",
+      "refunded": "Refunded"
+    },
+    "refundConfirm": "Refund this payment? The months it bought are taken back.",
+    "refundWarn": {
+      "late": "This payment is older than 14 days (outside the refund rule). Refund anyway?",
+      "domain": "This site has its own domain connected (outside the refund rule). Refund anyway?"
+    },
+    "refunded": "Refunded",
+    "refund": "Refund",
+    "errors": {
+      "not-admin": "Admins only.",
+      "not-paid": "Only paid orders can be refunded.",
+      "unavailable": "Paymob isn’t connected yet.",
+      "provider": "Paymob refused the refund.",
+      "bad-plan": "Choose between 1 and 36 months.",
+      "not-found": "Not found.",
+      "error": "Something went wrong."
     }
   }
 }

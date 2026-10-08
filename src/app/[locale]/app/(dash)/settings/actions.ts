@@ -2,6 +2,7 @@
 
 import { adminAuth, adminDb } from "@/lib/firebase/admin";
 import { getUser } from "@/lib/server/data";
+import { connectDomain, refreshDomain, removeDomain } from "@/lib/server/domains";
 import { sendEmail, escapeHtml } from "@/lib/server/email";
 import { ownerOf, ProjectError } from "@/lib/server/projects";
 import { rateLimit } from "@/lib/server/rate-limit";
@@ -149,4 +150,23 @@ export async function syncEmail() {
   const { uid } = await requireSession();
   const me = await adminAuth().getUser(uid);
   if (me.email) await adminDb().collection("users").doc(uid).set({ email: me.email }, { merge: true });
+}
+
+/* ---------- own domain (Pro) ---------- */
+
+export async function connectOwnDomain(host: string) {
+  const { uid } = await requireSession();
+  if (!rateLimit(`domain:${uid}`, 20, 60 * 60_000)) return { ok: false as const, error: "slow-down" };
+  return attempt(async () => ({ domain: await connectDomain(await ownerOf(uid), String(host ?? "")) }));
+}
+
+export async function checkOwnDomain() {
+  return attempt(async () => ({ domain: await refreshDomain(await owner()) }));
+}
+
+export async function removeOwnDomain() {
+  return attempt(async () => {
+    await removeDomain(await owner());
+    return {};
+  });
 }

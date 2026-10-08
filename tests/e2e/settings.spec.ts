@@ -155,8 +155,12 @@ test("stats, inbox and every settings control", async ({ page, browser }, info) 
   await expect(page.getByRole("heading", { level: 1, name: "Messages" })).toBeVisible();
   const msg = page.getByTestId("message").first();
   await expect(msg).toHaveAttribute("data-read", "false");
-  await msg.getByRole("button", { name: /Studio Producer/ }).click();
-  await expect(msg).toHaveAttribute("data-read", "true");
+  await page.waitForLoadState("networkidle");
+  // Click again if the page wasn't interactive yet the first time.
+  await expect(async () => {
+    if ((await msg.getAttribute("data-read")) === "false") await msg.getByRole("button", { name: /Studio Producer/ }).click();
+    await expect(msg).toHaveAttribute("data-read", "true", { timeout: 2000 });
+  }).toPass({ timeout: 15_000 });
   await expect(msg).toContainText("$4,000");
   await expect(msg).toContainText("Which studio are you with?");
   await expect(msg.getByRole("link", { name: "Reply by email" })).toHaveAttribute(

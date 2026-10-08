@@ -41,9 +41,9 @@ export async function logInWithEmail(page: Page, email: string, locale: "en" | "
 }
 
 /** The quickest way through sign-up to a saved account with a site (English). */
-export async function signUp(page: Page, id = uniq()) {
+export async function signUp(page: Page, id = uniq(), emailDomain = "example.com") {
   const username = `p${id}`;
-  const email = `projects-${id}@example.com`;
+  const email = `projects-${id}@${emailDomain}`;
   await page.goto(at("app", "/signup"));
   await page.getByRole("textbox", { name: "Your name" }).fill("Nour Adel");
   await page.getByRole("button", { name: "Next" }).click();

@@ -49,6 +49,9 @@ export default defineConfig({
         SURFACE_SWITCHER: "true",
         FIREBASE_ENV: "emulator",
         RATE_LIMITS: "off",
+        // Phase 6: test admins, a fixed exchange rate, and the practice checkout (no Paymob keys).
+        ADMIN_EMAILS: "*@admin.test",
+        USD_EGP_RATE: "50",
       },
     },
   ],

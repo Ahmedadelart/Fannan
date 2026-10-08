@@ -6,7 +6,7 @@
 //
 // On hosts outside the root domain (localhost, the Cloud Run staging URL) and when
 // SURFACE_SWITCHER is on, a cookie picks the surface so all three can be tested on one URL.
-// Custom artist domains are added in phase 6.
+// Artists' own domains (Pro) are looked up in src/lib/server/domains.ts.
 
 export type Surface =
   | { kind: "marketing" }
