@@ -7,7 +7,7 @@ export async function GET() {
   let body: string;
   if (kind === "site" && username) {
     const site = await liveSite(username);
-    const indexable = site && (site as { privacy?: { indexable?: boolean } }).privacy?.indexable !== false;
+    const indexable = site && site.settings.privacy.indexable && !site.sitePasswordHash;
     body = indexable
       ? `User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: ${origin}/sitemap.xml\n`
       : "User-agent: *\nDisallow: /\n";

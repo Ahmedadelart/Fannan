@@ -18,7 +18,22 @@ declare global {
 const field = "w-full border px-3.5 py-3 text-[16px] outline-none focus:border-[var(--site-text)]";
 
 /** The working contact form on an artist's live site. Styled by the artist's theme. */
-export function ContactForm({ button, turnstileKey }: { button: string; turnstileKey: string }) {
+export interface ContactFields {
+  projectType: boolean;
+  budget: boolean;
+  deadline: boolean;
+  customQuestion: string;
+}
+
+export function ContactForm({
+  button,
+  turnstileKey,
+  fields,
+}: {
+  button: string;
+  turnstileKey: string;
+  fields?: ContactFields;
+}) {
   const t = useTranslations("site.contact");
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [problem, setProblem] = useState<string | null>(null);
@@ -111,6 +126,30 @@ export function ContactForm({ button, turnstileKey }: { button: string; turnstil
         {t("email")}
         <input name="email" type="email" dir="ltr" autoComplete="email" maxLength={200} className={field} style={box} />
       </label>
+      {fields?.projectType && (
+        <label className="grid gap-1.5 text-[14px] font-semibold">
+          {t("projectType")}
+          <input name="f_projectType" maxLength={200} className={field} style={box} />
+        </label>
+      )}
+      {fields?.budget && (
+        <label className="grid gap-1.5 text-[14px] font-semibold">
+          {t("budget")}
+          <input name="f_budget" maxLength={200} className={field} style={box} />
+        </label>
+      )}
+      {fields?.deadline && (
+        <label className="grid gap-1.5 text-[14px] font-semibold">
+          {t("deadline")}
+          <input name="f_deadline" maxLength={200} className={field} style={box} />
+        </label>
+      )}
+      {fields?.customQuestion && (
+        <label className="grid gap-1.5 text-[14px] font-semibold">
+          {fields.customQuestion}
+          <input name="f_custom" maxLength={500} className={field} style={box} />
+        </label>
+      )}
       <label className="grid gap-1.5 text-[14px] font-semibold">
         {t("message")}
         <textarea name="message" rows={5} maxLength={5000} className={field} style={box} />

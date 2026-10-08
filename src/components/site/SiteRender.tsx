@@ -46,6 +46,8 @@ export interface SiteRenderProps {
   selectedBlockId?: string | null;
   /** "Made with Fannan" footer credit on the Free plan. */
   credit?: string | null;
+  /** Social links and CV from Settings, shown in the footer of live sites. */
+  footerLinks?: Array<{ href: string; label: string; download?: boolean }>;
   categoryLabel?: (id: string) => string;
   /** Public site: real links between pages and projects, lightbox and hover-play markers. */
   live?: boolean;
@@ -858,6 +860,7 @@ export function SiteRender({
   editing = false,
   selectedBlockId,
   credit,
+  footerLinks = [],
   categoryLabel,
   live = false,
   renderContact,
@@ -931,15 +934,34 @@ export function SiteRender({
       <div className={cx("flex flex-col gap-12 p-[var(--site-pad)]", theme.nav === "sidebar" && "site-with-sidebar")}>
         <Nav site={site} page={page} ctx={ctx} />
         {body}
-        {credit && (
-          <footer className="pt-8 text-center text-[12px]" style={{ color: "var(--site-muted)" }}>
-            {live ? (
-              <a href="https://fannan.net" style={{ color: "inherit" }}>
-                {credit}
-              </a>
-            ) : (
-              credit
+        {(credit || footerLinks.length > 0) && (
+          <footer
+            className="flex flex-col items-center gap-3 pt-8 text-center text-[12px]"
+            style={{ color: "var(--site-muted)" }}
+          >
+            {footerLinks.length > 0 && (
+              <nav className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[14px]" data-testid="footer-links">
+                {footerLinks.map((l) => (
+                  <a
+                    key={l.href}
+                    href={l.href}
+                    rel={l.download ? undefined : "me noopener"}
+                    target={l.download ? undefined : "_blank"}
+                    style={{ color: "var(--site-text)" }}
+                  >
+                    {l.label}
+                  </a>
+                ))}
+              </nav>
             )}
+            {credit &&
+              (live ? (
+                <a href="https://fannan.net" style={{ color: "inherit" }}>
+                  {credit}
+                </a>
+              ) : (
+                credit
+              ))}
           </footer>
         )}
       </div>

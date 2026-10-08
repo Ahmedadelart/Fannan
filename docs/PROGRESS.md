@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 8 Oct 2026, phase 4 live on fannan.net; email domain and forwarding waiting on Ahmed._
+_Last updated: 8 Oct 2026, phase 5 (inbox, stats, settings, account)._
 
 ## Done
 
@@ -102,13 +102,26 @@ _Last updated: 8 Oct 2026, phase 4 live on fannan.net; email domain and forwardi
 - **Checked live:** homepage name box → app.fannan.net sign-up → publish → `{name}.fannan.net` with contact form and credit. Lighthouse (phone, production): performance 92–95, accessibility/best practices/SEO 100.
 - **Fonts:** Readex Pro and Alexandria ship in `src/fonts` (Google Fonts sometimes serves them at extension-less URLs, which crashed next/font in CI).
 
+- **Email:** Resend sends from hello@fannan.net (domain verified); Cloudflare Email Routing forwards support@ and hello@fannan.net to fannan.team@gmail.com. DMARC is `p=none` for now; tighten after a few weeks of clean sending.
+
+### Phase 5: Inbox, stats, settings, account
+- **Messages** (`app.fannan.net/messages`, nav item with an unread count): every contact-form message, newest first; All / Unread; opening marks it read; mark unread; reply by email (opens your mail app addressed to the sender); delete. Extra answers (project type, budget, deadline, your own question) show above the message. The dashboard's Messages card lists the latest three.
+- **Stats** (`/stats`, matching Stats.dc.html), counted by our own server, **no cookies and no IP addresses stored**: a visitor is a daily-changing scrambled code of (site, IP, browser), so nobody can be followed across days. Bots and headless browsers are ignored. Visitors, project views, average time on site, messages, each with change vs the previous period; a daily bar chart (lime on days you published, hover for the number, a hidden table for screen readers); top projects; where visitors came from; countries (from Cloudflare). Free: 7 and 30 days. Pro: 90 days, referrers and countries. One Firestore document per site per day (`stats/{siteId}_{YYYYMMDD}`).
+- **Settings** (`/settings`, matching Settings.dc.html). Live straight away, no publishing needed:
+  - **Domain:** change your Fannan address; the old one forwards visitors (and keeps its path) for 30 days, then it's free for others. Own domain shows as Pro, coming in phase 6.
+  - **Privacy:** whole-site password (Pro, checked on the server, media behind signed links, never indexed), protect images, show in Fannan search (saved; the search itself comes later), let Google index (robots meta, `robots.txt`, sitemap).
+  - **Contact & hiring:** Fannan inbox (always), email copy on/off, extra questions (project type, budget, deadline, one custom question), social links (shown in the site footer and in search engines' "same as" data), CV PDF (download link in the footer). WhatsApp shows as "coming soon".
+  - **Search & sharing:** site title, description, share image. **Language and favicon** go into the draft and change the live site on the next publish ("English and Arabic" shows as coming soon).
+  - **Integrations:** Google Analytics ID and Meta Pixel ID (format-checked, loaded only when set); custom code (Pro, later); ArtStation/Behance import (later); **Export my site**: a zip of every original file (one folder per project), `site.json` (pages, projects, captions, credits, settings; no password hashes) and `messages.json`, streamed straight from storage.
+  - **Plan & billing:** current plan and Pro prices from `config/plans.json` in EGP or USD; buying arrives in phase 6.
+  - **Account:** change sign-in email (we email a confirmation link to the new address; nothing changes until it's clicked); delete account: the site goes offline at once, everything (site, files, messages, stats, usernames, sign-in) is deleted for good after 14 days by the daily cleanup; logging in before then shows "Keep my account".
+- **Firestore indexes** for messages (`firestore.indexes.json`); the visitor-code map in stats documents is excluded from indexing.
+- **Tests:** `tests/e2e/settings.spec.ts`: stats move when a (non-bot) visitor arrives and repeat visits don't double count; contact extra questions with the email copy off; inbox read/unread/reply/delete; every live setting shows on the site without publishing; export zip; address change forwards; delete and keep account; whole-site password on Pro; email-change confirmation; Arabic + phone fit.
+
 ## In progress
-- Email: Resend domain verification (needs Ahmed: the key is "sending only") and Cloudflare Email Routing to Ahmed's Gmail (the token can't manage destination addresses).
 - Nothing.
 
 ## Blocked on Ahmed
-- **Resend:** add the domain fannan.net (auto-configure with Cloudflare). Until then contact-form emails are not delivered (messages are still saved for the inbox in phase 5).
-- **Email Routing:** forward support@ and hello@fannan.net to his Gmail (Cloudflare dashboard).
 - **Old site:** whoever hosted "Fannan - Digital Sanctuary for Artists" should have fannan.net removed from that service.
 - Billing on `fannan-staging` (needed before phase 2): Google refused to link it because the billing account already has its 5-project limit (fannan, zareef, feshar, artgym, klaket). Ahmed to request a higher limit or free a slot.
 
@@ -136,7 +149,7 @@ _Last updated: 8 Oct 2026, phase 4 live on fannan.net; email domain and forwardi
 - **Rate limits** loosened (40 sign-up actions per minute per IP) so a class on one Wi-Fi can sign up together; `RATE_LIMITS=off` only in automated tests.
 - **"Publish project" and "Preview"** from the design arrive with publishing (phase 3) and the public renderer (phase 4).
 - **Checked on staging:** photo, GIF, loop and PDF processed by the cloud function in about 9 s. A Vimeo link was added but came back as "Vimeo video" with no poster: Vimeo's info service may refuse requests from Google's servers. YouTube titles and posters work. Revisit in phase 4 (fallback: the Vimeo player shows its own poster).
-- Sign-up funnel events sent right before a page change can be dropped by the browser; switch them to `navigator.sendBeacon` when the stats work starts (phase 5).
+- Sign-up funnel events sent right before a page change can be dropped by the browser; switch them to `navigator.sendBeacon` (site stats already use it).
 - **Turbopack bug:** Readex Pro and Alexandria must load as variable fonts (no explicit weights), or the build fails with "next/font/google queries have exactly one entry".
 - **Editing in place** on the canvas (typing directly into headings) isn't built; text is edited in the right panel with a live canvas. Candidate for a later polish pass.
 - **Contact form and lightbox** look right in the editor; they start working on the live site in phase 4.
@@ -146,4 +159,6 @@ _Last updated: 8 Oct 2026, phase 4 live on fannan.net; email domain and forwardi
 - **In-memory caches are process-wide** (`src/lib/server/shared-memory.ts`); webpack can load a module once per route bundle.
 - **Load balancer script** `infra/setup-domain.sh` kept for later if traffic outgrows the Worker; not used.
 - **Login lifetimes on this PC:** `gcloud` and the Firebase CLI logins expire about daily; re-run `gcloud auth login` / `firebase login --reauth` when commands fail with re-authentication errors.
+- **Stats limits:** a site's daily document holds the visitor codes for that day; about 40,000 different visitors a day per site fit. Plenty for portfolios; if a site ever goes viral we'd move the codes to their own documents.
+- **Own visits count** in stats (we can't tell the artist apart without cookies). The test "visit your site from another device" therefore moves the numbers too.
 - **Cold starts:** production scales to zero; the first visit after a quiet spell takes a few extra seconds. A minimum of 1 instance (~$7/month) would remove that; decide after launch.

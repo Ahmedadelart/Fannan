@@ -44,6 +44,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "check-failed" }, { status: 400 });
   }
 
+  // Extra questions the artist turned on in Settings.
+  const asked = site.settings.contact;
+  const fields: Record<string, string> = {};
+  const add = (on: boolean, label: string, v: unknown, max = 200) => {
+    const x = clean(v, max);
+    if (on && x) fields[label] = x;
+  };
+  add(asked.projectType, "projectType", body.f_projectType);
+  add(asked.budget, "budget", body.f_budget);
+  add(asked.deadline, "deadline", body.f_deadline);
+  add(!!asked.customQuestion, asked.customQuestion, body.f_custom, 500);
+
   await adminDb()
     .collection("messages")
     .add({
@@ -52,20 +64,28 @@ export async function POST(req: NextRequest) {
       name,
       email,
       body: message,
+      fields,
       page: clean(body.page, 300),
       read: false,
       createdAt: FieldValue.serverTimestamp(),
     });
 
-  const owner = await getUser(site.ownerUid);
+  // Every message lands in the Fannan inbox; the email copy is optional (Settings → Contact).
+  const owner = asked.email ? await getUser(site.ownerUid) : null;
   if (owner?.email) {
     const ar = site.language === "ar";
+    const labels: Record<string, string> = ar
+      ? { projectType: "نوع المشروع", budget: "الميزانية", deadline: "الموعد النهائي" }
+      : { projectType: "Project type", budget: "Budget", deadline: "Deadline" };
+    const extra = Object.entries(fields)
+      .map(([k, v]) => `${labels[k] ?? k}: ${v}`)
+      .join("\n");
     await sendEmail({
       to: owner.email,
       replyTo: email,
       subject: ar ? `رسالة جديدة من ${name} عبر موقعك على فنان` : `New message from ${name} via your Fannan site`,
-      text: `${name} <${email}>\n\n${message}\n\n— ${username}.fannan.net`,
-      html: `<p><b>${escapeHtml(name)}</b> &lt;${escapeHtml(email)}&gt;</p><p style="white-space:pre-line">${escapeHtml(message)}</p><p style="color:#6A6A70">— ${escapeHtml(username!)}.fannan.net · ${ar ? "اضغط «رد» للرد مباشرة" : "Press Reply to answer them directly"}</p>`,
+      text: `${name} <${email}>\n\n${extra ? `${extra}\n\n` : ""}${message}\n\n— ${username}.fannan.net`,
+      html: `<p><b>${escapeHtml(name)}</b> &lt;${escapeHtml(email)}&gt;</p>${extra ? `<p style="white-space:pre-line;color:#3A3A40">${escapeHtml(extra)}</p>` : ""}<p style="white-space:pre-line">${escapeHtml(message)}</p><p style="color:#6A6A70">— ${escapeHtml(username!)}.fannan.net · ${ar ? "اضغط «رد» للرد مباشرة" : "Press Reply to answer them directly"}</p>`,
     });
   }
   return NextResponse.json({ ok: true });

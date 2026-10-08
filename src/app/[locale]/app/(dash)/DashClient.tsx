@@ -19,7 +19,7 @@ export function DashNav({
   items,
   label,
 }: {
-  items: Array<{ href: string; icon: IconName; label: string }>;
+  items: Array<{ href: string; icon: IconName; label: string; count?: number; countLabel?: string }>;
   label: string;
 }) {
   const pathname = usePathname();
@@ -50,6 +50,15 @@ export function DashNav({
               </span>
             )}
             {n.label}
+            {!!n.count && (
+              <span
+                className="bg-ink ms-auto flex h-5 min-w-5 items-center justify-center rounded-pill px-1.5 text-[11px] font-semibold text-white"
+                data-testid="unread-count"
+              >
+                {n.count}
+                <span className="sr-only"> {n.countLabel}</span>
+              </span>
+            )}
           </a>
         );
       })}

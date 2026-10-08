@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { timingSafeEqual } from "node:crypto";
-import { cleanupAnonymousDrafts } from "@/lib/server/data";
+import { cleanupAnonymousDrafts, cleanupDeletedAccounts } from "@/lib/server/data";
 
 // Daily housekeeping, called by Cloud Scheduler with the CRON_SECRET header.
 export async function POST(req: NextRequest) {
@@ -10,5 +10,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
   const removed = await cleanupAnonymousDrafts();
-  return NextResponse.json({ removed });
+  const deleted = await cleanupDeletedAccounts();
+  return NextResponse.json({ removed, deleted });
 }

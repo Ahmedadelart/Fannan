@@ -16,6 +16,7 @@
     "emulators": "firebase emulators:start --project demo-fannan"
   },
   "dependencies": {
+    "archiver": "^7.0.1",
     "firebase": "^12.19.0",
     "firebase-admin": "^14.5.0",
     "google-auth-library": "^11.1.0",
@@ -28,6 +29,7 @@
   "devDependencies": {
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
+    "@types/archiver": "^6.0.4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

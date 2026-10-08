@@ -15,7 +15,7 @@ export async function GET() {
   let urls: Array<{ loc: string; lastmod?: string }> = [];
   if (kind === "site" && username) {
     const site = await liveSite(username);
-    if (site && (site as { privacy?: { indexable?: boolean } }).privacy?.indexable !== false) {
+    if (site && site.settings.privacy.indexable && !site.sitePasswordHash) {
       const lastmod = new Date(site.publishedAt).toISOString().slice(0, 10);
       urls = [
         ...site.pages

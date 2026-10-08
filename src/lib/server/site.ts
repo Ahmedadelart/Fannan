@@ -269,7 +269,13 @@ export async function publish(o: Owner): Promise<{ version: number }> {
   const now = Timestamp.now();
   const batch = db().batch();
   batch.set(ref.collection("published").doc(String(version)), snapshot);
-  batch.update(ref, { publishedVersion: version, publishedAt: now, publishedLanguage: draft.language });
+  batch.update(ref, {
+    publishedVersion: version,
+    publishedAt: now,
+    publishedLanguage: draft.language,
+    // For the stats chart: days the artist put new work live.
+    publishDays: FieldValue.arrayUnion(new Date().toISOString().slice(0, 10).replace(/-/g, "")),
+  });
   projectSnap.docs.forEach((d) => batch.update(d.ref, { publishedAt: now }));
   await batch.commit();
 

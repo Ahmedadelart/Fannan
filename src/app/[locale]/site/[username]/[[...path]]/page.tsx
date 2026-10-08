@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import type { ReactNode } from "react";
@@ -14,6 +15,7 @@ import type { Locale } from "@/i18n/locales";
 import { imageSources, posterSources } from "@/lib/media";
 import { surfaceOfRequest } from "@/lib/server/host";
 import { accessCookieName, checkAccessCookie, liveSite, mediaToken, type LiveSite } from "@/lib/server/public";
+import { usernameRedirect } from "@/lib/server/settings";
 import type { PublishedProject } from "@/lib/server/site";
 import { TURNSTILE_SITE_KEY } from "@/lib/server/turnstile";
 import type { SiteDraft } from "@/lib/site/types";
@@ -85,6 +87,8 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const site = await liveSite(username);
   if (!site) return { title: username, robots: { index: false } };
   const r = resolve(site, path);
+  const { indexable } = site.settings.privacy;
+  const sitePassword = !!site.sitePasswordHash;
   const { origin } = await surfaceOfRequest();
   const abs = (u: string | undefined | null) => (u ? new URL(u, origin).toString() : undefined);
   const firstCover = site.projects.find((p) => p.visibility === "public" && p.coverId)?.coverId;
@@ -95,7 +99,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
     alternates: { canonical: abs(`/${path?.join("/") ?? ""}`) },
   };
   if (!r) return { ...base, title: site.title, robots: { index: false } };
-  const locked = !!r.hash;
+  const locked = !!r.hash || sitePassword;
   if (r.kind === "project") {
     const p = r.project;
     const text = projectText(site, p);
@@ -106,21 +110,25 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
       ...base,
       title: { absolute: title },
       description,
-      robots: { index: !locked && p.visibility === "public" },
+      robots: { index: indexable && !locked && p.visibility === "public" },
       openGraph: { title, description, type: "article", images: image ? [image] : undefined },
       twitter: { card: image ? "summary_large_image" : "summary" },
     };
   }
+  const seo = site.settings.seo;
   const title = r.page.slug
-    ? `${r.page.title} · ${site.title}`
-    : `${site.title}${site.tagline ? ` · ${site.tagline}` : ""}`;
-  const image = abs(mediaFor(site, firstCover ?? site.theme.logoMediaId, "/m/")?.src);
+    ? `${r.page.title} · ${seo.title || site.title}`
+    : seo.title || `${site.title}${site.tagline ? ` · ${site.tagline}` : ""}`;
+  const description = seo.description || site.tagline || site.title;
+  const image = locked
+    ? undefined
+    : abs(mediaFor(site, seo.shareImageId ?? firstCover ?? site.theme.logoMediaId, "/m/")?.src);
   return {
     ...base,
     title: { absolute: title },
-    description: site.tagline || site.title,
-    robots: { index: !locked },
-    openGraph: { title, description: site.tagline, type: "profile", images: image ? [image] : undefined },
+    description,
+    robots: { index: indexable && !locked },
+    openGraph: { title, description, type: "profile", images: image ? [image] : undefined },
     twitter: { card: image ? "summary_large_image" : "summary" },
   };
 }
@@ -346,9 +354,14 @@ function jsonLd(site: LiveSite, origin: string, project?: PublishedProject) {
     name: site.title,
     jobTitle: site.tagline || undefined,
     url: origin,
-    sameAs: site.pages.flatMap((p) =>
-      p.blocks.flatMap((b) => (b.type === "social" ? b.links.map((l) => l.url).filter(Boolean) : [])),
-    ),
+    sameAs: [
+      ...new Set([
+        ...site.settings.social.map((l) => l.url),
+        ...site.pages.flatMap((p) =>
+          p.blocks.flatMap((b) => (b.type === "social" ? b.links.map((l) => l.url).filter(Boolean) : [])),
+        ),
+      ]),
+    ],
   };
   const data = project
     ? {
@@ -369,6 +382,50 @@ function jsonLd(site: LiveSite, origin: string, project?: PublishedProject) {
   );
 }
 
+/** The artist's own Google Analytics and Meta Pixel, when set in Settings (IDs validated on save). */
+function Integrations({ ga, pixel }: { ga: string; pixel: string }) {
+  return (
+    <>
+      {ga && (
+        <>
+          <Script src={`https://www.googletagmanager.com/gtag/js?id=${ga}`} strategy="afterInteractive" />
+          <Script id="ga" strategy="afterInteractive">
+            {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${ga}');`}
+          </Script>
+        </>
+      )}
+      {pixel && (
+        <Script id="pixel" strategy="afterInteractive">
+          {`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${pixel}');fbq('track','PageView');`}
+        </Script>
+      )}
+    </>
+  );
+}
+
+const NETWORK_NAMES: Record<string, string> = {
+  instagram: "Instagram",
+  artstation: "ArtStation",
+  behance: "Behance",
+  linkedin: "LinkedIn",
+  youtube: "YouTube",
+  vimeo: "Vimeo",
+  x: "X",
+  tiktok: "TikTok",
+  facebook: "Facebook",
+};
+
+/** Social links and the CV from Settings. */
+function footerLinks(site: LiveSite, cvLabel: string) {
+  const links: Array<{ href: string; label: string; download?: boolean }> = site.settings.social.map((l) => ({
+    href: l.url,
+    label: NETWORK_NAMES[l.network] ?? new URL(l.url).hostname.replace(/^www\./, ""),
+  }));
+  const cv = site.settings.cvMediaId;
+  if (cv && site.media[cv]) links.push({ href: `/m/pdf/${site.siteId}/${cv}`, label: cvLabel, download: true });
+  return links;
+}
+
 /* ---------- the page ---------- */
 
 export default async function ArtistSite({ params }: { params: Promise<Params> }) {
@@ -377,6 +434,19 @@ export default async function ArtistSite({ params }: { params: Promise<Params> }
   const site = await liveSite(username);
   const ts = await getTranslations("site");
   if (!site) {
+    // A changed username keeps working for 30 days.
+    const moved = await usernameRedirect(username);
+    if (moved) {
+      const { origin } = await surfaceOfRequest();
+      const rest = `/${path?.join("/") ?? ""}`;
+      const target = new URL(rest, origin);
+      if (target.hostname.startsWith(`${username}.`)) {
+        target.hostname = `${moved}${target.hostname.slice(username.length)}`;
+        redirect(target.toString());
+      }
+      // Staging and local previews pick the site with the surface switcher instead of a subdomain.
+      redirect(`/__surface?to=${encodeURIComponent(`site:${moved}`)}&next=${encodeURIComponent(rest)}`);
+    }
     return (
       <>
         <StagingBar />
@@ -394,9 +464,17 @@ export default async function ArtistSite({ params }: { params: Promise<Params> }
 
   const { origin } = await surfaceOfRequest();
   const jar = await cookies();
-  const unlocked =
-    !r.hash || checkAccessCookie(jar.get(accessCookieName(r.scope))?.value, site.siteId, r.scope, site.version);
-  const base = r.kind === "project" && r.hash ? `/m/t/${mediaToken(site.siteId, r.scope)}/` : "/m/";
+  const pass = (scope: string) =>
+    checkAccessCookie(jar.get(accessCookieName(scope))?.value, site.siteId, scope, site.version);
+  // Whole-site password (Pro) first, then the page or project's own.
+  const siteLocked = !!site.sitePasswordHash && !pass("site");
+  const unlocked = !siteLocked && (!r.hash || pass(r.scope));
+  const base =
+    r.kind === "project" && r.hash
+      ? `/m/t/${mediaToken(site.siteId, r.scope)}/`
+      : site.sitePasswordHash
+        ? `/m/t/${mediaToken(site.siteId, "site")}/`
+        : "/m/";
 
   const contactPage = site.pages.find((p) => p.blocks.some((b) => b.type === "contact"));
   const contactHref =
@@ -408,7 +486,8 @@ export default async function ArtistSite({ params }: { params: Promise<Params> }
   const credit = site.plan === "free" ? ts("credit") : null;
 
   let content: ReactNode | undefined;
-  if (!unlocked) content = <PasswordScreen username={username} scope={r.scope} />;
+  if (siteLocked) content = <PasswordScreen username={username} scope="site" />;
+  else if (!unlocked) content = <PasswordScreen username={username} scope={r.scope} />;
   else if (r.kind === "project") content = <ProjectView site={site} project={r.project} base={base} />;
 
   // Visitors only download the text the site needs.
@@ -425,14 +504,15 @@ export default async function ArtistSite({ params }: { params: Promise<Params> }
         live
         content={content}
         credit={credit}
+        footerLinks={footerLinks(site, ts("cv"))}
         contactHref={contactHref}
         available={{ on: site.available.on, label: ts("available"), hire: ts("hireMe") }}
-        renderContact={(b) => <ContactForm button={b.button} turnstileKey={TURNSTILE_SITE_KEY} />}
+        renderContact={(b) => (
+          <ContactForm button={b.button} turnstileKey={TURNSTILE_SITE_KEY} fields={site.settings.contact} />
+        )}
       />
-      <SiteEnhancer
-        protectImages={!!(site as { privacy?: { protectImages?: boolean } }).privacy?.protectImages}
-        closeLabel={ts("close")}
-      />
+      <SiteEnhancer protectImages={site.settings.privacy.protectImages} closeLabel={ts("close")} />
+      <Integrations ga={site.settings.integrations.gaId} pixel={site.settings.integrations.pixelId} />
       {unlocked && jsonLd(site, origin, r.kind === "project" ? r.project : undefined)}
     </NextIntlClientProvider>
   );

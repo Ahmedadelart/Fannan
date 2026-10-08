@@ -41,6 +41,9 @@
       "name": "Your name",
       "email": "Your email",
       "message": "Message",
+      "projectType": "Project type",
+      "budget": "Budget",
+      "deadline": "Deadline",
       "sending": "Sending…",
       "sent": "Thanks! Your message is on its way.",
       "missing": "Please fill in your name, a valid email and a message.",
@@ -67,7 +70,8 @@
       "download": "Download PDF",
       "back": "All work",
       "pages": "{count, plural, one {# page} other {# pages}}"
-    }
+    },
+    "cv": "Résumé (PDF)"
   },
   "kitchen": {
     "metaTitle": "Interface kit",
@@ -272,7 +276,8 @@
     "sent": "We sent a sign-in link to {email}. Open it on this device or any other.",
     "noAccount": "New to Fannan?",
     "signup": "Build your portfolio",
-    "restoring": "Signing you in…"
+    "restoring": "Signing you in…",
+    "deleted": "Your account will be deleted in 14 days. Log in before then if you change your mind."
   },
   "authLink": {
     "metaTitle": "Signing in",
@@ -290,7 +295,8 @@
       "editor": "Site editor",
       "projects": "Projects",
       "stats": "Stats",
-      "settings": "Settings"
+      "settings": "Settings",
+      "messages": "Messages"
     },
     "navLabel": "App",
     "freePlan": "Free plan",
@@ -327,14 +333,17 @@
     "stats": {
       "title": "Last 30 days",
       "emptyTitle": "No visitors yet",
-      "emptyText": "Share your link and your numbers show up here."
+      "emptyText": "Share your link and your numbers show up here.",
+      "visitors": "{count, plural, one {visitor} other {visitors}}",
+      "views": "{count, plural, one {# page view} other {# page views}}"
     },
     "messages": {
       "title": "Messages",
-      "sub": "From your contact form · also sent to your email",
+      "sub": "From your contact form",
       "emptyTitle": "No messages yet",
       "emptyText": "Turn on “Available for work” so studios know they can reach you.",
-      "emptyAction": "Turn it on"
+      "emptyAction": "Turn it on",
+      "all": "All messages"
     },
     "projects": {
       "title": "Projects",
@@ -364,7 +373,10 @@
       "text": "This part of Fannan is being built right now.",
       "back": "Back to dashboard"
     },
-    "hireMe": "Hire me"
+    "hireMe": "Hire me",
+    "unread": "{count, plural, one {# unread} other {# unread}}",
+    "deletionPending": "Your account is set to be deleted. Your site is offline. Open Settings to keep it.",
+    "proPlan": "Pro plan"
   },
   "projects": {
     "metaTitle": "Projects",
@@ -749,5 +761,231 @@
       "count": "{n} of 3"
     },
     "editBlock": "Edit block"
+  },
+  "inbox": {
+    "title": "Messages",
+    "sub": "{count, plural, one {# message} other {# messages}} · {unread} unread",
+    "subEmpty": "Everything people send from your contact form and “Hire me” button.",
+    "emptyTitle": "No messages yet",
+    "emptyText": "Share {address} and messages from your contact form land here.",
+    "filter": "Show",
+    "all": "All",
+    "unread": "Unread ({count})",
+    "noUnread": "You’ve read everything.",
+    "error": "That didn’t work. Please try again.",
+    "deleteConfirm": "Delete the message from {name}? This can’t be undone.",
+    "deleted": "Message deleted",
+    "replySubject": "Re: your message on {site}",
+    "new": "New",
+    "fields": {
+      "projectType": "Project type",
+      "budget": "Budget",
+      "deadline": "Deadline"
+    },
+    "sentFrom": "Sent from",
+    "reply": "Reply by email",
+    "markUnread": "Mark as unread",
+    "delete": "Delete"
+  },
+  "stats": {
+    "title": "Stats",
+    "sub": "Who’s looking at your work, and where they came from.",
+    "range": "Date range",
+    "days": "{n} days",
+    "proRange": "90 days of stats come with Pro",
+    "kpi": {
+      "visitors": "Visitors",
+      "projectViews": "Project views",
+      "avgTime": "Avg. time on site",
+      "messages": "Messages"
+    },
+    "minutes": "{m}m {s}s",
+    "seconds": "{s}s",
+    "deltaNew": "New this period",
+    "delta": "{value} vs previous period",
+    "publishedDay": "Day you published",
+    "publishedShort": "published",
+    "visitorsCount": "{count, plural, one {# visitor} other {# visitors}}",
+    "viewsCount": "{count, plural, one {# view} other {# views}}",
+    "emptyTitle": "No visitors yet",
+    "emptyText": "Share your link. Visits show up here within a minute. Your own visits from this browser count too.",
+    "openSite": "Open my site",
+    "daysAgo": "{n} days ago",
+    "today": "Today",
+    "day": "Day",
+    "views": "Page views",
+    "topProjects": "Top projects",
+    "noneYet": "Nothing yet for this period.",
+    "referrers": "Where visitors came from",
+    "countries": "Countries",
+    "proOnly": "See where visitors come from and which countries they’re in with Pro.",
+    "upgrade": "Learn about Pro",
+    "gaNote": "Want deeper reports? Add your Google Analytics ID in Settings.",
+    "ref": {
+      "direct": "Direct / your link",
+      "google": "Google search",
+      "fannan": "Fannan"
+    },
+    "reachedOut": "Who reached out",
+    "reachedOutSub": "Messages from your contact form and “Hire me” button in this period",
+    "openMessages": "Open messages"
+  },
+  "settings": {
+    "title": "Site settings",
+    "sub": "Your address, who can see it, and how studios reach you.",
+    "onThisPage": "On this page",
+    "nav": {
+      "domain": "Domain",
+      "privacy": "Privacy",
+      "contact": "Contact & hiring",
+      "language": "Language & sharing",
+      "integrations": "Integrations",
+      "plan": "Plan & billing",
+      "account": "Account"
+    },
+    "fixErrors": "Please fix the highlighted fields first.",
+    "error": "That didn’t work. Please try again.",
+    "slowDown": "That’s a lot of changes. Please wait a bit and try again.",
+    "saved": "Saved. Your live site is updated.",
+    "savedPublish": "Saved. Language and favicon change on your site the next time you publish.",
+    "unsaved": "You have unsaved changes",
+    "saving": "Saving…",
+    "save": "Save changes",
+    "soon": "Coming soon",
+    "replace": "Replace",
+    "upload": "Upload",
+    "remove": "Remove",
+    "optional": "Optional",
+    "appliesOnPublish": "Language changes your live site the next time you publish.",
+    "domain": {
+      "title": "Domain",
+      "sub": "Where people find your site.",
+      "type": "Domain type",
+      "fannan": "Fannan address",
+      "custom": "Your own domain",
+      "address": "Your Fannan address",
+      "hint": "Letters, numbers and hyphens. Free SSL included.",
+      "change": "Change address",
+      "open": "Open my site",
+      "confirm": "Change your address? {old} will forward to the new one for 30 days, then it’s free for others to take.",
+      "changed": "Address changed",
+      "redirect": "If you change it, your old address forwards visitors to the new one for 30 days.",
+      "customTitle": "Use your own domain, like yourname.com",
+      "customText": "Connecting your own domain comes with Pro, which arrives in the next update. Your Fannan address keeps working either way."
+    },
+    "privacy": {
+      "title": "Privacy",
+      "password": "Password-protect the whole site",
+      "passwordHint": "Visitors need a password to see anything",
+      "proOnly": "A password for the whole site is part of Pro.",
+      "sitePassword": "Site password",
+      "newPassword": "New password",
+      "setPassword": "Set password",
+      "passwordOn": "Your site now needs a password",
+      "passwordOff": "Password removed",
+      "protect": "Protect images",
+      "protectHint": "Turns off right-click saving and dragging images",
+      "searchable": "Show in Fannan search",
+      "searchableHint": "Studios searching Fannan can find you",
+      "indexable": "Let Google index my site",
+      "indexableHint": "Turn off to keep your site out of search results"
+    },
+    "contact": {
+      "title": "Contact & hiring",
+      "sub": "Messages from your contact form and “Hire me” button go to:",
+      "inbox": "Fannan inbox",
+      "inboxHint": "Always on, under Messages",
+      "email": "Email",
+      "whatsapp": "WhatsApp",
+      "whatsappHint": "A WhatsApp message for each new enquiry",
+      "askFor": "Ask visitors for",
+      "name": "Name",
+      "emailField": "Email",
+      "projectType": "Project type",
+      "budget": "Budget",
+      "deadline": "Deadline",
+      "custom": "Custom question",
+      "customLabel": "Your question",
+      "customPlaceholder": "e.g. Which studio are you with?",
+      "social": "Social links",
+      "socialN": "Social link {n}",
+      "socialMore": "Behance, Vimeo, X, TikTok…",
+      "addLink": "Add a link",
+      "cv": "Résumé / CV (PDF)",
+      "cvHint": "Shown as a download link at the bottom of your site.",
+      "cvUpload": "Upload CV"
+    },
+    "language": {
+      "title": "Language",
+      "sub": "Your site’s language. Arabic flips the layout right to left.",
+      "en": "English only",
+      "enHint": "Default",
+      "ar": "Arabic only",
+      "arHint": "Right to left, Arabic fonts",
+      "both": "English and Arabic",
+      "bothHint": "Visitors switch with a toggle"
+    },
+    "seo": {
+      "title": "Search & sharing",
+      "siteTitle": "Site title",
+      "description": "Description",
+      "descriptionPlaceholder": "Character design, 2D animation and storyboards from Cairo.",
+      "shareImage": "Share image",
+      "shareImageHint": "Shown when your link is shared. 1200 × 630 works best.",
+      "favicon": "Favicon",
+      "faviconHint": "The small icon in the browser tab. Square works best."
+    },
+    "integrations": {
+      "title": "Integrations",
+      "ga": "Google Analytics ID",
+      "gaError": "It looks like G-XXXXXXXXXX. You’ll find it in Google Analytics under Admin → Data streams.",
+      "pixel": "Meta Pixel ID",
+      "pixelError": "A Meta Pixel ID is only numbers. You’ll find it in Meta Events Manager.",
+      "code": "Custom code in <head>",
+      "codeHint": "For Pro sites. Coming soon.",
+      "artstation": "Import from ArtStation",
+      "behance": "Import from Behance",
+      "export": "Export my site (.zip)",
+      "exportHint": "Every file you uploaded, in full quality, plus your words and settings. Yours to keep."
+    },
+    "plan": {
+      "title": "Plan & billing",
+      "free": "Free",
+      "current": "Current plan",
+      "freeBlurb": "Everything you need to get your work out there.",
+      "pro": "Pro · {months} months",
+      "tags": {
+        "3": "Try it",
+        "6": "Popular",
+        "12": "Best value"
+      },
+      "perMonth": "{price} a month",
+      "once": "Paid once. Nothing renews automatically.",
+      "soon": "Available soon",
+      "note": "Prices follow your country: EGP in Egypt, USD everywhere else. Pro is prepaid: we email you before it ends, and if it runs out your site stays up on Free and nothing is deleted.",
+      "egp": "{n} EGP"
+    },
+    "account": {
+      "title": "Account",
+      "email": "Sign-in email",
+      "saveFirst": "Save your site to an email first",
+      "newEmail": "New email",
+      "changeEmail": "Change email",
+      "emailSent": "We sent a link to {email}. Your email changes when you click it.",
+      "emailErrors": {
+        "taken": "Another Fannan account already uses that email.",
+        "invalid": "That doesn’t look like an email address.",
+        "slow-down": "That’s a lot of tries. Please wait an hour.",
+        "anonymous": "Save your site to an email first."
+      },
+      "delete": "Delete my account",
+      "deleteText": "Your site goes offline straight away. Everything is deleted for good after 14 days. Until then you can change your mind by logging in.",
+      "deleteConfirm": "Type {name} to confirm",
+      "deleteButton": "Delete my account",
+      "typeName": "Type your Fannan name exactly to confirm.",
+      "pendingTitle": "Your account is set to be deleted",
+      "pendingText": "Your site is offline. Everything is deleted for good on {date}.",
+      "cancelDelete": "Keep my account"
+    }
   }
 }

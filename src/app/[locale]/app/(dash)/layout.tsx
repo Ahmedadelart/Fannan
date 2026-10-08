@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Logo } from "@/components/ui/Logo";
 import type { Locale } from "@/i18n/locales";
+import { countUnread } from "@/lib/server/settings";
 import { DashNav, LanguageButton, LogoutButton } from "./DashClient";
 import { loadDashboard } from "./load";
 
@@ -9,6 +10,7 @@ export default async function DashLayout({ children, params }: LayoutProps<"/[lo
   const { locale } = (await params) as { locale: Locale };
   setRequestLocale(locale);
   const { user, site, projects, limits } = await loadDashboard();
+  const unread = await countUnread(site.id).catch(() => 0);
   const t = await getTranslations("dashboard");
   const tp = await getTranslations("projects");
   // Storage is never advertised as a number: only a calm percentage here, louder from 80%.
@@ -33,13 +35,20 @@ export default async function DashLayout({ children, params }: LayoutProps<"/[lo
             { href: "/", icon: "dashboard", label: t("nav.dashboard") },
             { href: "/editor", icon: "site-editor", label: t("nav.editor") },
             { href: "/projects", icon: "projects", label: t("nav.projects") },
+            {
+              href: "/messages",
+              icon: "messages",
+              label: t("nav.messages"),
+              count: unread,
+              countLabel: t("unread", { count: unread }),
+            },
             { href: "/stats", icon: "stats", label: t("nav.stats") },
             { href: "/settings", icon: "settings", label: t("nav.settings") },
           ]}
         />
         <div className="bg-mist hidden flex-col gap-2.5 rounded-md p-3.5 md:mt-auto md:flex">
           <div className="flex justify-between text-[12px]">
-            <span className="font-semibold">{t("freePlan")}</span>
+            <span className="font-semibold">{user.plan === "pro" ? t("proPlan") : t("freePlan")}</span>
             {limit !== null && <span className="text-muted">{t("projectsUsed", { count: projects, limit })}</span>}
           </div>
           {limit !== null && (
@@ -85,7 +94,14 @@ export default async function DashLayout({ children, params }: LayoutProps<"/[lo
           <LogoutButton label={t("logout")} />
         </div>
       </aside>
-      <main className="flex min-w-0 flex-1 flex-col gap-6 px-4 pt-6 pb-12 md:px-9 md:pt-[30px]">{children}</main>
+      <main className="flex min-w-0 flex-1 flex-col gap-6 px-4 pt-6 pb-12 md:px-9 md:pt-[30px]">
+        {user.deletion && (
+          <a href="/settings#account" role="alert" className="bg-lime rounded-lg p-4 text-[14px] font-semibold">
+            {t("deletionPending")}
+          </a>
+        )}
+        {children}
+      </main>
     </div>
   );
 }

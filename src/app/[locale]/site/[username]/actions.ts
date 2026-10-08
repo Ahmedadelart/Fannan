@@ -17,9 +17,11 @@ export async function unlock(formData: FormData): Promise<{ ok: boolean }> {
   const site = await liveSite(username);
   if (!site) return { ok: false };
   const hash =
-    site.pages.find((p) => p.id === scope)?.passwordHash ??
-    site.projects.find((p) => p.id === scope)?.passwordHash ??
-    null;
+    scope === "site"
+      ? site.sitePasswordHash
+      : (site.pages.find((p) => p.id === scope)?.passwordHash ??
+        site.projects.find((p) => p.id === scope)?.passwordHash ??
+        null);
   if (!hash || !(await checkPassword(hash, password))) return { ok: false };
 
   const proto = h.get("x-forwarded-proto")?.split(",")[0].trim();

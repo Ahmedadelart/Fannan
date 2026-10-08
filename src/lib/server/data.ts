@@ -6,6 +6,7 @@ import { checkUsername, normalizeUsername, type UsernameProblem } from "@/config
 import type { Locale } from "@/i18n/locales";
 import { adminAuth, adminDb } from "@/lib/firebase/admin";
 import { generateStarter } from "@/lib/site/starter";
+import { deletePrefix } from "./storage";
 import type { LayoutId, SiteDraft } from "@/lib/site/types";
 
 // All reads and writes go through the server (firebase-admin). Browser access to Firestore
@@ -32,6 +33,8 @@ export interface UserDoc {
   onboarding?: Onboarding;
   siteId?: string;
   checklistDismissed?: boolean;
+  /** Set when the artist asked to delete their account; everything goes after `at`. */
+  deletion?: { requestedAt?: Timestamp; at: Timestamp };
   createdAt?: Timestamp;
 }
 
@@ -49,6 +52,12 @@ export interface SiteDoc {
   aboutWritten?: boolean;
   /** Bytes of originals stored for this site (kept up to date on upload and delete). */
   storageUsed?: number;
+  /** Days (YYYYMMDD) the artist published; lime bars on the stats chart. */
+  publishDays?: string[];
+  /** Whole-site password (Pro), scrypt hash. */
+  passwordHash?: string | null;
+  suspended?: boolean;
+  suspendedReason?: string;
   createdAt?: Timestamp;
 }
 
@@ -105,7 +114,7 @@ export async function dismissChecklist(uid: string) {
 
 interface UsernameDoc {
   uid: string;
-  status: "held" | "claimed";
+  status: "held" | "claimed" | "redirect";
   expiresAt?: Timestamp | null;
   siteId?: string;
 }
@@ -115,7 +124,8 @@ export type Availability = { ok: true } | { ok: false; reason: UsernameProblem |
 function freeFor(doc: UsernameDoc | undefined, uid: string | null): boolean {
   if (!doc) return true;
   if (uid && doc.uid === uid) return true;
-  return doc.status === "held" && !!doc.expiresAt && doc.expiresAt.toMillis() < Date.now();
+  // Holds and old addresses that redirect free up once they expire; claimed names never do.
+  return doc.status !== "claimed" && !!doc.expiresAt && doc.expiresAt.toMillis() < Date.now();
 }
 
 export async function usernameAvailability(input: string, uid: string | null): Promise<Availability> {
@@ -328,8 +338,32 @@ export async function makeNamesPermanent(uid: string) {
   await batch.commit();
 }
 
+/** A site and everything hanging off it: pages, projects, media files, messages and stats. */
 async function deleteSite(siteId: string) {
   await db().recursiveDelete(sites().doc(siteId));
+  await Promise.all([deletePrefix(`originals/${siteId}/`), deletePrefix(`variants/${siteId}/`)]).catch((e) =>
+    console.error("deleteSite files", siteId, e),
+  );
+  for (const col of ["messages", "stats"]) {
+    for (;;) {
+      const snap = await db().collection(col).where("siteId", "==", siteId).limit(400).get();
+      if (snap.empty) break;
+      const batch = db().batch();
+      snap.docs.forEach((d) => batch.delete(d.ref));
+      await batch.commit();
+    }
+  }
+}
+
+/** Removes an account for good: site, usernames (including old-name redirects), profile and sign-in. */
+async function purgeAccount(uid: string, user: UserDoc) {
+  if (user.siteId) await deleteSite(user.siteId);
+  const names = await usernames().where("uid", "==", uid).get();
+  await Promise.all(names.docs.map((n) => n.ref.delete()));
+  await users().doc(uid).delete();
+  await adminAuth()
+    .deleteUser(uid)
+    .catch(() => {});
 }
 
 /* ---------- housekeeping ---------- */
@@ -338,17 +372,15 @@ async function deleteSite(siteId: string) {
 export async function cleanupAnonymousDrafts(): Promise<number> {
   const cutoff = Timestamp.fromMillis(Date.now() - ANONYMOUS_HOLD_MS);
   const stale = await users().where("isAnonymous", "==", true).where("createdAt", "<", cutoff).limit(200).get();
-  for (const d of stale.docs) {
-    const u = d.data() as UserDoc;
-    if (u.siteId) await deleteSite(u.siteId);
-    const names = await usernames().where("uid", "==", d.id).get();
-    await Promise.all(names.docs.map((n) => n.ref.delete()));
-    await d.ref.delete();
-    await adminAuth()
-      .deleteUser(d.id)
-      .catch(() => {});
-  }
+  for (const d of stale.docs) await purgeAccount(d.id, d.data() as UserDoc);
   return stale.size;
+}
+
+/** Accounts whose 14-day deletion grace period has ended. */
+export async function cleanupDeletedAccounts(): Promise<number> {
+  const due = await users().where("deletion.at", "<", Timestamp.now()).limit(100).get();
+  for (const d of due.docs) await purgeAccount(d.id, d.data() as UserDoc);
+  return due.size;
 }
 
 /* ---------- sign-up funnel (anonymous: no names, no emails, no ids) ---------- */

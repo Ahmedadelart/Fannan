@@ -173,6 +173,25 @@ export function SiteEnhancer({ protectImages, closeLabel }: { protectImages: boo
       on(el, "pointerleave", () => video?.remove());
     });
 
+    // Visit counting: one beacon on arrival, one with the time spent when the visitor leaves.
+    const started = Date.now();
+    const beacon = (body: object) => {
+      try {
+        navigator.sendBeacon("/api/hit", JSON.stringify(body));
+      } catch {
+        /* never let stats break the site */
+      }
+    };
+    beacon({ t: "view", p: location.pathname, r: document.referrer });
+    let sent = false;
+    const leave = () => {
+      if (sent || document.visibilityState !== "hidden") return;
+      sent = true;
+      beacon({ t: "leave", d: (Date.now() - started) / 1000 });
+    };
+    document.addEventListener("visibilitychange", leave);
+    cleanups.push(() => document.removeEventListener("visibilitychange", leave));
+
     if (protectImages) {
       const stop = (e: Event) => {
         if ((e.target as HTMLElement).closest("img, picture, video")) e.preventDefault();

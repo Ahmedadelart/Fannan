@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { getFormatter, getTranslations, setRequestLocale } from "next-intl/server";
 import { ScaledSite } from "@/components/site/ScaledSite";
 import { SiteRender } from "@/components/site/SiteRender";
 import { Badge } from "@/components/ui/Badge";
@@ -10,6 +10,8 @@ import type { Locale } from "@/i18n/locales";
 import { cx } from "@/lib/cx";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { listProjects } from "@/lib/server/projects";
+import { listMessages } from "@/lib/server/settings";
+import { statsReport } from "@/lib/server/stats";
 import { AvailabilityCard, HideChecklistButton, ShareButton, TurnOnButton } from "./DashClient";
 import { loadDashboard } from "./load";
 import { NewProjectButton } from "./projects/NewProjectButton";
@@ -43,7 +45,13 @@ export default async function Dashboard({ params }: PageProps<"/[locale]/app">) 
   const t = await getTranslations("dashboard");
   const { session, user, site, draft, render, address, siteUrl, checklist } = await loadDashboard();
   const tp = await getTranslations("projects");
-  const projects = (await listProjects(site.id)).slice(0, 6);
+  const [allProjects, latest, report] = await Promise.all([
+    listProjects(site.id),
+    listMessages(site.id, 3).catch(() => []),
+    statsReport(site.id, 30, site.publishDays ?? []).catch(() => null),
+  ]);
+  const projects = allProjects.slice(0, 6);
+  const format = await getFormatter();
   const badgeLabels = {
     live: tp("badge.live"),
     password: tp("badge.password"),
@@ -152,10 +160,22 @@ export default async function Dashboard({ params }: PageProps<"/[locale]/app">) 
             <div className="flex items-center justify-between">
               <span className="font-semibold">{t("stats.title")}</span>
             </div>
-            <div className="flex flex-1 flex-col items-center justify-center gap-1 py-4 text-center">
-              <span className="font-heading font-heading-weight text-[18px]">{t("stats.emptyTitle")}</span>
-              <span className="text-muted text-[13px]">{t("stats.emptyText")}</span>
-            </div>
+            {report && report.totals.views > 0 ? (
+              <a href="/stats" className="flex flex-1 flex-col gap-1 py-2">
+                <span className="font-heading font-heading-weight text-[40px] leading-none">
+                  {format.number(report.totals.visitors)}
+                </span>
+                <span className="text-muted text-[13px]">
+                  {t("stats.visitors", { count: report.totals.visitors })} ·{" "}
+                  {t("stats.views", { count: report.totals.views })}
+                </span>
+              </a>
+            ) : (
+              <div className="flex flex-1 flex-col items-center justify-center gap-1 py-4 text-center">
+                <span className="font-heading font-heading-weight text-[18px]">{t("stats.emptyTitle")}</span>
+                <span className="text-muted text-[13px]">{t("stats.emptyText")}</span>
+              </div>
+            )}
           </Card>
         )}
       </div>
@@ -163,8 +183,34 @@ export default async function Dashboard({ params }: PageProps<"/[locale]/app">) 
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <SectionTitle icon="messages">{t("messages.title")}</SectionTitle>
-          <span className="text-muted text-[13px]">{t("messages.sub")}</span>
+          {latest.length > 0 ? (
+            <a href="/messages" className={buttonClasses("outline", "sm")}>
+              {t("messages.all")}
+            </a>
+          ) : (
+            <span className="text-muted text-[13px]">{t("messages.sub")}</span>
+          )}
         </div>
+        {latest.length > 0 ? (
+          <ul className="divide-line divide-y" data-testid="latest-messages">
+            {latest.map((m) => (
+              <li key={m.id}>
+                <a href="/messages" className="hover:bg-mist/60 -mx-2 flex items-start gap-3 rounded-[10px] px-2 py-2.5">
+                  <span aria-hidden className={cx("mt-2 size-2 flex-none rounded-full", m.read ? "" : "bg-ink")} />
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="flex justify-between gap-3">
+                      <span className={cx("truncate", m.read ? "font-medium" : "font-semibold")}>{m.name}</span>
+                      <span className="text-muted flex-none text-[12px]">
+                        {format.dateTime(new Date(m.createdAt), { dateStyle: "medium" })}
+                      </span>
+                    </span>
+                    <span className="text-ink-soft line-clamp-1 text-[13px]">{m.body}</span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
         <div className="flex flex-col items-center gap-2.5 py-6 text-center">
           <span className="bg-lime flex rounded-[14px] p-3">
             <Icon name="messages" size={40} />
@@ -177,6 +223,7 @@ export default async function Dashboard({ params }: PageProps<"/[locale]/app">) 
             </>
           )}
         </div>
+        )}
       </Card>
 
       <section className="flex flex-col gap-3.5" aria-labelledby="projects-title">

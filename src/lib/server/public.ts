@@ -3,18 +3,24 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { adminDb } from "@/lib/firebase/admin";
 import type { SiteDoc } from "./data";
+import { settingsFrom, type SiteSettings } from "./settings";
 import { sharedMap } from "./shared-memory";
-import { readPublished, type PublishedSite } from "./site";
+import type { MediaDoc } from "./projects";
+import { readPublished, toSiteMedia, type PublishedSite } from "./site";
 
 // Everything the public renderer reads: username → site → published snapshot.
 // One small in-memory cache per server instance; Cloudflare caches pages in front of it.
 
 const TTL_MS = 30_000;
-const cache = sharedMap<string, { at: number; value: (PublishedSite & { siteId: string; ownerUid: string }) | null }>(
-  "liveSite",
-);
+const cache = sharedMap<string, { at: number; value: LiveSite | null }>("liveSite");
 
-export type LiveSite = PublishedSite & { siteId: string; ownerUid: string };
+/** The published snapshot plus the settings that apply live (availability, privacy, contact...). */
+export type LiveSite = PublishedSite & {
+  siteId: string;
+  ownerUid: string;
+  settings: SiteSettings;
+  sitePasswordHash: string | null;
+};
 
 export async function liveSite(username: string): Promise<LiveSite | null> {
   const key = username.toLowerCase();
@@ -30,7 +36,31 @@ export async function liveSite(username: string): Promise<LiveSite | null> {
       (SiteDoc & { suspended?: boolean }) | undefined;
     if (site?.publishedVersion && !site.suspended) {
       const snap = await readPublished(name.siteId, site.publishedVersion);
-      if (snap) value = { ...snap, available: site.available, siteId: name.siteId, ownerUid: site.ownerUid };
+      if (snap) {
+        const raw = site as SiteDoc & Parameters<typeof settingsFrom>[0];
+        const settings = settingsFrom(raw);
+        // The share image and CV are live settings, outside the snapshot: add them to its media.
+        const extra = [settings.seo.shareImageId, settings.cvMediaId].filter(
+          (id): id is string => !!id && !snap.media[id],
+        );
+        const media = { ...snap.media };
+        if (extra.length) {
+          const docs = await db.getAll(...extra.map((id) => db.collection("sites").doc(name.siteId!).collection("media").doc(id)));
+          for (const d of docs) {
+            const m = d.data() as MediaDoc | undefined;
+            if (m?.status === "ready") media[d.id] = toSiteMedia(d.id, m);
+          }
+        }
+        value = {
+          ...snap,
+          media,
+          available: site.available,
+          siteId: name.siteId,
+          ownerUid: site.ownerUid,
+          settings,
+          sitePasswordHash: raw.passwordHash ?? null,
+        };
+      }
     }
   }
   cache.set(key, { at: Date.now(), value });
@@ -85,8 +115,10 @@ export function checkMediaToken(token: string, siteId: string): string | null {
 }
 
 /** Which media ids sit behind a password, by scope (project id or page id). */
-export function protectedMedia(site: PublishedSite): Map<string, string> {
+export function protectedMedia(site: PublishedSite & { sitePasswordHash?: string | null }): Map<string, string> {
   const map = new Map<string, string>();
+  // With a whole-site password, every picture needs a token; project passwords still take priority.
+  if (site.sitePasswordHash) Object.keys(site.media).forEach((id) => map.set(id, "site"));
   for (const p of site.projects) {
     if (p.visibility === "password" && p.passwordHash) p.mediaIds.forEach((id) => map.set(id, p.id));
   }

@@ -9,8 +9,19 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/app/logi
   return { title: t("metaTitle"), robots: { index: false } };
 }
 
-export default async function LoginPage({ params }: PageProps<"/[locale]/app/login">) {
+export default async function LoginPage({ params, searchParams }: PageProps<"/[locale]/app/login">) {
   const { locale } = (await params) as { locale: Locale };
   setRequestLocale(locale);
-  return <LoginForm />;
+  const deleted = (await searchParams).deleted === "1";
+  const t = await getTranslations("login");
+  return (
+    <>
+      {deleted && (
+        <p role="status" className="bg-lime mx-auto mt-6 max-w-[440px] rounded-lg p-4 text-[14px] font-medium">
+          {t("deleted")}
+        </p>
+      )}
+      <LoginForm />
+    </>
+  );
 }
