@@ -711,14 +711,13 @@
       "url": "Link to",
       "inNav": "Show in navigation",
       "home": "Home page",
-      "up": "Move up",
-      "down": "Move down",
       "delete": "Delete page",
       "password": "Password for this page",
       "passwordSet": "A password is set.",
       "savePassword": "Save password",
       "removePassword": "Remove password",
-      "proOnly": "Page passwords are part of Pro."
+      "proOnly": "Page passwords are part of Pro.",
+      "drag": "Drag to move {page} (or use the arrow keys)"
     },
     "fields": {
       "heading": "Heading",
@@ -807,7 +806,20 @@
       "done": "Got it",
       "count": "{n} of 3"
     },
-    "editBlock": "Edit block"
+    "editBlock": "Edit block",
+    "typeHere": "Type here",
+    "reorder": "Reorder",
+    "reorderDone": "Done",
+    "section": {
+      "toolbar": "Section",
+      "drag": "Drag to move (or use the arrow keys)",
+      "settings": "Settings",
+      "add": "Add a block below",
+      "duplicate": "Duplicate",
+      "remove": "Delete",
+      "hint": "Tip: click any text on the page to type in it. Drag the ⠿ handle on the section to move it.",
+      "reorderHint": "Drag sections to change their order, then press Done."
+    }
   },
   "inbox": {
     "title": "Messages",

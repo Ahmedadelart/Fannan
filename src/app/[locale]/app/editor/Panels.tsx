@@ -2,6 +2,7 @@
 
 import { useRef, useState, type DragEvent, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { moveTo, startSortDrag } from "@/components/editor/sortDrag";
 import type { SiteMedia } from "@/components/site/SiteRender";
 import { arabicFonts, bodyFonts, headingFonts } from "@/components/site/fonts";
 import { Badge } from "@/components/ui/Badge";
@@ -600,13 +601,26 @@ export function PagesTab({
   const index = draft.pages.indexOf(page);
   const setPage = (patch: Partial<PageDraft>, key?: string) =>
     setDraft((d) => ({ ...d, pages: d.pages.map((p) => (p.id === page.id ? { ...p, ...patch } : p)) }), key);
-  const move = (by: number) =>
+  // The home page stays first; the others are dragged into the order they appear in the menu.
+  const list = useRef<HTMLUListElement>(null);
+  const [mark, setMark] = useState<number | null>(null);
+  const movePage = (id: string, toIndex: number) =>
     setDraft((d) => {
-      const pages = [...d.pages];
-      const j = index + by;
-      if (j < 0 || j >= pages.length) return d;
-      [pages[index], pages[j]] = [pages[j], pages[index]];
-      return { ...d, pages };
+      const [home, ...rest] = d.pages;
+      return { ...d, pages: [home, ...moveTo(rest, id, toIndex)] };
+    });
+  const dragPage = (e: React.PointerEvent, id: string) =>
+    startSortDrag(e, {
+      dragId: id,
+      items: () =>
+        [...(list.current?.querySelectorAll<HTMLElement>("[data-page-id]") ?? [])]
+          .filter((el) => el.dataset.home !== "1")
+          .map((el) => ({ id: el.dataset.pageId!, el })),
+      onMark: (m) => {
+        const top = list.current?.getBoundingClientRect().top ?? 0;
+        setMark(m ? m.y - top : null);
+      },
+      onDrop: (i) => movePage(id, i),
     });
   const add = (type: PageType) => {
     const id = newId();
@@ -637,15 +651,35 @@ export function PagesTab({
 
   return (
     <div className="flex flex-col gap-4 px-3.5 pt-4 pb-6">
-      <ul className="flex flex-col gap-1">
+      <ul ref={list} className="relative flex flex-col gap-1" data-testid="page-list">
         {draft.pages.map((p, i) => (
-          <li key={p.id}>
+          <li key={p.id} data-page-id={p.id} data-home={i === 0 ? "1" : undefined} className="flex items-center gap-1">
+            {i === 0 ? (
+              <span className="w-7 flex-none" aria-hidden />
+            ) : (
+              <button
+                type="button"
+                aria-label={t("drag", { page: p.title })}
+                title={t("drag", { page: p.title })}
+                className="text-muted hover:text-ink flex h-[42px] w-7 flex-none cursor-grab touch-none items-center justify-center"
+                onPointerDown={(e) => dragPage(e, p.id)}
+                onKeyDown={(e) => {
+                  if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+                  e.preventDefault();
+                  const others = draft.pages.slice(1).map((x) => x.id);
+                  const at = others.indexOf(p.id) + (e.key === "ArrowUp" ? -1 : 1);
+                  if (at >= 0 && at < others.length) movePage(p.id, at);
+                }}
+              >
+                <Icon name="drag" size={18} />
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setPageId(p.id)}
               aria-current={p.id === page.id}
               className={cx(
-                "flex h-[42px] w-full items-center justify-between rounded-[10px] px-2.5 text-start",
+                "flex h-[42px] min-w-0 flex-1 items-center justify-between rounded-[10px] px-2.5 text-start",
                 p.id === page.id ? "bg-mist font-semibold" : "hover:bg-mist/60",
               )}
             >
@@ -656,6 +690,9 @@ export function PagesTab({
             </button>
           </li>
         ))}
+        {mark !== null && (
+          <li aria-hidden className="bg-ink pointer-events-none absolute inset-x-0 h-1 rounded" style={{ top: mark - 3 }} />
+        )}
       </ul>
 
       <div className="border-line flex flex-col gap-3 rounded-md border p-3">
@@ -679,18 +716,6 @@ export function PagesTab({
         )}
         <Switch title={t("inNav")} checked={page.showInNav} onChange={(v) => setPage({ showInNav: v })} />
         <div className="flex flex-wrap gap-1.5">
-          <Button size="sm" variant="outline" icon="undo" disabled={index <= 0} onClick={() => move(-1)}>
-            {t("up")}
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            icon="redo"
-            disabled={index >= draft.pages.length - 1}
-            onClick={() => move(1)}
-          >
-            {t("down")}
-          </Button>
           <Button
             size="sm"
             variant="outline"

@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 8 Oct 2026, phase 8 (Editor 2.0) under way: 8A done._
+_Last updated: 8 Oct 2026, phase 8 (Editor 2.0) under way: 8A and 8B done, 8C next._
 
 ## Done
 
@@ -151,6 +151,14 @@ _Last updated: 8 Oct 2026, phase 8 (Editor 2.0) under way: 8A done._
 - **Project categories** in grouped menus (`src/config/categories.ts`): animation and motion, illustration and comics, design, photography and film, architecture and interiors, fashion, fine art and crafts, 3D and games, music and performance, writing, other.
 - **Starter and marketing wording** no longer assumes animation (block placeholders, homepage strip and examples, help, SEO placeholder).
 - Quick fixes from Ahmed's review: the marketing header no longer shifts on inner pages; sign-up shows the signed-in email with "Not you? Sign out".
+
+### Phase 8B: Drag, click, type
+- **Type on the page:** every text in the editor preview (headings, paragraphs, captions, labels, buttons, credits, logo names, quotes, the site name in the header) is edited in place: click and type, Enter finishes one-line text, Esc leaves. Empty fields show "Type here" on the selected section. The settings panel stays in sync, undo/redo works, and the live site stays plain HTML (`InlineText` is only used on the editor canvas).
+- **Section toolbar:** clicking a section shows a small toolbar on its top edge: drag handle (also arrow keys), settings, add below, duplicate, delete. The old up/down/duplicate/delete buttons in the side panel are gone.
+- **Drag sections** by the handle with a "Drop here" line, auto-scrolling near the edges; **Reorder** in the top bar zooms the page out so whole sections are dragged, then Done.
+- **Pages** are dragged into menu order by a handle (arrow keys too); the home page stays first.
+- New icons (Swiss style, ICONS.md): duplicate, reorder.
+- **Tests:** `tests/e2e/editor2.spec.ts` (type on the page incl. the site name, toolbar drag + keyboard, duplicate/delete, reorder view, page drag, everything published; Arabic typing).
 
 ## Not done yet from the phase 6 "done when"
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).

@@ -4,6 +4,7 @@ import { cx } from "@/lib/cx";
 import { imageSources, posterSources, type MediaLike } from "@/lib/media";
 import type { Block, BlockOf, PageDraft, SiteDraft, ThumbRatio } from "@/lib/site/types";
 import { parseVideoLink, videoPoster } from "@/lib/video";
+import { InlineText } from "@/components/editor/InlineText";
 import { arabicFonts, bodyFonts, headingFonts, siteFontVars } from "./fonts";
 
 // Renders an artist site from its draft (or a published snapshot). Artist sites use the artist's
@@ -44,6 +45,12 @@ export interface SiteRenderProps {
   /** Editor and dashboard previews: show sample art and placeholders for empty blocks. */
   editing?: boolean;
   selectedBlockId?: string | null;
+  /** Editor canvas: text is typed in place. Path is the field inside the block, e.g. "items.2.title". */
+  onText?: (blockId: string, path: string, value: string) => void;
+  /** Editor canvas: the site name and tagline in the header, typed in place. */
+  onSiteText?: (field: "title" | "tagline", value: string) => void;
+  /** Placeholder for empty text fields on the editor canvas ("Type here"). */
+  typeHere?: string;
   /** "Made with Fannan" footer credit on the Free plan. */
   credit?: string | null;
   /** Social links and CV from Settings, shown in the footer of live sites. */
@@ -403,12 +410,8 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
               background: img ? "linear-gradient(transparent, rgba(0,0,0,.45))" : undefined,
             }}
           >
-            {b.heading && (
-              <h1 style={heading(52)} className="@max-2xl:!text-[34px]">
-                {b.heading}
-              </h1>
-            )}
-            {b.subheading && <p className="m-0 text-[18px] opacity-85">{b.subheading}</p>}
+            <T ctx={ctx} path="heading" value={b.heading} as="h1" style={heading(52)} className="@max-2xl:!text-[34px]" />
+            <T ctx={ctx} path="subheading" value={b.subheading} as="p" className="m-0 text-[18px] opacity-85" />
           </div>
         </div>
       );
@@ -424,7 +427,13 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
             marginInline: b.align === "center" ? "auto" : undefined,
           }}
         >
-          {b.text ? paragraphs(b.text) : <Empty show={ctx.editing}>¶</Empty>}
+          {ctx.onText ? (
+            <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path="text" value={b.text} as="div" multiline />
+          ) : b.text ? (
+            paragraphs(b.text)
+          ) : (
+            <Empty show={ctx.editing}>¶</Empty>
+          )}
         </div>
       );
     case "hero":
@@ -438,7 +447,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
           }}
           className="@max-2xl:!text-[36px]"
         >
-          {b.text}
+          {ctx.onText ? <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path="text" value={b.text} /> : b.text}
         </h2>
       );
     case "columns":
@@ -446,10 +455,16 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
         <div className="site-grid grid gap-8" style={{ ["--cols" as string]: Math.max(1, b.items.length) }}>
           {b.items.map((c, i) => (
             <div key={i} className="flex flex-col gap-2">
-              <h3 style={heading(22)}>{c.heading}</h3>
-              <p className="m-0" style={{ color: "var(--site-muted)" }}>
-                {c.text}
-              </p>
+              <T ctx={ctx} path={`items.${i}.heading`} value={c.heading} as="h3" style={heading(22)} />
+              <T
+                ctx={ctx}
+                path={`items.${i}.text`}
+                value={c.text}
+                as="p"
+                className="m-0"
+                style={{ color: "var(--site-muted)" }}
+                multiline
+              />
             </div>
           ))}
         </div>
@@ -475,11 +490,13 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
             eager={(ctx.index ?? 9) <= 1}
             className={b.fullWidth ? "!rounded-none" : undefined}
           />
-          {b.caption && (
-            <figcaption style={{ color: "var(--site-muted)", padding: b.fullWidth ? "0 var(--site-pad)" : undefined }}>
-              {b.caption}
-            </figcaption>
-          )}
+          <T
+            ctx={ctx}
+            path="caption"
+            value={b.caption}
+            as="figcaption"
+            style={{ color: "var(--site-muted)", padding: b.fullWidth ? "0 var(--site-pad)" : undefined }}
+          />
         </figure>
       );
     }
@@ -492,7 +509,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       return (
         <figure className="m-0 flex flex-col gap-2">
           <Picture m={loop} base={ctx.base} />
-          {b.caption && <figcaption style={{ color: "var(--site-muted)" }}>{b.caption}</figcaption>}
+          <T ctx={ctx} path="caption" value={b.caption} as="figcaption" style={{ color: "var(--site-muted)" }} />
         </figure>
       );
     }
@@ -515,12 +532,18 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
             </div>
           </div>
           <span aria-hidden className="absolute inset-y-0 start-1/2 w-0.5 bg-white" />
-          <span className="absolute start-3 bottom-3 rounded-[6px] bg-black/60 px-2 py-0.5 text-[12px] font-semibold text-white">
-            {b.beforeLabel}
-          </span>
-          <span className="absolute end-3 bottom-3 rounded-[6px] bg-black/60 px-2 py-0.5 text-[12px] font-semibold text-white">
-            {b.afterLabel}
-          </span>
+          <T
+            ctx={ctx}
+            path="beforeLabel"
+            value={b.beforeLabel}
+            className="absolute start-3 bottom-3 rounded-[6px] bg-black/60 px-2 py-0.5 text-[12px] font-semibold text-white"
+          />
+          <T
+            ctx={ctx}
+            path="afterLabel"
+            value={b.afterLabel}
+            className="absolute end-3 bottom-3 rounded-[6px] bg-black/60 px-2 py-0.5 text-[12px] font-semibold text-white"
+          />
         </div>
       );
     }
@@ -538,7 +561,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
           <div className="flex flex-col gap-2">
             <span className="font-semibold">{doc.caption || doc.alt || "PDF"}</span>
             {doc.pages ? <span style={{ color: "var(--site-muted)" }}>{doc.pages} p.</span> : null}
-            <span className="site-button self-start">{b.label}</span>
+            <T ctx={ctx} path="label" value={b.label} className="site-button self-start" />
           </div>
         </div>
       );
@@ -548,7 +571,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
     case "credits":
       return (
         <div className="flex flex-col gap-4">
-          {b.heading && <h2 style={heading(28)}>{b.heading}</h2>}
+          <T ctx={ctx} path="heading" value={b.heading} as="h2" style={heading(28)} />
           <ul className="m-0 flex list-none flex-col p-0">
             {b.items
               .filter((c) => c.title || ctx.editing)
@@ -558,11 +581,26 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
                   className="grid grid-cols-[72px_1fr] gap-4 py-3 @max-xl:grid-cols-[56px_1fr]"
                   style={{ borderTop: "1px solid var(--site-line)" }}
                 >
-                  <span style={{ color: "var(--site-muted)" }}>{c.year}</span>
-                  <span className="flex flex-col">
-                    <span className="font-semibold">{c.title || "—"}</span>
-                    <span style={{ color: "var(--site-muted)" }}>{[c.role, c.studio].filter(Boolean).join(" · ")}</span>
-                  </span>
+                  {ctx.onText ? (
+                    <>
+                      <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path={`items.${i}.year`} value={c.year} style={{ color: "var(--site-muted)" }} />
+                      <span className="flex flex-col">
+                        <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path={`items.${i}.title`} value={c.title} className="font-semibold" />
+                        <span className="flex flex-wrap gap-x-1.5" style={{ color: "var(--site-muted)" }}>
+                          <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path={`items.${i}.role`} value={c.role} />
+                          <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path={`items.${i}.studio`} value={c.studio} />
+                        </span>
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span style={{ color: "var(--site-muted)" }}>{c.year}</span>
+                      <span className="flex flex-col">
+                        <span className="font-semibold">{c.title || "—"}</span>
+                        <span style={{ color: "var(--site-muted)" }}>{[c.role, c.studio].filter(Boolean).join(" · ")}</span>
+                      </span>
+                    </>
+                  )}
                 </li>
               ))}
           </ul>
@@ -571,7 +609,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
     case "logos":
       return (
         <div className="flex flex-col gap-5">
-          {b.heading && <h2 style={{ ...heading(20), color: "var(--site-muted)" }}>{b.heading}</h2>}
+          <T ctx={ctx} path="heading" value={b.heading} as="h2" style={{ ...heading(20), color: "var(--site-muted)" }} />
           <div className="flex flex-wrap items-center gap-x-10 gap-y-5">
             {b.items.map((l, i) => {
               const logo = m(l.mediaId);
@@ -587,9 +625,13 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
                   />
                 </span>
               ) : (
-                <span key={i} style={{ ...heading(22), opacity: 0.75 }}>
-                  {l.name}
-                </span>
+                <T
+                  key={i}
+                  ctx={{ ...ctx, selectedBlockId: ctx.blockId }}
+                  path={`items.${i}.name`}
+                  value={l.name}
+                  style={{ ...heading(22), opacity: 0.75 }}
+                />
               );
             })}
           </div>
@@ -601,11 +643,11 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       return (
         <div className="site-about grid gap-8">
           <div className="flex flex-col gap-4">
-            <h2 style={heading(32)}>{b.heading}</h2>
+            <T ctx={ctx} path="heading" value={b.heading} as="h2" style={heading(32)} />
             {photo && <Picture m={photo} base={ctx.base} ratio="4 / 5" want={800} className="max-w-[280px]" />}
           </div>
           <div className="flex flex-col gap-4 text-[18px] leading-[1.6]">
-            {paragraphs(b.text)}
+            {ctx.onText ? <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path="text" value={b.text} as="div" multiline /> : paragraphs(b.text)}
             {cv && <span className="site-button self-start">CV · PDF ↓</span>}
           </div>
         </div>
@@ -634,12 +676,8 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
           className="flex flex-col items-start gap-3 p-10 @max-xl:p-6"
           style={{ background: "var(--site-surface)", borderRadius: "calc(var(--site-radius) * 2)" }}
         >
-          <h2 style={heading(32)}>{b.heading}</h2>
-          {b.text && (
-            <p className="m-0" style={{ color: "var(--site-muted)" }}>
-              {b.text}
-            </p>
-          )}
+          <T ctx={ctx} path="heading" value={b.heading} as="h2" style={heading(32)} />
+          <T ctx={ctx} path="text" value={b.text} as="p" className="m-0" style={{ color: "var(--site-muted)" }} multiline />
           <div className="mt-2 grid w-full max-w-[520px] gap-2.5" aria-hidden>
             {[0, 1].map((i) => (
               <span
@@ -661,7 +699,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
               }}
             />
           </div>
-          <span className="site-button mt-1">{b.button}</span>
+          <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path="button" value={b.button} className="site-button mt-1" />
         </div>
       );
     case "hire":
@@ -679,7 +717,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
         >
           <span className="flex items-center gap-3 text-[18px] font-semibold">
             <span className="size-2.5 rounded-full" style={{ background: "currentColor" }} />
-            {b.text}
+            {ctx.onText ? <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path="text" value={b.text} /> : b.text}
           </span>
           <span
             className="rounded-full px-5 py-2.5 font-semibold"
@@ -709,13 +747,9 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       return (
         <blockquote className="m-0 flex max-w-[820px] flex-col gap-3">
           <p style={heading(30)} className="m-0 @max-2xl:!text-[24px]">
-            “{b.text}”
+            “{ctx.onText ? <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path="text" value={b.text} /> : b.text}”
           </p>
-          {b.author && (
-            <cite className="not-italic" style={{ color: "var(--site-muted)" }}>
-              {b.author}
-            </cite>
-          )}
+          <T ctx={ctx} path="author" value={b.author} as="cite" className="not-italic" style={{ color: "var(--site-muted)" }} />
         </blockquote>
       );
   }
@@ -733,6 +767,55 @@ interface Ctx {
   contactHref?: string;
   /** Position of the block on the page (0 = first). */
   index?: number;
+  blockId?: string;
+  selectedBlockId?: string | null;
+  onText?: SiteRenderProps["onText"];
+  onSiteText?: SiteRenderProps["onSiteText"];
+  typeHere?: string;
+}
+
+/**
+ * A piece of text. On the editor canvas it's typed in place (empty fields only show on the selected
+ * block, with a placeholder); everywhere else it's plain text, and empty text renders nothing.
+ */
+function T({
+  ctx,
+  path,
+  value,
+  as: Tag = "span",
+  className,
+  style,
+  multiline,
+}: {
+  ctx: Ctx;
+  path: string;
+  value: string;
+  as?: "span" | "h1" | "h2" | "h3" | "p" | "div" | "figcaption" | "cite";
+  className?: string;
+  style?: CSSProperties;
+  multiline?: boolean;
+}) {
+  const { onText, blockId } = ctx;
+  if (onText && blockId) {
+    if (!value && ctx.selectedBlockId !== blockId) return null;
+    return (
+      <InlineText
+        as={Tag}
+        value={value}
+        multiline={multiline}
+        placeholder={ctx.typeHere ?? "Type here"}
+        className={className}
+        style={style}
+        onChange={(v) => onText(blockId, path, v)}
+      />
+    );
+  }
+  if (!value) return null;
+  return (
+    <Tag className={className} style={style}>
+      {value}
+    </Tag>
+  );
 }
 
 /* ---------- the site ---------- */
@@ -754,7 +837,16 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
     </span>
   ) : (
     <span className="flex flex-col gap-0.5">
-      <span style={heading(theme.nav === "minimal" ? 20 : 26)}>{site.title}</span>
+      {ctx.onSiteText ? (
+        <InlineText
+          value={site.title}
+          placeholder={ctx.typeHere ?? "Type here"}
+          style={heading(theme.nav === "minimal" ? 20 : 26)}
+          onChange={(v) => ctx.onSiteText!("title", v)}
+        />
+      ) : (
+        <span style={heading(theme.nav === "minimal" ? 20 : 26)}>{site.title}</span>
+      )}
       {site.tagline && theme.nav !== "minimal" && (
         <span className="text-[14px]" style={{ color: "var(--site-muted)" }}>
           {site.tagline}
@@ -870,6 +962,9 @@ export function SiteRender({
   renderContact,
   contactHref,
   content,
+  onText,
+  onSiteText,
+  typeHere,
 }: SiteRenderProps) {
   const page = site.pages.find((p) => p.id === pageId) ?? site.pages[0];
   const { theme } = site;
@@ -883,6 +978,10 @@ export function SiteRender({
     live,
     renderContact,
     contactHref,
+    selectedBlockId,
+    onText,
+    onSiteText,
+    typeHere,
   };
   const arabic = site.language === "ar";
   const h = headingFonts[theme.fonts.heading];
@@ -914,7 +1013,7 @@ export function SiteRender({
           data-block-id={b.id}
           className={cx(editing && "site-block", selectedBlockId === b.id && "site-block-selected")}
         >
-          <BlockView b={b} ctx={{ ...ctx, index: i }} />
+          <BlockView b={b} ctx={{ ...ctx, index: i, blockId: b.id }} />
         </section>
       ))}
       {editing && page.blocks.length === 0 && <Empty show>+</Empty>}

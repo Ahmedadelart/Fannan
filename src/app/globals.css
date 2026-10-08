@@ -213,6 +213,30 @@
   box-shadow: 0 0 0 8px #c6f432;
 }
 
+/* Editor canvas: text typed in place (InlineText). */
+.site-root [data-inline-text] {
+  border-radius: 2px;
+}
+.site-root [data-inline-text]:empty::before {
+  content: attr(data-placeholder);
+  opacity: 0.45;
+}
+.site-root [data-inline-text]:hover {
+  outline: 1px dashed color-mix(in srgb, currentColor 45%, transparent);
+  outline-offset: 3px;
+}
+.site-root [data-inline-text]:focus {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+/* Reorder view: whole sections are grabbed, nothing inside them is clickable. */
+.fannan-reorder [data-block-id] {
+  cursor: grab;
+}
+.fannan-reorder [data-block-id] > * {
+  pointer-events: none;
+}
+
 /* Public site lightbox (SiteEnhancer). */
 .site-lightbox {
   width: 100vw;

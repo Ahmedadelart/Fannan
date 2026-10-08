@@ -3,7 +3,7 @@
 
 import { blockKinds, newId, sampleArt } from "./blocks";
 import { themes } from "./starter";
-import type { Block, PageDraft, PageType, SampleArt, SiteDraft, Theme, ThemePreset } from "./types";
+import type { Block, FreeItem, FreeKind, PageDraft, PageType, SampleArt, SiteDraft, Theme, ThemePreset } from "./types";
 
 type Any = Record<string, unknown>;
 const str = (v: unknown, max = 4000) => (typeof v === "string" ? v.slice(0, max) : "");
@@ -219,9 +219,71 @@ export function normalizeBlock(raw: unknown): Block | null {
       };
     case "quote":
       return { id, type: "quote", text: str(b.text, 600), author: str(b.author, 120) };
+    case "free":
+      return normalizeFree(id, b);
     default:
       return null;
   }
+}
+
+/* ---------- free-form sections ---------- */
+
+export const FREE_COLS = 24;
+const FREE_KINDS: FreeKind[] = ["text", "heading", "image", "button", "shape", "line", "video"];
+
+/** Links an artist can put on a button or picture: web, email, phone, or a page on their own site. */
+export function safeLink(v: unknown): string {
+  const s = str(v, 500).trim();
+  if (!s) return "";
+  if (/^\/[\w\-/#?=&.%]*$/.test(s)) return s;
+  if (/^(mailto:|tel:)[^\s<>"']+$/i.test(s)) return s;
+  try {
+    const u = new URL(/^https?:\/\//i.test(s) ? s : `https://${s}`);
+    return u.protocol === "https:" || u.protocol === "http:" ? u.toString() : "";
+  } catch {
+    return "";
+  }
+}
+
+function normalizeFreeItem(raw: Any): FreeItem {
+  const p = (raw.place ?? {}) as Any;
+  const w = num(p.w, 1, FREE_COLS, 8);
+  const x = num(p.x, 0, FREE_COLS - w, 0);
+  const h = num(p.h, 1, 200, 4);
+  return {
+    id: typeof raw.id === "string" && raw.id ? raw.id.slice(0, 40) : newId(),
+    kind: pick(raw.kind, FREE_KINDS, "text"),
+    place: { x, y: num(p.y, 0, 400, 0), w, h },
+    z: num(raw.z, 0, 999, 1),
+    rotate: num(raw.rotate, -180, 180, 0),
+    opacity: num(raw.opacity, 0, 100, 100),
+    hideOnPhone: bool(raw.hideOnPhone),
+    text: str(raw.text, 4000),
+    size: num(raw.size, 8, 240, 18),
+    align: pick(raw.align, ["start", "center", "end"], "start"),
+    color: raw.color === null || raw.color === undefined ? null : color(raw.color, "#141414"),
+    fill: raw.fill === null || raw.fill === undefined ? null : color(raw.fill, "#141414"),
+    mediaId: idOrNull(raw.mediaId),
+    fit: pick(raw.fit, ["cover", "contain"], "cover"),
+    radius: num(raw.radius, 0, 400, 0),
+    shape: pick(raw.shape, ["rect", "circle"], "rect"),
+    link: safeLink(raw.link),
+    url: str(raw.url, 500),
+    tone: color(raw.tone, "#5B3A2E"),
+  };
+}
+
+function normalizeFree(id: string, b: Any): Block {
+  const items = list(b.items, 60, normalizeFreeItem);
+  const lowest = items.reduce((m, i) => Math.max(m, i.place.y + i.place.h), 0);
+  return {
+    id,
+    type: "free",
+    rows: Math.max(num(b.rows, 2, 400, 12), lowest),
+    background: b.background === null || b.background === undefined ? null : color(b.background, "#FFFFFF"),
+    bgMediaId: idOrNull(b.bgMediaId),
+    items,
+  };
 }
 
 export function normalizePage(raw: unknown, i: number): PageDraft {

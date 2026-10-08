@@ -188,6 +188,8 @@ function blockMediaIds(b: Block): Array<string | null> {
       return [b.photoId, b.cvId];
     case "logos":
       return b.items.map((i) => i.mediaId);
+    case "free":
+      return [b.bgMediaId, ...b.items.map((i) => i.mediaId)];
     default:
       return [];
   }

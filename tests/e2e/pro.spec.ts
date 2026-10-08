@@ -53,6 +53,7 @@ async function buy(page: Page, months: number, pay: boolean) {
   await page.goto(at("app", "/upgrade"));
   await page.getByTestId(`plan-${months}`).getByRole("button", { name: `Get ${months} months` }).click();
   await expect(page).toHaveURL(/\/checkout\/\w+/);
+  await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: pay ? "Pay (practice)" : "Decline the card (practice)" }).click();
   await expect(page.getByTestId("payment-result")).toHaveAttribute("data-status", pay ? "paid" : "failed");
 }

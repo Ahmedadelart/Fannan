@@ -10,6 +10,8 @@ import { useToast } from "@/components/ui/Toast";
 import type { Locale } from "@/i18n/locales";
 import { cx } from "@/lib/cx";
 import { blockKinds, newId, type BlockKind } from "@/lib/site/blocks";
+import { setPath } from "@/lib/site/fields";
+import { moveTo, startSortDrag } from "@/components/editor/sortDrag";
 import type { Block, SiteDraft } from "@/lib/site/types";
 import { editorTipsSeen, publishSite, savePagePassword, saveSiteDraft } from "./actions";
 import { BlockSettings, BlocksTab, MediaPicker, PagesTab, StyleTab, type MediaKind } from "./Panels";
@@ -20,31 +22,56 @@ const HISTORY = 60;
 
 /* ---------- canvas: the real site at device width, shrunk to fit ---------- */
 
+export interface SectionActions {
+  /** Moves a section to `index` among the others (drag on the canvas or in the reorder view). */
+  move: (id: string, index: number) => void;
+  settings: () => void;
+  add: () => void;
+  duplicate: () => void;
+  remove: () => void;
+}
+
 function Canvas({
   width,
   children,
   onPick,
   onDropBlock,
   dropLabel,
+  selectedId,
+  reorder,
+  actions,
+  version,
 }: {
   width: number;
   children: React.ReactNode;
   onPick: (blockId: string | null) => void;
   onDropBlock: (kindKey: string, index: number) => void;
   dropLabel: string;
+  selectedId: string | null;
+  reorder: boolean;
+  actions: SectionActions;
+  /** Changes whenever the page content changes, so the toolbar follows the section. */
+  version: unknown;
 }) {
+  const t = useTranslations("editor.section");
   const outer = useRef<HTMLDivElement>(null);
+  const frame = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const [height, setHeight] = useState(600);
   const [dropAt, setDropAt] = useState<{ index: number; y: number } | null>(null);
+  const [mark, setMark] = useState<{ y: number } | null>(null);
+  const [dragging, setDragging] = useState<string | null>(null);
+  const [box, setBox] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
 
   useLayoutEffect(() => {
     const o = outer.current;
     const i = inner.current;
     if (!o || !i) return;
     const update = () => {
-      const s = Math.min(1, (o.clientWidth - 48) / width);
+      const fit = Math.min(1, (o.clientWidth - 48) / width);
+      // The reorder view shows the whole page small, so long pages fit on screen.
+      const s = reorder ? Math.min(fit, 0.34) : fit;
       setScale(s);
       setHeight(i.scrollHeight * s);
     };
@@ -53,13 +80,50 @@ function Canvas({
     ro.observe(o);
     ro.observe(i);
     return () => ro.disconnect();
-  }, [width]);
+  }, [width, reorder]);
+
+  // Where the selected section is, in the frame's (scaled) coordinates.
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = selectedId ? inner.current?.querySelector<HTMLElement>(`[data-block-id="${selectedId}"]`) : null;
+      const f = frame.current?.getBoundingClientRect();
+      if (!el || !f) return setBox(null);
+      const r = el.getBoundingClientRect();
+      setBox({ top: r.top - f.top, left: r.left - f.left, width: r.width, height: r.height });
+    };
+    measure();
+    const i = inner.current;
+    const ro = i ? new ResizeObserver(measure) : null;
+    if (i) ro!.observe(i);
+    return () => ro?.disconnect();
+  }, [selectedId, scale, version, reorder]);
+
+  const sections = () =>
+    [...(inner.current?.querySelectorAll<HTMLElement>("[data-block-id]") ?? [])].map((el) => ({
+      id: el.dataset.blockId!,
+      el,
+    }));
+
+  function drag(e: React.PointerEvent, id: string) {
+    setDragging(id);
+    startSortDrag(e, {
+      dragId: id,
+      items: sections,
+      scroller: outer.current,
+      onMark: (m) => {
+        const f = frame.current?.getBoundingClientRect();
+        setMark(m && f ? { y: m.y - f.top } : null);
+        if (!m) setDragging(null);
+      },
+      onDrop: (index) => actions.move(id, index),
+    });
+  }
 
   function insertionPoint(e: DragEvent) {
     const blocks = [...(inner.current?.querySelectorAll<HTMLElement>("[data-block-id]") ?? [])];
-    const box = inner.current!.getBoundingClientRect();
+    const rect = inner.current!.getBoundingClientRect();
     let index = blocks.length;
-    let y = blocks.length ? blocks[blocks.length - 1].getBoundingClientRect().bottom : box.top + 40;
+    let y = blocks.length ? blocks[blocks.length - 1].getBoundingClientRect().bottom : rect.top + 40;
     for (let n = 0; n < blocks.length; n++) {
       const r = blocks[n].getBoundingClientRect();
       if (e.clientY < r.top + r.height / 2) {
@@ -68,13 +132,21 @@ function Canvas({
         break;
       }
     }
-    return { index, y: (y - box.top) / scale };
+    return { index, y: (y - rect.top) / scale };
   }
+
+  const tool = "flex size-8 items-center justify-center rounded-[8px] text-white hover:bg-white/15";
 
   return (
     <div ref={outer} className="flex-1 overflow-auto bg-[#ECECE8] px-6 py-6" data-tip="canvas">
+      {reorder && (
+        <p role="status" className="bg-ink sticky top-0 z-30 mx-auto mb-4 w-fit rounded-pill px-4 py-2 text-[13px] font-semibold text-white">
+          {t("reorderHint")}
+        </p>
+      )}
       <div
-        className="relative mx-auto"
+        ref={frame}
+        className={cx("relative mx-auto", reorder && "fannan-reorder")}
         style={{ width: width * scale, height }}
         onDragOver={(e) => {
           if (!e.dataTransfer.types.includes("application/x-fannan-block")) return;
@@ -88,6 +160,11 @@ function Canvas({
           setDropAt(null);
           if (key) onDropBlock(key, at.index);
         }}
+        onPointerDown={(e) => {
+          if (!reorder) return;
+          const el = (e.target as HTMLElement).closest<HTMLElement>("[data-block-id]");
+          if (el) drag(e, el.dataset.blockId!);
+        }}
       >
         <div
           ref={inner}
@@ -95,6 +172,7 @@ function Canvas({
           className="absolute start-0 top-0 origin-top-left overflow-hidden rounded-[6px] bg-white shadow-[0_1px_3px_rgba(20,20,20,.08)] rtl:origin-top-right"
           style={{ width, transform: `scale(${scale})`, minHeight: 600 }}
           onClick={(e: MouseEvent) => {
+            if (reorder) return;
             const el = (e.target as HTMLElement).closest<HTMLElement>("[data-block-id]");
             onPick(el?.dataset.blockId ?? null);
           }}
@@ -111,6 +189,64 @@ function Canvas({
             </div>
           )}
         </div>
+
+        {/* While dragging a section: where it will land. */}
+        {mark && (
+          <div className="pointer-events-none absolute inset-x-0 z-20 flex items-center gap-2" style={{ top: mark.y - 3 }}>
+            <span className="bg-ink h-1.5 flex-1 rounded" />
+            <span className="bg-lime text-ink rounded-[6px] px-2 py-0.5 text-[12px] font-semibold">{dropLabel}</span>
+            <span className="bg-ink h-1.5 flex-1 rounded" />
+          </div>
+        )}
+
+        {/* The selected section's toolbar, on its top edge (not scaled with the page). */}
+        {box && !reorder && !dragging && (
+          <div
+            className="pointer-events-none absolute z-20 flex justify-end"
+            style={{ top: Math.max(0, box.top - 46), left: box.left, width: box.width }}
+          >
+            <div
+              role="toolbar"
+              aria-label={t("toolbar")}
+              data-testid="section-toolbar"
+              className="bg-ink shadow-float pointer-events-auto flex items-center gap-0.5 rounded-[10px] p-1"
+            >
+              <button
+                type="button"
+                aria-label={t("drag")}
+                title={t("drag")}
+                className={cx(tool, "cursor-grab touch-none")}
+                onPointerDown={(e) => drag(e, selectedId!)}
+                onKeyDown={(e) => {
+                  const list = sections().map((x) => x.id);
+                  const i = list.indexOf(selectedId!);
+                  if (e.key === "ArrowUp" && i > 0) {
+                    e.preventDefault();
+                    actions.move(selectedId!, i - 1);
+                  }
+                  if (e.key === "ArrowDown" && i < list.length - 1) {
+                    e.preventDefault();
+                    actions.move(selectedId!, i + 1);
+                  }
+                }}
+              >
+                <Icon name="drag" size={18} />
+              </button>
+              <button type="button" aria-label={t("settings")} title={t("settings")} className={tool} onClick={actions.settings}>
+                <Icon name="settings" size={18} />
+              </button>
+              <button type="button" aria-label={t("add")} title={t("add")} className={tool} onClick={actions.add}>
+                <Icon name="add" size={18} />
+              </button>
+              <button type="button" aria-label={t("duplicate")} title={t("duplicate")} className={tool} onClick={actions.duplicate}>
+                <Icon name="duplicate" size={18} />
+              </button>
+              <button type="button" aria-label={t("remove")} title={t("remove")} className={tool} onClick={actions.remove}>
+                <Icon name="delete" size={18} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -227,6 +363,8 @@ export function Editor({
   const [version, setVersion] = useState(published.version);
   const [publishing, setPublishing] = useState(false);
   const [preview, setPreview] = useState(false);
+  // Zoomed-out view where whole sections are dragged into a new order.
+  const [reorder, setReorder] = useState(false);
   const [tips, setTips] = useState(showTips);
   const [picker, setPicker] = useState<{ kind: MediaKind; done: (id: string) => void } | null>(null);
   const past = useRef<SiteDraft[]>([]);
@@ -349,17 +487,44 @@ export function Editor({
     if (small()) setDrawer("right");
   }
 
-  function moveBlock(by: number) {
+  function duplicateBlock() {
     if (!block) return;
+    const copy = { ...structuredClone(block), id: newId() };
     setBlocks((blocks) => {
       const i = blocks.findIndex((x) => x.id === block.id);
-      const j = i + by;
-      if (j < 0 || j >= blocks.length) return blocks;
       const next = [...blocks];
-      [next[i], next[j]] = [next[j], next[i]];
+      next.splice(i + 1, 0, copy);
       return next;
     });
+    setSelected(copy.id);
   }
+
+  function removeBlock() {
+    if (!block) return;
+    setBlocks((blocks) => blocks.filter((b) => b.id !== block.id));
+    setSelected(null);
+  }
+
+  const sectionActions = {
+    move: (id: string, index: number) => setBlocks((blocks) => moveTo(blocks, id, index)),
+    settings: () => {
+      if (small()) setDrawer("right");
+      else document.querySelector<HTMLElement>('[data-testid="right-panel"] input, [data-testid="right-panel"] select, [data-testid="right-panel"] button')?.focus();
+    },
+    add: () => {
+      setTab("blocks");
+      if (small()) setDrawer("left");
+      else document.querySelector<HTMLElement>('[data-tip="blocks"] button')?.focus();
+    },
+    duplicate: duplicateBlock,
+    remove: removeBlock,
+  };
+
+  /** Text typed on the canvas. Typing in one field counts as one step to undo. */
+  const onText = (blockId: string, path: string, value: string) =>
+    setBlocks((blocks) => blocks.map((b) => (b.id === blockId ? setPath(b, path, value) : b)), `text-${blockId}-${path}`);
+  const onSiteText = (field: "title" | "tagline", value: string) =>
+    setDraft((d) => ({ ...d, [field]: value }), `site-${field}`);
 
   async function doPublish() {
     setPublishing(true);
@@ -461,6 +626,17 @@ export function Editor({
         <span className="text-muted text-[12px]" role="status" data-testid="editor-status">
           {status}
         </span>
+        <Button
+          variant={reorder ? "primary" : "outline"}
+          icon="reorder"
+          aria-pressed={reorder}
+          onClick={() => {
+            setReorder(!reorder);
+            setSelected(null);
+          }}
+        >
+          {reorder ? t("reorderDone") : t("reorder")}
+        </Button>
         <Button variant="outline" icon="preview" onClick={() => setPreview(true)}>
           {t("preview")}
         </Button>
@@ -558,6 +734,10 @@ export function Editor({
         {/* Canvas */}
         <Canvas
           width={WIDTHS[device]}
+          selectedId={selected}
+          reorder={reorder}
+          actions={sectionActions}
+          version={page.blocks}
           onPick={(id) => {
             setSelected(id);
             if (id && small()) setDrawer("right");
@@ -573,7 +753,14 @@ export function Editor({
               ↗ {page.url || "https://"}
             </div>
           ) : (
-            <SiteRender {...renderProps} editing selectedBlockId={selected} />
+            <SiteRender
+              {...renderProps}
+              editing
+              selectedBlockId={selected}
+              onText={reorder ? undefined : onText}
+              onSiteText={reorder ? undefined : onSiteText}
+              typeHere={t("typeHere")}
+            />
           )}
         </Canvas>
 
@@ -599,42 +786,7 @@ export function Editor({
                   setBlocks((blocks) => blocks.map((b) => (b.id === block.id ? ({ ...b, ...patch } as Block) : b)), key)
                 }
               />
-              <div className="border-line flex flex-wrap gap-1.5 border-t pt-3">
-                <Button size="sm" variant="outline" icon="undo" onClick={() => moveBlock(-1)}>
-                  {t("blockActions.up")}
-                </Button>
-                <Button size="sm" variant="outline" icon="redo" onClick={() => moveBlock(1)}>
-                  {t("blockActions.down")}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  icon="add"
-                  onClick={() => {
-                    const copy = { ...structuredClone(block), id: newId() };
-                    setBlocks((blocks) => {
-                      const i = blocks.findIndex((x) => x.id === block.id);
-                      const next = [...blocks];
-                      next.splice(i + 1, 0, copy);
-                      return next;
-                    });
-                    setSelected(copy.id);
-                  }}
-                >
-                  {t("blockActions.duplicate")}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  icon="delete"
-                  onClick={() => {
-                    setBlocks((blocks) => blocks.filter((b) => b.id !== block.id));
-                    setSelected(null);
-                  }}
-                >
-                  {t("blockActions.remove")}
-                </Button>
-              </div>
+              <p className="text-muted border-line border-t pt-3 text-[12px]">{t("section.hint")}</p>
             </>
           ) : (
             <p className="text-muted">{page.blocks.length ? t("noBlock") : t("emptyPage")}</p>

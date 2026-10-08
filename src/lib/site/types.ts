@@ -67,7 +67,65 @@ export type Block =
   | B<"contact", { heading: string; text: string; button: string }>
   | B<"hire", { text: string }>
   | B<"social", { links: Array<{ network: string; url: string }> }>
-  | B<"quote", { text: string; author: string }>;
+  | B<"quote", { text: string; author: string }>
+  | B<"free", FreeSection>;
+
+/* ---------- free-form sections (phase 8C) ---------- */
+
+/** What a free-form block shows. Every item carries every field, so editing and checking stay simple. */
+export type FreeKind = "text" | "heading" | "image" | "button" | "shape" | "line" | "video";
+
+/**
+ * Where an item sits on the section's grid: 24 columns on desktop, square cells, counted from the
+ * reading start (left in English, right in Arabic). On phones items stack in reading order.
+ */
+export interface FreePlace {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export interface FreeItem {
+  id: string;
+  kind: FreeKind;
+  place: FreePlace;
+  /** Stacking order: higher is in front. */
+  z: number;
+  /** Degrees, -180…180. */
+  rotate: number;
+  /** 0–100. */
+  opacity: number;
+  hideOnPhone: boolean;
+  /** Text, heading and button label. */
+  text: string;
+  /** Font size in px on a 1200px-wide page; it scales with the page. */
+  size: number;
+  align: "start" | "center" | "end";
+  /** Text colour; null follows the theme. */
+  color: string | null;
+  /** Shape fill, button background, line colour; null follows the theme. */
+  fill: string | null;
+  mediaId: string | null;
+  fit: "cover" | "contain";
+  /** Corner radius in px. */
+  radius: number;
+  shape: "rect" | "circle";
+  /** Where an image or button goes (https://…, mailto:…, or a page address like /about). */
+  link: string;
+  /** YouTube or Vimeo address for video items. */
+  url: string;
+  /** Shown when sample art stands in for a missing picture. */
+  tone: string;
+}
+
+export interface FreeSection {
+  /** Height in grid rows (one row = one column width). */
+  rows: number;
+  background: string | null;
+  bgMediaId: string | null;
+  items: FreeItem[];
+}
 
 export type BlockType = Block["type"];
 export type BlockOf<T extends BlockType> = Extract<Block, { type: T }>;
