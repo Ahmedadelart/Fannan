@@ -1,68 +1,1921 @@
 {
-  "_note": "Disciplines for sign-up step 2. kind decides the starter layouts and wording: animation/motion/3d/direction get The Reel; direction also leads with The Storyteller. Synonyms are matched loosely (lowercase, Arabic letters normalised). Add freely.",
+  "_note": "Disciplines for sign-up step 2. kind decides the starter layouts and wording: animation/motion/3d/direction get The Reel; direction also leads with The Storyteller. Synonyms are matched loosely (lowercase, Arabic letters normalised). Add freely. Covers every creative field (phase 8A), not only animation.",
   "disciplines": [
-    { "id": "2d-animator", "kind": "animation", "en": "2D Animator", "enPlural": "2D animators", "ar": "رسّام رسوم متحركة ثنائية الأبعاد", "arPlural": "رسّامي الرسوم المتحركة ثنائية الأبعاد", "synonyms": ["animator", "2d", "animation", "انيميتور", "أنيميتور", "انيميشن", "أنيميشن", "رسوم متحركة", "تحريك"] },
-    { "id": "3d-animator", "kind": "3d", "en": "3D Animator", "enPlural": "3D animators", "ar": "رسّام رسوم متحركة ثلاثية الأبعاد", "arPlural": "رسّامي الرسوم المتحركة ثلاثية الأبعاد", "synonyms": ["3d animation", "maya", "blender", "animator 3d", "ثري دي", "ثلاثي الأبعاد", "انيميتور ثري دي"] },
-    { "id": "character-animator", "kind": "animation", "en": "Character animator", "enPlural": "character animators", "ar": "محرّك شخصيات", "arPlural": "محرّكي الشخصيات", "synonyms": ["character animation", "تحريك شخصيات"] },
-    { "id": "stop-motion-animator", "kind": "animation", "en": "Stop-motion animator", "enPlural": "stop-motion animators", "ar": "رسّام ستوب موشن", "arPlural": "رسّامي الستوب موشن", "synonyms": ["stop motion", "stopmotion", "claymation", "ستوب موشن"] },
-    { "id": "rigger", "kind": "3d", "en": "Rigger", "enPlural": "riggers", "ar": "فنان ريغ", "arPlural": "فناني الريغ", "synonyms": ["rigging", "character rigger", "ريج", "ريغ", "ريجنج"] },
-    { "id": "animation-director", "kind": "direction", "en": "Animation director", "enPlural": "animation directors", "ar": "مخرج رسوم متحركة", "arPlural": "مخرجي الرسوم المتحركة", "synonyms": ["director", "مخرج", "مخرج انيميشن", "إخراج"] },
-    { "id": "creative-director", "kind": "direction", "en": "Creative director", "enPlural": "creative directors", "ar": "مدير إبداعي", "arPlural": "المديرين الإبداعيين", "synonyms": ["cd", "creative lead", "كرييتف دايركتور", "مدير ابداعي"] },
-    { "id": "art-director", "kind": "direction", "en": "Art director", "enPlural": "art directors", "ar": "مدير فني", "arPlural": "المديرين الفنيين", "synonyms": ["ad", "art direction", "ارت دايركتور", "مدير فنى"] },
-    { "id": "animation-supervisor", "kind": "direction", "en": "Animation supervisor", "enPlural": "animation supervisors", "ar": "مشرف رسوم متحركة", "arPlural": "مشرفي الرسوم المتحركة", "synonyms": ["supervisor", "lead animator", "مشرف انيميشن", "مشرف"] },
-    { "id": "producer", "kind": "direction", "en": "Animation producer", "enPlural": "animation producers", "ar": "منتج رسوم متحركة", "arPlural": "منتجي الرسوم المتحركة", "synonyms": ["producer", "line producer", "منتج", "انتاج"] },
-    { "id": "character-designer", "kind": "illustration", "en": "Character designer", "enPlural": "character designers", "ar": "مصمّم شخصيات", "arPlural": "مصمّمي الشخصيات", "synonyms": ["character design", "تصميم شخصيات", "كاركتر ديزاين", "كاراكتر"] },
-    { "id": "storyboard-artist", "kind": "story", "en": "Storyboard artist", "enPlural": "storyboard artists", "ar": "رسّام ستوري بورد", "arPlural": "رسّامي الستوري بورد", "synonyms": ["storyboard", "boards", "story artist", "ستوري بورد", "ستوريبورد", "لوحات القصة"] },
-    { "id": "story-artist", "kind": "story", "en": "Story artist", "enPlural": "story artists", "ar": "فنان قصة", "arPlural": "فناني القصة", "synonyms": ["story", "story development", "تطوير القصة"] },
-    { "id": "layout-artist", "kind": "story", "en": "Layout artist", "enPlural": "layout artists", "ar": "فنان لاي آوت", "arPlural": "فناني اللاي آوت", "synonyms": ["layout", "لاي اوت", "ليّ أوت"] },
-    { "id": "background-painter", "kind": "illustration", "en": "Background painter", "enPlural": "background painters", "ar": "رسّام خلفيات", "arPlural": "رسّامي الخلفيات", "synonyms": ["backgrounds", "bg painter", "background artist", "خلفيات", "رسام خلفيات"] },
-    { "id": "visual-development-artist", "kind": "concept", "en": "Visual development artist", "enPlural": "visual development artists", "ar": "فنان تطوير بصري", "arPlural": "فناني التطوير البصري", "synonyms": ["visdev", "vis dev", "visual development", "تطوير بصري"] },
-    { "id": "concept-artist", "kind": "concept", "en": "Concept artist", "enPlural": "concept artists", "ar": "فنان كونسبت", "arPlural": "فناني الكونسبت", "synonyms": ["concept art", "concept", "كونسبت", "كونسبت آرت", "فن تصوري"] },
-    { "id": "environment-artist", "kind": "concept", "en": "Environment artist", "enPlural": "environment artists", "ar": "فنان بيئات", "arPlural": "فناني البيئات", "synonyms": ["environments", "environment design", "بيئات", "تصميم بيئات"] },
-    { "id": "prop-designer", "kind": "concept", "en": "Prop designer", "enPlural": "prop designers", "ar": "مصمّم إكسسوارات", "arPlural": "مصمّمي الإكسسوارات", "synonyms": ["props", "prop design", "بروبس", "اكسسوارات"] },
-    { "id": "color-designer", "kind": "concept", "en": "Colour designer", "enPlural": "colour designers", "ar": "مصمّم ألوان", "arPlural": "مصمّمي الألوان", "synonyms": ["color", "colour", "color script", "colour key", "ألوان", "كلر"] },
-    { "id": "illustrator", "kind": "illustration", "en": "Illustrator", "enPlural": "illustrators", "ar": "رسّام", "arPlural": "الرسّامين", "synonyms": ["illustration", "draw", "drawing", "artist", "رسام", "رسامة", "رسم", "اليستريتور", "إلستريتور"] },
-    { "id": "childrens-book-illustrator", "kind": "illustration", "en": "Children's book illustrator", "enPlural": "children's book illustrators", "ar": "رسّام كتب أطفال", "arPlural": "رسّامي كتب الأطفال", "synonyms": ["picture books", "kids books", "كتب اطفال", "قصص اطفال"] },
-    { "id": "editorial-illustrator", "kind": "illustration", "en": "Editorial illustrator", "enPlural": "editorial illustrators", "ar": "رسّام صحفي", "arPlural": "الرسّامين الصحفيين", "synonyms": ["editorial", "magazine", "رسوم صحفية", "كاريكاتير صحفي"] },
-    { "id": "caricaturist", "kind": "illustration", "en": "Caricaturist", "enPlural": "caricaturists", "ar": "رسّام كاريكاتير", "arPlural": "رسّامي الكاريكاتير", "synonyms": ["caricature", "cartoonist", "كاريكاتير", "كاريكاتورست"] },
-    { "id": "comic-artist", "kind": "comics", "en": "Comic artist", "enPlural": "comic artists", "ar": "رسّام كوميكس", "arPlural": "رسّامي الكوميكس", "synonyms": ["comics", "comic", "comic book", "كوميكس", "كومكس", "قصص مصورة"] },
-    { "id": "manga-artist", "kind": "comics", "en": "Manga artist", "enPlural": "manga artists", "ar": "رسّام مانجا", "arPlural": "رسّامي المانجا", "synonyms": ["manga", "mangaka", "مانجا", "مانغا"] },
-    { "id": "webtoon-artist", "kind": "comics", "en": "Webtoon artist", "enPlural": "webtoon artists", "ar": "رسّام ويبتون", "arPlural": "رسّامي الويبتون", "synonyms": ["webtoon", "webcomic", "ويبتون", "ويب تون"] },
-    { "id": "inker", "kind": "comics", "en": "Inker", "enPlural": "inkers", "ar": "محبِّر", "arPlural": "المحبِّرين", "synonyms": ["inking", "تحبير"] },
-    { "id": "colorist", "kind": "comics", "en": "Colourist", "enPlural": "colourists", "ar": "ملوِّن", "arPlural": "الملوِّنين", "synonyms": ["colorist", "coloring", "colouring", "تلوين", "ملون"] },
-    { "id": "letterer", "kind": "comics", "en": "Letterer", "enPlural": "letterers", "ar": "خطّاط كوميكس", "arPlural": "خطّاطي الكوميكس", "synonyms": ["lettering", "خط", "خطاط"] },
-    { "id": "calligrapher", "kind": "design", "en": "Calligrapher", "enPlural": "calligraphers", "ar": "خطّاط", "arPlural": "الخطّاطين", "synonyms": ["calligraphy", "arabic calligraphy", "خط عربي", "خطاط"] },
-    { "id": "motion-designer", "kind": "motion", "en": "Motion designer", "enPlural": "motion designers", "ar": "مصمّم موشن جرافيك", "arPlural": "مصمّمي الموشن جرافيك", "synonyms": ["motion", "motion graphics", "mograph", "after effects", "موشن", "موشن جرافيك", "موشن جرافيكس"] },
-    { "id": "title-designer", "kind": "motion", "en": "Title designer", "enPlural": "title designers", "ar": "مصمّم تترات", "arPlural": "مصمّمي التترات", "synonyms": ["titles", "title sequence", "تترات", "تتر"] },
-    { "id": "compositor", "kind": "motion", "en": "Compositor", "enPlural": "compositors", "ar": "فنان كومبوزيت", "arPlural": "فناني الكومبوزيت", "synonyms": ["compositing", "nuke", "كومبوزيت", "كمبوزتنج"] },
-    { "id": "vfx-artist", "kind": "motion", "en": "VFX artist", "enPlural": "VFX artists", "ar": "فنان مؤثرات بصرية", "arPlural": "فناني المؤثرات البصرية", "synonyms": ["vfx", "visual effects", "effects", "fx", "مؤثرات", "مؤثرات بصرية", "في اف اكس"] },
-    { "id": "fx-animator", "kind": "animation", "en": "FX animator", "enPlural": "FX animators", "ar": "محرّك مؤثرات", "arPlural": "محرّكي المؤثرات", "synonyms": ["2d fx", "effects animation", "تحريك مؤثرات"] },
-    { "id": "clean-up-artist", "kind": "animation", "en": "Clean-up artist", "enPlural": "clean-up artists", "ar": "فنان كلين آب", "arPlural": "فناني الكلين آب", "synonyms": ["clean up", "cleanup", "كلين اب", "كلين أب"] },
-    { "id": "inbetweener", "kind": "animation", "en": "In-betweener", "enPlural": "in-betweeners", "ar": "رسّام إن بيتوين", "arPlural": "رسّامي الإن بيتوين", "synonyms": ["inbetween", "in between", "in-between", "ان بيتوين"] },
-    { "id": "3d-modeler", "kind": "3d", "en": "3D modeller", "enPlural": "3D modellers", "ar": "مصمّم نماذج ثلاثية الأبعاد", "arPlural": "مصمّمي النماذج ثلاثية الأبعاد", "synonyms": ["modeler", "modeller", "modeling", "3d model", "zbrush", "مودلر", "موديلنج", "نمذجة"] },
-    { "id": "3d-character-artist", "kind": "3d", "en": "3D character artist", "enPlural": "3D character artists", "ar": "فنان شخصيات ثلاثية الأبعاد", "arPlural": "فناني الشخصيات ثلاثية الأبعاد", "synonyms": ["3d character", "sculptor", "digital sculpting", "نحت رقمي"] },
-    { "id": "lighting-artist", "kind": "3d", "en": "Lighting artist", "enPlural": "lighting artists", "ar": "فنان إضاءة", "arPlural": "فناني الإضاءة", "synonyms": ["lighting", "lighter", "lookdev", "اضاءة", "إضاءة"] },
-    { "id": "texture-artist", "kind": "3d", "en": "Texture artist", "enPlural": "texture artists", "ar": "فنان خامات", "arPlural": "فناني الخامات", "synonyms": ["texturing", "surfacing", "substance", "تكستشر", "خامات"] },
-    { "id": "game-artist", "kind": "games", "en": "Game artist", "enPlural": "game artists", "ar": "فنان ألعاب", "arPlural": "فناني الألعاب", "synonyms": ["games", "game art", "gaming", "العاب", "ألعاب", "جيمز"] },
-    { "id": "2d-game-artist", "kind": "games", "en": "2D game artist", "enPlural": "2D game artists", "ar": "فنان ألعاب ثنائية الأبعاد", "arPlural": "فناني الألعاب ثنائية الأبعاد", "synonyms": ["2d games", "mobile games", "ألعاب موبايل"] },
-    { "id": "pixel-artist", "kind": "games", "en": "Pixel artist", "enPlural": "pixel artists", "ar": "فنان بكسل آرت", "arPlural": "فناني البكسل آرت", "synonyms": ["pixel art", "pixel", "sprites", "بكسل", "بيكسل"] },
-    { "id": "ui-artist", "kind": "games", "en": "Game UI artist", "enPlural": "game UI artists", "ar": "فنان واجهات ألعاب", "arPlural": "فناني واجهات الألعاب", "synonyms": ["ui art", "game ui", "hud", "واجهات"] },
-    { "id": "technical-artist", "kind": "games", "en": "Technical artist", "enPlural": "technical artists", "ar": "فنان تقني", "arPlural": "الفنانين التقنيين", "synonyms": ["tech art", "technical art", "shaders", "تقني"] },
-    { "id": "level-artist", "kind": "games", "en": "Level artist", "enPlural": "level artists", "ar": "فنان مراحل", "arPlural": "فناني المراحل", "synonyms": ["level design", "level", "مراحل", "ليفل ديزاين"] },
-    { "id": "graphic-designer", "kind": "design", "en": "Graphic designer", "enPlural": "graphic designers", "ar": "مصمّم جرافيك", "arPlural": "مصمّمي الجرافيك", "synonyms": ["graphic design", "graphics", "branding", "جرافيك", "جرافيك ديزاين", "مصمم"] },
-    { "id": "type-designer", "kind": "design", "en": "Type designer", "enPlural": "type designers", "ar": "مصمّم خطوط", "arPlural": "مصمّمي الخطوط", "synonyms": ["typography", "fonts", "typeface", "تايبوجرافي", "خطوط"] },
-    { "id": "logo-designer", "kind": "design", "en": "Logo designer", "enPlural": "logo designers", "ar": "مصمّم شعارات", "arPlural": "مصمّمي الشعارات", "synonyms": ["logo", "logos", "identity", "لوجو", "شعارات"] },
-    { "id": "ux-designer", "kind": "design", "en": "UI/UX designer", "enPlural": "UI/UX designers", "ar": "مصمّم واجهات وتجربة مستخدم", "arPlural": "مصمّمي الواجهات وتجربة المستخدم", "synonyms": ["ui", "ux", "product design", "web design", "يو اكس", "واجهات مستخدم"] },
-    { "id": "painter", "kind": "illustration", "en": "Painter", "enPlural": "painters", "ar": "فنان تشكيلي", "arPlural": "الفنانين التشكيليين", "synonyms": ["fine art", "painting", "oil", "رسم زيتي", "فن تشكيلي", "تشكيلي"] },
-    { "id": "digital-painter", "kind": "illustration", "en": "Digital painter", "enPlural": "digital painters", "ar": "رسّام رقمي", "arPlural": "الرسّامين الرقميين", "synonyms": ["digital art", "digital painting", "procreate", "photoshop", "رسم رقمي", "ديجيتال"] },
-    { "id": "matte-painter", "kind": "concept", "en": "Matte painter", "enPlural": "matte painters", "ar": "رسّام مات بينت", "arPlural": "رسّامي المات بينت", "synonyms": ["matte painting", "dmp", "مات بينتنج"] },
-    { "id": "tattoo-artist", "kind": "illustration", "en": "Tattoo artist", "enPlural": "tattoo artists", "ar": "فنان وشم", "arPlural": "فناني الوشم", "synonyms": ["tattoo", "تاتو", "وشم"] },
-    { "id": "muralist", "kind": "illustration", "en": "Muralist", "enPlural": "muralists", "ar": "رسّام جداريات", "arPlural": "رسّامي الجداريات", "synonyms": ["mural", "street art", "graffiti", "جرافيتي", "جداريات"] },
-    { "id": "sculptor", "kind": "illustration", "en": "Sculptor", "enPlural": "sculptors", "ar": "نحّات", "arPlural": "النحّاتين", "synonyms": ["sculpture", "نحت", "نحات"] },
-    { "id": "photographer", "kind": "other", "en": "Photographer", "enPlural": "photographers", "ar": "مصوّر", "arPlural": "المصوّرين", "synonyms": ["photography", "photo", "تصوير", "مصور فوتوغرافي"] },
-    { "id": "video-editor", "kind": "motion", "en": "Video editor", "enPlural": "video editors", "ar": "مونتير", "arPlural": "المونتيرين", "synonyms": ["editor", "editing", "montage", "مونتاج", "مونتير", "محرر فيديو"] },
-    { "id": "film-director", "kind": "direction", "en": "Film director", "enPlural": "film directors", "ar": "مخرج أفلام", "arPlural": "مخرجي الأفلام", "synonyms": ["filmmaker", "film", "short film", "مخرج افلام", "صانع افلام"] },
-    { "id": "writer", "kind": "story", "en": "Writer", "enPlural": "writers", "ar": "كاتب", "arPlural": "الكتّاب", "synonyms": ["screenwriter", "script", "story writer", "كاتب سيناريو", "سيناريست"] },
-    { "id": "student", "kind": "other", "en": "Art student", "enPlural": "art students", "ar": "طالب فنون", "arPlural": "طلاب الفنون", "synonyms": ["student", "graduate", "طالب", "طالبة", "خريج", "فنون جميلة"] }
+    {
+      "id": "2d-animator",
+      "kind": "animation",
+      "en": "2D Animator",
+      "enPlural": "2D animators",
+      "ar": "رسّام رسوم متحركة ثنائية الأبعاد",
+      "arPlural": "رسّامي الرسوم المتحركة ثنائية الأبعاد",
+      "synonyms": [
+        "animator",
+        "2d",
+        "animation",
+        "انيميتور",
+        "أنيميتور",
+        "انيميشن",
+        "أنيميشن",
+        "رسوم متحركة",
+        "تحريك"
+      ]
+    },
+    {
+      "id": "3d-animator",
+      "kind": "3d",
+      "en": "3D Animator",
+      "enPlural": "3D animators",
+      "ar": "رسّام رسوم متحركة ثلاثية الأبعاد",
+      "arPlural": "رسّامي الرسوم المتحركة ثلاثية الأبعاد",
+      "synonyms": [
+        "3d animation",
+        "maya",
+        "blender",
+        "animator 3d",
+        "ثري دي",
+        "ثلاثي الأبعاد",
+        "انيميتور ثري دي"
+      ]
+    },
+    {
+      "id": "character-animator",
+      "kind": "animation",
+      "en": "Character animator",
+      "enPlural": "character animators",
+      "ar": "محرّك شخصيات",
+      "arPlural": "محرّكي الشخصيات",
+      "synonyms": [
+        "character animation",
+        "تحريك شخصيات"
+      ]
+    },
+    {
+      "id": "stop-motion-animator",
+      "kind": "animation",
+      "en": "Stop-motion animator",
+      "enPlural": "stop-motion animators",
+      "ar": "رسّام ستوب موشن",
+      "arPlural": "رسّامي الستوب موشن",
+      "synonyms": [
+        "stop motion",
+        "stopmotion",
+        "claymation",
+        "ستوب موشن"
+      ]
+    },
+    {
+      "id": "rigger",
+      "kind": "3d",
+      "en": "Rigger",
+      "enPlural": "riggers",
+      "ar": "فنان ريغ",
+      "arPlural": "فناني الريغ",
+      "synonyms": [
+        "rigging",
+        "character rigger",
+        "ريج",
+        "ريغ",
+        "ريجنج"
+      ]
+    },
+    {
+      "id": "animation-director",
+      "kind": "direction",
+      "en": "Animation director",
+      "enPlural": "animation directors",
+      "ar": "مخرج رسوم متحركة",
+      "arPlural": "مخرجي الرسوم المتحركة",
+      "synonyms": [
+        "director",
+        "مخرج",
+        "مخرج انيميشن",
+        "إخراج"
+      ]
+    },
+    {
+      "id": "creative-director",
+      "kind": "direction",
+      "en": "Creative director",
+      "enPlural": "creative directors",
+      "ar": "مدير إبداعي",
+      "arPlural": "المديرين الإبداعيين",
+      "synonyms": [
+        "cd",
+        "creative lead",
+        "كرييتف دايركتور",
+        "مدير ابداعي"
+      ]
+    },
+    {
+      "id": "art-director",
+      "kind": "direction",
+      "en": "Art director",
+      "enPlural": "art directors",
+      "ar": "مدير فني",
+      "arPlural": "المديرين الفنيين",
+      "synonyms": [
+        "ad",
+        "art direction",
+        "ارت دايركتور",
+        "مدير فنى"
+      ]
+    },
+    {
+      "id": "animation-supervisor",
+      "kind": "direction",
+      "en": "Animation supervisor",
+      "enPlural": "animation supervisors",
+      "ar": "مشرف رسوم متحركة",
+      "arPlural": "مشرفي الرسوم المتحركة",
+      "synonyms": [
+        "supervisor",
+        "lead animator",
+        "مشرف انيميشن",
+        "مشرف"
+      ]
+    },
+    {
+      "id": "producer",
+      "kind": "direction",
+      "en": "Animation producer",
+      "enPlural": "animation producers",
+      "ar": "منتج رسوم متحركة",
+      "arPlural": "منتجي الرسوم المتحركة",
+      "synonyms": [
+        "producer",
+        "line producer",
+        "منتج",
+        "انتاج"
+      ]
+    },
+    {
+      "id": "character-designer",
+      "kind": "illustration",
+      "en": "Character designer",
+      "enPlural": "character designers",
+      "ar": "مصمّم شخصيات",
+      "arPlural": "مصمّمي الشخصيات",
+      "synonyms": [
+        "character design",
+        "تصميم شخصيات",
+        "كاركتر ديزاين",
+        "كاراكتر"
+      ]
+    },
+    {
+      "id": "storyboard-artist",
+      "kind": "story",
+      "en": "Storyboard artist",
+      "enPlural": "storyboard artists",
+      "ar": "رسّام ستوري بورد",
+      "arPlural": "رسّامي الستوري بورد",
+      "synonyms": [
+        "storyboard",
+        "boards",
+        "story artist",
+        "ستوري بورد",
+        "ستوريبورد",
+        "لوحات القصة"
+      ]
+    },
+    {
+      "id": "story-artist",
+      "kind": "story",
+      "en": "Story artist",
+      "enPlural": "story artists",
+      "ar": "فنان قصة",
+      "arPlural": "فناني القصة",
+      "synonyms": [
+        "story",
+        "story development",
+        "تطوير القصة"
+      ]
+    },
+    {
+      "id": "layout-artist",
+      "kind": "story",
+      "en": "Layout artist",
+      "enPlural": "layout artists",
+      "ar": "فنان لاي آوت",
+      "arPlural": "فناني اللاي آوت",
+      "synonyms": [
+        "layout",
+        "لاي اوت",
+        "ليّ أوت"
+      ]
+    },
+    {
+      "id": "background-painter",
+      "kind": "illustration",
+      "en": "Background painter",
+      "enPlural": "background painters",
+      "ar": "رسّام خلفيات",
+      "arPlural": "رسّامي الخلفيات",
+      "synonyms": [
+        "backgrounds",
+        "bg painter",
+        "background artist",
+        "خلفيات",
+        "رسام خلفيات"
+      ]
+    },
+    {
+      "id": "visual-development-artist",
+      "kind": "concept",
+      "en": "Visual development artist",
+      "enPlural": "visual development artists",
+      "ar": "فنان تطوير بصري",
+      "arPlural": "فناني التطوير البصري",
+      "synonyms": [
+        "visdev",
+        "vis dev",
+        "visual development",
+        "تطوير بصري"
+      ]
+    },
+    {
+      "id": "concept-artist",
+      "kind": "concept",
+      "en": "Concept artist",
+      "enPlural": "concept artists",
+      "ar": "فنان كونسبت",
+      "arPlural": "فناني الكونسبت",
+      "synonyms": [
+        "concept art",
+        "concept",
+        "كونسبت",
+        "كونسبت آرت",
+        "فن تصوري"
+      ]
+    },
+    {
+      "id": "environment-artist",
+      "kind": "concept",
+      "en": "Environment artist",
+      "enPlural": "environment artists",
+      "ar": "فنان بيئات",
+      "arPlural": "فناني البيئات",
+      "synonyms": [
+        "environments",
+        "environment design",
+        "بيئات",
+        "تصميم بيئات"
+      ]
+    },
+    {
+      "id": "prop-designer",
+      "kind": "concept",
+      "en": "Prop designer",
+      "enPlural": "prop designers",
+      "ar": "مصمّم إكسسوارات",
+      "arPlural": "مصمّمي الإكسسوارات",
+      "synonyms": [
+        "props",
+        "prop design",
+        "بروبس",
+        "اكسسوارات"
+      ]
+    },
+    {
+      "id": "color-designer",
+      "kind": "concept",
+      "en": "Colour designer",
+      "enPlural": "colour designers",
+      "ar": "مصمّم ألوان",
+      "arPlural": "مصمّمي الألوان",
+      "synonyms": [
+        "color",
+        "colour",
+        "color script",
+        "colour key",
+        "ألوان",
+        "كلر"
+      ]
+    },
+    {
+      "id": "illustrator",
+      "kind": "illustration",
+      "en": "Illustrator",
+      "enPlural": "illustrators",
+      "ar": "رسّام",
+      "arPlural": "الرسّامين",
+      "synonyms": [
+        "illustration",
+        "draw",
+        "drawing",
+        "artist",
+        "رسام",
+        "رسامة",
+        "رسم",
+        "اليستريتور",
+        "إلستريتور"
+      ]
+    },
+    {
+      "id": "childrens-book-illustrator",
+      "kind": "illustration",
+      "en": "Children's book illustrator",
+      "enPlural": "children's book illustrators",
+      "ar": "رسّام كتب أطفال",
+      "arPlural": "رسّامي كتب الأطفال",
+      "synonyms": [
+        "picture books",
+        "kids books",
+        "كتب اطفال",
+        "قصص اطفال"
+      ]
+    },
+    {
+      "id": "editorial-illustrator",
+      "kind": "illustration",
+      "en": "Editorial illustrator",
+      "enPlural": "editorial illustrators",
+      "ar": "رسّام صحفي",
+      "arPlural": "الرسّامين الصحفيين",
+      "synonyms": [
+        "editorial",
+        "magazine",
+        "رسوم صحفية",
+        "كاريكاتير صحفي"
+      ]
+    },
+    {
+      "id": "caricaturist",
+      "kind": "illustration",
+      "en": "Caricaturist",
+      "enPlural": "caricaturists",
+      "ar": "رسّام كاريكاتير",
+      "arPlural": "رسّامي الكاريكاتير",
+      "synonyms": [
+        "caricature",
+        "cartoonist",
+        "كاريكاتير",
+        "كاريكاتورست"
+      ]
+    },
+    {
+      "id": "comic-artist",
+      "kind": "comics",
+      "en": "Comic artist",
+      "enPlural": "comic artists",
+      "ar": "رسّام كوميكس",
+      "arPlural": "رسّامي الكوميكس",
+      "synonyms": [
+        "comics",
+        "comic",
+        "comic book",
+        "كوميكس",
+        "كومكس",
+        "قصص مصورة"
+      ]
+    },
+    {
+      "id": "manga-artist",
+      "kind": "comics",
+      "en": "Manga artist",
+      "enPlural": "manga artists",
+      "ar": "رسّام مانجا",
+      "arPlural": "رسّامي المانجا",
+      "synonyms": [
+        "manga",
+        "mangaka",
+        "مانجا",
+        "مانغا"
+      ]
+    },
+    {
+      "id": "webtoon-artist",
+      "kind": "comics",
+      "en": "Webtoon artist",
+      "enPlural": "webtoon artists",
+      "ar": "رسّام ويبتون",
+      "arPlural": "رسّامي الويبتون",
+      "synonyms": [
+        "webtoon",
+        "webcomic",
+        "ويبتون",
+        "ويب تون"
+      ]
+    },
+    {
+      "id": "inker",
+      "kind": "comics",
+      "en": "Inker",
+      "enPlural": "inkers",
+      "ar": "محبِّر",
+      "arPlural": "المحبِّرين",
+      "synonyms": [
+        "inking",
+        "تحبير"
+      ]
+    },
+    {
+      "id": "colorist",
+      "kind": "comics",
+      "en": "Colourist",
+      "enPlural": "colourists",
+      "ar": "ملوِّن",
+      "arPlural": "الملوِّنين",
+      "synonyms": [
+        "colorist",
+        "coloring",
+        "colouring",
+        "تلوين",
+        "ملون"
+      ]
+    },
+    {
+      "id": "letterer",
+      "kind": "comics",
+      "en": "Letterer",
+      "enPlural": "letterers",
+      "ar": "خطّاط كوميكس",
+      "arPlural": "خطّاطي الكوميكس",
+      "synonyms": [
+        "lettering",
+        "خط",
+        "خطاط"
+      ]
+    },
+    {
+      "id": "calligrapher",
+      "kind": "fineart",
+      "en": "Calligrapher",
+      "enPlural": "calligraphers",
+      "ar": "خطّاط",
+      "arPlural": "الخطّاطين",
+      "synonyms": [
+        "calligraphy",
+        "arabic calligraphy",
+        "خط عربي",
+        "خطاط"
+      ]
+    },
+    {
+      "id": "motion-designer",
+      "kind": "motion",
+      "en": "Motion designer",
+      "enPlural": "motion designers",
+      "ar": "مصمّم موشن جرافيك",
+      "arPlural": "مصمّمي الموشن جرافيك",
+      "synonyms": [
+        "motion",
+        "motion graphics",
+        "mograph",
+        "after effects",
+        "موشن",
+        "موشن جرافيك",
+        "موشن جرافيكس"
+      ]
+    },
+    {
+      "id": "title-designer",
+      "kind": "motion",
+      "en": "Title designer",
+      "enPlural": "title designers",
+      "ar": "مصمّم تترات",
+      "arPlural": "مصمّمي التترات",
+      "synonyms": [
+        "titles",
+        "title sequence",
+        "تترات",
+        "تتر"
+      ]
+    },
+    {
+      "id": "compositor",
+      "kind": "motion",
+      "en": "Compositor",
+      "enPlural": "compositors",
+      "ar": "فنان كومبوزيت",
+      "arPlural": "فناني الكومبوزيت",
+      "synonyms": [
+        "compositing",
+        "nuke",
+        "كومبوزيت",
+        "كمبوزتنج"
+      ]
+    },
+    {
+      "id": "vfx-artist",
+      "kind": "motion",
+      "en": "VFX artist",
+      "enPlural": "VFX artists",
+      "ar": "فنان مؤثرات بصرية",
+      "arPlural": "فناني المؤثرات البصرية",
+      "synonyms": [
+        "vfx",
+        "visual effects",
+        "effects",
+        "fx",
+        "مؤثرات",
+        "مؤثرات بصرية",
+        "في اف اكس"
+      ]
+    },
+    {
+      "id": "fx-animator",
+      "kind": "animation",
+      "en": "FX animator",
+      "enPlural": "FX animators",
+      "ar": "محرّك مؤثرات",
+      "arPlural": "محرّكي المؤثرات",
+      "synonyms": [
+        "2d fx",
+        "effects animation",
+        "تحريك مؤثرات"
+      ]
+    },
+    {
+      "id": "clean-up-artist",
+      "kind": "animation",
+      "en": "Clean-up artist",
+      "enPlural": "clean-up artists",
+      "ar": "فنان كلين آب",
+      "arPlural": "فناني الكلين آب",
+      "synonyms": [
+        "clean up",
+        "cleanup",
+        "كلين اب",
+        "كلين أب"
+      ]
+    },
+    {
+      "id": "inbetweener",
+      "kind": "animation",
+      "en": "In-betweener",
+      "enPlural": "in-betweeners",
+      "ar": "رسّام إن بيتوين",
+      "arPlural": "رسّامي الإن بيتوين",
+      "synonyms": [
+        "inbetween",
+        "in between",
+        "in-between",
+        "ان بيتوين"
+      ]
+    },
+    {
+      "id": "3d-modeler",
+      "kind": "3d",
+      "en": "3D modeller",
+      "enPlural": "3D modellers",
+      "ar": "مصمّم نماذج ثلاثية الأبعاد",
+      "arPlural": "مصمّمي النماذج ثلاثية الأبعاد",
+      "synonyms": [
+        "modeler",
+        "modeller",
+        "modeling",
+        "3d model",
+        "zbrush",
+        "مودلر",
+        "موديلنج",
+        "نمذجة"
+      ]
+    },
+    {
+      "id": "3d-character-artist",
+      "kind": "3d",
+      "en": "3D character artist",
+      "enPlural": "3D character artists",
+      "ar": "فنان شخصيات ثلاثية الأبعاد",
+      "arPlural": "فناني الشخصيات ثلاثية الأبعاد",
+      "synonyms": [
+        "3d character",
+        "sculptor",
+        "digital sculpting",
+        "نحت رقمي"
+      ]
+    },
+    {
+      "id": "lighting-artist",
+      "kind": "3d",
+      "en": "Lighting artist",
+      "enPlural": "lighting artists",
+      "ar": "فنان إضاءة",
+      "arPlural": "فناني الإضاءة",
+      "synonyms": [
+        "lighting",
+        "lighter",
+        "lookdev",
+        "اضاءة",
+        "إضاءة"
+      ]
+    },
+    {
+      "id": "texture-artist",
+      "kind": "3d",
+      "en": "Texture artist",
+      "enPlural": "texture artists",
+      "ar": "فنان خامات",
+      "arPlural": "فناني الخامات",
+      "synonyms": [
+        "texturing",
+        "surfacing",
+        "substance",
+        "تكستشر",
+        "خامات"
+      ]
+    },
+    {
+      "id": "game-artist",
+      "kind": "games",
+      "en": "Game artist",
+      "enPlural": "game artists",
+      "ar": "فنان ألعاب",
+      "arPlural": "فناني الألعاب",
+      "synonyms": [
+        "games",
+        "game art",
+        "gaming",
+        "العاب",
+        "ألعاب",
+        "جيمز"
+      ]
+    },
+    {
+      "id": "2d-game-artist",
+      "kind": "games",
+      "en": "2D game artist",
+      "enPlural": "2D game artists",
+      "ar": "فنان ألعاب ثنائية الأبعاد",
+      "arPlural": "فناني الألعاب ثنائية الأبعاد",
+      "synonyms": [
+        "2d games",
+        "mobile games",
+        "ألعاب موبايل"
+      ]
+    },
+    {
+      "id": "pixel-artist",
+      "kind": "games",
+      "en": "Pixel artist",
+      "enPlural": "pixel artists",
+      "ar": "فنان بكسل آرت",
+      "arPlural": "فناني البكسل آرت",
+      "synonyms": [
+        "pixel art",
+        "pixel",
+        "sprites",
+        "بكسل",
+        "بيكسل"
+      ]
+    },
+    {
+      "id": "ui-artist",
+      "kind": "games",
+      "en": "Game UI artist",
+      "enPlural": "game UI artists",
+      "ar": "فنان واجهات ألعاب",
+      "arPlural": "فناني واجهات الألعاب",
+      "synonyms": [
+        "ui art",
+        "game ui",
+        "hud",
+        "واجهات"
+      ]
+    },
+    {
+      "id": "technical-artist",
+      "kind": "games",
+      "en": "Technical artist",
+      "enPlural": "technical artists",
+      "ar": "فنان تقني",
+      "arPlural": "الفنانين التقنيين",
+      "synonyms": [
+        "tech art",
+        "technical art",
+        "shaders",
+        "تقني"
+      ]
+    },
+    {
+      "id": "level-artist",
+      "kind": "games",
+      "en": "Level artist",
+      "enPlural": "level artists",
+      "ar": "فنان مراحل",
+      "arPlural": "فناني المراحل",
+      "synonyms": [
+        "level design",
+        "level",
+        "مراحل",
+        "ليفل ديزاين"
+      ]
+    },
+    {
+      "id": "graphic-designer",
+      "kind": "design",
+      "en": "Graphic designer",
+      "enPlural": "graphic designers",
+      "ar": "مصمّم جرافيك",
+      "arPlural": "مصمّمي الجرافيك",
+      "synonyms": [
+        "graphic design",
+        "graphics",
+        "branding",
+        "جرافيك",
+        "جرافيك ديزاين",
+        "مصمم"
+      ]
+    },
+    {
+      "id": "type-designer",
+      "kind": "design",
+      "en": "Type designer",
+      "enPlural": "type designers",
+      "ar": "مصمّم خطوط",
+      "arPlural": "مصمّمي الخطوط",
+      "synonyms": [
+        "typography",
+        "fonts",
+        "typeface",
+        "تايبوجرافي",
+        "خطوط"
+      ]
+    },
+    {
+      "id": "logo-designer",
+      "kind": "design",
+      "en": "Logo designer",
+      "enPlural": "logo designers",
+      "ar": "مصمّم شعارات",
+      "arPlural": "مصمّمي الشعارات",
+      "synonyms": [
+        "logo",
+        "logos",
+        "identity",
+        "لوجو",
+        "شعارات"
+      ]
+    },
+    {
+      "id": "ux-designer",
+      "kind": "design",
+      "en": "UI/UX designer",
+      "enPlural": "UI/UX designers",
+      "ar": "مصمّم واجهات وتجربة مستخدم",
+      "arPlural": "مصمّمي الواجهات وتجربة المستخدم",
+      "synonyms": [
+        "ui",
+        "ux",
+        "product design",
+        "web design",
+        "يو اكس",
+        "واجهات مستخدم"
+      ]
+    },
+    {
+      "id": "painter",
+      "kind": "fineart",
+      "en": "Painter",
+      "enPlural": "painters",
+      "ar": "فنان تشكيلي",
+      "arPlural": "الفنانين التشكيليين",
+      "synonyms": [
+        "fine art",
+        "painting",
+        "oil",
+        "رسم زيتي",
+        "فن تشكيلي",
+        "تشكيلي"
+      ]
+    },
+    {
+      "id": "digital-painter",
+      "kind": "fineart",
+      "en": "Digital painter",
+      "enPlural": "digital painters",
+      "ar": "رسّام رقمي",
+      "arPlural": "الرسّامين الرقميين",
+      "synonyms": [
+        "digital art",
+        "digital painting",
+        "procreate",
+        "photoshop",
+        "رسم رقمي",
+        "ديجيتال"
+      ]
+    },
+    {
+      "id": "matte-painter",
+      "kind": "concept",
+      "en": "Matte painter",
+      "enPlural": "matte painters",
+      "ar": "رسّام مات بينت",
+      "arPlural": "رسّامي المات بينت",
+      "synonyms": [
+        "matte painting",
+        "dmp",
+        "مات بينتنج"
+      ]
+    },
+    {
+      "id": "tattoo-artist",
+      "kind": "craft",
+      "en": "Tattoo artist",
+      "enPlural": "tattoo artists",
+      "ar": "فنان وشم",
+      "arPlural": "فناني الوشم",
+      "synonyms": [
+        "tattoo",
+        "تاتو",
+        "وشم"
+      ]
+    },
+    {
+      "id": "muralist",
+      "kind": "fineart",
+      "en": "Muralist",
+      "enPlural": "muralists",
+      "ar": "رسّام جداريات",
+      "arPlural": "رسّامي الجداريات",
+      "synonyms": [
+        "mural",
+        "street art",
+        "graffiti",
+        "جرافيتي",
+        "جداريات"
+      ]
+    },
+    {
+      "id": "sculptor",
+      "kind": "fineart",
+      "en": "Sculptor",
+      "enPlural": "sculptors",
+      "ar": "نحّات",
+      "arPlural": "النحّاتين",
+      "synonyms": [
+        "sculpture",
+        "نحت",
+        "نحات"
+      ]
+    },
+    {
+      "id": "photographer",
+      "kind": "photo",
+      "en": "Photographer",
+      "enPlural": "photographers",
+      "ar": "مصوّر",
+      "arPlural": "المصوّرين",
+      "synonyms": [
+        "photography",
+        "photo",
+        "تصوير",
+        "مصور فوتوغرافي"
+      ]
+    },
+    {
+      "id": "video-editor",
+      "kind": "film",
+      "en": "Video editor",
+      "enPlural": "video editors",
+      "ar": "مونتير",
+      "arPlural": "المونتيرين",
+      "synonyms": [
+        "editor",
+        "editing",
+        "montage",
+        "مونتاج",
+        "مونتير",
+        "محرر فيديو"
+      ]
+    },
+    {
+      "id": "film-director",
+      "kind": "film",
+      "en": "Film director",
+      "enPlural": "film directors",
+      "ar": "مخرج أفلام",
+      "arPlural": "مخرجي الأفلام",
+      "synonyms": [
+        "filmmaker",
+        "film",
+        "short film",
+        "مخرج افلام",
+        "صانع افلام"
+      ]
+    },
+    {
+      "id": "writer",
+      "kind": "writing",
+      "en": "Writer",
+      "enPlural": "writers",
+      "ar": "كاتب",
+      "arPlural": "الكتّاب",
+      "synonyms": [
+        "screenwriter",
+        "script",
+        "story writer",
+        "كاتب سيناريو",
+        "سيناريست"
+      ]
+    },
+    {
+      "id": "student",
+      "kind": "other",
+      "en": "Art student",
+      "enPlural": "art students",
+      "ar": "طالب فنون",
+      "arPlural": "طلاب الفنون",
+      "synonyms": [
+        "student",
+        "graduate",
+        "طالب",
+        "طالبة",
+        "خريج",
+        "فنون جميلة"
+      ]
+    },
+    {
+      "id": "wedding-photographer",
+      "kind": "photo",
+      "en": "Wedding photographer",
+      "enPlural": "wedding photographers",
+      "ar": "مصوّر أفراح",
+      "arPlural": "مصوّري الأفراح",
+      "synonyms": [
+        "wedding",
+        "weddings",
+        "مصور افراح",
+        "تصوير افراح",
+        "فوتوجرافر افراح"
+      ]
+    },
+    {
+      "id": "portrait-photographer",
+      "kind": "photo",
+      "en": "Portrait photographer",
+      "enPlural": "portrait photographers",
+      "ar": "مصوّر بورتريه",
+      "arPlural": "مصوّري البورتريه",
+      "synonyms": [
+        "portrait",
+        "portraits",
+        "بورتريه",
+        "تصوير بورتريه"
+      ]
+    },
+    {
+      "id": "fashion-photographer",
+      "kind": "photo",
+      "en": "Fashion photographer",
+      "enPlural": "fashion photographers",
+      "ar": "مصوّر أزياء",
+      "arPlural": "مصوّري الأزياء",
+      "synonyms": [
+        "fashion photography",
+        "editorial",
+        "تصوير ازياء",
+        "فاشون"
+      ]
+    },
+    {
+      "id": "product-photographer",
+      "kind": "photo",
+      "en": "Product photographer",
+      "enPlural": "product photographers",
+      "ar": "مصوّر منتجات",
+      "arPlural": "مصوّري المنتجات",
+      "synonyms": [
+        "product photography",
+        "commercial photography",
+        "ecommerce",
+        "تصوير منتجات",
+        "تصوير تجاري"
+      ]
+    },
+    {
+      "id": "food-photographer",
+      "kind": "photo",
+      "en": "Food photographer",
+      "enPlural": "food photographers",
+      "ar": "مصوّر طعام",
+      "arPlural": "مصوّري الطعام",
+      "synonyms": [
+        "food photography",
+        "تصوير اكل",
+        "تصوير طعام"
+      ]
+    },
+    {
+      "id": "architectural-photographer",
+      "kind": "photo",
+      "en": "Architectural photographer",
+      "enPlural": "architectural photographers",
+      "ar": "مصوّر معماري",
+      "arPlural": "المصوّرين المعماريين",
+      "synonyms": [
+        "architecture photography",
+        "interiors photography",
+        "تصوير معماري"
+      ]
+    },
+    {
+      "id": "photojournalist",
+      "kind": "photo",
+      "en": "Photojournalist",
+      "enPlural": "photojournalists",
+      "ar": "مصوّر صحفي",
+      "arPlural": "المصوّرين الصحفيين",
+      "synonyms": [
+        "documentary photographer",
+        "press photographer",
+        "مصور صحفي",
+        "تصوير وثائقي"
+      ]
+    },
+    {
+      "id": "street-photographer",
+      "kind": "photo",
+      "en": "Street photographer",
+      "enPlural": "street photographers",
+      "ar": "مصوّر شوارع",
+      "arPlural": "مصوّري الشوارع",
+      "synonyms": [
+        "street photography",
+        "تصوير شارع"
+      ]
+    },
+    {
+      "id": "retoucher",
+      "kind": "photo",
+      "en": "Photo retoucher",
+      "enPlural": "photo retouchers",
+      "ar": "معالج صور",
+      "arPlural": "معالجي الصور",
+      "synonyms": [
+        "retouch",
+        "retouching",
+        "photo editor",
+        "ريتاتش",
+        "تعديل صور",
+        "فوتوشوب"
+      ]
+    },
+    {
+      "id": "cinematographer",
+      "kind": "film",
+      "en": "Cinematographer",
+      "enPlural": "cinematographers",
+      "ar": "مدير تصوير",
+      "arPlural": "مديري التصوير",
+      "synonyms": [
+        "dop",
+        "dp",
+        "director of photography",
+        "camera operator",
+        "مدير التصوير",
+        "مصور سينمائي",
+        "كاميرامان"
+      ]
+    },
+    {
+      "id": "filmmaker",
+      "kind": "film",
+      "en": "Filmmaker",
+      "enPlural": "filmmakers",
+      "ar": "صانع أفلام",
+      "arPlural": "صنّاع الأفلام",
+      "synonyms": [
+        "film maker",
+        "videographer",
+        "video maker",
+        "صانع افلام",
+        "فيديوجرافر",
+        "مخرج افلام قصيرة"
+      ]
+    },
+    {
+      "id": "documentary-filmmaker",
+      "kind": "film",
+      "en": "Documentary filmmaker",
+      "enPlural": "documentary filmmakers",
+      "ar": "صانع أفلام وثائقية",
+      "arPlural": "صنّاع الأفلام الوثائقية",
+      "synonyms": [
+        "documentary",
+        "وثائقي",
+        "افلام وثائقية"
+      ]
+    },
+    {
+      "id": "color-grader",
+      "kind": "film",
+      "en": "Colorist (film)",
+      "enPlural": "film colorists",
+      "ar": "مصحّح ألوان",
+      "arPlural": "مصحّحي الألوان",
+      "synonyms": [
+        "color grading",
+        "colour grading",
+        "grading",
+        "تلوين",
+        "تصحيح الوان",
+        "كالر جريدنج"
+      ]
+    },
+    {
+      "id": "music-video-director",
+      "kind": "film",
+      "en": "Music video director",
+      "enPlural": "music video directors",
+      "ar": "مخرج فيديو كليب",
+      "arPlural": "مخرجي الفيديو كليب",
+      "synonyms": [
+        "music video",
+        "video clip",
+        "فيديو كليب",
+        "كليبات"
+      ]
+    },
+    {
+      "id": "commercial-director",
+      "kind": "film",
+      "en": "Commercial director",
+      "enPlural": "commercial directors",
+      "ar": "مخرج إعلانات",
+      "arPlural": "مخرجي الإعلانات",
+      "synonyms": [
+        "ads",
+        "advertising director",
+        "commercials",
+        "مخرج اعلانات",
+        "اعلانات"
+      ]
+    },
+    {
+      "id": "brand-designer",
+      "kind": "design",
+      "en": "Brand designer",
+      "enPlural": "brand designers",
+      "ar": "مصمم هوية بصرية",
+      "arPlural": "مصممي الهوية البصرية",
+      "synonyms": [
+        "branding",
+        "brand identity",
+        "visual identity",
+        "هوية",
+        "هوية بصرية",
+        "براندنج"
+      ]
+    },
+    {
+      "id": "packaging-designer",
+      "kind": "design",
+      "en": "Packaging designer",
+      "enPlural": "packaging designers",
+      "ar": "مصمم تغليف",
+      "arPlural": "مصممي التغليف",
+      "synonyms": [
+        "packaging",
+        "تغليف",
+        "باكدجنج"
+      ]
+    },
+    {
+      "id": "web-designer",
+      "kind": "design",
+      "en": "Web designer",
+      "enPlural": "web designers",
+      "ar": "مصمم مواقع",
+      "arPlural": "مصممي المواقع",
+      "synonyms": [
+        "website designer",
+        "webflow",
+        "مصمم ويب",
+        "تصميم مواقع"
+      ]
+    },
+    {
+      "id": "product-designer",
+      "kind": "design",
+      "en": "Product designer (digital)",
+      "enPlural": "digital product designers",
+      "ar": "مصمم منتجات رقمية",
+      "arPlural": "مصممي المنتجات الرقمية",
+      "synonyms": [
+        "ui designer",
+        "ux ui",
+        "app designer",
+        "مصمم تطبيقات",
+        "يو اي"
+      ]
+    },
+    {
+      "id": "industrial-designer",
+      "kind": "design",
+      "en": "Industrial designer",
+      "enPlural": "industrial designers",
+      "ar": "مصمم صناعي",
+      "arPlural": "المصممين الصناعيين",
+      "synonyms": [
+        "product design",
+        "industrial design",
+        "تصميم صناعي",
+        "تصميم منتجات"
+      ]
+    },
+    {
+      "id": "interior-designer",
+      "kind": "architecture",
+      "en": "Interior designer",
+      "enPlural": "interior designers",
+      "ar": "مصمم ديكور داخلي",
+      "arPlural": "مصممي الديكور الداخلي",
+      "synonyms": [
+        "interior design",
+        "interiors",
+        "decor",
+        "ديكور",
+        "انتريور",
+        "تصميم داخلي"
+      ]
+    },
+    {
+      "id": "furniture-designer",
+      "kind": "design",
+      "en": "Furniture designer",
+      "enPlural": "furniture designers",
+      "ar": "مصمم أثاث",
+      "arPlural": "مصممي الأثاث",
+      "synonyms": [
+        "furniture",
+        "اثاث",
+        "تصميم اثاث"
+      ]
+    },
+    {
+      "id": "exhibition-designer",
+      "kind": "design",
+      "en": "Exhibition designer",
+      "enPlural": "exhibition designers",
+      "ar": "مصمم معارض",
+      "arPlural": "مصممي المعارض",
+      "synonyms": [
+        "exhibitions",
+        "booth design",
+        "معارض",
+        "تصميم بوثات"
+      ]
+    },
+    {
+      "id": "set-designer",
+      "kind": "film",
+      "en": "Set designer",
+      "enPlural": "set designers",
+      "ar": "مصمم ديكور سينمائي",
+      "arPlural": "مصممي الديكور السينمائي",
+      "synonyms": [
+        "production designer",
+        "art department",
+        "scenographer",
+        "مصمم مناظر",
+        "ديكور مسرحي"
+      ]
+    },
+    {
+      "id": "infographic-designer",
+      "kind": "design",
+      "en": "Infographic designer",
+      "enPlural": "infographic designers",
+      "ar": "مصمم إنفوجرافيك",
+      "arPlural": "مصممي الإنفوجرافيك",
+      "synonyms": [
+        "infographics",
+        "data visualization",
+        "انفوجراف",
+        "انفوجرافيك"
+      ]
+    },
+    {
+      "id": "social-media-designer",
+      "kind": "design",
+      "en": "Social media designer",
+      "enPlural": "social media designers",
+      "ar": "مصمم سوشيال ميديا",
+      "arPlural": "مصممي السوشيال ميديا",
+      "synonyms": [
+        "social media",
+        "posts",
+        "سوشيال",
+        "تصميم بوستات"
+      ]
+    },
+    {
+      "id": "game-designer",
+      "kind": "games",
+      "en": "Game designer",
+      "enPlural": "game designers",
+      "ar": "مصمم ألعاب",
+      "arPlural": "مصممي الألعاب",
+      "synonyms": [
+        "game design",
+        "level design",
+        "تصميم العاب"
+      ]
+    },
+    {
+      "id": "architect",
+      "kind": "architecture",
+      "en": "Architect",
+      "enPlural": "architects",
+      "ar": "مهندس معماري",
+      "arPlural": "المهندسين المعماريين",
+      "synonyms": [
+        "architecture",
+        "arch",
+        "معماري",
+        "عمارة",
+        "مهندس عمارة"
+      ]
+    },
+    {
+      "id": "landscape-architect",
+      "kind": "architecture",
+      "en": "Landscape architect",
+      "enPlural": "landscape architects",
+      "ar": "مهندس تنسيق مواقع",
+      "arPlural": "مهندسي تنسيق المواقع",
+      "synonyms": [
+        "landscape",
+        "landscaping",
+        "لاندسكيب",
+        "تنسيق حدائق"
+      ]
+    },
+    {
+      "id": "archviz-artist",
+      "kind": "architecture",
+      "en": "Architectural visualization artist",
+      "enPlural": "architectural visualization artists",
+      "ar": "فنان إظهار معماري",
+      "arPlural": "فناني الإظهار المعماري",
+      "synonyms": [
+        "archviz",
+        "3d visualization",
+        "rendering",
+        "renders",
+        "اظهار معماري",
+        "ريندر",
+        "فيجوال"
+      ]
+    },
+    {
+      "id": "urban-designer",
+      "kind": "architecture",
+      "en": "Urban designer",
+      "enPlural": "urban designers",
+      "ar": "مصمم عمراني",
+      "arPlural": "المصممين العمرانيين",
+      "synonyms": [
+        "urban design",
+        "urban planning",
+        "تخطيط عمراني",
+        "تصميم عمراني"
+      ]
+    },
+    {
+      "id": "fashion-designer",
+      "kind": "fashion",
+      "en": "Fashion designer",
+      "enPlural": "fashion designers",
+      "ar": "مصمم أزياء",
+      "arPlural": "مصممي الأزياء",
+      "synonyms": [
+        "fashion",
+        "clothing designer",
+        "مصممة ازياء",
+        "ازياء",
+        "فاشون ديزاينر"
+      ]
+    },
+    {
+      "id": "textile-designer",
+      "kind": "fashion",
+      "en": "Textile designer",
+      "enPlural": "textile designers",
+      "ar": "مصمم منسوجات",
+      "arPlural": "مصممي المنسوجات",
+      "synonyms": [
+        "textiles",
+        "pattern designer",
+        "surface design",
+        "نسيج",
+        "منسوجات",
+        "طباعة اقمشة"
+      ]
+    },
+    {
+      "id": "jewelry-designer",
+      "kind": "fashion",
+      "en": "Jewelry designer",
+      "enPlural": "jewelry designers",
+      "ar": "مصمم مجوهرات",
+      "arPlural": "مصممي المجوهرات",
+      "synonyms": [
+        "jewellery",
+        "jewelry",
+        "accessories",
+        "مجوهرات",
+        "اكسسوارات",
+        "مصممة مجوهرات"
+      ]
+    },
+    {
+      "id": "costume-designer",
+      "kind": "fashion",
+      "en": "Costume designer",
+      "enPlural": "costume designers",
+      "ar": "مصمم ملابس",
+      "arPlural": "مصممي الملابس",
+      "synonyms": [
+        "costumes",
+        "wardrobe",
+        "ملابس سينمائية",
+        "مصمم ملابس مسرح"
+      ]
+    },
+    {
+      "id": "fashion-stylist",
+      "kind": "fashion",
+      "en": "Fashion stylist",
+      "enPlural": "fashion stylists",
+      "ar": "منسّق أزياء",
+      "arPlural": "منسّقي الأزياء",
+      "synonyms": [
+        "stylist",
+        "styling",
+        "ستايلست",
+        "ستايلنج"
+      ]
+    },
+    {
+      "id": "fashion-illustrator",
+      "kind": "fashion",
+      "en": "Fashion illustrator",
+      "enPlural": "fashion illustrators",
+      "ar": "رسّام أزياء",
+      "arPlural": "رسّامي الأزياء",
+      "synonyms": [
+        "fashion illustration",
+        "رسم ازياء",
+        "فاشون اليستريشن"
+      ]
+    },
+    {
+      "id": "contemporary-artist",
+      "kind": "fineart",
+      "en": "Contemporary artist",
+      "enPlural": "contemporary artists",
+      "ar": "فنان معاصر",
+      "arPlural": "الفنانين المعاصرين",
+      "synonyms": [
+        "artist",
+        "fine artist",
+        "visual artist",
+        "فنان تشكيلي",
+        "فن تشكيلي",
+        "فنانة تشكيلية"
+      ]
+    },
+    {
+      "id": "ceramicist",
+      "kind": "fineart",
+      "en": "Ceramic artist",
+      "enPlural": "ceramic artists",
+      "ar": "فنان خزف",
+      "arPlural": "فناني الخزف",
+      "synonyms": [
+        "ceramics",
+        "pottery",
+        "potter",
+        "خزف",
+        "فخار",
+        "سيراميك"
+      ]
+    },
+    {
+      "id": "printmaker",
+      "kind": "fineart",
+      "en": "Printmaker",
+      "enPlural": "printmakers",
+      "ar": "فنان طباعة فنية",
+      "arPlural": "فناني الطباعة الفنية",
+      "synonyms": [
+        "printmaking",
+        "linocut",
+        "screen printing",
+        "حفر",
+        "طباعة فنية",
+        "سيلك سكرين"
+      ]
+    },
+    {
+      "id": "mixed-media-artist",
+      "kind": "fineart",
+      "en": "Mixed media artist",
+      "enPlural": "mixed media artists",
+      "ar": "فنان وسائط متعددة",
+      "arPlural": "فناني الوسائط المتعددة",
+      "synonyms": [
+        "mixed media",
+        "collage",
+        "كولاج",
+        "وسائط متعددة"
+      ]
+    },
+    {
+      "id": "installation-artist",
+      "kind": "fineart",
+      "en": "Installation artist",
+      "enPlural": "installation artists",
+      "ar": "فنان أعمال تركيبية",
+      "arPlural": "فناني الأعمال التركيبية",
+      "synonyms": [
+        "installation",
+        "installations",
+        "فن تركيبي",
+        "تجهيز في الفراغ"
+      ]
+    },
+    {
+      "id": "street-artist",
+      "kind": "fineart",
+      "en": "Street artist",
+      "enPlural": "street artists",
+      "ar": "فنان جرافيتي",
+      "arPlural": "فناني الجرافيتي",
+      "synonyms": [
+        "graffiti",
+        "street art",
+        "جرافيتي",
+        "فن الشارع"
+      ]
+    },
+    {
+      "id": "photographic-artist",
+      "kind": "fineart",
+      "en": "Fine art photographer",
+      "enPlural": "fine art photographers",
+      "ar": "مصوّر فني",
+      "arPlural": "المصوّرين الفنيين",
+      "synonyms": [
+        "fine art photography",
+        "art photography",
+        "تصوير فني"
+      ]
+    },
+    {
+      "id": "woodworker",
+      "kind": "craft",
+      "en": "Woodworker",
+      "enPlural": "woodworkers",
+      "ar": "فنان أعمال خشبية",
+      "arPlural": "فناني الأعمال الخشبية",
+      "synonyms": [
+        "wood",
+        "carpentry",
+        "woodcraft",
+        "نجارة",
+        "خشب",
+        "اعمال خشبية"
+      ]
+    },
+    {
+      "id": "embroidery-artist",
+      "kind": "craft",
+      "en": "Embroidery artist",
+      "enPlural": "embroidery artists",
+      "ar": "فنان تطريز",
+      "arPlural": "فناني التطريز",
+      "synonyms": [
+        "embroidery",
+        "تطريز",
+        "تلي",
+        "سيرما"
+      ]
+    },
+    {
+      "id": "mosaic-artist",
+      "kind": "craft",
+      "en": "Mosaic artist",
+      "enPlural": "mosaic artists",
+      "ar": "فنان فسيفساء",
+      "arPlural": "فناني الفسيفساء",
+      "synonyms": [
+        "mosaic",
+        "موزاييك",
+        "فسيفساء"
+      ]
+    },
+    {
+      "id": "glass-artist",
+      "kind": "craft",
+      "en": "Glass artist",
+      "enPlural": "glass artists",
+      "ar": "فنان زجاج",
+      "arPlural": "فناني الزجاج",
+      "synonyms": [
+        "glass",
+        "stained glass",
+        "زجاج",
+        "زجاج معشق"
+      ]
+    },
+    {
+      "id": "handmade-maker",
+      "kind": "craft",
+      "en": "Handmade maker",
+      "enPlural": "handmade makers",
+      "ar": "فنان أعمال يدوية",
+      "arPlural": "فناني الأعمال اليدوية",
+      "synonyms": [
+        "handmade",
+        "crafts",
+        "artisan",
+        "هاند ميد",
+        "اعمال يدوية",
+        "حرف يدوية"
+      ]
+    },
+    {
+      "id": "musician",
+      "kind": "music",
+      "en": "Musician",
+      "enPlural": "musicians",
+      "ar": "موسيقي",
+      "arPlural": "الموسيقيين",
+      "synonyms": [
+        "music",
+        "instrumentalist",
+        "band",
+        "موسيقى",
+        "عازف"
+      ]
+    },
+    {
+      "id": "composer",
+      "kind": "music",
+      "en": "Composer",
+      "enPlural": "composers",
+      "ar": "مؤلف موسيقي",
+      "arPlural": "المؤلفين الموسيقيين",
+      "synonyms": [
+        "film composer",
+        "scoring",
+        "soundtrack",
+        "موسيقى تصويرية",
+        "تأليف موسيقي"
+      ]
+    },
+    {
+      "id": "music-producer",
+      "kind": "music",
+      "en": "Music producer",
+      "enPlural": "music producers",
+      "ar": "منتج موسيقي",
+      "arPlural": "المنتجين الموسيقيين",
+      "synonyms": [
+        "producer music",
+        "beatmaker",
+        "beats",
+        "منتج مزيكا",
+        "بيتس"
+      ]
+    },
+    {
+      "id": "sound-designer",
+      "kind": "music",
+      "en": "Sound designer",
+      "enPlural": "sound designers",
+      "ar": "مصمم صوت",
+      "arPlural": "مصممي الصوت",
+      "synonyms": [
+        "sound design",
+        "foley",
+        "audio",
+        "مؤثرات صوتية",
+        "فولي",
+        "مهندس صوت"
+      ]
+    },
+    {
+      "id": "singer",
+      "kind": "music",
+      "en": "Singer",
+      "enPlural": "singers",
+      "ar": "مغنٍّ",
+      "arPlural": "المغنين",
+      "synonyms": [
+        "vocalist",
+        "songwriter",
+        "مطرب",
+        "مطربة",
+        "مغنية"
+      ]
+    },
+    {
+      "id": "voice-actor",
+      "kind": "performance",
+      "en": "Voice actor",
+      "enPlural": "voice actors",
+      "ar": "مؤدي صوت",
+      "arPlural": "مؤدي الأصوات",
+      "synonyms": [
+        "voice over",
+        "voiceover",
+        "dubbing",
+        "فويس اوفر",
+        "دوبلاج",
+        "تعليق صوتي"
+      ]
+    },
+    {
+      "id": "dj",
+      "kind": "music",
+      "en": "DJ",
+      "enPlural": "DJs",
+      "ar": "دي جي",
+      "arPlural": "الدي جيهات",
+      "synonyms": [
+        "disc jockey",
+        "ديجي"
+      ]
+    },
+    {
+      "id": "actor",
+      "kind": "performance",
+      "en": "Actor",
+      "enPlural": "actors",
+      "ar": "ممثل",
+      "arPlural": "الممثلين",
+      "synonyms": [
+        "actress",
+        "acting",
+        "ممثلة",
+        "تمثيل"
+      ]
+    },
+    {
+      "id": "dancer",
+      "kind": "performance",
+      "en": "Dancer",
+      "enPlural": "dancers",
+      "ar": "راقص",
+      "arPlural": "الراقصين",
+      "synonyms": [
+        "dance",
+        "choreographer",
+        "راقصة",
+        "رقص",
+        "كوريوجرافر"
+      ]
+    },
+    {
+      "id": "makeup-artist",
+      "kind": "beauty",
+      "en": "Makeup artist",
+      "enPlural": "makeup artists",
+      "ar": "خبير مكياج",
+      "arPlural": "خبراء المكياج",
+      "synonyms": [
+        "makeup",
+        "mua",
+        "sfx makeup",
+        "special effects makeup",
+        "ميكب ارتست",
+        "مكياج",
+        "ميك اب"
+      ]
+    },
+    {
+      "id": "hair-stylist",
+      "kind": "beauty",
+      "en": "Hair stylist",
+      "enPlural": "hair stylists",
+      "ar": "مصفف شعر",
+      "arPlural": "مصففي الشعر",
+      "synonyms": [
+        "hair",
+        "hairdresser",
+        "كوافير",
+        "تصفيف شعر"
+      ]
+    },
+    {
+      "id": "copywriter",
+      "kind": "writing",
+      "en": "Copywriter",
+      "enPlural": "copywriters",
+      "ar": "كاتب إعلانات",
+      "arPlural": "كتّاب الإعلانات",
+      "synonyms": [
+        "copywriting",
+        "content writer",
+        "كوبي رايتر",
+        "كتابة محتوى"
+      ]
+    },
+    {
+      "id": "author",
+      "kind": "writing",
+      "en": "Author",
+      "enPlural": "authors",
+      "ar": "مؤلف",
+      "arPlural": "المؤلفين",
+      "synonyms": [
+        "novelist",
+        "book author",
+        "روائي",
+        "كاتب روايات"
+      ]
+    },
+    {
+      "id": "poet",
+      "kind": "writing",
+      "en": "Poet",
+      "enPlural": "poets",
+      "ar": "شاعر",
+      "arPlural": "الشعراء",
+      "synonyms": [
+        "poetry",
+        "شعر",
+        "شاعرة"
+      ]
+    },
+    {
+      "id": "screenwriter",
+      "kind": "writing",
+      "en": "Screenwriter",
+      "enPlural": "screenwriters",
+      "ar": "سيناريست",
+      "arPlural": "كتّاب السيناريو",
+      "synonyms": [
+        "script writer",
+        "scriptwriter",
+        "سيناريو",
+        "كاتب سيناريو"
+      ]
+    },
+    {
+      "id": "journalist",
+      "kind": "writing",
+      "en": "Journalist",
+      "enPlural": "journalists",
+      "ar": "صحفي",
+      "arPlural": "الصحفيين",
+      "synonyms": [
+        "reporter",
+        "journalism",
+        "صحافة",
+        "صحفية"
+      ]
+    },
+    {
+      "id": "content-creator",
+      "kind": "other",
+      "en": "Content creator",
+      "enPlural": "content creators",
+      "ar": "صانع محتوى",
+      "arPlural": "صنّاع المحتوى",
+      "synonyms": [
+        "creator",
+        "influencer",
+        "youtuber",
+        "tiktoker",
+        "صانع محتوى",
+        "يوتيوبر",
+        "بلوجر"
+      ]
+    },
+    {
+      "id": "art-teacher",
+      "kind": "other",
+      "en": "Art teacher",
+      "enPlural": "art teachers",
+      "ar": "مدرّس فنون",
+      "arPlural": "مدرّسي الفنون",
+      "synonyms": [
+        "teacher",
+        "instructor",
+        "مدرس رسم",
+        "معلم فنون",
+        "مدرب"
+      ]
+    },
+    {
+      "id": "curator",
+      "kind": "other",
+      "en": "Curator",
+      "enPlural": "curators",
+      "ar": "قيّم فني",
+      "arPlural": "القيّمين الفنيين",
+      "synonyms": [
+        "curation",
+        "gallery",
+        "كيوريتور",
+        "معارض فنية"
+      ]
+    }
   ]
 }

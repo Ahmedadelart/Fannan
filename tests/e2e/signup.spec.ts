@@ -136,3 +136,22 @@ test("the dashboard needs a signed-in account", async ({ page }) => {
   await expect(page).toHaveURL(at("app", "/login"));
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Welcome back.");
 });
+
+test("every kind of artist: field suggestions, Arabic search, and a starter that fits", async ({ page }) => {
+  await page.goto(at("app", "/signup"));
+  await page.getByRole("textbox", { name: "Your name" }).fill("Laila Mostafa");
+  await page.getByRole("button", { name: "Next" }).click();
+  // Suggestions cover more than animation.
+  for (const chip of ["Photographer", "Architect", "Fashion designer", "Graphic designer"]) {
+    await expect(page.getByRole("button", { name: chip, exact: true })).toBeVisible();
+  }
+  // Colloquial Arabic finds the right field too.
+  await page.getByRole("textbox", { name: "What you do" }).fill("فوتوجرافر");
+  await expect(page.getByRole("button", { name: /photographer/i }).first()).toBeVisible();
+  await page.getByRole("textbox", { name: "What you do" }).fill("photo");
+  await page.getByRole("button", { name: "Photographer", exact: true }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Pick a starting point, Laila.", { timeout: 8000 });
+  // Stills-first fields lead with the grid.
+  await expect(page.getByRole("radio", { name: /The Grid/ })).toHaveAttribute("aria-checked", "true");
+});

@@ -47,6 +47,7 @@ export async function signUp(page: Page, id = uniq(), emailDomain = "example.com
   await page.goto(at("app", "/signup"));
   await page.getByRole("textbox", { name: "Your name" }).fill("Nour Adel");
   await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("textbox", { name: "What you do" }).fill("character");
   await page.getByRole("button", { name: "Character designer" }).click();
   await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: "Customize this one" }).click({ timeout: 10_000 });

@@ -204,7 +204,7 @@
     "stepKicker": "Step {step} of 6",
     "step2Title": "Nice to meet you, {first}. What do you do?",
     "jobLabel": "What you do",
-    "jobPlaceholder": "Start typing, e.g. animator",
+    "jobPlaceholder": "Start typing, e.g. photographer",
     "jobNeeded": "Pick one, or type what you do.",
     "step3Title": "Setting up a portfolio for a {what}…",
     "load1": "Putting your name on it",
@@ -220,7 +220,7 @@
     "layouts": {
       "reel": {
         "name": "The Reel",
-        "desc": "Your reel fills the top; projects below. Best for animators."
+        "desc": "Your reel fills the top; projects below. Best for work that moves: animation, film, motion."
       },
       "showcase": {
         "name": "The Showcase",
@@ -232,7 +232,7 @@
       },
       "storyteller": {
         "name": "The Storyteller",
-        "desc": "Big case studies with process and credits. Best for directors and leads."
+        "desc": "Big case studies with process and credits. Best for directors, writers and anyone with a process to show."
       },
       "minimalist": {
         "name": "The Minimalist",
@@ -496,7 +496,7 @@
       "client": "Client",
       "studio": "Studio",
       "team": "Team credits",
-      "teamPlaceholder": "Director: Name · Animation: Name",
+      "teamPlaceholder": "Photographer: Name · Styling: Name",
       "description": "Description",
       "tags": "Tags",
       "tagsHint": "Separate with commas."
@@ -505,15 +505,40 @@
       "": "Choose a category",
       "2d-animation": "2D animation",
       "3d-animation": "3D animation",
-      "character-design": "Character design",
+      "motion": "Motion design",
       "storyboard": "Storyboard",
+      "character-design": "Character design",
+      "background": "Backgrounds",
+      "direction": "Direction",
       "illustration": "Illustration",
       "comics": "Comics",
       "concept-art": "Concept art",
-      "background": "Backgrounds",
-      "motion": "Motion design",
+      "graphic-design": "Graphic design",
+      "branding": "Branding and identity",
+      "ui-ux": "UI / UX",
+      "packaging": "Packaging",
+      "product-design": "Product design",
+      "type-design": "Type and lettering",
+      "photography": "Photography",
+      "film": "Film and video",
+      "architecture": "Architecture",
+      "interior": "Interior design",
+      "visualization": "Visualization",
+      "fashion": "Fashion",
+      "jewelry": "Jewelry and accessories",
+      "textile": "Textiles",
+      "painting": "Painting",
+      "sculpture": "Sculpture",
+      "calligraphy": "Calligraphy",
+      "ceramics": "Ceramics",
+      "street-art": "Street art and murals",
+      "crafts": "Crafts",
+      "3d": "3D",
       "game-art": "Game art",
-      "direction": "Direction",
+      "music": "Music",
+      "sound": "Sound design",
+      "performance": "Performance",
+      "writing": "Writing",
       "personal": "Personal work",
       "other": "Other"
     },
@@ -546,7 +571,20 @@
       "role": "الدور",
       "description": "الوصف"
     },
-    "overLimit": "On Free, your newest {limit} projects show on your site. The rest are kept safe and come back when you go Pro."
+    "overLimit": "On Free, your newest {limit} projects show on your site. The rest are kept safe and come back when you go Pro.",
+    "categoryGroups": {
+      "animation": "Animation and motion",
+      "illustration": "Illustration and comics",
+      "design": "Design",
+      "photo": "Photography and film",
+      "space": "Architecture and interiors",
+      "fashion": "Fashion",
+      "art": "Fine art and crafts",
+      "games": "3D and games",
+      "sound": "Music and performance",
+      "words": "Writing",
+      "other": "Other"
+    }
   },
   "editor": {
     "metaTitle": "Site editor",
@@ -938,7 +976,7 @@
       "title": "Search & sharing",
       "siteTitle": "Site title",
       "description": "Description",
-      "descriptionPlaceholder": "Character design, 2D animation and storyboards from Cairo.",
+      "descriptionPlaceholder": "Illustration, design and photography from Cairo.",
       "shareImage": "Share image",
       "shareImageHint": "Shown when your link is shared. 1200 × 630 works best.",
       "favicon": "Favicon",
@@ -1244,26 +1282,27 @@
   },
   "home": {
     "metaTitle": "Fannan · Portfolios for Arab artists",
-    "metaDescription": "Put your best work on one link, made for the studios and clients who hire. Build it in minutes, free.",
+    "metaDescription": "Put your best work on one link: illustration, photography, design, animation, architecture, fashion and more. Free, in minutes.",
     "eyebrow": "Portfolios for Arab artists",
     "title": "Your next job is <hl>looking for you.</hl>",
     "sub": "Put your best work on one link, made for the studios and clients who hire. Build it in minutes. No code, no developer.",
     "freeForever": "The free plan has no time limit.",
     "mock": {
       "name": "Your Name",
-      "role": "Character designer · Cairo",
+      "role": "Illustrator · Cairo",
       "available": "Available for work",
       "messageTitle": "New message from a studio",
       "messageText": "We saw your work. Are you free for a project next month?"
     },
     "kinds": {
-      "animation": "Animation",
-      "character": "Character design",
-      "storyboard": "Storyboard",
       "illustration": "Illustration",
-      "comics": "Comics",
-      "motion": "Motion",
-      "concept": "Concept art"
+      "photography": "Photography",
+      "design": "Design",
+      "animation": "Animation",
+      "architecture": "Architecture",
+      "fashion": "Fashion",
+      "fineart": "Fine art",
+      "film": "Film"
     },
     "howTitle": "How work finds you",
     "howSub": "Three steps from a folder full of drawings to a link you can send to any studio.",
@@ -1274,7 +1313,7 @@
       },
       "credits": {
         "title": "Add your credits",
-        "body": "For each project: the show, the studio or client, your role, the year. The details studios look for first."
+        "body": "For each project: what it was, the client or studio, your role, the year. The details people who hire look for first."
       },
       "share": {
         "title": "Send one link",
@@ -1286,7 +1325,7 @@
     "features": {
       "credits": {
         "title": "Credits studios trust",
-        "body": "Show, client, role and year on every project, so nobody has to guess what you actually did."
+        "body": "Client, role and year on every project, so nobody has to guess what you actually did."
       },
       "available": {
         "title": "Available-for-work badge",
@@ -1313,8 +1352,8 @@
     "examplesSub": "One tool. Every site looks like the person who made it.",
     "examples": {
       "animator": "Animator",
-      "illustrator": "Illustrator",
-      "character": "Character designer"
+      "illustrator": "Photographer",
+      "character": "Architect"
     },
     "pricingTitle": "Pricing",
     "free": {
@@ -1459,7 +1498,7 @@
     "q": {
       "what": {
         "q": "What is Fannan?",
-        "a": "A portfolio builder for Arab artists: animators, character designers, storyboard artists, illustrators and comic artists. You get one link that shows your best work with clear credits, made for the studios and clients who hire."
+        "a": "A portfolio builder for Arab artists and creatives of every kind: illustrators, photographers, designers, animators, architects, fashion designers, calligraphers, filmmakers, musicians and more. You get one link that shows your best work with clear credits, made for the people who hire."
       },
       "free": {
         "q": "Is it really free?",

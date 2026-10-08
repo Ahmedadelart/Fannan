@@ -81,6 +81,16 @@ const palettes: Record<DisciplineKind, string[]> = {
   comics: ["#141414", "#9C2E2E", "#B0903A", "#3A3A3A", "#6B3A3A", "#7A5A2E"],
   games: ["#4E5B2E", "#5B2E4F", "#7A5A2E", "#3A3A3A", "#9C5B34", "#5B3A2E"],
   design: ["#141414", "#9C5B34", "#B0903A", "#5B2E4F", "#7A5A2E", "#4E5B2E"],
+  photo: ["#3A3A3A", "#6B5A4A", "#8A8478", "#2E2E2E", "#5B4C2E", "#7A746A"],
+  film: ["#141414", "#5B3A2E", "#3A3A3A", "#6B3A3A", "#4A4A44", "#7A5A2E"],
+  fineart: ["#9C5B34", "#6B3A3A", "#B0903A", "#4E5B2E", "#5B2E4F", "#7A6A58"],
+  architecture: ["#8A8478", "#5B5B55", "#B8B0A0", "#4A4A44", "#6B6458", "#9A9488"],
+  fashion: ["#5B2E4F", "#9C5B34", "#141414", "#B07A3A", "#6B3A3A", "#8A6A5A"],
+  craft: ["#7A5A2E", "#9C5B34", "#5B4C2E", "#4E5B2E", "#B0903A", "#6B4A3A"],
+  music: ["#141414", "#5B2E4F", "#3A3A3A", "#9C5B34", "#4E5B2E", "#6B3A3A"],
+  performance: ["#2E2E2E", "#6B3A3A", "#5B2E4F", "#7A5A2E", "#3A3A3A", "#9C5B34"],
+  beauty: ["#8A5A5A", "#5B2E4F", "#B07A6A", "#6B3A3A", "#9C7A6A", "#4A3A3A"],
+  writing: ["#24221F", "#8A8478", "#5B5B55", "#9C5B34", "#4A4A44", "#B8B0A0"],
   other: ["#5B3A2E", "#4E5B2E", "#5B2E4F", "#3A3A44", "#5B4C2E", "#6B4A3A"],
 };
 
@@ -105,7 +115,10 @@ export function reelLayoutName(discipline: string): "reel" | "showcase" {
 /** Layout order for step 4: the most fitting first. */
 export function layoutOrder(discipline: string): LayoutId[] {
   const kind = disciplineById(discipline)?.kind;
-  if (kind === "direction" || kind === "story") return ["storyteller", "reel", "grid", "minimalist"];
+  if (kind === "direction" || kind === "story" || kind === "writing") return ["storyteller", "reel", "grid", "minimalist"];
+  // Stills-first fields lead with the grid.
+  if (["photo", "architecture", "fashion", "fineart", "craft", "beauty", "design"].includes(kind ?? ""))
+    return ["grid", "minimalist", "reel", "storyteller"];
   return layoutIds;
 }
 
@@ -113,6 +126,24 @@ export function disciplineText(discipline: string, language: Locale): string {
   const d = disciplineById(discipline);
   if (d) return language === "ar" ? d.ar : d.en;
   return discipline.trim();
+}
+
+/** The hero line of "The Storyteller", in words that fit the artist's field. */
+function storyLine(kind: DisciplineKind, l: Locale): string {
+  const lines: Partial<Record<DisciplineKind, [string, string]>> = {
+    animation: ["Telling stories, frame by frame.", "أحكي القصص، لقطة بلقطة."],
+    direction: ["Telling stories, frame by frame.", "أحكي القصص، لقطة بلقطة."],
+    story: ["Telling stories, panel by panel.", "أحكي القصص، مشهدًا بمشهد."],
+    film: ["Telling stories through the lens.", "أحكي القصص بعين الكاميرا."],
+    photo: ["Moments, light and the people in them.", "لحظات وضوء وناس."],
+    writing: ["Words that make people stop and read.", "كلمات تجعل الناس يتوقفون ويقرؤون."],
+    music: ["Sound that stays with you.", "أصوات تبقى معك."],
+    architecture: ["Spaces made for the people who live in them.", "مساحات مصنوعة لمن يعيش فيها."],
+    fashion: ["Clothes with a point of view.", "أزياء لها رأي."],
+    design: ["Ideas made clear and beautiful.", "أفكار واضحة وجميلة."],
+  };
+  const [en, ar] = lines[kind] ?? ["Work with a story behind it.", "أعمال وراءها حكاية."];
+  return l === "ar" ? ar : en;
 }
 
 export function firstName(name: string): string {
@@ -174,7 +205,7 @@ export function generateStarter(input: StarterInput): SiteDraft {
         {
           id: newId(),
           type: "hero",
-          text: l === "ar" ? `${what}. أحكي القصص، لقطة بلقطة.` : `${what}. Telling stories, frame by frame.`,
+          text: `${what}. ${storyLine(kind, l)}`,
           align: "start",
         },
         gallery(1, 40, 3, "16/9"),

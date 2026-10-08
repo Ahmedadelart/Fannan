@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 8 Oct 2026, phase 7 (marketing site, legal, reports, launch readiness). Waiting on Ahmed's beta sign-off (docs/BETA-CHECKLIST.md)._
+_Last updated: 8 Oct 2026, phase 8 (Editor 2.0) under way: 8A done._
 
 ## Done
 
@@ -144,6 +144,13 @@ _Last updated: 8 Oct 2026, phase 7 (marketing site, legal, reports, launch readi
 - **Load test** (autocannon, 20 connections, 30 s, production artist site through Cloudflare): ~43 requests/s, median 397 ms, p97.5 677 ms. Pages aren't edge-cached yet; that's the next lever if traffic grows.
 - **Tests:** `tests/e2e/launch.spec.ts` (marketing EN/AR on desktop and phone, prices by country, every page 200 in both languages, contact form, onboarding emails, report → hide project → artist email, Examples).
 - **Beta sign-off:** `docs/BETA-CHECKLIST.md`.
+
+### Phase 8A: Every kind of artist
+- **131 disciplines** (was 63) across 21 fields: photography, film and video, design, architecture and interiors, fashion, fine art, crafts, music and sound, performance, beauty, writing, plus the original animation, illustration, comics, concept, 3D and games. English and Arabic names with colloquial and transliterated synonyms (مصور، فوتوجرافر…).
+- **Sign-up suggestions** span fields (Illustrator, Photographer, Graphic designer, 2D animator, Architect, 3D modeler, Fashion designer, Calligrapher, UX designer, Concept artist, Contemporary artist, Filmmaker). "The Reel" is offered to people whose work moves (animation, motion, 3D, film, performance); stills-first fields (photography, architecture, fashion, fine art, crafts, beauty, design) see The Grid first; writers and directors The Storyteller. Storyteller headlines and sample colours fit each field.
+- **Project categories** in grouped menus (`src/config/categories.ts`): animation and motion, illustration and comics, design, photography and film, architecture and interiors, fashion, fine art and crafts, 3D and games, music and performance, writing, other.
+- **Starter and marketing wording** no longer assumes animation (block placeholders, homepage strip and examples, help, SEO placeholder).
+- Quick fixes from Ahmed's review: the marketing header no longer shifts on inner pages; sign-up shows the signed-in email with "Not you? Sign out".
 
 ## Not done yet from the phase 6 "done when"
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).

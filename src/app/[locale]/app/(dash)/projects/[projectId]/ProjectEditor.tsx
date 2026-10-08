@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type DragEvent, type ReactNode } from "react";
+import { CATEGORY_GROUPS } from "@/config/categories";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import { Button, buttonClasses } from "@/components/ui/Button";
@@ -411,7 +412,7 @@ export function ProjectEditor({
       ? t("saving")
       : t("savedItems", { items: t("items", { count: items.filter((m) => m.status !== "failed").length }) });
 
-  const categories = Object.keys(t.raw("categories") as Record<string, string>);
+  const known = new Set<string>(CATEGORY_GROUPS.flatMap((g) => [...g.items]));
   const formats = t.raw("drop.formats") as string[];
   const kindLabel = (m: Item) => (t.has(`kinds.${m.type}`) ? t(`kinds.${m.type}`) : m.type);
 
@@ -798,11 +799,17 @@ export function ProjectEditor({
                   value={p.category}
                   onChange={(e) => setField("category", e.target.value, { category: e.target.value }, 0)}
                 >
-                  {categories.map((c) => (
-                    <option key={c} value={c}>
-                      {t(`categories.${c}`)}
-                    </option>
+                  <option value="">{t("categories.")}</option>
+                  {CATEGORY_GROUPS.map((g) => (
+                    <optgroup key={g.id} label={t(`categoryGroups.${g.id}`)}>
+                      {g.items.map((c) => (
+                        <option key={c} value={c}>
+                          {t(`categories.${c}`)}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
+                  {p.category && !known.has(p.category) && <option value={p.category}>{p.category}</option>}
                 </select>
               </Field>
               <Field label={t("fields.year")}>

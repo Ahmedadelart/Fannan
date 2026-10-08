@@ -36,7 +36,7 @@ export default async function MarketingHome({ params }: PageProps<"/[locale]/mar
   const price = await priceCopy(locale);
   const steps = ["upload", "credits", "share"] as const;
   const features = ["credits", "available", "messages", "google", "reels", "nda"] as const;
-  const kinds = ["animation", "character", "storyboard", "illustration", "comics", "motion", "concept"] as const;
+  const kinds = ["illustration", "photography", "design", "animation", "architecture", "fashion", "fineart", "film"] as const;
   const h2 = "font-heading font-heading-weight text-[clamp(34px,4vw,48px)] leading-[1.05] tracking-[-0.02em]";
 
   return (

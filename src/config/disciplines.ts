@@ -13,6 +13,16 @@ export type DisciplineKind =
   | "comics"
   | "games"
   | "design"
+  | "photo"
+  | "film"
+  | "fineart"
+  | "architecture"
+  | "fashion"
+  | "craft"
+  | "music"
+  | "performance"
+  | "beauty"
+  | "writing"
   | "other";
 
 export interface Discipline {
@@ -34,14 +44,18 @@ export function disciplineById(id: string | undefined | null): Discipline | unde
 
 /** Quick-pick chips shown before the artist types anything. */
 export const quickPicks = [
-  "2d-animator",
-  "character-designer",
-  "storyboard-artist",
   "illustrator",
-  "comic-artist",
+  "photographer",
+  "graphic-designer",
+  "2d-animator",
+  "architect",
+  "3d-modeler",
+  "fashion-designer",
+  "calligrapher",
+  "ux-designer",
   "concept-artist",
-  "motion-designer",
-  "background-painter",
+  "contemporary-artist",
+  "filmmaker",
 ];
 
 /** Lowercase, strip Arabic diacritics and unify letter forms (أ/إ/آ → ا, ة → ه, ى → ي). */
@@ -58,7 +72,7 @@ export function foldText(s: string): string {
 }
 
 /** Autocomplete: best matches first. Matches the English name, the Arabic name and synonyms. */
-export function searchDisciplines(query: string, limit = 8): Discipline[] {
+export function searchDisciplines(query: string, limit = 12): Discipline[] {
   const q = foldText(query);
   if (!q) return quickPicks.map((id) => byId.get(id)!).slice(0, limit);
   const scored: Array<{ d: Discipline; score: number }> = [];
@@ -87,7 +101,14 @@ export function disciplinePlural(d: Discipline, locale: Locale): string {
   return locale === "ar" ? d.arPlural : d.enPlural;
 }
 
-/** Animators, motion and 3D people get "The Reel"; everyone else gets "The Showcase". */
+/** People whose work moves (animation, motion, 3D, film, performance) get "The Reel"; everyone else "The Showcase". */
 export function wantsReel(kind: DisciplineKind | undefined): boolean {
-  return kind === "animation" || kind === "3d" || kind === "motion" || kind === "direction";
+  return (
+    kind === "animation" ||
+    kind === "3d" ||
+    kind === "motion" ||
+    kind === "direction" ||
+    kind === "film" ||
+    kind === "performance"
+  );
 }

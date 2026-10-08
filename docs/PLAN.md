@@ -226,7 +226,20 @@ domains/{hostname}          siteId, status, cloudflareId
 
 ---
 
-## Phase 8+ — After launch (in rough order)
+## Phase 8 — Editor 2.0 and every kind of artist (asked by Ahmed after phase 7)
+
+Goal: Carbonmade's ease by default, Squarespace's freedom when you want it. Built and shipped in four steps, each one usable on its own:
+
+- **8A · Every artist welcome:** disciplines for photography, design (graphic, brand, UI/UX, product, interior, fashion), architecture, fine art (painting, sculpture, calligraphy, ceramics), 3D and games, film and video, music and sound, writing, crafts, makeup, tattoo… in EN/AR with synonyms; suggestion chips across fields; starter sites and wording per field; project categories grouped by field; marketing copy that speaks to all of them.
+- **8B · Drag, click, type:** pages panel with drag-to-reorder (and a gear for page settings); sections reordered by dragging on the page or in a zoomed-out "Reorder" view; click a section → a small toolbar on its edge (settings, add above/below, duplicate, delete); type directly on the page (floating text bar: style, bold, italic, link, colour, size, alignment; no letter-spacing for Arabic); blocks dragged in from a visual library with a "Drop here" line.
+- **8C · Free-form sections:** a section where blocks (text, heading, image, button, video, loop, shape, line, quote, social, spacer) sit anywhere on a grid (24 columns on desktop, 8 on phones), with snapping and guides; 8 resize handles, rotate, opacity, bring to front / send back, fit to content; a separate phone layout (auto-stacked, then editable); section style (height, background colour/image, width, padding); an "Add section" gallery of ready layouts (intro, about, contact, portfolio, text + image…). Rendered as plain CSS grid, no JavaScript, logical start/end for RTL.
+- **8D · Site styles:** font packs pairing Arabic and Latin faces, a 5-colour palette with light/dark section themes, button styles, spacing, gentle on-scroll animations, header editing in place (logo size, nav order by drag, social links).
+
+**Done when:** an artist from any field gets a fitting starter; Ahmed can rearrange pages and sections only by dragging, edit every text on the page itself, and build a free-form section with rotated, overlapping images that looks right on desktop and phone, in English and Arabic.
+
+---
+
+## Phase 9+ — After launch (in rough order)
 
 1. **WhatsApp alerts** for new messages (WhatsApp Business Cloud API; needs Meta business verification and an approved message template).
 2. **ArtStation / Behance import.** Neither offers an open public API for this as far as we know. Research what's allowed first. Fallback: a fast bulk-upload flow.
