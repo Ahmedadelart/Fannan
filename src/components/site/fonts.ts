@@ -1,15 +1,7 @@
 // Fonts artists can choose in the Style tab. Declared once; the browser only downloads the ones a
 // site actually uses. Bricolage, IBM Plex Sans/Arabic and Marhey come from the root layout.
-import {
-  Alexandria,
-  DM_Sans,
-  Fraunces,
-  Instrument_Serif,
-  Readex_Pro,
-  Space_Grotesk,
-  Syne,
-  Work_Sans,
-} from "next/font/google";
+import { DM_Sans, Fraunces, Instrument_Serif, Space_Grotesk, Syne, Work_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import type { ArabicFont, BodyFont, HeadingFont } from "@/lib/site/types";
 
 const fraunces = Fraunces({ subsets: ["latin"], weight: ["600"], variable: "--font-fraunces", preload: false });
@@ -33,8 +25,20 @@ const workSans = Work_Sans({
   variable: "--font-work-sans",
   preload: false,
 });
-const readex = Readex_Pro({ subsets: ["arabic"], variable: "--font-readex", preload: false });
-const alexandria = Alexandria({ subsets: ["arabic"], variable: "--font-alexandria", preload: false });
+// These two are kept in the project (src/fonts, SIL Open Font License): Google Fonts sometimes
+// serves them in a form the build can't read, which broke production builds.
+const readex = localFont({
+  src: "../../fonts/readex-pro-arabic-wght-normal.woff2",
+  weight: "160 700",
+  variable: "--font-readex",
+  preload: false,
+});
+const alexandria = localFont({
+  src: "../../fonts/alexandria-arabic-wght-normal.woff2",
+  weight: "100 900",
+  variable: "--font-alexandria",
+  preload: false,
+});
 
 export const siteFontVars = [fraunces, syne, spaceGrotesk, instrumentSerif, dmSans, workSans, readex, alexandria]
   .map((f) => f.variable)
