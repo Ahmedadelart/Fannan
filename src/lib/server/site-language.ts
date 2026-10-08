@@ -27,3 +27,8 @@ export async function siteLanguage(username: string): Promise<Locale> {
   if (cache.size > 5000) cache.delete(cache.keys().next().value!);
   return lang;
 }
+
+/** Called after publish: the language may have changed. */
+export function forgetSiteLanguage(username: string) {
+  cache.delete(username);
+}

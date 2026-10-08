@@ -2,8 +2,9 @@
 // blocks and theme fields; anything unknown is dropped rather than breaking the editor.
 
 import { blockKinds, newId, sampleArt } from "./blocks";
+import { FREE_COLS, FREE_KINDS } from "./free";
 import { themes } from "./starter";
-import type { Block, FreeItem, FreeKind, PageDraft, PageType, SampleArt, SiteDraft, Theme, ThemePreset } from "./types";
+import type { Block, FreeItem, PageDraft, PageType, SampleArt, SiteDraft, Theme, ThemePreset } from "./types";
 
 type Any = Record<string, unknown>;
 const str = (v: unknown, max = 4000) => (typeof v === "string" ? v.slice(0, max) : "");
@@ -228,8 +229,6 @@ export function normalizeBlock(raw: unknown): Block | null {
 
 /* ---------- free-form sections ---------- */
 
-export const FREE_COLS = 24;
-const FREE_KINDS: FreeKind[] = ["text", "heading", "image", "button", "shape", "line", "video"];
 
 /** Links an artist can put on a button or picture: web, email, phone, or a page on their own site. */
 export function safeLink(v: unknown): string {

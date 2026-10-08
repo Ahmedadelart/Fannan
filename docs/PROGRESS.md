@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 8 Oct 2026, phase 8 (Editor 2.0) under way: 8A and 8B done, 8C next._
+_Last updated: 8 Oct 2026, phase 8 (Editor 2.0) under way: 8A, 8B and 8C done; 8D (site styles) next._
 
 ## Done
 
@@ -159,6 +159,17 @@ _Last updated: 8 Oct 2026, phase 8 (Editor 2.0) under way: 8A and 8B done, 8C ne
 - **Pages** are dragged into menu order by a handle (arrow keys too); the home page stays first.
 - New icons (Swiss style, ICONS.md): duplicate, reorder.
 - **Tests:** `tests/e2e/editor2.spec.ts` (type on the page incl. the site name, toolbar drag + keyboard, duplicate/delete, reorder view, page drag, everything published; Arabic typing).
+
+### Phase 8C: Free-form sections
+- **New "Free-form" group** at the top of the block library: Free section, Collage (overlapping turned pictures + heading), Image + text, Big statement.
+- **On the canvas** (`src/components/editor/FreeEditor.tsx`): click a block to select it (dashed outline on hover); drag to move, snapping to a 24-column grid of square cells (grid lines show while the section is selected); 8 resize handles; a round handle to turn it (15° steps, Shift for any angle); a toolbar: edit text (Aa), bring to front, send to back, duplicate, delete; double-click text to type; arrow keys nudge, Delete removes, Esc lets go; "+ Add block" (text, heading, image, button, shape, line, video) puts the block in the first empty spot; drag the bottom handle to change the section's height. Handles sit on their own top layer so they stay reachable where blocks overlap.
+- **Side panel:** section height, background colour and image; per block: text, size, alignment, colours (theme or any colour), picture (fill or show whole), shape, thickness, corners, link (web, email, phone or a page like /contact), video link, turn, opacity, hide on phones.
+- **Live site:** plain CSS grid (no JavaScript) that scales with the page, text sizes scale with it; places are stored from the reading start so Arabic sites mirror; sections clip turned blocks at their edges. **Phones** (under 720px): blocks stack top to bottom in reading order, pictures keep their shape, text gets readable sizes, blocks can be hidden on phones.
+- **Validated on the server** like every block (sizes, colours, links, media ids); free-section pictures are published with the site.
+- Fixed along the way: publishing now clears the router's cached site language, so switching a site to Arabic shows right-to-left at once (it could lag up to a minute).
+- **Not yet:** arranging the phone layout by hand (it follows the desktop order for now); rich text formatting inside a text block (bold, links) arrives with 8D.
+- New icons: bring front, send back, shape, line, button.
+- **Tests:** `tests/e2e/free.spec.ts` (collage → select, move, resize, turn, front, add text and type, publish; live desktop grid; phone stacked with no sideways scroll; Arabic mirrored).
 
 ## Not done yet from the phase 6 "done when"
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).

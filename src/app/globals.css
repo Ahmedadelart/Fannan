@@ -213,6 +213,117 @@
   box-shadow: 0 0 0 8px #c6f432;
 }
 
+/* Free-form sections (phase 8C): a 24-column grid of square cells that scales with the page.
+   Items carry their place as CSS variables (freeItemStyle). On phones they stack in reading order. */
+.site-root .site-free-band {
+  margin-inline: calc(var(--site-pad) * -1);
+  padding-inline: var(--site-pad);
+  /* Turned or oversized items stay inside their section on the live site. */
+  overflow: clip;
+}
+.site-root .site-free-band.fannan-free-edit {
+  overflow: visible;
+}
+.site-root .site-free {
+  container-type: inline-size;
+}
+.site-root .site-free-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(24, minmax(0, 1fr));
+  grid-template-rows: repeat(var(--rows), calc(100cqi / 24));
+}
+.site-root .site-free-item {
+  grid-column: var(--x) / span var(--w);
+  grid-row: var(--y) / span var(--h);
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+}
+.site-root .site-free-text {
+  font-size: max(12px, calc(var(--fs) * 100cqi / 1200));
+  overflow-wrap: break-word;
+}
+.site-root .site-free-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7em 1.4em;
+  font-weight: 600;
+  font-size: max(12px, calc(var(--fs) * 100cqi / 1200));
+  line-height: 1.2;
+  text-decoration: none;
+  max-width: 100%;
+}
+.site-root .site-free-line {
+  height: max(1px, calc(var(--fs) * 100cqi / 1200 / 8));
+}
+@container (max-width: 719px) {
+  .site-root .site-free-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-block: 24px;
+  }
+  .site-root .site-free-item {
+    order: var(--ord);
+    transform: none !important;
+  }
+  .site-root .site-free-image,
+  .site-root .site-free-shape,
+  .site-root .site-free-video {
+    aspect-ratio: var(--w) / var(--h);
+  }
+  .site-root .site-free-item[data-phone-hidden] {
+    display: none;
+  }
+  .site-root .site-free-text,
+  .site-root .site-free-button {
+    font-size: clamp(15px, calc(var(--fs) * 0.62px), 56px);
+  }
+  .site-root .site-free-line {
+    height: 2px;
+  }
+}
+
+/* Editor canvas: free-form sections (FreeEditor). Fannan UI colours, not the artist's theme. */
+.site-root .fannan-free-grid-lines {
+  background-image:
+    linear-gradient(to right, rgba(20, 20, 20, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20, 20, 20, 0.07) 1px, transparent 1px);
+  background-size: calc(100% / 24) calc(100cqi / 24);
+}
+.site-root .fannan-free-item {
+  touch-action: none;
+}
+.site-root .fannan-free-item:hover {
+  outline: 1px dashed rgba(20, 20, 20, 0.45);
+}
+.site-root .fannan-free-outline {
+  position: absolute;
+  inset: 0;
+  outline: 2px solid #141414;
+  box-shadow: 0 0 0 4px #c6f432;
+  pointer-events: none;
+}
+.site-root .fannan-free-handle {
+  background: #fff;
+  border: 2px solid #141414;
+  z-index: 999;
+}
+.site-root .fannan-free-rotate {
+  position: absolute;
+  top: -30px;
+  inset-inline-start: calc(50% - 8px);
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #c6f432;
+  border: 2px solid #141414;
+  cursor: grab;
+  z-index: 999;
+}
+
 /* Editor canvas: text typed in place (InlineText). */
 .site-root [data-inline-text] {
   border-radius: 2px;

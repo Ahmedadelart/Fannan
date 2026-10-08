@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { dirFor } from "@/i18n/locales";
 import { cx } from "@/lib/cx";
 import { imageSources, posterSources, type MediaLike } from "@/lib/media";
-import type { Block, BlockOf, PageDraft, SiteDraft, ThumbRatio } from "@/lib/site/types";
+import type { Block, BlockOf, FreeItem, PageDraft, SiteDraft, ThumbRatio } from "@/lib/site/types";
 import { parseVideoLink, videoPoster } from "@/lib/video";
 import { InlineText } from "@/components/editor/InlineText";
 import { arabicFonts, bodyFonts, headingFonts, siteFontVars } from "./fonts";
@@ -51,6 +51,8 @@ export interface SiteRenderProps {
   onSiteText?: (field: "title" | "tagline", value: string) => void;
   /** Placeholder for empty text fields on the editor canvas ("Type here"). */
   typeHere?: string;
+  /** Editor canvas: draws free-form sections with move/resize/rotate handles. */
+  renderFree?: (b: BlockOf<"free">) => ReactNode;
   /** "Made with Fannan" footer credit on the Free plan. */
   credit?: string | null;
   /** Social links and CV from Settings, shown in the footer of live sites. */
@@ -381,6 +383,157 @@ function VideoView({
       </div>
       {(caption || title) && <figcaption style={{ color: "var(--site-muted)" }}>{caption || title}</figcaption>}
     </figure>
+  );
+}
+
+/* ---------- free-form sections (phase 8C) ---------- */
+
+/** Grid placement and look of one free-form item, as CSS variables (see .site-free in globals.css). */
+export function freeItemStyle(it: FreeItem, order: number): CSSProperties {
+  return {
+    ["--x" as string]: it.place.x + 1,
+    ["--y" as string]: it.place.y + 1,
+    ["--w" as string]: it.place.w,
+    ["--h" as string]: it.place.h,
+    ["--fs" as string]: it.size,
+    ["--ord" as string]: order,
+    zIndex: it.z,
+    opacity: it.opacity / 100,
+    transform: it.rotate ? `rotate(${it.rotate}deg)` : undefined,
+  };
+}
+
+/** Reading order for phones: top to bottom, then from the reading start. */
+export function freeOrder(items: FreeItem[]): Map<string, number> {
+  const sorted = [...items].sort((a, b) => a.place.y - b.place.y || a.place.x - b.place.x);
+  return new Map(sorted.map((it, i) => [it.id, i]));
+}
+
+/** What a free-form item shows. `text` lets the editor swap in text typed in place. */
+export function FreeItemContent({
+  it,
+  media,
+  base,
+  live,
+  text,
+}: {
+  it: FreeItem;
+  media: Record<string, SiteMedia>;
+  base: string;
+  live: boolean;
+  text?: ReactNode;
+}) {
+  const align = { start: "start", center: "center", end: "end" }[it.align] as CSSProperties["textAlign"];
+  const wrapLink = (node: ReactNode) =>
+    live && it.link ? (
+      <a href={it.link} className="block h-full w-full" style={{ color: "inherit" }}>
+        {node}
+      </a>
+    ) : (
+      node
+    );
+  switch (it.kind) {
+    case "text":
+    case "heading":
+      return (
+        <div
+          className={cx("site-free-text h-full w-full", it.kind === "heading" && "site-free-heading")}
+          style={{
+            textAlign: align,
+            color: it.color ?? undefined,
+            ...(it.kind === "heading"
+              ? { fontFamily: "var(--site-heading)", fontWeight: "var(--site-heading-weight)" as unknown as number, lineHeight: 1.05 }
+              : { lineHeight: 1.55 }),
+          }}
+        >
+          {text ?? <span className="whitespace-pre-line">{it.text}</span>}
+        </div>
+      );
+    case "image": {
+      const m = it.mediaId ? (media[it.mediaId] ?? null) : null;
+      return wrapLink(
+        <Picture
+          m={m}
+          base={base}
+          tone={it.tone}
+          ratio="auto"
+          want={1600}
+          className={cx("h-full w-full", it.fit === "contain" && "[&_img]:!object-contain")}
+          alt={m?.alt}
+        />,
+      );
+    }
+    case "button":
+      return (
+        <div className="flex h-full w-full items-center" style={{ justifyContent: { start: "flex-start", center: "center", end: "flex-end" }[it.align] }}>
+          {(() => {
+            const inner = text ?? it.text;
+            const style: CSSProperties = {
+              background: it.fill ?? "var(--site-accent)",
+              color: it.color ?? (it.fill ? readableOn(it.fill) : "var(--site-on-accent)"),
+              borderRadius: it.radius,
+            };
+            return live && it.link ? (
+              <a href={it.link} className="site-free-button" style={style}>
+                {inner}
+              </a>
+            ) : (
+              <span className="site-free-button" style={style}>
+                {inner}
+              </span>
+            );
+          })()}
+        </div>
+      );
+    case "shape":
+      return wrapLink(
+        <div
+          className="h-full w-full"
+          style={{ background: it.fill ?? "var(--site-text)", borderRadius: it.shape === "circle" ? "50%" : it.radius }}
+        />,
+      );
+    case "line":
+      return (
+        <div className="flex h-full w-full items-center">
+          <div className="site-free-line w-full" style={{ background: it.fill ?? "var(--site-text)" }} />
+        </div>
+      );
+    case "video":
+      return it.url ? (
+        <div className="h-full w-full overflow-hidden" style={{ borderRadius: it.radius }}>
+          <VideoView url={it.url} caption="" ctx={{ media, base, editing: !live, live } as Ctx} />
+        </div>
+      ) : (
+        <div className="h-full w-full" style={{ background: it.tone, borderRadius: it.radius }} />
+      );
+  }
+}
+
+function FreeSectionView({ b, ctx }: { b: BlockOf<"free">; ctx: Ctx }) {
+  const bg = b.bgMediaId ? (ctx.media[b.bgMediaId] ?? null) : null;
+  const order = freeOrder(b.items);
+  return (
+    <div className="site-free-band relative" style={{ background: b.background ?? undefined }}>
+      {bg && (
+        <div className="absolute inset-0" aria-hidden>
+          <Picture m={bg} base={ctx.base} want={2560} ratio="auto" className="h-full w-full !rounded-none" />
+        </div>
+      )}
+      <div className="site-free relative">
+        <div className="site-free-grid" style={{ ["--rows" as string]: b.rows }}>
+          {b.items.map((it) => (
+            <div
+              key={it.id}
+              className={cx("site-free-item", `site-free-${it.kind}`)}
+              data-phone-hidden={it.hideOnPhone || undefined}
+              style={freeItemStyle(it, order.get(it.id) ?? 0)}
+            >
+              <FreeItemContent it={it} media={ctx.media} base={ctx.base} live={ctx.live} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -743,6 +896,8 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
             ))}
         </div>
       );
+    case "free":
+      return ctx.renderFree ? ctx.renderFree(b) : <FreeSectionView b={b} ctx={ctx} />;
     case "quote":
       return (
         <blockquote className="m-0 flex max-w-[820px] flex-col gap-3">
@@ -772,6 +927,7 @@ interface Ctx {
   onText?: SiteRenderProps["onText"];
   onSiteText?: SiteRenderProps["onSiteText"];
   typeHere?: string;
+  renderFree?: SiteRenderProps["renderFree"];
 }
 
 /**
@@ -965,6 +1121,7 @@ export function SiteRender({
   onText,
   onSiteText,
   typeHere,
+  renderFree,
 }: SiteRenderProps) {
   const page = site.pages.find((p) => p.id === pageId) ?? site.pages[0];
   const { theme } = site;
@@ -982,6 +1139,7 @@ export function SiteRender({
     onText,
     onSiteText,
     typeHere,
+    renderFree,
   };
   const arabic = site.language === "ar";
   const h = headingFonts[theme.fonts.heading];

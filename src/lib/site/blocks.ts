@@ -1,9 +1,10 @@
 // The editor's block catalogue: which group each block sits in, its icon, and a fresh copy.
 import type { IconName } from "@/components/ui/icons.generated";
 import type { Locale } from "@/i18n/locales";
+import { freeTemplate } from "./free";
 import type { Block, BlockType, SampleArt } from "./types";
 
-export type BlockGroup = "layout" | "galleries" | "media" | "hire";
+export type BlockGroup = "freeform" | "layout" | "galleries" | "media" | "hire";
 
 export interface BlockKind {
   /** Key used for the label in messages (editor.blocks.*). */
@@ -90,6 +91,11 @@ const gallery = (layout: "grid" | "masonry" | "slider", locale: Locale): Block =
 };
 
 export const blockKinds: BlockKind[] = [
+  // Free-form: blocks placed anywhere, resized, turned and layered (phase 8C)
+  { key: "free-blank", type: "free", group: "freeform", icon: "shape", make: (l) => freeTemplate("blank", l) },
+  { key: "free-collage", type: "free", group: "freeform", icon: "masonry", make: (l) => freeTemplate("collage", l) },
+  { key: "free-split", type: "free", group: "freeform", icon: "columns", make: (l) => freeTemplate("split", l) },
+  { key: "free-statement", type: "free", group: "freeform", icon: "hero-headline", make: (l) => freeTemplate("statement", l) },
   // Layout
   {
     key: "cover",
@@ -259,7 +265,7 @@ export const blockKinds: BlockKind[] = [
   },
 ];
 
-export const blockGroups: BlockGroup[] = ["layout", "galleries", "media", "hire"];
+export const blockGroups: BlockGroup[] = ["freeform", "layout", "galleries", "media", "hire"];
 
 /** The catalogue entry for a block on the page (galleries map back to their layout). */
 export function kindOf(b: Block): BlockKind {

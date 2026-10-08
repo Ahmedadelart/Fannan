@@ -15,7 +15,8 @@ import { cx } from "@/lib/cx";
 import { imageSources } from "@/lib/media";
 import { blockGroups, blockKinds, kindOf, newId, SOCIAL_NETWORKS, type BlockKind } from "@/lib/site/blocks";
 import { presetIds, themes } from "@/lib/site/starter";
-import type { Block, BlockOf, NavLayout, PageDraft, PageType, SiteDraft, Theme } from "@/lib/site/types";
+import { freeBottom } from "@/lib/site/free";
+import type { Block, BlockOf, FreeItem, NavLayout, PageDraft, PageType, SiteDraft, Theme } from "@/lib/site/types";
 import { parseVideoLink } from "@/lib/video";
 import { beginUpload, completeUpload } from "../(dash)/projects/actions";
 
@@ -162,6 +163,44 @@ function Switch({ title, checked, onChange }: { title: string; checked: boolean;
     <div className="flex items-center justify-between gap-3 text-[13px]">
       <span>{title}</span>
       <Toggle label={title} hideLabel checked={checked} onChange={onChange} />
+    </div>
+  );
+}
+
+function ColorField({
+  title,
+  value,
+  themeLabel,
+  onChange,
+}: {
+  title: string;
+  value: string | null;
+  themeLabel: string;
+  onChange: (v: string | null) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5 text-[12px] font-semibold">
+      {title}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          aria-pressed={value === null}
+          onClick={() => onChange(null)}
+          className={cx(
+            "h-9 rounded-[8px] px-3 text-[12px] font-semibold",
+            value === null ? "bg-ink text-white" : "border-line bg-paper hover:bg-mist border",
+          )}
+        >
+          {themeLabel}
+        </button>
+        <input
+          type="color"
+          aria-label={title}
+          value={value ?? "#141414"}
+          onChange={(e) => onChange(e.target.value.toUpperCase())}
+          className="border-line h-9 w-12 cursor-pointer rounded-[8px] border bg-white p-1"
+        />
+      </div>
     </div>
   );
 }
@@ -788,7 +827,11 @@ export function BlockSettings({
   categories,
   update,
   openPicker,
+  freeItem = null,
+  onFreeItem,
 }: {
+  freeItem?: string | null;
+  onFreeItem?: (id: string | null) => void;
   block: Block;
   media: Record<string, SiteMedia>;
   categories: Record<string, string>;
@@ -798,6 +841,7 @@ export function BlockSettings({
   const t = useTranslations("editor");
   const f = useTranslations("editor.fields");
   const g = useTranslations("editor.gallery");
+  const fr = useTranslations("editor.free");
   const k = (name: string) => `${block.id}-${name}`;
   const set = <T extends Block>(patch: Partial<T>, key?: string) => update(patch as Partial<Block>, key);
   const mediaField = (title: string, id: string | null, kind: MediaKind, apply: (id: string | null) => void) => (
@@ -1177,6 +1221,129 @@ export function BlockSettings({
         </>
       );
       break;
+    case "free": {
+      const it = block.items.find((i) => i.id === freeItem) ?? null;
+      if (!it) {
+        body = (
+          <>
+            <p className="text-muted text-[12px]">{fr("sectionHint")}</p>
+            <Range
+              title={fr("height")}
+              value={block.rows}
+              min={Math.max(2, freeBottom(block.items))}
+              max={160}
+              onChange={(v) => set<BlockOf<"free">>({ rows: v }, k("rows"))}
+            />
+            <ColorField
+              title={fr("background")}
+              value={block.background}
+              themeLabel={fr("theme")}
+              onChange={(v) => set<BlockOf<"free">>({ background: v }, k("bg"))}
+            />
+            {mediaField(fr("backgroundImage"), block.bgMediaId, "image", (id) => set<BlockOf<"free">>({ bgMediaId: id }))}
+            <p className="text-muted text-[12px]">{fr("phoneHint")}</p>
+          </>
+        );
+        break;
+      }
+      const setItem = (patch: Partial<FreeItem>, key?: string) =>
+        set<BlockOf<"free">>({ items: block.items.map((i) => (i.id === it.id ? { ...i, ...patch } : i)) }, key);
+      const ik = (name: string) => `${it.id}-${name}`;
+      const textual = it.kind === "text" || it.kind === "heading" || it.kind === "button";
+      const pictureLike = it.kind === "image" || it.kind === "button" || it.kind === "shape" || it.kind === "video";
+      const linkable = it.kind === "image" || it.kind === "button" || it.kind === "shape";
+      body = (
+        <>
+          <button
+            type="button"
+            onClick={() => onFreeItem?.(null)}
+            className="text-ink-soft hover:text-ink self-start text-[12px] font-semibold"
+          >
+            {fr("backToSection")}
+          </button>
+          <div className="text-[14px] font-semibold">{fr(`kinds.${it.kind}`)}</div>
+          {textual &&
+            (it.kind === "button" ? (
+              <Text title={fr("label")} value={it.text} onChange={(v) => setItem({ text: v }, ik("t"))} />
+            ) : (
+              <Area title={fr("text")} value={it.text} onChange={(v) => setItem({ text: v }, ik("t"))} />
+            ))}
+          {textual && (
+            <Range title={fr("size")} value={it.size} min={8} max={160} unit="px" onChange={(v) => setItem({ size: v }, ik("size"))} />
+          )}
+          {textual && (
+            <Choice
+              title={f("align")}
+              value={it.align}
+              options={[
+                ["start", f("alignStart")],
+                ["center", f("alignCenter")],
+                ["end", fr("alignEnd")],
+              ]}
+              onChange={(v) => setItem({ align: v })}
+            />
+          )}
+          {textual && (
+            <ColorField
+              title={fr("textColor")}
+              value={it.color}
+              themeLabel={fr("theme")}
+              onChange={(v) => setItem({ color: v }, ik("color"))}
+            />
+          )}
+          {it.kind === "image" && mediaField(f("image"), it.mediaId, "image", (id) => setItem({ mediaId: id }))}
+          {it.kind === "image" && (
+            <Choice
+              title={fr("fit")}
+              value={it.fit}
+              options={[
+                ["cover", fr("fill")],
+                ["contain", fr("fitWhole")],
+              ]}
+              onChange={(v) => setItem({ fit: v })}
+            />
+          )}
+          {it.kind === "shape" && (
+            <Choice
+              title={fr("shape")}
+              value={it.shape}
+              options={[
+                ["rect", fr("rect")],
+                ["circle", fr("circle")],
+              ]}
+              onChange={(v) => setItem({ shape: v })}
+            />
+          )}
+          {(it.kind === "button" || it.kind === "shape" || it.kind === "line") && (
+            <ColorField title={fr("color")} value={it.fill} themeLabel={fr("theme")} onChange={(v) => setItem({ fill: v }, ik("fill"))} />
+          )}
+          {it.kind === "line" && (
+            <Range title={fr("thickness")} value={it.size} min={8} max={160} onChange={(v) => setItem({ size: v }, ik("size"))} />
+          )}
+          {pictureLike && (
+            <Range
+              title={fr("corners")}
+              value={Math.min(it.radius, 200)}
+              min={0}
+              max={200}
+              unit="px"
+              onChange={(v) => setItem({ radius: v }, ik("radius"))}
+            />
+          )}
+          {linkable && (
+            <Text title={fr("link")} dir="ltr" placeholder={fr("linkPlaceholder")} value={it.link} onChange={(v) => setItem({ link: v }, ik("link"))} />
+          )}
+          {it.kind === "video" && (
+            <Text title={fr("videoLink")} dir="ltr" placeholder="https://youtu.be/" value={it.url} onChange={(v) => setItem({ url: v }, ik("url"))} />
+          )}
+          <Range title={fr("rotate")} value={it.rotate} min={-180} max={180} unit="°" onChange={(v) => setItem({ rotate: v }, ik("rot"))} />
+          <Range title={fr("opacity")} value={it.opacity} min={0} max={100} unit="%" onChange={(v) => setItem({ opacity: v }, ik("op"))} />
+          <Switch title={fr("hideOnPhone")} checked={it.hideOnPhone} onChange={(v) => setItem({ hideOnPhone: v })} />
+          <p className="text-muted text-[12px]">{fr("itemHint")}</p>
+        </>
+      );
+      break;
+    }
   }
 
   const kind = kindOf(block);

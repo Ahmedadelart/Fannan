@@ -12,7 +12,9 @@ import { cx } from "@/lib/cx";
 import { blockKinds, newId, type BlockKind } from "@/lib/site/blocks";
 import { setPath } from "@/lib/site/fields";
 import { moveTo, startSortDrag } from "@/components/editor/sortDrag";
-import type { Block, SiteDraft } from "@/lib/site/types";
+import type { Block, BlockOf, SiteDraft } from "@/lib/site/types";
+import { addFreeItem } from "@/lib/site/free";
+import { FreeEditor } from "@/components/editor/FreeEditor";
 import { editorTipsSeen, publishSite, savePagePassword, saveSiteDraft } from "./actions";
 import { BlockSettings, BlocksTab, MediaPicker, PagesTab, StyleTab, type MediaKind } from "./Panels";
 
@@ -44,7 +46,7 @@ function Canvas({
 }: {
   width: number;
   children: React.ReactNode;
-  onPick: (blockId: string | null) => void;
+  onPick: (blockId: string | null, onFreeItem: boolean) => void;
   onDropBlock: (kindKey: string, index: number) => void;
   dropLabel: string;
   selectedId: string | null;
@@ -173,8 +175,9 @@ function Canvas({
           style={{ width, transform: `scale(${scale})`, minHeight: 600 }}
           onClick={(e: MouseEvent) => {
             if (reorder) return;
-            const el = (e.target as HTMLElement).closest<HTMLElement>("[data-block-id]");
-            onPick(el?.dataset.blockId ?? null);
+            const target = e.target as HTMLElement;
+            const el = target.closest<HTMLElement>("[data-block-id]");
+            onPick(el?.dataset.blockId ?? null, !!target.closest("[data-free-item], [role=menu], [role=toolbar]"));
           }}
         >
           {children}
@@ -346,6 +349,8 @@ export function Editor({
   const [media, setMedia] = useState(initialMedia);
   const [pageId, setPageId] = useState(initialDraft.pages[0].id);
   const [selected, setSelected] = useState<string | null>(null);
+  // Inside a free-form section: the selected item.
+  const [freeItem, setFreeItem] = useState<string | null>(null);
   const [tab, setTab] = useState<"blocks" | "style" | "pages">("blocks");
   const [device, setDevice] = useState<Device>("desktop");
   // Phones and small tablets: the side panels slide in over the canvas.
@@ -519,6 +524,30 @@ export function Editor({
     duplicate: duplicateBlock,
     remove: removeBlock,
   };
+
+  /** Free-form sections are drawn with handles by FreeEditor. */
+  const changeFree = (id: string, fn: (b: BlockOf<"free">) => BlockOf<"free">, key?: string) =>
+    setBlocks((blocks) => blocks.map((x) => (x.id === id && x.type === "free" ? fn(x) : x)), key);
+  const renderFree = (b: BlockOf<"free">) => (
+    <FreeEditor
+      b={b}
+      media={media}
+      active={selected === b.id}
+      selectedItem={selected === b.id ? freeItem : null}
+      onSelectItem={(id) => {
+        setSelected(b.id);
+        setFreeItem(id);
+      }}
+      onChange={(fn, key) => changeFree(b.id, fn, key)}
+      onAdd={(kind) => {
+        const r = addFreeItem(b, kind, draft.language);
+        changeFree(b.id, () => r.block);
+        setSelected(b.id);
+        setFreeItem(r.item.id);
+      }}
+      typeHere={t("typeHere")}
+    />
+  );
 
   /** Text typed on the canvas. Typing in one field counts as one step to undo. */
   const onText = (blockId: string, path: string, value: string) =>
@@ -738,8 +767,9 @@ export function Editor({
           reorder={reorder}
           actions={sectionActions}
           version={page.blocks}
-          onPick={(id) => {
+          onPick={(id, onFreeItem) => {
             setSelected(id);
+            if (!onFreeItem) setFreeItem(null);
             if (id && small()) setDrawer("right");
           }}
           dropLabel={t("dropHere")}
@@ -758,6 +788,7 @@ export function Editor({
               editing
               selectedBlockId={selected}
               onText={reorder ? undefined : onText}
+              renderFree={reorder ? undefined : renderFree}
               onSiteText={reorder ? undefined : onSiteText}
               typeHere={t("typeHere")}
             />
@@ -779,6 +810,8 @@ export function Editor({
               <BlockSettings
                 key={block.id}
                 block={block}
+                freeItem={freeItem}
+                onFreeItem={setFreeItem}
                 media={media}
                 categories={categories}
                 openPicker={(kind, done) => setPicker({ kind, done })}

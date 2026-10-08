@@ -617,7 +617,8 @@
       "layout": "Layout",
       "galleries": "Galleries",
       "media": "Media",
-      "hire": "Get hired"
+      "hire": "Get hired",
+      "freeform": "Free-form"
     },
     "fannanTag": "Fannan",
     "blocks": {
@@ -640,7 +641,11 @@
       "contact": "Contact form",
       "hire": "Hire-me badge",
       "social": "Social links",
-      "quote": "Quote"
+      "quote": "Quote",
+      "free-blank": "Free section",
+      "free-collage": "Collage",
+      "free-split": "Image + text",
+      "free-statement": "Big statement"
     },
     "addHint": "Click to add below the selected block, or drag onto the page.",
     "dropHere": "Drop a block here",
@@ -819,6 +824,52 @@
       "remove": "Delete",
       "hint": "Tip: click any text on the page to type in it. Drag the ⠿ handle on the section to move it.",
       "reorderHint": "Drag sections to change their order, then press Done."
+    },
+    "free": {
+      "item": "Block",
+      "editText": "Edit text",
+      "front": "Bring to front",
+      "back": "Send to back",
+      "duplicate": "Duplicate",
+      "delete": "Delete",
+      "addBlock": "Add block",
+      "height": "Height",
+      "kinds": {
+        "text": "Text",
+        "heading": "Heading",
+        "image": "Image",
+        "button": "Button",
+        "shape": "Shape",
+        "line": "Line",
+        "video": "Video"
+      },
+      "sectionHint": "A free-form section: put blocks anywhere. Use + Add block on the section, drag blocks to move them, drag the corners to resize and the round handle to turn them.",
+      "background": "Background",
+      "backgroundImage": "Background image",
+      "theme": "Theme",
+      "phoneHint": "On phones, blocks stack from top to bottom in reading order. Hide any block on phones from its settings.",
+      "backToSection": "← Section settings",
+      "label": "Label",
+      "text": "Text",
+      "size": "Size",
+      "alignEnd": "End",
+      "textColor": "Text colour",
+      "fit": "Picture",
+      "fill": "Fill the box",
+      "fitWhole": "Show all of it",
+      "shape": "Shape",
+      "rect": "Rectangle",
+      "circle": "Circle",
+      "color": "Colour",
+      "thickness": "Thickness",
+      "corners": "Corners",
+      "link": "Link",
+      "linkPlaceholder": "https://… or /contact",
+      "videoLink": "YouTube or Vimeo link",
+      "rotate": "Turn",
+      "opacity": "Opacity",
+      "hideOnPhone": "Hide on phones",
+      "itemHint": "Double-click text to type in it. Arrow keys move the block one step; Delete removes it."
     }
   },
   "inbox": {
