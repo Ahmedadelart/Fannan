@@ -127,12 +127,15 @@ _Last updated: 8 Oct 2026, phase 6 (Pro, payments, own domains, admin) with a pr
   - Receipt email; return page waits for the confirmation; payment history in Settings → Plan & billing.
 - **Upgrade page** `/upgrade` (Free vs 3/6/12 months, prices from `config/plans.json`, launch offer from config, off). Sidebar shows "Pro plan · until …" and "Add more time".
 - **Reminders:** daily job (`/api/cron/cleanup`) emails at 14, 3 and 0 days and when the site moves to Free, each once per period; dashboard banner at the same moments. The email has an "Add more time" button.
-- **Own domains (Pro)** via Cloudflare for SaaS: Settings → Domain → Your own domain; shows the exact DNS record (CNAME → `sites.fannan.net`, plus any TXT Cloudflare asks for), status updates live (Waiting for DNS → Issuing the certificate → Active); SSL automatic; `name.fannan.net` forwards to the domain once active; disconnect anytime. Cloudflare: fallback origin `sites.fannan.net`, Worker route `*/*` (`infra/deploy-edge.mjs`). Works on fannan.net only (staging isn't behind Cloudflare).
+- **Own domains (Pro)** via Cloudflare for SaaS: Settings → Domain → Your own domain; shows the exact DNS record (CNAME → `sites.fannan.net`, plus any TXT Cloudflare asks for), status updates live (Waiting for DNS → Issuing the certificate → Active); SSL automatic; `name.fannan.net` forwards to the domain once active; disconnect anytime. Cloudflare: fallback origin `sites.fannan.net`, Worker route `*/*` (`infra/deploy-edge.mjs`). Works on fannan.net only (staging isn't behind Cloudflare). A bare domain (name.com) connects as www.name.com, because most registrars can't CNAME the bare name; the steps show the names as typed at the registrar and the forwarding step. **Checked live:** www.ranakorany.com (GoDaddy) went Active with SSL, ranakorany.com forwards to it.
 - **Admin** `app.fannan.net/admin` for adel4art@gmail.com and fannan.team@gmail.com only (others get a 404): accounts, Pro now, revenue in EGP and USD separately (all time and 30 days), users search, give Pro N months (stacks, shows as a gift), set the Pro end date (to try reminders and the move to Free), suspend/unsuspend a site, payments with refunds (takes the months back; warns outside the 14-day / own-domain rule), "Run daily jobs now". The reports queue arrives with the Report link in phase 7.
 - **Tests:** `tests/e2e/pro.spec.ts`: EGP purchase after a declined card, USD charged in EGP and stacked, 9 projects + own domain + no credit, admin refund, 14-day email and banner, grace, Free (credit back, 8 projects shown, domain forwards back), Pro again via gift, suspend; Go Pro page in Arabic on a phone.
 
 ## In progress
 - Nothing.
+
+## Not done yet from the phase 6 "done when"
+- Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).
 
 ## Blocked on Ahmed
 - **Paymob (when he's ready):** test-mode Secret key + HMAC (into Secret Manager as `paymob-secret-key`, `paymob-hmac-secret`), Public key and integration IDs (card, wallet/Fawry if any), and whether the account can charge USD.
