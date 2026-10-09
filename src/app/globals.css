@@ -218,6 +218,15 @@
   box-shadow: 0 0 0 8px #c6f432;
 }
 
+/* Dashboard pages inside the editor's wide panel (round 4, stage B): no sidebar of their own. */
+html[data-embed] .dash-chrome,
+html[data-embed] .embed-hide {
+  display: none !important;
+}
+html[data-embed] .dash-main {
+  padding: 20px 24px 48px;
+}
+
 /* Editor panels are dark (Carbonmade-style, decided by Ahmed for the editor only). The colour
    tokens are swapped inside them, so every control flips without its own dark variant. */
 .fannan-dark {

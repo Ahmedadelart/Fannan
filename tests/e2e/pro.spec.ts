@@ -112,7 +112,7 @@ test("buying Pro, an own domain, reminders, the move to Free and back", async ({
   expect(afterFirst - Date.now()).toBeGreaterThan(88 * DAY);
   expect(afterFirst - Date.now()).toBeLessThan(93 * DAY);
   await expect.poll(mailTo(email, "Your Fannan Pro receipt")).toBe(true);
-  await page.goto(at("app"));
+  await page.goto(at("app", "/home"));
   await expect(page.getByText("Pro plan")).toBeVisible();
 
   /* ---------- abroad: USD price, charged in EGP at the day's rate, stacked after the end date ---------- */
@@ -162,7 +162,7 @@ test("buying Pro, an own domain, reminders, the move to Free and back", async ({
   await expect(visitor).toHaveURL(`${own}/contact`);
 
   /* ---------- admin: payments, refund the USD purchase ---------- */
-  await adminPage.goto(at("app"));
+  await adminPage.goto(at("app", "/home"));
   await expect(adminPage.getByRole("link", { name: "Admin" })).toBeVisible();
   await adminPage.goto(at("app", "/admin?tab=payments"));
   const usd = adminPage.getByTestId("admin-payment").filter({ hasText: username }).filter({ hasText: "$42" });
@@ -176,14 +176,14 @@ test("buying Pro, an own domain, reminders, the move to Free and back", async ({
   await adminSetEnd(adminPage, username, 10);
   await runDaily(adminPage);
   await expect.poll(mailTo(email, "Your Fannan Pro ends on")).toBe(true);
-  await page.goto(at("app"));
+  await page.goto(at("app", "/home"));
   await expect(page.getByTestId("pro-banner")).toContainText("Your Pro ends on");
 
   /* ---------- ended: 7 days of grace, nothing changes yet ---------- */
   await adminSetEnd(adminPage, username, -3);
   await runDaily(adminPage);
   await expect.poll(mailTo(email, "Your Pro ended today")).toBe(true);
-  await page.goto(at("app"));
+  await page.goto(at("app", "/home"));
   await expect(page.getByTestId("pro-banner")).toContainText("Your Pro has ended.");
   await visitor.goto(`${own}/`);
   await expect(visitor).toHaveURL(`${own}/`);
@@ -200,7 +200,7 @@ test("buying Pro, an own domain, reminders, the move to Free and back", async ({
   await page.goto(at("app", "/projects"));
   await expect(page.getByTestId("project-card")).toHaveCount(9);
   await expect(page.getByTestId("over-limit")).toBeVisible();
-  await page.goto(at("app"));
+  await page.goto(at("app", "/home"));
   await expect(page.getByTestId("pro-banner")).toContainText("Your site is on Free now.");
 
   /* ---------- Pro again (a gift from the admin): everything comes back ---------- */

@@ -58,6 +58,10 @@ export async function signUp(page: Page, id = uniq(), emailDomain = "example.com
   await page.getByRole("button", { name: "Save and open my site" }).click();
   await expect(page.getByRole("heading", { name: "Check your email" })).toBeVisible();
   await page.goto(await magicLink(email));
+  // The editor is the app: signing in lands there.
+  await expect(page.getByTestId("canvas")).toBeVisible({ timeout: 20_000 });
+  // Tests carry on from the Home page (the editor's Home panel, also served on its own at /home).
+  await page.goto(at("app", "/home"));
   await expect(page.getByRole("heading", { level: 1, name: "Your site" })).toBeVisible({ timeout: 20_000 });
   return { username, email };
 }

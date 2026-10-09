@@ -901,7 +901,10 @@
       "design": "Design",
       "stats": "Stats",
       "help": "Help",
-      "settings": "Settings"
+      "settings": "Settings",
+      "home": "Home",
+      "messages": "Messages",
+      "upgrade": "Fannan Pro"
     },
     "currentlyEditing": "Currently editing",
     "panelTabs": {
@@ -941,7 +944,8 @@
       "projectTitle": "Project title",
       "creating": "Creating…",
       "createButton": "Create project",
-      "empty": "No projects yet."
+      "empty": "No projects yet.",
+      "back": "All projects"
     },
     "device": "Screen size",
     "contactForm": {
@@ -989,6 +993,12 @@
       "cv": "CV (PDF)",
       "rightAway": "Links and the CV change your live site straight away.",
       "notSaved": "That didn’t save. Please try again."
+    },
+    "account": {
+      "label": "Your account",
+      "goPro": "Go Pro",
+      "addTime": "Add Pro time",
+      "admin": "Admin"
     }
   },
   "inbox": {

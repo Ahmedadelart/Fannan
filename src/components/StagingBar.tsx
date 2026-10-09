@@ -18,7 +18,7 @@ export async function StagingBar() {
   return (
     <nav
       aria-label={t("label")}
-      className="border-line bg-mist flex flex-wrap items-center gap-2 border-b px-4 py-2 text-[12px]"
+      className="embed-hide border-line bg-mist flex flex-wrap items-center gap-2 border-b px-4 py-2 text-[12px]"
     >
       <span className="bg-ink rounded-sm px-2 py-0.5 font-semibold text-white">{t("label")}</span>
       {links.map((l) => (

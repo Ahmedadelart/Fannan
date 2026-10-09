@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type DragEvent, type MouseEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { SiteRender, type GalleryProject, type SiteMedia } from "@/components/site/SiteRender";
 import { Button, buttonClasses, IconButton } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Overlays";
@@ -16,6 +17,7 @@ import { moveTo, startSortDrag } from "@/components/editor/sortDrag";
 import type { Block, BlockOf, FreeKind, SiteDraft } from "@/lib/site/types";
 import { addFreeItem, FREE_KINDS } from "@/lib/site/free";
 import { FreeEditor, KIND_ICONS } from "@/components/editor/FreeEditor";
+import { LanguageButton, LogoutButton } from "../(dash)/DashClient";
 import { editorTipsSeen, publishSite, savePagePassword, saveSiteDraft } from "./actions";
 import {
   BlockSettings,
@@ -31,6 +33,16 @@ import {
 } from "./Panels";
 
 type Device = "desktop" | "tablet" | "phone";
+
+/** The left rail. Native panels: blocks, design, projects (list). The rest open app pages in a wide panel. */
+type Rail = "home" | "blocks" | "projects" | "design" | "messages" | "stats" | "settings" | "upgrade";
+const RAILS: Rail[] = ["home", "blocks", "projects", "design", "messages", "stats", "settings", "upgrade"];
+function embedPath(rail: Rail, projectId: string | null): string | null {
+  if (rail === "projects") return projectId ? `/projects/${projectId}` : null;
+  return { home: "/home", messages: "/messages", stats: "/stats", settings: "/settings", upgrade: "/upgrade" }[
+    rail as "home"
+  ] ?? null;
+}
 const WIDTHS: Record<Device, number> = { desktop: 1200, tablet: 820, phone: 390 };
 const HISTORY = 60;
 
@@ -461,7 +473,10 @@ export function Editor({
   credit,
   isPro,
   initialSettings,
+  account,
 }: {
+  /** The account menu and the Messages dot. */
+  account: { name: string; admin: boolean; pro: boolean; unread: number; deletionPending: boolean };
   /** Social links, CV and older contact settings, edited from the footer and contact sections. */
   initialSettings: EditorSiteSettings;
   /** Pro sites can publish the showpiece blocks. */
@@ -488,7 +503,40 @@ export function Editor({
   // Inside a free-form section: the selected item.
   const [freeItem, setFreeItem] = useState<string | null>(null);
   // Carbonmade-style shell: an icon rail picks the panel; the blocks panel has Blocks | Page settings.
-  const [rail, setRail] = useState<"blocks" | "design" | "projects" | "stats">("blocks");
+  const [rail, setRail] = useState<Rail>("blocks");
+  // A project opened from the Projects panel (shown in the wide panel).
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const router = useRouter();
+  const embed = embedPath(rail, projectId);
+  // Pages opened in the wide panel can change projects and media: the preview catches up when it closes.
+  const wasEmbedded = useRef(false);
+  useEffect(() => {
+    if (embed) wasEmbedded.current = true;
+    else if (wasEmbedded.current) {
+      wasEmbedded.current = false;
+      router.refresh();
+    }
+  }, [embed, router]);
+  // Media added in a project shows up in the editor once the page data refreshes.
+  const [mediaFrom, setMediaFrom] = useState(initialMedia);
+  if (mediaFrom !== initialMedia) {
+    setMediaFrom(initialMedia);
+    setMedia((m) => ({ ...initialMedia, ...m }));
+  }
+  // /editor?panel=messages (and so on) opens that panel: links in emails and old bookmarks.
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const q = new URLSearchParams(window.location.search);
+      const panel = q.get("panel") as Rail | null;
+      if (panel && RAILS.includes(panel)) {
+        setRail(panel);
+        setPanelOpen(true);
+        if (panel === "projects" && q.get("id")) setProjectId(q.get("id"));
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
   const [panelTab, setPanelTab] = useState<"blocks" | "page">("blocks");
   const [pagesOpen, setPagesOpen] = useState(false);
   const [designOpen, setDesignOpen] = useState<DesignSection | null>("styles");
@@ -752,11 +800,20 @@ export function Editor({
 
   /* ---------- render ---------- */
   const railItems = [
+    { id: "home", icon: "dashboard", label: t("rail.home") },
     { id: "blocks", icon: "site-editor", label: t("rail.blocks") },
     { id: "projects", icon: "projects", label: t("rail.projects") },
     { id: "design", icon: "palette", label: t("rail.design") },
+    { id: "messages", icon: "messages", label: t("rail.messages") },
     { id: "stats", icon: "stats", label: t("rail.stats") },
+    { id: "settings", icon: "settings", label: t("rail.settings") },
   ] as const;
+  const openRail = (id: Rail) => {
+    if (rail === id && panelOpen && !(id === "projects" && projectId)) return setPanelOpen(false);
+    setRail(id);
+    if (id === "projects") setProjectId(null);
+    setPanelOpen(true);
+  };
   const railTool =
     "group relative flex size-10 items-center justify-center rounded-[10px] text-white/70 transition-colors hover:bg-white/10 hover:text-white";
   const railTip =
@@ -798,9 +855,14 @@ export function Editor({
         aria-label={t("rail.label")}
         className="relative z-40 flex w-14 flex-none flex-col items-center gap-1.5 bg-[#141414] py-3"
       >
-        <a href="/" aria-label={t("back")} title={t("back")} className="mb-3 flex size-10 items-center justify-center rounded-full bg-white/10">
+        <button
+          type="button"
+          onClick={() => openRail("home")}
+          aria-label={t("rail.home")}
+          className="mb-3 flex size-10 items-center justify-center rounded-full bg-white/10"
+        >
           <span className="font-heading font-heading-weight text-lime text-[18px] leading-none">{locale === "ar" ? "ف" : "f"}</span>
-        </a>
+        </button>
         {railItems.map((r) => (
           <button
             key={r.id}
@@ -809,15 +871,12 @@ export function Editor({
             aria-pressed={rail === r.id && panelOpen}
             data-tip={r.id === "blocks" ? "rail-blocks" : undefined}
             className={cx(railTool, rail === r.id && panelOpen && "bg-white/10 text-white")}
-            onClick={() => {
-              if (rail === r.id) setPanelOpen(!panelOpen);
-              else {
-                setRail(r.id);
-                setPanelOpen(true);
-              }
-            }}
+            onClick={() => openRail(r.id)}
           >
             <Icon name={r.icon} size={20} />
+            {r.id === "messages" && account.unread > 0 && (
+              <span className="bg-lime absolute end-1.5 top-1.5 size-2 rounded-full" data-testid="unread-dot" />
+            )}
             <span className={railTip}>{r.label}</span>
           </button>
         ))}
@@ -826,10 +885,53 @@ export function Editor({
           <Icon name="help" size={20} />
           <span className={railTip}>{t("rail.help")}</span>
         </a>
-        <a href="/settings" className={railTool} aria-label={t("rail.settings")}>
-          <Icon name="settings" size={20} />
-          <span className={railTip}>{t("rail.settings")}</span>
-        </a>
+        {/* The account: plan, language, admin (admins only), sign out. */}
+        <div className="relative">
+          <button
+            type="button"
+            aria-label={t("account.label")}
+            aria-expanded={accountOpen}
+            onClick={() => setAccountOpen(!accountOpen)}
+            className="bg-lime text-on-lime mt-1 flex size-9 items-center justify-center rounded-full text-[14px] font-bold"
+            data-testid="account-button"
+          >
+            {(account.name || "?").trim().charAt(0).toUpperCase()}
+          </button>
+          {accountOpen && (
+            <div
+              role="menu"
+              className="bg-paper text-ink shadow-float border-line absolute bottom-0 start-12 z-50 flex w-[240px] flex-col gap-1 rounded-[14px] border p-2"
+            >
+              <span className="text-muted truncate px-2.5 pt-1 pb-2 text-[12px]">{account.name}</span>
+              <button
+                type="button"
+                role="menuitem"
+                className="hover:bg-mist flex h-10 items-center gap-2.5 rounded-[10px] px-2.5 text-start text-[14px] font-semibold"
+                onClick={() => {
+                  setAccountOpen(false);
+                  openRail("upgrade");
+                }}
+              >
+                <Icon name="publish" size={18} />
+                {account.pro ? t("account.addTime") : t("account.goPro")}
+              </button>
+              {account.admin && (
+                <a
+                  role="menuitem"
+                  href="/admin"
+                  className="hover:bg-mist flex h-10 items-center gap-2.5 rounded-[10px] px-2.5 text-[14px] font-semibold"
+                >
+                  <Icon name="password" size={18} />
+                  {t("account.admin")}
+                </a>
+              )}
+              <div className="border-line mt-1 flex items-center justify-between gap-2 border-t px-2.5 pt-2.5 pb-1">
+                <LanguageButton locale={locale} label={td("language")} />
+                <LogoutButton label={td("logout")} />
+              </div>
+            </div>
+          )}
+        </div>
       </nav>
 
       {/* The panel next to the rail (dark). On small screens it floats; tapping outside closes it. */}
@@ -844,11 +946,50 @@ export function Editor({
       {panelOpen && (
         <aside
           className={cx(
-            "fannan-dark bg-paper text-ink border-line flex w-[300px] flex-none flex-col overflow-y-auto border-e",
-            "max-lg:shadow-float max-lg:absolute max-lg:inset-y-0 max-lg:start-14 max-lg:z-30 max-lg:w-[min(320px,calc(100vw-56px))]",
+            "border-line flex flex-none flex-col border-e",
+            embed
+              ? "bg-mist w-[min(780px,60vw)] max-lg:w-[calc(100vw-56px)]"
+              : "fannan-dark bg-paper text-ink w-[300px] overflow-y-auto max-lg:w-[min(320px,calc(100vw-56px))]",
+            "max-lg:shadow-float max-lg:absolute max-lg:inset-y-0 max-lg:start-14 max-lg:z-30",
           )}
           data-testid="left-panel"
+          data-panel={rail}
         >
+          {embed && (
+            <>
+              {/* Home, projects, messages, stats, settings and Pro, opened right here. */}
+              <div className="bg-paper border-line flex h-12 flex-none items-center justify-between gap-2 border-b ps-4 pe-2">
+                <span className="flex min-w-0 items-center gap-2 text-[14px] font-semibold">
+                  {rail === "projects" && projectId && (
+                    <button
+                      type="button"
+                      aria-label={t("projectsPanel.back")}
+                      onClick={() => setProjectId(null)}
+                      className="hover:bg-mist -ms-2 flex size-8 items-center justify-center rounded-full"
+                    >
+                      <Icon name="arrow-left" size={18} className="rtl:-scale-x-100" />
+                    </button>
+                  )}
+                  <span className="truncate">{rail === "projects" ? t("rail.projects") : t(`rail.${rail}`)}</span>
+                </span>
+                <button
+                  type="button"
+                  aria-label={t("section.close")}
+                  onClick={() => setPanelOpen(false)}
+                  className="hover:bg-mist flex size-8 items-center justify-center rounded-full"
+                >
+                  <Icon name="close" size={18} />
+                </button>
+              </div>
+              <iframe
+                key={embed}
+                src={embed}
+                title={t(`rail.${rail}`)}
+                className="min-h-0 w-full flex-1 border-0"
+                data-testid="panel-frame"
+              />
+            </>
+          )}
           {rail === "blocks" && (
             <>
               <div className="px-3 pt-3">
@@ -968,22 +1109,31 @@ export function Editor({
             </div>
           )}
 
-          {rail === "projects" && <ProjectsPanel projects={projects} media={media} />}
-
-          {rail === "stats" && (
-            <div className="flex flex-col gap-3 p-4">
-              <h2 className="text-muted text-[11px] font-semibold tracking-[0.1em] uppercase">{t("rail.stats")}</h2>
-              <p className="text-ink-soft text-[13px]">{t("statsText")}</p>
-              <a href="/stats" className="bg-lime text-on-lime flex h-10 items-center justify-center rounded-[10px] text-[13px] font-semibold">
-                {t("openStats")}
-              </a>
-            </div>
+          {rail === "projects" && !projectId && (
+            <ProjectsPanel
+              projects={projects}
+              media={media}
+              onOpen={(id) => {
+                setProjectId(id);
+                router.refresh();
+              }}
+            />
           )}
         </aside>
       )}
 
       {/* The preview, with a slim bar on top. */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        {account.deletionPending && (
+          <button
+            type="button"
+            role="alert"
+            onClick={() => openRail("settings")}
+            className="bg-lime text-on-lime mx-3 mt-2.5 rounded-[12px] px-4 py-2.5 text-start text-[14px] font-semibold md:mx-4"
+          >
+            {td("deletionPending")}
+          </button>
+        )}
         {/* Three columns, so the status sits centred over the site, not the whole window. */}
         <header className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 px-3 py-2.5 md:grid-cols-[1fr_minmax(0,420px)_1fr] md:px-4">
           <span

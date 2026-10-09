@@ -138,7 +138,7 @@ test("the published site: pages, projects, lightbox, contact form, sitemap, draf
   expect(JSON.stringify(await q.json())).toContain("series pitch");
 
   // Available for work: the badge and "Hire me" show without publishing again.
-  await page.goto(at("app"));
+  await page.goto(at("app", "/home"));
   await page.getByRole("switch", { name: "Available for work" }).click();
   await expect(page.getByText("Open to projects")).toBeVisible();
   await page.waitForTimeout(500);

@@ -892,7 +892,7 @@ function reminderEmail(key: ReminderKey, user: UserDoc, until: number) {
 
   const ar = user.locale === "ar";
 
-  const link = appLink("/upgrade");
+  const link = appLink("/editor?panel=upgrade");
 
   const end = day(until, ar);
 

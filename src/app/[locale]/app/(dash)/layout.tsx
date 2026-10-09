@@ -6,6 +6,7 @@ import type { Locale } from "@/i18n/locales";
 import { isAdminEmail } from "@/config/admins";
 import { countUnread } from "@/lib/server/settings";
 import { DashNav, LanguageButton, LogoutButton } from "./DashClient";
+import { EMBED_SCRIPT, EmbedBridge } from "./EmbedBridge";
 import { loadDashboard } from "./load";
 
 // Dashboard shell matching design/screens/product/Dashboard.dc.html: white sidebar, flat mist main area.
@@ -46,7 +47,10 @@ export default async function DashLayout({ children, params }: LayoutProps<"/[lo
 
   return (
     <div className="bg-mist text-ink flex min-h-dvh flex-col md:flex-row">
-      <aside className="border-line bg-paper flex flex-col gap-4 px-3.5 py-4 md:sticky md:top-0 md:h-dvh md:w-[236px] md:flex-none md:gap-6 md:border-e md:py-[22px]">
+      {/* Inside the editor's panel this page drops its sidebar (see EmbedBridge). */}
+      <script dangerouslySetInnerHTML={{ __html: EMBED_SCRIPT }} />
+      <EmbedBridge />
+      <aside className="dash-chrome border-line bg-paper flex flex-col gap-4 px-3.5 py-4 md:sticky md:top-0 md:h-dvh md:w-[236px] md:flex-none md:gap-6 md:border-e md:py-[22px]">
         <div className="flex items-center justify-between px-2">
           <a href="/" aria-label="Fannan">
             <Logo lang={locale} size={24} />
@@ -59,7 +63,7 @@ export default async function DashLayout({ children, params }: LayoutProps<"/[lo
         <DashNav
           label={t("navLabel")}
           items={[
-            { href: "/", icon: "dashboard", label: t("nav.dashboard") },
+            { href: "/home", icon: "dashboard", label: t("nav.dashboard") },
             { href: "/editor", icon: "site-editor", label: t("nav.editor") },
             { href: "/projects", icon: "projects", label: t("nav.projects") },
             {
@@ -125,7 +129,7 @@ export default async function DashLayout({ children, params }: LayoutProps<"/[lo
           <LogoutButton label={t("logout")} />
         </div>
       </aside>
-      <main className="flex min-w-0 flex-1 flex-col gap-6 px-4 pt-6 pb-12 md:px-9 md:pt-[30px]">
+      <main className="dash-main flex min-w-0 flex-1 flex-col gap-6 px-4 pt-6 pb-12 md:px-9 md:pt-[30px]">
         <ProBanner pro={pro} />
         {user.deletion && (
           <a href="/settings#account" role="alert" className="bg-lime rounded-lg p-4 text-[14px] font-semibold">

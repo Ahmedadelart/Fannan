@@ -112,3 +112,35 @@ test("the Arabic font applies on any site, and lime keeps dark text in the dark 
     .evaluate((el) => getComputedStyle(el).getPropertyValue("--site-body"));
   expect(stack).toContain("marhey");
 });
+
+test("the editor is the app: home, projects, messages, stats and settings open inside it", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop");
+  test.setTimeout(150_000);
+  await signUp(page);
+  // app.fannan.net opens the editor.
+  await page.goto(at("app", "/"));
+  await expect(page).toHaveURL(/\/editor/);
+  await openEditor(page);
+
+  const frame = page.frameLocator('[data-testid="panel-frame"]');
+  await page.getByRole("navigation", { name: "Editor" }).getByRole("button", { name: "Home", exact: true }).last().click();
+  await expect(frame.getByRole("heading", { level: 1, name: "Your site" })).toBeVisible({ timeout: 15_000 });
+  // Inside the panel the page drops its own sidebar.
+  await expect(frame.getByRole("navigation", { name: "App" })).toBeHidden();
+
+  for (const [rail, heading] of [
+    ["Messages", "Messages"],
+    ["Stats", "Stats"],
+    ["Settings", "Site settings"],
+  ]) {
+    await page.getByRole("navigation", { name: "Editor" }).getByRole("button", { name: rail, exact: true }).click();
+    await expect(frame.getByRole("heading", { level: 1, name: heading })).toBeVisible({ timeout: 15_000 });
+  }
+
+  // A new project opens right here; the site preview picks it up.
+  await page.getByRole("navigation", { name: "Editor" }).getByRole("button", { name: "Projects", exact: true }).click();
+  await page.getByRole("textbox", { name: "Project title" }).fill("Night market");
+  await page.getByRole("button", { name: "Create project" }).click();
+  await expect(frame.getByRole("heading", { level: 1, name: "Night market" })).toBeVisible({ timeout: 15_000 });
+  await expect(page).toHaveURL(/\/editor/);
+});

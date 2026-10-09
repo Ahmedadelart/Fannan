@@ -148,7 +148,7 @@ test("stats, inbox and every settings control", async ({ page, browser }, info) 
   expect(outboxAfter.slice(outboxBefore.length)).not.toContain("short film");
 
   /* ---------- the inbox ---------- */
-  await page.goto(at("app"));
+  await page.goto(at("app", "/home"));
   await expect(page.getByTestId("unread-count")).toContainText("1");
   await expect(page.getByTestId("latest-messages")).toContainText("Studio Producer");
   await page.getByRole("link", { name: /^Messages/ }).first().click();

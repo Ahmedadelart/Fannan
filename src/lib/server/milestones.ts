@@ -112,7 +112,7 @@ export async function firstMessage(uid: string, emailCopiesOn: boolean): Promise
         ["استخدم أحدهم نموذج التواصل في موقعك. اقرأ الرسالة ورد عليها من صندوق الرسائل."],
       ],
       ["Open messages", "افتح الرسائل"],
-      appLink("/messages"),
+      appLink("/editor?panel=messages"),
     ),
   );
   return true;

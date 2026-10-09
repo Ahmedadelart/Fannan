@@ -1858,9 +1858,12 @@ export function BlockSettings({
 export function ProjectsPanel({
   projects,
   media,
+  onOpen,
 }: {
   projects: Array<{ id: string; title: string; coverId: string | null }>;
   media: Record<string, SiteMedia>;
+  /** Opens a project in the editor's wide panel. */
+  onOpen: (id: string) => void;
 }) {
   const t = useTranslations("editor.projectsPanel");
   const [title, setTitle] = useState("");
@@ -1874,8 +1877,11 @@ export function ProjectsPanel({
           e.preventDefault();
           setBusy(true);
           const r = await newProject(title);
-          if (r.ok) window.location.href = `/projects/${r.id}`;
-          else setBusy(false);
+          setBusy(false);
+          if (r.ok) {
+            setTitle("");
+            onOpen(r.id);
+          }
         }}
       >
         <span className="font-heading font-heading-weight text-[20px] leading-tight">{t("create")}</span>
@@ -1889,7 +1895,14 @@ export function ProjectsPanel({
       <ul className="flex flex-col gap-1.5">
         {projects.map((p) => (
           <li key={p.id}>
-            <a href={`/projects/${p.id}`} className="hover:bg-mist flex items-center gap-3 rounded-[10px] p-1.5">
+            <a
+              href={`/projects/${p.id}`}
+              onClick={(e) => {
+                e.preventDefault();
+                onOpen(p.id);
+              }}
+              className="hover:bg-mist flex items-center gap-3 rounded-[10px] p-1.5"
+            >
               <Thumb m={p.coverId ? media[p.coverId] : undefined} className="h-10 w-14 flex-none rounded-[8px]" />
               <span className="min-w-0 flex-1 truncate text-[14px] font-semibold">{p.title}</span>
               <Icon name="site-editor" size={16} />

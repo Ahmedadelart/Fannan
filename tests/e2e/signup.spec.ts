@@ -57,7 +57,10 @@ test("English: from the homepage claim box to a saved site, then back in on anot
   await expect(page.getByRole("heading", { name: "Check your email" })).toBeVisible();
 
   await page.goto(await magicLink(email));
-  await expect(page.getByRole("heading", { level: 1, name: "Your site" })).toBeVisible({ timeout: 20_000 });
+  // The editor is the app: signing in lands there.
+  await expect(page.getByTestId("canvas")).toBeVisible({ timeout: 20_000 });
+  // The old dashboard lives on as the editor's Home panel (also at /home).
+  await page.goto(at("app", "/home"));
   await expect(page.getByTestId("site-address")).toHaveText(`${username}.fannan.localhost`);
   await expect(page.getByText("Save your site")).toHaveCount(0);
 
@@ -77,6 +80,10 @@ test("English: from the homepage claim box to a saved site, then back in on anot
   const other = await browser.newContext();
   const phone = await other.newPage();
   await logInWithEmail(phone, email);
+  // Signing in opens the editor (in Arabic); the Home page shows the same account.
+  await expect(phone.getByTestId("canvas")).toBeVisible({ timeout: 20_000 });
+  await expect(phone.locator("html")).toHaveAttribute("dir", "rtl");
+  await phone.goto(at("app", "/home"));
   await expect(phone.getByRole("heading", { level: 1 })).toHaveText("موقعك", { timeout: 20_000 });
   await expect(phone.getByTestId("site-address")).toHaveText(`${username}.fannan.localhost`);
   await expect(phone.getByRole("switch")).toHaveAttribute("aria-checked", "true");
@@ -118,6 +125,8 @@ test("Arabic: the whole sign-up in Arabic, right to left", async ({ browser }) =
   await expect(page.getByRole("heading", { name: "افحص بريدك الإلكتروني" })).toBeVisible();
 
   await page.goto(await magicLink(email));
+  await expect(page.getByTestId("canvas")).toBeVisible({ timeout: 20_000 });
+  await page.goto(at("app", "/home"));
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("موقعك", { timeout: 20_000 });
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   await expect(page.getByTestId("site-address")).toHaveText(`${username}.fannan.localhost`);

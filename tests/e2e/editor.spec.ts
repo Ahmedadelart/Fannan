@@ -130,7 +130,7 @@ test("build, preview on phone size, publish, then edit without changing the live
   expect(await firestore(`sites/${siteId}/published/2`)).toBeNull();
 
   // The dashboard knows it's published, and the checklist ticked "Publish your site".
-  await page.goto(at("app"));
+  await page.goto(at("app", "/home"));
   await expect(page.getByText("Published", { exact: true })).toBeVisible();
   await expect(page.getByRole("listitem").filter({ hasText: "Publish your site" })).toHaveClass(/line-through/);
 });

@@ -117,7 +117,7 @@ test("a full project: uploads, embeds, credits, order, crop and cover", async ({
   await expect(card).toContainText("Hidden");
   await expect(card).toContainText("Character design · Lead character designer");
   await expect(card.locator("img")).toHaveAttribute("src", /\/api\/media\/variants\//);
-  await page.goto(at("app"));
+  await page.goto(at("app", "/home"));
   await expect(page.getByTestId("project-card")).toHaveCount(1);
   await expect(page.getByTestId("storage-meter")).toContainText("of your space");
 });
