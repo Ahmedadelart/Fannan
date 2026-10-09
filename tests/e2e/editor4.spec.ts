@@ -38,6 +38,7 @@ test("header, footer and contact form are edited on the page and reach the live 
 
   /* ---------- header ---------- */
   await canvas(page).locator('[data-site-part="header"]').click({ position: { x: 4, y: 4 } });
+  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
   const header = page.getByTestId("header-settings");
   await expect(header).toBeVisible();
   // Only settings for the header: it can't be dragged, copied or deleted.
@@ -56,6 +57,7 @@ test("header, footer and contact form are edited on the page and reach the live 
   const footer = canvas(page).locator('[data-site-part="footer"]');
   await footer.scrollIntoViewIfNeeded();
   await footer.click({ position: { x: 4, y: 4 } });
+  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
   await expect(page.getByTestId("footer-settings")).toBeVisible();
   await footer.locator("[data-inline-text]").click();
   await page.keyboard.type("© Nour Adel. Cairo.");
@@ -240,6 +242,7 @@ test("header and footer: more settings in tabs", async ({ page }, info) => {
   await signUp(page);
   await openEditor(page);
   await canvas(page).locator('[data-site-part="header"]').click({ position: { x: 4, y: 4 } });
+  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
   const header = page.getByTestId("header-settings");
   await header.getByRole("tab", { name: "Items" }).click();
   await header.getByRole("switch", { name: "Social links in the header" }).click();
@@ -251,6 +254,7 @@ test("header and footer: more settings in tabs", async ({ page }, info) => {
   const footer = canvas(page).locator('[data-site-part="footer"]');
   await footer.scrollIntoViewIfNeeded();
   await footer.click({ position: { x: 4, y: 4 } });
+  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
   const fs = page.getByTestId("footer-settings");
   await fs.getByRole("radio", { name: "Three columns" }).click();
   await fs.getByRole("tab", { name: "Items" }).click();
@@ -258,4 +262,56 @@ test("header and footer: more settings in tabs", async ({ page }, info) => {
   await fs.getByRole("textbox", { name: "Email address" }).fill("nour@example.com");
   await expect(footer).toContainText("nour@example.com");
   await page.screenshot({ path: `test-results/r5-footer-${info.project.name}.png` });
+});
+
+test("the pencil opens and closes settings; a box picks several items to move together", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop");
+  test.setTimeout(150_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signUp(page);
+  await openEditor(page);
+  await page.getByTestId("add-free-blank").click();
+  const items = page.getByTestId("free-item");
+  await expect(items).toHaveCount(2);
+  const card = page.getByTestId("block-settings");
+
+  // The pencil toggles the card.
+  await items.first().click();
+  await page.getByTestId("item-edit").click();
+  await expect(card).toBeVisible();
+  await page.getByTestId("item-edit").click();
+  await expect(card).toBeHidden();
+
+  // With the card open, picking another item closes it.
+  await page.getByTestId("item-edit").click();
+  await expect(card).toBeVisible();
+  await items.nth(1).click();
+  await expect(card).toBeHidden();
+
+  // Drag a box over both items from an empty spot.
+  const grid = page.getByTestId("free-grid");
+  const g = (await grid.boundingBox())!;
+  const a = (await items.first().boundingBox())!;
+  const b = (await items.nth(1).boundingBox())!;
+  const top = Math.min(a.y, b.y) - 6;
+  const bottom = Math.max(a.y + a.height, b.y + b.height) + 6;
+  const startX = g.x + g.width - 20;
+  await page.mouse.move(startX, top);
+  await page.mouse.down();
+  await page.mouse.move(Math.min(a.x, b.x) - 4, bottom, { steps: 10 });
+  await expect(page.getByTestId("free-marquee")).toBeVisible();
+  await page.mouse.up();
+  await expect(page.getByTestId("group-toolbar")).toContainText("2 items picked");
+  await page.screenshot({ path: `test-results/r6-group-${info.project.name}.png` });
+
+  // Move them together with the arrow keys.
+  const xs = await items.evaluateAll((els) => els.map((el) => Number((el as HTMLElement).style.getPropertyValue("--x"))));
+  await page.keyboard.press("ArrowRight");
+  await expect
+    .poll(() => items.evaluateAll((els) => els.map((el) => Number((el as HTMLElement).style.getPropertyValue("--x")))))
+    .toEqual(xs.map((x) => x + 1));
+
+  // Delete both.
+  await page.getByTestId("group-toolbar").getByRole("button", { name: "Delete" }).click();
+  await expect(items).toHaveCount(0);
 });

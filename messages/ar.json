@@ -948,7 +948,8 @@
       "italic": "مائل",
       "border": "الإطار",
       "borderColor": "لون الإطار",
-      "shadow": "ظل"
+      "shadow": "ظل",
+      "picked": "{count, plural, one {عنصر واحد محدد} two {عنصران محددان} few {# عناصر محددة} many {# عنصرًا محددًا} other {# عنصر محدد}}"
     },
     "rail": {
       "label": "المحرر",

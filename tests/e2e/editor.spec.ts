@@ -83,6 +83,8 @@ test("build, preview on phone size, publish, then edit without changing the live
   const picture = canvas(page).locator('[data-testid="free-item"][data-kind="image"]').last();
   await picture.scrollIntoViewIfNeeded();
   await picture.click();
+  // Selecting shows the quick toolbar; the pencil opens the settings.
+  await page.getByTestId("item-edit").click();
   await settings(page).getByRole("button", { name: "Choose" }).click();
   await page.getByTestId("picker-file").setInputFiles("tests/fixtures/photo.jpg");
   await expect(page.getByRole("dialog", { name: "Choose media" })).toBeHidden({ timeout: 60_000 });

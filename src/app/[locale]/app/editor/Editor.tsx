@@ -812,15 +812,20 @@ export function Editor({
       active={selected === b.id}
       selectedItem={selected === b.id ? freeItem : null}
       onSelectItem={(id) => {
+        // Picking something else closes the settings card; it opens again from the pencil.
+        if (id !== freeItem || selected !== b.id) setSettingsOpen(false);
         setSelected(b.id);
         setFreeItem(id);
       }}
       onChange={(fn, key) => changeFree(b.id, fn, key)}
       onEditItem={(id) => {
+        // The pencil opens the item's settings, and closes them again.
+        const open = settingsOpen && selected === b.id && freeItem === id;
         setSelected(b.id);
         setFreeItem(id);
-        setSettingsOpen(true);
+        setSettingsOpen(!open);
       }}
+      settingsFor={settingsOpen && selected === b.id ? freeItem : null}
       extras={{ social: siteSettings.social, projects }}
       typeHere={t("typeHere")}
     />
@@ -1342,7 +1347,8 @@ export function Editor({
             setFreeItem(null);
           }}
           onPick={(id, onFreeItem) => {
-            if (id !== selected) setSettingsOpen(!!id && id.startsWith("__"));
+            // A new selection closes the settings card; it opens from the toolbar when needed.
+            if (id !== selected) setSettingsOpen(false);
             setSelected(id);
             if (!onFreeItem) setFreeItem(null);
           }}

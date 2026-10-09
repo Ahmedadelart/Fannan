@@ -154,6 +154,8 @@ test("the published site: pages, projects, lightbox, contact form, sitemap, draf
   const picture = page.getByTestId("canvas").locator('[data-testid="free-item"][data-kind="image"]').last();
   await picture.scrollIntoViewIfNeeded();
   await picture.click();
+  // Selecting shows the quick toolbar; the pencil opens the settings.
+  await page.getByTestId("item-edit").click();
   await page.getByTestId("block-settings").getByRole("button", { name: "Choose" }).click();
   await page.getByTestId("picker-file").setInputFiles("tests/fixtures/anim.gif");
   await expect(page.getByRole("dialog", { name: "Choose media" })).toBeHidden({ timeout: 60_000 });

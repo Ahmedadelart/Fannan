@@ -33,8 +33,10 @@ export interface FreeEditorProps {
   /** One change to the section. `key` merges a run of changes into one undo step. */
   onChange: (fn: (b: Free) => Free, key?: string) => void;
   typeHere: string;
-  /** The pencil in the item's toolbar: opens its full settings. */
+  /** The pencil in the item's toolbar: opens (or closes) its full settings. */
   onEditItem: (id: string) => void;
+  /** The item whose settings card is open, if any (the pencil shows pressed). */
+  settingsFor?: string | null;
   /** Social links and projects, for social link and project items. */
   extras?: FreeExtras;
 }
@@ -101,12 +103,23 @@ export function FreeEditor({
   onChange,
   typeHere,
   onEditItem,
+  settingsFor = null,
   extras,
 }: FreeEditorProps) {
   const t = useTranslations("editor.free");
   // Squarespace-style layers list: drag to restack, hover to hide.
   const [layersOpen, setLayersOpen] = useState(false);
   const [linkFor, setLinkFor] = useState<string | null>(null);
+  // Several items picked at once (drag a box on an empty spot, or Shift-click), moved and removed together.
+  const [group, setGroup] = useState<string[]>([]);
+  const [groupLive, setGroupLive] = useState<{ dx: number; dy: number } | null>(null);
+  const [marquee, setMarquee] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const grouped = active && group.length > 1;
+  const [groupFor, setGroupFor] = useState(active);
+  if (groupFor !== active) {
+    setGroupFor(active);
+    if (!active) setGroup([]);
+  }
   const grid = useRef<HTMLDivElement>(null);
   // While a pointer is moving something, its place is kept here and saved once on release.
   const [live, setLive] = useState<{ id: string; place: FreePlace; rotate: number } | null>(null);
@@ -160,6 +173,124 @@ export function FreeEditor({
     noSelect(true);
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
+  }
+
+  /** Windows-style box selection: drag on an empty spot; every item the box touches is picked. */
+  function startMarquee(e: React.PointerEvent) {
+    const g = grid.current;
+    if (e.button !== 0 || !g || stacked()) {
+      onSelectItem(null);
+      setGroup([]);
+      return;
+    }
+    e.preventDefault();
+    const r0 = g.getBoundingClientRect();
+    const k = r0.width / g.offsetWidth; // the canvas is drawn scaled
+    const x0 = e.clientX;
+    const y0 = e.clientY;
+    let rect = { left: x0, top: y0, right: x0, bottom: y0 };
+    let moved = false;
+    const move = (ev: PointerEvent) => {
+      if (!moved && Math.abs(ev.clientX - x0) + Math.abs(ev.clientY - y0) < 4) return;
+      moved = true;
+      rect = {
+        left: Math.min(x0, ev.clientX),
+        top: Math.min(y0, ev.clientY),
+        right: Math.max(x0, ev.clientX),
+        bottom: Math.max(y0, ev.clientY),
+      };
+      setMarquee({
+        x: (rect.left - r0.left) / k,
+        y: (rect.top - r0.top) / k,
+        w: (rect.right - rect.left) / k,
+        h: (rect.bottom - rect.top) / k,
+      });
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      noSelect(false);
+      setMarquee(null);
+      if (!moved) {
+        onSelectItem(null);
+        setGroup([]);
+        return;
+      }
+      swallowNextClick();
+      const hit = [...g.querySelectorAll<HTMLElement>('[data-testid="free-item"]:not([data-hidden])')]
+        .filter((el) => {
+          const r = el.getBoundingClientRect();
+          return r.left < rect.right && r.right > rect.left && r.top < rect.bottom && r.bottom > rect.top;
+        })
+        .map((el) => el.dataset.freeItem!);
+      if (hit.length === 1) {
+        setGroup([]);
+        onSelectItem(hit[0]);
+      } else {
+        setGroup(hit);
+        onSelectItem(null);
+      }
+    };
+    noSelect(true);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }
+
+  /** Drags every picked item together, keeping them all on the grid. */
+  function startGroupMove(e: React.PointerEvent) {
+    if (e.button !== 0 || stacked()) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const picked = b.items.filter((i) => group.includes(i.id));
+    const minX = Math.min(...picked.map((i) => i.place.x));
+    const maxX = Math.max(...picked.map((i) => i.place.x + i.place.w));
+    const minY = Math.min(...picked.map((i) => i.place.y));
+    const x0 = e.clientX;
+    const y0 = e.clientY;
+    const c = cell();
+    let last = { dx: 0, dy: 0 };
+    let moved = false;
+    const move = (ev: PointerEvent) => {
+      if (!moved && Math.abs(ev.clientX - x0) + Math.abs(ev.clientY - y0) < 3) return;
+      moved = true;
+      const dx = Math.round(((ev.clientX - x0) / c) * (rtl ? -1 : 1));
+      const dy = Math.round((ev.clientY - y0) / c);
+      last = { dx: Math.max(-minX, Math.min(FREE_COLS - maxX, dx)), dy: Math.max(-minY, dy) };
+      setGroupLive(last);
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      noSelect(false);
+      setGroupLive(null);
+      if (!moved) return;
+      swallowNextClick();
+      shiftGroup(last.dx, last.dy);
+    };
+    noSelect(true);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }
+
+  const shiftGroup = (dx: number, dy: number, key?: string) =>
+    onChange((s) => {
+      const items = s.items.map((i) =>
+        group.includes(i.id) ? { ...i, place: { ...i.place, x: i.place.x + dx, y: Math.max(0, i.place.y + dy) } } : i,
+      );
+      return { ...s, items, rows: Math.max(s.rows, freeBottom(items)) };
+    }, key);
+
+  /** Shift-click adds an item to the picked ones, or takes it out. */
+  function togglePick(id: string) {
+    const base = group.length ? group : selectedItem ? [selectedItem] : [];
+    const next = base.includes(id) ? base.filter((x) => x !== id) : [...base, id];
+    if (next.length > 1) {
+      setGroup(next);
+      onSelectItem(null);
+    } else {
+      setGroup([]);
+      onSelectItem(next[0] ?? null);
+    }
   }
 
   const startMove = (e: React.PointerEvent, it: FreeItem) =>
@@ -225,6 +356,33 @@ export function FreeEditor({
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
   }
+
+  // Keyboard for picked items: arrows move them all, Delete removes them, Esc lets go.
+  useEffect(() => {
+    if (!grouped) return;
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement).closest("input, textarea, select, [contenteditable]")) return;
+      const by = { ArrowLeft: [rtl ? 1 : -1, 0], ArrowRight: [rtl ? -1 : 1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[
+        e.key
+      ] as [number, number] | undefined;
+      const picked = b.items.filter((i) => group.includes(i.id));
+      if (by) {
+        e.preventDefault();
+        const minX = Math.min(...picked.map((i) => i.place.x));
+        const maxX = Math.max(...picked.map((i) => i.place.x + i.place.w));
+        const minY = Math.min(...picked.map((i) => i.place.y));
+        const dx = Math.max(-minX, Math.min(FREE_COLS - maxX, by[0]));
+        const dy = Math.max(-minY, by[1]);
+        if (dx || dy) shiftGroup(dx, dy, "nudge-group");
+      } else if (e.key === "Delete" || e.key === "Backspace") {
+        e.preventDefault();
+        onChange((s) => ({ ...s, items: s.items.filter((i) => !group.includes(i.id)) }));
+        setGroup([]);
+      } else if (e.key === "Escape") setGroup([]);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   // Keyboard: arrows nudge one cell, Delete removes, Esc lets go.
   useEffect(() => {
@@ -328,15 +486,18 @@ export function FreeEditor({
           className={cx("site-free-grid", (live || liveRows !== null || active) && "fannan-free-grid-lines")}
           style={{ ["--rows" as string]: rows }}
           onPointerDown={(e) => {
-            if (e.target === e.currentTarget) {
-              onSelectItem(null);
-              setEditing(null);
-            }
+            if (e.target !== e.currentTarget) return;
+            setEditing(null);
+            startMarquee(e);
           }}
           data-testid="free-grid"
         >
           {b.items.map((orig) => {
-            const it = live?.id === orig.id ? { ...orig, place: live.place, rotate: live.rotate } : orig;
+            const shifted =
+              groupLive && group.includes(orig.id)
+                ? { ...orig, place: { ...orig.place, x: orig.place.x + groupLive.dx, y: orig.place.y + groupLive.dy } }
+                : orig;
+            const it = live?.id === orig.id ? { ...orig, place: live.place, rotate: live.rotate } : shifted;
             const textual = TYPED.includes(it.kind);
             return (
               <div
@@ -355,6 +516,12 @@ export function FreeEditor({
                 }}
                 onPointerDown={(e) => {
                   if (editing === it.id) return;
+                  if (e.shiftKey) {
+                    e.preventDefault();
+                    return togglePick(it.id);
+                  }
+                  if (grouped && group.includes(it.id)) return startGroupMove(e);
+                  setGroup([]);
                   onSelectItem(it.id);
                   startMove(e, it);
                 }}
@@ -384,8 +551,79 @@ export function FreeEditor({
             );
           })}
 
+          {grouped &&
+            (() => {
+              const picked = b.items.filter((i) => group.includes(i.id));
+              if (picked.length < 2) return null;
+              const d = groupLive ?? { dx: 0, dy: 0 };
+              const x = Math.min(...picked.map((i) => i.place.x)) + d.dx;
+              const y = Math.min(...picked.map((i) => i.place.y)) + d.dy;
+              const w = Math.max(...picked.map((i) => i.place.x + i.place.w)) + d.dx - x;
+              const h = Math.max(...picked.map((i) => i.place.y + i.place.h)) + d.dy - y;
+              return (
+                <>
+                  {picked.map((i) => (
+                    <div
+                      key={i.id}
+                      className="site-free-item pointer-events-none"
+                      style={{ ...freeItemStyle({ ...i, place: { ...i.place, x: i.place.x + d.dx, y: i.place.y + d.dy } }, 0), zIndex: 989, opacity: undefined }}
+                    >
+                      <span aria-hidden className="fannan-free-outline" />
+                    </div>
+                  ))}
+                  <div
+                    className="site-free-item pointer-events-none"
+                    data-testid="free-group"
+                    style={{ ...freeItemStyle({ ...picked[0], place: { x, y, w, h }, rotate: 0 }, 0), zIndex: 990, opacity: undefined }}
+                  >
+                    <span aria-hidden className="absolute -inset-1.5 rounded-[4px] border-2 border-dashed border-[#4C6700]" />
+                    <div
+                      role="toolbar"
+                      aria-label={t("picked", { count: picked.length })}
+                      data-testid="group-toolbar"
+                      className="border-line shadow-float pointer-events-auto absolute start-0 -top-[52px] z-[1000] flex items-center gap-0.5 rounded-pill border bg-white p-1"
+                      onPointerDown={(e) => e.stopPropagation()}
+                    >
+                      <span className="px-2.5 text-[12px] font-semibold text-[#1A1C16]">{t("picked", { count: picked.length })}</span>
+                      <span className="bg-line mx-0.5 h-5 w-px" />
+                      <button type="button" className={tool} aria-label={t("front")} title={t("front")} onClick={() => picked.forEach((i) => layer(i, 1))}>
+                        <Icon name="bring-front" size={18} />
+                      </button>
+                      <button type="button" className={tool} aria-label={t("back")} title={t("back")} onClick={() => picked.forEach((i) => layer(i, -1))}>
+                        <Icon name="send-back" size={18} />
+                      </button>
+                      <button type="button" className={tool} aria-label={t("duplicate")} title={t("duplicate")} onClick={() => picked.forEach((i) => duplicate(i))}>
+                        <Icon name="duplicate" size={18} />
+                      </button>
+                      <button
+                        type="button"
+                        className={tool}
+                        aria-label={t("delete")}
+                        title={t("delete")}
+                        onClick={() => {
+                          onChange((s) => ({ ...s, items: s.items.filter((i) => !group.includes(i.id)) }));
+                          setGroup([]);
+                        }}
+                      >
+                        <Icon name="delete" size={18} />
+                      </button>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+
+          {marquee && (
+            <div
+              aria-hidden
+              data-testid="free-marquee"
+              className="pointer-events-none absolute z-[995] rounded-[2px] border border-[#4C6700] bg-[#C6F432]/20"
+              style={{ left: marquee.x, top: marquee.y, width: marquee.w, height: marquee.h }}
+            />
+          )}
+
           {(() => {
-            const sel = active && selectedItem ? b.items.find((i) => i.id === selectedItem) : null;
+            const sel = active && selectedItem && !grouped ? b.items.find((i) => i.id === selectedItem) : null;
             if (!sel) return null;
             const it = live?.id === sel.id ? { ...sel, place: live.place, rotate: live.rotate } : sel;
             const textual = TYPED.includes(it.kind);
@@ -429,6 +667,7 @@ export function FreeEditor({
                       className={tool}
                       aria-label={t("edit")}
                       title={t("edit")}
+                      aria-pressed={settingsFor === it.id}
                       data-testid="item-edit"
                       onClick={() => onEditItem(it.id)}
                     >

@@ -948,7 +948,8 @@
       "italic": "Italic",
       "border": "Border",
       "borderColor": "Border colour",
-      "shadow": "Shadow"
+      "shadow": "Shadow",
+      "picked": "{count, plural, one {# item} other {# items}} picked"
     },
     "rail": {
       "label": "Editor",
