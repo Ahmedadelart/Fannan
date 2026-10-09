@@ -73,6 +73,24 @@ export function SiteEnhancer({ protectImages, closeLabel }: { protectImages: boo
       cleanups.push(() => el.removeEventListener(ev, fn as EventListener));
     };
 
+    // Sections that come in as they scroll into view (Pro).
+    const animated = [...document.querySelectorAll<HTMLElement>("[data-animate]")];
+    if (animated.length && "IntersectionObserver" in window) {
+      document.documentElement.classList.add("site-anim");
+      const io = new IntersectionObserver(
+        (entries) =>
+          entries.forEach((en) => {
+            if (en.isIntersecting) {
+              en.target.classList.add("is-in");
+              io.unobserve(en.target);
+            }
+          }),
+        { threshold: 0.12 },
+      );
+      animated.forEach((el) => io.observe(el));
+      cleanups.push(() => io.disconnect());
+    }
+
     // Lightbox: every marked picture on the page is part of one set.
     const boxes = [...document.querySelectorAll<HTMLElement>("[data-lightbox]")];
     const items = boxes.map((el) => ({ src: el.dataset.lightbox!, caption: el.dataset.lightboxCaption }));

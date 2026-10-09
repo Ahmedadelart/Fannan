@@ -1097,7 +1097,9 @@
       "borderTop": "Line above",
       "showTitle": "Site name",
       "email": "Email address",
-      "backToTop": "Back to top button"
+      "backToTop": "Back to top button",
+      "gradientTo": "Fade to",
+      "noGradient": "None"
     },
     "account": {
       "label": "Your account",
@@ -1127,7 +1129,81 @@
       "mac": "On a Mac, use Cmd instead of Ctrl."
     },
     "previewProject": "Projects open on your published site. Publish to try them.",
-    "previewSend": "Messages are sent from your live site. Nothing was sent from the preview."
+    "previewSend": "Messages are sent from your live site. Nothing was sent from the preview.",
+    "design2": {
+      "background": "Background",
+      "bg": {
+        "none": "None",
+        "color": "Colour",
+        "gradient": "Gradient",
+        "image": "Picture",
+        "pattern": "Pattern"
+      },
+      "color": "Colour",
+      "from": "From",
+      "to": "To",
+      "third": "Third colour",
+      "removeThird": "Remove the third colour",
+      "angle": "Direction",
+      "radial": "From the centre",
+      "picture": "Picture",
+      "overlay": "Shade colour",
+      "overlayOpacity": "Shade",
+      "pattern": "Pattern",
+      "patterns": {
+        "dots": "Dots",
+        "grid": "Grid",
+        "waves": "Waves",
+        "sparkles": "Sparkles",
+        "doodles": "Doodles",
+        "custom": "Your own"
+      },
+      "tile": "Pattern picture",
+      "patternColor": "Pattern colour",
+      "patternOpacity": "Pattern strength",
+      "patternScale": "Pattern size",
+      "edgeTop": "Top edge",
+      "edgeBottom": "Bottom edge",
+      "edges": {
+        "none": "Straight",
+        "wave": "Wave",
+        "curve": "Curve",
+        "slant": "Slant",
+        "torn": "Torn paper",
+        "zigzag": "Zigzag",
+        "scallop": "Scallops"
+      },
+      "edgeHeight": "Edge height",
+      "flip": "Flip",
+      "spacing": "Spacing",
+      "padTop": "Space above",
+      "padBottom": "Space below",
+      "width": "Content width",
+      "widths": {
+        "narrow": "Narrow",
+        "medium": "Medium",
+        "normal": "Wide",
+        "full": "Full bleed"
+      },
+      "card": "Content in a card",
+      "cardColor": "Card colour",
+      "theme": "Theme",
+      "cardRadius": "Card corners",
+      "cardPadding": "Card padding",
+      "cardShadow": "Card shadow",
+      "textColor": "Text colour",
+      "auto": "Auto",
+      "anchor": "Link name (for #links)",
+      "animate": "Scroll animation",
+      "anim": {
+        "none": "None",
+        "fade": "Fade up",
+        "slide": "Slide in",
+        "zoom": "Zoom"
+      },
+      "animPro": "Animations play on your live site with Pro.",
+      "reset": "Reset the design"
+    }
   },
   "inbox": {
     "title": "Messages",

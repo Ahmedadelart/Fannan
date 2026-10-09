@@ -27,7 +27,50 @@ export interface SampleArt {
   ratio: "16/9" | "4/3" | "1/1" | "3/4";
 }
 
-type B<T extends string, P> = { id: string; type: T } & P;
+/* ---------- how a section looks (round 7): band, edges, spacing, card ---------- */
+
+export type EdgeShape = "none" | "wave" | "curve" | "slant" | "torn" | "zigzag" | "scallop";
+export type PatternId = "dots" | "grid" | "waves" | "sparkles" | "doodles" | "custom";
+
+export interface SectionEdge {
+  shape: EdgeShape;
+  /** px on a 1200px-wide page. */
+  height: number;
+  flip: boolean;
+}
+
+export interface SectionStyle {
+  bg: {
+    kind: "none" | "color" | "gradient" | "image" | "pattern";
+    color: string;
+    color2: string;
+    color3: string | null;
+    angle: number;
+    radial: boolean;
+    /** Background picture (image) or the artist's own pattern tile (pattern + custom). */
+    mediaId: string | null;
+    overlay: string;
+    overlayOpacity: number;
+    pattern: PatternId;
+    patternColor: string;
+    patternOpacity: number;
+    patternScale: number;
+  };
+  edgeTop: SectionEdge;
+  edgeBottom: SectionEdge;
+  padTop: number;
+  padBottom: number;
+  width: "narrow" | "medium" | "normal" | "full";
+  card: { on: boolean; color: string | null; radius: number; shadow: boolean; padding: number };
+  /** Text colour; null picks a readable one for the background. */
+  text: string | null;
+  /** For in-page links (#name) and the sub-navigation section. */
+  anchor: string;
+  /** Pro: how the section comes in as visitors scroll. */
+  animate: "none" | "fade" | "slide" | "zoom";
+}
+
+type B<T extends string, P> = { id: string; type: T; style?: SectionStyle } & P;
 
 export type GalleryLayout = "grid" | "masonry" | "slider" | "fullscreen";
 export type ThumbRatio = "16:9" | "4:3" | "1:1" | "2:3" | "original";
@@ -224,6 +267,8 @@ export interface HeaderSettings {
   logoSize: number;
   titleSize: number;
   upperLinks: boolean;
+  /** With a colour background: fades to this colour (round 7). */
+  gradientTo: string | null;
 }
 
 /** The site footer, edited by clicking it on the canvas (round 4). */
@@ -242,6 +287,8 @@ export interface FooterSettings {
   socialStyle: "icons" | "text";
   border: boolean;
   padding: number;
+  /** With a background colour: fades to this colour (round 7). */
+  gradientTo: string | null;
 }
 
 export interface SiteDraft {

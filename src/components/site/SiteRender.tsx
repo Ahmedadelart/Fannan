@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { dirFor, type Locale } from "@/i18n/locales";
 import { cx } from "@/lib/cx";
 import { imageSources, posterSources, type MediaLike } from "@/lib/media";
-import type { Block, BlockOf, FreeItem, PageDraft, SiteDraft, ThumbRatio } from "@/lib/site/types";
+import type { Block, BlockOf, FreeItem, PageDraft, SectionStyle, SiteDraft, ThumbRatio } from "@/lib/site/types";
 import { parseVideoLink, videoPoster } from "@/lib/video";
 import { InlineText } from "@/components/editor/InlineText";
 import { CONTACT_WORDS, contactFormOf, type LegacyContactFields } from "@/lib/site/contact";
@@ -10,6 +10,8 @@ import { normalizeFooter, normalizeHeader } from "@/lib/site/normalize";
 import { isSampleTone, toneFill } from "@/lib/site/samples";
 import { arabicFonts, bodyFonts, headingFonts, siteFontVars } from "./fonts";
 import { socialPath } from "./socialIcons";
+import { EDGE_PATHS } from "./edges";
+import { patternCss } from "./patterns";
 
 // Renders an artist site from its draft (or a published snapshot). Artist sites use the artist's
 // theme, never Fannan's brand. Layout reacts to the width of its own box (container queries), so
@@ -1189,6 +1191,181 @@ function T({
   );
 }
 
+/* ---------- a section's band: background, shaped edges, spacing, inset card (round 7) ---------- */
+
+const WIDTHS: Record<SectionStyle["width"], number | undefined> = { narrow: 720, medium: 960, normal: undefined, full: undefined };
+
+/** Colours that read on a section's background: text, muted text, lines and soft surfaces. */
+function inkVars(text: string, base: string): CSSProperties {
+  return {
+    ["--site-text" as string]: text,
+    ["--site-muted" as string]: `color-mix(in srgb, ${text} 72%, ${base})`,
+    ["--site-line" as string]: `color-mix(in srgb, ${text} 18%, ${base})`,
+    ["--site-surface" as string]: `color-mix(in srgb, ${text} 7%, ${base})`,
+    color: text,
+  };
+}
+
+/** Does a section have a coloured band (background or shaped edges)? */
+function isBanded(b?: Block): boolean {
+  const s = b?.style;
+  return !!s && (s.bg.kind !== "none" || s.edgeTop.shape !== "none" || s.edgeBottom.shape !== "none");
+}
+
+function SectionBand({
+  b,
+  ctx,
+  selected,
+  prevBanded,
+  nextBanded,
+  children,
+}: {
+  b: Block;
+  ctx: Ctx;
+  selected: boolean;
+  /** Next to a plain section, an edge gets room of its own instead of covering that section's content. */
+  prevBanded: boolean;
+  nextBanded: boolean;
+  children: ReactNode;
+}) {
+  const s = b.style;
+  const cls = cx(ctx.editing && "site-block", selected && "site-block-selected");
+  if (!s) {
+    return (
+      <section data-block-id={b.id} className={cls}>
+        {children}
+      </section>
+    );
+  }
+  const bg = s.bg;
+  const banded = bg.kind !== "none" || s.edgeTop.shape !== "none" || s.edgeBottom.shape !== "none";
+  const gradient = `${bg.radial ? "radial-gradient(circle at 50% 35%, " : `linear-gradient(${bg.angle}deg, `}${bg.color}, ${bg.color2}${bg.color3 ? `, ${bg.color3}` : ""})`;
+  // The colour the edges are drawn in, and the one text has to read on.
+  const topColor = bg.kind === "image" ? bg.overlay : bg.color;
+  const bottomColor = bg.kind === "gradient" ? (bg.color3 ?? bg.color2) : topColor;
+  const base =
+    bg.kind === "image" ? (bg.overlayOpacity >= 35 ? bg.overlay : "#808080") : bg.kind === "none" ? null : bg.color;
+  const text = s.text ?? (base ? readableOn(base) : null);
+  const media = bg.mediaId ? (ctx.media[bg.mediaId] ?? null) : null;
+  const pattern = bg.kind === "pattern" ? patternCss(bg.pattern, bg.patternColor, bg.patternScale) : null;
+  const tile = bg.kind === "pattern" && bg.pattern === "custom" && media ? imageSources(media, 800, ctx.base)?.src : null;
+
+  const style: CSSProperties = {
+    position: "relative",
+    paddingTop: banded ? s.padTop : undefined,
+    paddingBottom: banded ? s.padBottom : undefined,
+    // Unbanded sections keep today's spacing; their sliders add or take away from it.
+    marginTop: banded
+      ? s.edgeTop.shape !== "none" && !prevBanded
+        ? `calc(var(--section-gap) / -2 + ${s.edgeTop.height} * 100cqi / 1200)`
+        : "calc(var(--section-gap) / -2)"
+      : s.padTop - 48,
+    marginBottom: banded
+      ? s.edgeBottom.shape !== "none" && !nextBanded
+        ? `calc(var(--section-gap) / -2 + ${s.edgeBottom.height} * 100cqi / 1200)`
+        : "calc(var(--section-gap) / -2)"
+      : s.padBottom - 48,
+    ...(banded || s.width === "full"
+      ? {
+          marginInline: "calc(var(--site-pad) * -1)",
+          paddingInline: s.width === "full" ? 0 : "var(--site-pad)",
+        }
+      : {}),
+    background:
+      bg.kind === "color" || bg.kind === "pattern"
+        ? bg.color
+        : bg.kind === "gradient"
+          ? gradient
+          : bg.kind === "image"
+            ? bg.overlay
+            : undefined,
+    ...(text && (banded || s.text) ? inkVars(text, base ?? "#FFFFFF") : {}),
+  };
+
+  const edge = (where: "top" | "bottom") => {
+    const e = where === "top" ? s.edgeTop : s.edgeBottom;
+    if (e.shape === "none") return null;
+    const flipX = e.flip ? -1 : 1;
+    return (
+      <svg
+        aria-hidden
+        className="pointer-events-none absolute start-0 z-[2] block w-full"
+        style={{
+          height: `calc(${e.height} * 100cqi / 1200)`,
+          [where]: `calc(${e.height} * -100cqi / 1200 + 1px)`,
+          transform: where === "top" ? `scaleX(${flipX})` : `scale(${flipX}, -1)`,
+        }}
+        viewBox="0 0 1200 100"
+        preserveAspectRatio="none"
+        data-edge={where}
+      >
+        <path d={EDGE_PATHS[e.shape]} fill={where === "top" ? topColor : bottomColor} />
+      </svg>
+    );
+  };
+
+  const inner = s.card.on ? (
+    <div
+      className="relative"
+      style={{
+        maxWidth: WIDTHS[s.width],
+        marginInline: "auto",
+        background: s.card.color ?? "var(--site-bg)",
+        borderRadius: s.card.radius,
+        boxShadow: s.card.shadow ? "0 18px 50px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06)" : undefined,
+        padding: s.card.padding,
+        ...(s.card.color
+          ? inkVars(readableOn(s.card.color), s.card.color)
+          : {
+              ["--site-text" as string]: "var(--site-theme-text)",
+              ["--site-muted" as string]: "var(--site-theme-muted)",
+              color: "var(--site-theme-text)",
+            }),
+      }}
+      data-testid="section-card"
+    >
+      {children}
+    </div>
+  ) : (
+    <div className="relative" style={{ maxWidth: WIDTHS[s.width], marginInline: WIDTHS[s.width] ? "auto" : undefined }}>
+      {children}
+    </div>
+  );
+
+  return (
+    <section
+      data-block-id={b.id}
+      id={ctx.live && s.anchor ? s.anchor : undefined}
+      data-animate={ctx.live && s.animate !== "none" ? s.animate : undefined}
+      data-band={banded || undefined}
+      className={cls}
+      style={style}
+    >
+      {bg.kind === "image" && media && (
+        <div className="absolute inset-0 overflow-hidden" aria-hidden>
+          <Picture m={media} base={ctx.base} want={2560} ratio="auto" className="h-full w-full !rounded-none" />
+          <div className="absolute inset-0" style={{ background: bg.overlay, opacity: bg.overlayOpacity / 100 }} />
+        </div>
+      )}
+      {(pattern || tile) && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage: pattern?.image ?? `url("${tile}")`,
+            backgroundSize: pattern?.size ?? `${Math.round(3.2 * bg.patternScale)}px auto`,
+            opacity: bg.patternOpacity / 100,
+          }}
+          data-testid="section-pattern"
+        />
+      )}
+      {edge("top")}
+      {inner}
+      {edge("bottom")}
+    </section>
+  );
+}
+
 /* ---------- the site ---------- */
 
 function Footer({
@@ -1301,7 +1478,11 @@ function Footer({
         paddingTop: settings.padding,
         ...(band
           ? {
-              background: settings.background ?? undefined,
+              background: settings.background
+                ? settings.gradientTo
+                  ? `linear-gradient(180deg, ${settings.background}, ${settings.gradientTo})`
+                  : settings.background
+                : undefined,
               borderTop: settings.border ? "1px solid var(--site-line)" : undefined,
               margin: "0 calc(var(--site-pad) * -1) calc(var(--site-pad) * -1)",
               padding: `${settings.padding}px var(--site-pad) var(--site-pad)`,
@@ -1370,7 +1551,9 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
     settings.background === "surface"
       ? "var(--site-surface)"
       : settings.background.startsWith("#")
-        ? settings.background
+        ? settings.gradientTo
+          ? `linear-gradient(180deg, ${settings.background}, ${settings.gradientTo})`
+          : settings.background
         : "var(--site-bg)";
   const part = {
     "data-site-part": "header",
@@ -1674,6 +1857,9 @@ export function SiteRender({
     "--site-muted": `color-mix(in srgb, ${theme.colors.text} 62%, ${theme.colors.background})`,
     "--site-line": `color-mix(in srgb, ${theme.colors.text} 16%, ${theme.colors.background})`,
     "--site-surface": `color-mix(in srgb, ${theme.colors.text} 6%, ${theme.colors.background})`,
+    // The theme's own colours, for inset cards inside coloured sections.
+    "--site-theme-text": theme.colors.text,
+    "--site-theme-muted": `color-mix(in srgb, ${theme.colors.text} 62%, ${theme.colors.background})`,
     "--site-radius": `${theme.radius}px`,
     // The chosen Arabic font is always in the stack: Arabic sites lead with it, and on English
     // sites any Arabic words fall through the Latin font (which has no Arabic letters) to it.
@@ -1689,15 +1875,21 @@ export function SiteRender({
   const body = content ? (
     <main className="flex flex-col gap-10">{content}</main>
   ) : (
-    <main className="flex flex-col" style={{ gap: theme.nav === "minimal" ? 72 : 48 }}>
+    <main
+      className="flex flex-col"
+      style={{ gap: theme.nav === "minimal" ? 72 : 48, ["--section-gap" as string]: `${theme.nav === "minimal" ? 72 : 48}px` }}
+    >
       {page.blocks.map((b, i) => (
-        <section
+        <SectionBand
           key={b.id}
-          data-block-id={b.id}
-          className={cx(editing && "site-block", selectedBlockId === b.id && "site-block-selected")}
+          b={b}
+          ctx={ctx}
+          selected={selectedBlockId === b.id}
+          prevBanded={isBanded(page.blocks[i - 1])}
+          nextBanded={isBanded(page.blocks[i + 1])}
         >
           <BlockView b={b} ctx={{ ...ctx, index: i, blockId: b.id }} />
-        </section>
+        </SectionBand>
       ))}
       {editing && page.blocks.length === 0 && <Empty show>+</Empty>}
     </main>

@@ -410,3 +410,46 @@ test("the preview is clickable: menu links switch pages, the contact form doesn'
   // Still in the editor, nothing navigated away.
   await expect(page).toHaveURL(/\/editor/);
 });
+
+test("section design: gradient, wave edge, pattern and card reach the live site", async ({ page, browser }, info) => {
+  test.setTimeout(150_000);
+  const phone = info.project.name === "mobile";
+  if (!phone) await page.setViewportSize({ width: 1440, height: 900 });
+  const { username } = await signUp(page);
+  await openEditor(page);
+  const about = canvas(page).locator("[data-block-id]").nth(1);
+  await about.click({ position: { x: 10, y: 10 } });
+  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  const card = page.getByTestId("block-settings");
+  await card.getByRole("tab", { name: "Design" }).click();
+  const design = page.getByTestId("section-design");
+  await design.getByRole("radio", { name: "Gradient" }).click();
+  await design.getByRole("radiogroup", { name: "Top edge" }).getByRole("radio", { name: "Wave" }).click();
+  await design.getByRole("radiogroup", { name: "Bottom edge" }).getByRole("radio", { name: "Torn paper" }).click();
+  await expect(about).toHaveAttribute("data-band", "true");
+  await expect(about.locator('[data-edge="top"]')).toBeVisible();
+  await design.getByRole("switch", { name: "Content in a card" }).click();
+  await expect(about.getByTestId("section-card")).toBeVisible();
+  // A second section with a pattern.
+  const contact = canvas(page).locator("[data-block-id]").last();
+  await contact.click({ position: { x: 10, y: 10 } });
+  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await card.getByRole("tab", { name: "Design" }).click();
+  await design.getByRole("radio", { name: "Pattern" }).click();
+  await design.getByRole("radio", { name: "Doodles" }).click();
+  await expect(contact.getByTestId("section-pattern")).toBeVisible();
+  await page.screenshot({ path: `test-results/r7-design-${info.project.name}.png` });
+
+  await page.getByRole("button", { name: "Publish" }).click();
+  await expect(page.getByTestId("editor-status")).toHaveText("Live site is up to date", { timeout: 20_000 });
+  const visitor = await (await browser.newContext({ ...info.project.use })).newPage();
+  await visitor.goto(at(username));
+  const band = visitor.locator("section[data-band]").first();
+  await expect(band).toBeVisible();
+  expect(await band.evaluate((el) => getComputedStyle(el).backgroundImage)).toContain("gradient");
+  await expect(band.locator('[data-edge="top"]')).toHaveCount(1);
+  await expect(visitor.getByTestId("section-pattern")).toHaveCount(1);
+  const overflow = await visitor.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
+  await visitor.screenshot({ path: `test-results/r7-live-${info.project.name}.png`, fullPage: true });
+});

@@ -180,6 +180,10 @@ export interface PublishedSite {
 }
 
 function blockMediaIds(b: Block): Array<string | null> {
+  return [b.style?.bg.mediaId ?? null, ...blockOwnMediaIds(b)];
+}
+
+function blockOwnMediaIds(b: Block): Array<string | null> {
   switch (b.type) {
     case "cover":
     case "image":

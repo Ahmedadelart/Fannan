@@ -417,6 +417,39 @@ html[data-embed] .dash-main {
   pointer-events: none;
 }
 
+/* Sections that come in as visitors scroll (Pro, round 7). Only once the enhancer is running, so
+   nothing stays hidden without scripts; never for visitors who prefer less motion. */
+.site-anim .site-root [data-animate] {
+  opacity: 0;
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.site-anim .site-root [data-animate="fade"] {
+  transform: translateY(28px);
+}
+.site-anim .site-root [data-animate="slide"] {
+  transform: translateX(-48px);
+}
+[dir="rtl"].site-anim .site-root [data-animate="slide"],
+.site-anim .site-root[dir="rtl"] [data-animate="slide"] {
+  transform: translateX(48px);
+}
+.site-anim .site-root [data-animate="zoom"] {
+  transform: scale(0.94);
+}
+.site-anim .site-root [data-animate].is-in {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-anim .site-root [data-animate] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
 /* Public site lightbox (SiteEnhancer). */
 .site-lightbox {
   width: 100vw;

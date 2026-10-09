@@ -17,6 +17,7 @@ import type {
   SiteDraft,
   Theme,
   ThemePreset,
+  SectionStyle,
 } from "./types";
 
 type Any = Record<string, unknown>;
@@ -84,7 +85,101 @@ const samples = (v: unknown): SampleArt[] =>
 const list = <T>(v: unknown, max: number, f: (x: Any) => T): T[] =>
   Array.isArray(v) ? v.slice(0, max).map((x) => f((x ?? {}) as Any)) : [];
 
+/** Every section may carry a style (round 7); free-form sections' older background moves into it. */
 export function normalizeBlock(raw: unknown): Block | null {
+  const block = normalizeBlockBody(raw);
+  if (!block) return null;
+  const b = (raw ?? {}) as Any;
+  let style = b.style && typeof b.style === "object" ? normalizeSectionStyle(b.style) : undefined;
+  if (block.type === "free" && !style && (block.background || block.bgMediaId)) {
+    style = defaultSectionStyle();
+    if (block.bgMediaId) {
+      style.bg = { ...style.bg, kind: "image", mediaId: block.bgMediaId, overlay: block.background ?? "#000000", overlayOpacity: 0 };
+    } else style.bg = { ...style.bg, kind: "color", color: block.background! };
+    style.padTop = 0;
+    style.padBottom = 0;
+    return { ...block, background: null, bgMediaId: null, style };
+  }
+  return style ? { ...block, style } : block;
+}
+
+export function defaultSectionStyle(): SectionStyle {
+  return {
+    bg: {
+      kind: "none",
+      color: "#F4F1E6",
+      color2: "#FFFFFF",
+      color3: null,
+      angle: 180,
+      radial: false,
+      mediaId: null,
+      overlay: "#000000",
+      overlayOpacity: 40,
+      pattern: "dots",
+      patternColor: "#141414",
+      patternOpacity: 12,
+      patternScale: 100,
+    },
+    edgeTop: { shape: "none", height: 60, flip: false },
+    edgeBottom: { shape: "none", height: 60, flip: false },
+    padTop: 48,
+    padBottom: 48,
+    width: "normal",
+    card: { on: false, color: null, radius: 24, shadow: true, padding: 40 },
+    text: null,
+    anchor: "",
+    animate: "none",
+  };
+}
+
+const EDGES = ["none", "wave", "curve", "slant", "torn", "zigzag", "scallop"] as const;
+
+export function normalizeSectionStyle(raw: unknown): SectionStyle {
+  const d = defaultSectionStyle();
+  const s = (raw && typeof raw === "object" ? raw : {}) as Any;
+  const bg = (s.bg && typeof s.bg === "object" ? s.bg : {}) as Any;
+  const edge = (e: unknown) => {
+    const x = (e && typeof e === "object" ? e : {}) as Any;
+    return { shape: pick(x.shape, EDGES, "none"), height: num(x.height, 10, 240, 60), flip: bool(x.flip) };
+  };
+  const card = (s.card && typeof s.card === "object" ? s.card : {}) as Any;
+  return {
+    bg: {
+      kind: pick(bg.kind, ["none", "color", "gradient", "image", "pattern"], "none"),
+      color: color(bg.color, d.bg.color),
+      color2: color(bg.color2, d.bg.color2),
+      color3: bg.color3 ? color(bg.color3, "#FFFFFF") : null,
+      angle: num(bg.angle, 0, 360, 180),
+      radial: bool(bg.radial),
+      mediaId: idOrNull(bg.mediaId),
+      overlay: color(bg.overlay, "#000000"),
+      overlayOpacity: num(bg.overlayOpacity, 0, 100, 40),
+      pattern: pick(bg.pattern, ["dots", "grid", "waves", "sparkles", "doodles", "custom"], "dots"),
+      patternColor: color(bg.patternColor, "#141414"),
+      patternOpacity: num(bg.patternOpacity, 0, 100, 12),
+      patternScale: num(bg.patternScale, 25, 400, 100),
+    },
+    edgeTop: edge(s.edgeTop),
+    edgeBottom: edge(s.edgeBottom),
+    padTop: num(s.padTop, 0, 240, 48),
+    padBottom: num(s.padBottom, 0, 240, 48),
+    width: pick(s.width, ["narrow", "medium", "normal", "full"], "normal"),
+    card: {
+      on: bool(card.on),
+      color: card.color ? color(card.color, "#FFFFFF") : null,
+      radius: num(card.radius, 0, 80, 24),
+      shadow: bool(card.shadow, true),
+      padding: num(card.padding, 0, 120, 40),
+    },
+    text: s.text ? color(s.text, "#141414") : null,
+    anchor: str(s.anchor, 40)
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, ""),
+    animate: pick(s.animate, ["none", "fade", "slide", "zoom"], "none"),
+  };
+}
+
+function normalizeBlockBody(raw: unknown): Block | null {
   const b = (raw ?? {}) as Any;
   const id = typeof b.id === "string" && b.id ? b.id.slice(0, 40) : newId();
   switch (b.type) {
@@ -383,6 +478,7 @@ export function normalizeHeader(raw: unknown): HeaderSettings {
     logoSize: num(h.logoSize, 20, 140, 40),
     titleSize: num(h.titleSize, 14, 72, 26),
     upperLinks: bool(h.upperLinks),
+    gradientTo: HEX.test(String(h.gradientTo)) ? String(h.gradientTo).toUpperCase() : null,
   };
 }
 
@@ -402,6 +498,7 @@ export function normalizeFooter(raw: unknown): FooterSettings {
     socialStyle: f.socialStyle === "icons" ? "icons" : "text",
     border: bool(f.border),
     padding: num(f.padding, 0, 120, 32),
+    gradientTo: HEX.test(String(f.gradientTo)) ? String(f.gradientTo).toUpperCase() : null,
   };
 }
 

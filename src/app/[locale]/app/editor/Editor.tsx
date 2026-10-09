@@ -1108,6 +1108,8 @@ export function Editor({
       contactFallback={siteSettings.contact}
       language={draft.language}
       projects={projects}
+      theme={draft.theme}
+      isPro={isPro}
     />
   ) : null);
 

@@ -42,8 +42,13 @@ export function applyPlan(snap: PublishedSite, plan: "free" | "pro"): PublishedS
     });
   const pages = snap.pages
     .filter((p, i) => i === 0 || !p.passwordHash)
-    // Pro showpiece blocks stay in the draft and come back with Pro.
-    .map((p) => ({ ...p, blocks: p.blocks.filter((b) => !isProBlock(b)) }));
+    // Pro showpiece blocks stay in the draft and come back with Pro; so do scroll animations.
+    .map((p) => ({
+      ...p,
+      blocks: p.blocks
+        .filter((b) => !isProBlock(b))
+        .map((b) => (b.style && b.style.animate !== "none" ? { ...b, style: { ...b.style, animate: "none" as const } } : b)),
+    }));
   return { ...snap, plan, projects, pages };
 }
 
