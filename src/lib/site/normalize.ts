@@ -234,6 +234,10 @@ function normalizeBlockBody(raw: unknown): Block | null {
         credits: bool(b.credits, true),
         hoverPlay: bool(b.hoverPlay, true),
         filter: bool(b.filter),
+        ...(b.cardSizes === true ? { cardSizes: true } : {}),
+        ...(Array.isArray(b.picks) && b.picks.length
+          ? { picks: (b.picks as unknown[]).filter((x): x is string => typeof x === "string").slice(0, 60).map((x) => x.slice(0, 40)) }
+          : {}),
         samples: samples(b.samples),
       };
     case "grid": {
@@ -460,7 +464,7 @@ function normalizeFree(id: string, b: Any): Block {
 
 export function normalizePage(raw: unknown, i: number): PageDraft {
   const p = (raw ?? {}) as Any;
-  const type: PageType = pick(p.type, ["gallery", "custom", "about", "link", "folder"], "custom");
+  const type: PageType = pick(p.type, ["gallery", "custom", "about", "link", "folder", "project"], "custom");
   return {
     id: typeof p.id === "string" && p.id ? p.id.slice(0, 40) : newId(),
     slug:
@@ -472,6 +476,7 @@ export function normalizePage(raw: unknown, i: number): PageDraft {
     title: str(p.title, 60) || "Page",
     type,
     ...(type === "link" ? { url: str(p.url, 300) } : {}),
+    ...(type === "project" ? { projectId: str(p.projectId, 40) } : {}),
     showInNav: bool(p.showInNav, true),
     parentId: i > 0 && typeof p.parentId === "string" && p.parentId ? p.parentId.slice(0, 40) : null,
     hasPassword: bool(p.hasPassword),
@@ -518,6 +523,11 @@ export function normalizeHeader(raw: unknown): HeaderSettings {
     social: bool(h.social),
     logoSize: num(h.logoSize, 20, 140, 40),
     titleSize: num(h.titleSize, 14, 72, 26),
+    logoFont: (["bricolage", "fraunces", "syne", "space-grotesk", "instrument-serif", "plex-arabic", "marhey", "readex", "alexandria"] as const).includes(
+      h.logoFont as never,
+    )
+      ? (h.logoFont as HeaderSettings["logoFont"])
+      : null,
     upperLinks: bool(h.upperLinks),
     gradientTo: HEX.test(String(h.gradientTo)) ? String(h.gradientTo).toUpperCase() : null,
   };

@@ -15,6 +15,8 @@ import { statsReport } from "@/lib/server/stats";
 import { AvailabilityCard, HideChecklistButton, ShareButton, TurnOnButton } from "../DashClient";
 import { loadDashboard } from "../load";
 import { NewProjectButton } from "../projects/NewProjectButton";
+import { latestBackup } from "@/lib/server/guide";
+import { GuideCard } from "./GuideCard";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/app/home">): Promise<Metadata> {
   const { locale } = await params;
@@ -45,10 +47,11 @@ export default async function Dashboard({ params }: PageProps<"/[locale]/app/hom
   const t = await getTranslations("dashboard");
   const { session, user, site, draft, render, address, siteUrl, checklist } = await loadDashboard();
   const tp = await getTranslations("projects");
-  const [allProjects, latest, report] = await Promise.all([
+  const [allProjects, latest, report, backup] = await Promise.all([
     listProjects(site.id),
     listMessages(site.id, 3).catch(() => []),
     statsReport(site.id, 30, site.publishDays ?? []).catch(() => null),
+    latestBackup(site.id).catch(() => null),
   ]);
   const projects = allProjects.slice(0, 6);
   const format = await getFormatter();
@@ -125,6 +128,8 @@ export default async function Dashboard({ params }: PageProps<"/[locale]/app/hom
         </Card>
 
         <AvailabilityCard key={`${site.available.on}`} on={site.available.on} types={site.available.types} />
+
+        <GuideCard backup={backup ? { id: backup.id, at: format.dateTime(new Date(backup.at), { dateStyle: "medium" }) } : null} />
 
         {!user.checklistDismissed ? (
           <Card>

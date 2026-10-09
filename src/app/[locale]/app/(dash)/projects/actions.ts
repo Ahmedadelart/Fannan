@@ -73,13 +73,13 @@ export async function addVideoLink(projectId: string, link: string) {
   return attempt(async () => ({ media: await addEmbed(await owner(), projectId, link) }));
 }
 
-export async function addTextItem(projectId: string) {
-  return attempt(async () => ({ media: await addText(await owner(), projectId) }));
+export async function addTextItem(projectId: string, init?: { title?: string; text?: string }) {
+  return attempt(async () => ({ media: await addText(await owner(), projectId, init) }));
 }
 
 export async function saveMedia(
   mediaId: string,
-  patch: { caption?: string; alt?: string; text?: string; display?: Partial<MediaDoc["display"]> },
+  patch: { caption?: string; alt?: string; text?: string; title?: string; display?: Partial<MediaDoc["display"]> },
 ) {
   return attempt(async () => {
     await updateMedia(await owner(), mediaId, patch);

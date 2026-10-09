@@ -41,7 +41,7 @@ export async function logInWithEmail(page: Page, email: string, locale: "en" | "
 }
 
 /** The quickest way through sign-up to a saved account with a site (English). */
-export async function signUp(page: Page, id = uniq(), emailDomain = "example.com") {
+export async function signUp(page: Page, id = uniq(), emailDomain = "example.com", opts: { guide?: boolean } = {}) {
   const username = `p${id}`;
   const email = `projects-${id}@${emailDomain}`;
   await page.goto(at("app", "/signup"));
@@ -58,7 +58,13 @@ export async function signUp(page: Page, id = uniq(), emailDomain = "example.com
   await page.getByRole("button", { name: "Save and open my site" }).click();
   await expect(page.getByRole("heading", { name: "Check your email" })).toBeVisible();
   await page.goto(await magicLink(email));
-  // The editor is the app: signing in lands there.
+  // Round 8: the first time, people choose the guided setup or the editor.
+  if (opts.guide) {
+    await page.getByTestId("start-guide").click({ timeout: 20_000 });
+    await expect(page.getByTestId("guide-step")).toBeVisible({ timeout: 20_000 });
+    return { username, email };
+  }
+  await page.getByTestId("start-self").click({ timeout: 20_000 });
   await expect(page.getByTestId("canvas")).toBeVisible({ timeout: 20_000 });
   // Tests carry on from the Home page (the editor's Home panel, also served on its own at /home).
   await page.goto(at("app", "/home"));

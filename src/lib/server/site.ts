@@ -38,7 +38,7 @@ export function toSiteMedia(id: string, m: MediaDoc): SiteMedia & { display?: Me
     display: m.display,
     // PDFs are the one kind visitors download as the original file.
     ...(m.type === "pdf" ? { original: m.original ?? null } : {}),
-    ...(m.type === "text" ? { text: m.text ?? "" } : {}),
+    ...(m.type === "text" ? { text: m.text ?? "", ...(m.title ? { title: m.title } : {}) } : {}),
   };
 }
 
@@ -66,6 +66,7 @@ export async function loadRenderData(siteId: string): Promise<{
       visibility: p.visibility,
       coverId: coverId && media[coverId] ? coverId : null,
       mature: p.mature,
+      ...(p.card ? { card: p.card } : {}),
       createdAt: (p.createdAt as Timestamp | undefined)?.toMillis?.() ?? 0,
     };
   });
@@ -161,6 +162,7 @@ export interface PublishedProject {
   arabic: boolean;
   ar: ProjectDoc["ar"];
   mature: boolean;
+  card?: ProjectDoc["card"];
 }
 
 export interface PublishedSite {
@@ -252,6 +254,7 @@ export async function publish(o: Owner): Promise<{ version: number }> {
       arabic: p.arabic,
       ar: p.ar,
       mature: p.mature,
+      ...(p.card ? { card: p.card } : {}),
     };
   });
 
@@ -295,7 +298,8 @@ export async function publish(o: Owner): Promise<{ version: number }> {
 
   const now = Timestamp.now();
   const batch = db().batch();
-  batch.set(ref.collection("published").doc(String(version)), snapshot);
+  // Empty (undefined) values dropped: the database refuses them (e.g. a text item has no width).
+  batch.set(ref.collection("published").doc(String(version)), JSON.parse(JSON.stringify(snapshot)) as PublishedSite);
   batch.update(ref, {
     publishedVersion: version,
     publishedAt: now,

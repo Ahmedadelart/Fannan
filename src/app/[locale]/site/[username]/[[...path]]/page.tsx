@@ -11,6 +11,7 @@ import { MatureGate } from "@/components/site/live/MatureGate";
 import { PasswordForm } from "@/components/site/live/PasswordForm";
 import { SiteEnhancer } from "@/components/site/live/SiteEnhancer";
 import { networkName } from "@/lib/site/blocks";
+import { hasOwnPage } from "@/lib/site/pages";
 import { contactFormOf } from "@/lib/site/contact";
 import { SiteRender, type GalleryProject, type SiteMedia } from "@/components/site/SiteRender";
 import type { Locale } from "@/i18n/locales";
@@ -32,7 +33,7 @@ type Params = { locale: Locale; username: string; path?: string[] };
 function resolve(site: LiveSite, path: string[] | undefined) {
   if (path && path.length > 1) return null;
   const slug = path?.[0] ?? "";
-  const page = site.pages.find((p) => p.slug === slug && p.type !== "link" && p.type !== "folder");
+  const page = site.pages.find((p) => p.slug === slug && hasOwnPage(p));
   if (page) return { kind: "page" as const, page, scope: page.id, hash: page.passwordHash };
   const project = slug ? site.projects.find((p) => p.slug === slug) : undefined;
   if (project)
@@ -69,6 +70,7 @@ function galleryProjects(s: LiveSite): GalleryProject[] {
       visibility: p.visibility,
       coverId: p.visibility === "password" ? null : p.coverId,
       mature: p.mature,
+      ...(p.card ? { card: p.card } : {}),
     }));
 }
 
@@ -179,6 +181,7 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
           | (SiteMedia & {
               display?: { fullWidth: boolean; lightbox: boolean; autoplay: boolean };
               text?: string;
+              title?: string;
               original?: string | null;
             })
           | undefined,
@@ -191,7 +194,18 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
         if (!m) return null;
         const style = m.display?.fullWidth ? full : undefined;
         if (m.type === "text") {
-          return (
+          // A headline starts a new part of the project (round 8).
+          return m.title ? (
+            <div key={m.id} className="flex max-w-[760px] flex-col gap-2 pt-6" data-testid="project-part">
+              <h2
+                className="m-0 text-[28px] leading-[1.15]"
+                style={{ fontFamily: "var(--site-heading)", fontWeight: "var(--site-heading-weight)" as unknown as number }}
+              >
+                {m.title}
+              </h2>
+              {m.text && <div className="text-[18px] leading-[1.6] whitespace-pre-line">{m.text}</div>}
+            </div>
+          ) : (
             <div key={m.id} className="max-w-[760px] text-[18px] leading-[1.6] whitespace-pre-line">
               {m.text}
             </div>

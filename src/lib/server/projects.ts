@@ -5,6 +5,7 @@ import { FieldValue, type DocumentReference, type Timestamp } from "firebase-adm
 import { limitsFor, plansConfig } from "@/config/plans";
 import { slugify } from "@/config/usernames";
 import { adminDb } from "@/lib/firebase/admin";
+import type { ProjectCard } from "@/lib/site/types";
 import { parseVideoLink } from "@/lib/video";
 import { getUser, userPlan, type SiteDoc } from "./data";
 import { processMedia, type ProcessKind, type ProcessResult, type Variants } from "./processor";
@@ -36,6 +37,8 @@ export interface ProjectDoc {
   arabic: boolean;
   ar: { title: string; role: string; description: string };
   mature: boolean;
+  /** Round 8: the card's size and text in galleries that follow each project's own size. */
+  card?: ProjectCard;
   publishedAt: Timestamp | null;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
@@ -64,6 +67,8 @@ export interface MediaDoc {
   display: { fullWidth: boolean; lightbox: boolean; autoplay: boolean };
   embed?: { provider: "youtube" | "vimeo"; id: string; url: string; poster: string | null; title: string } | null;
   text?: string;
+  /** Text items with a headline start a new part of the project (round 8). */
+  title?: string;
   createdAt?: Timestamp;
 }
 
@@ -257,6 +262,8 @@ export interface ProjectPatch {
   arRole?: string;
   arDescription?: string;
   mature?: boolean;
+  cardSize?: ProjectCard["size"];
+  cardText?: ProjectCard["text"];
 }
 
 export async function updateProject(o: Owner, projectId: string, patch: ProjectPatch): Promise<{ slug: string }> {
@@ -280,6 +287,13 @@ export async function updateProject(o: Owner, projectId: string, patch: ProjectP
   if (patch.arRole !== undefined) u["ar.role"] = text(patch.arRole, 160) ?? "";
   if (patch.arDescription !== undefined) u["ar.description"] = text(patch.arDescription, 4000) ?? "";
   if (patch.mature !== undefined) u.mature = !!patch.mature;
+  if (patch.cardSize !== undefined || patch.cardText !== undefined) {
+    const was = project.card ?? { size: "m", text: "title" };
+    u.card = {
+      size: (["m", "l", "wide"] as const).includes(patch.cardSize as never) ? patch.cardSize : was.size,
+      text: (["none", "title", "details"] as const).includes(patch.cardText as never) ? patch.cardText : was.text,
+    };
+  }
 
   if (patch.visibility !== undefined && ["public", "password", "hidden"].includes(patch.visibility)) {
     if (patch.visibility === "password" && !limitsFor(o.plan).passwordProtection) throw new ProjectError("pro-only");
@@ -569,7 +583,7 @@ export async function addEmbed(o: Owner, projectId: string, link: string) {
   return { id: ref.id, ...media };
 }
 
-export async function addText(o: Owner, projectId: string) {
+export async function addText(o: Owner, projectId: string, init?: { title?: string; text?: string }) {
   const { ref: projectRef } = await getProjectRef(o, projectId);
   const ref = mediaCol(o.siteId).doc();
   const media: MediaDoc = {
@@ -580,7 +594,8 @@ export async function addText(o: Owner, projectId: string) {
     gen: 1,
     caption: "",
     alt: "",
-    text: "",
+    text: text(init?.text, 6000) ?? "",
+    ...(init?.title ? { title: text(init.title, 160) ?? "" } : {}),
     display: { ...blankDisplay, lightbox: false },
   };
   await ref.set({ ...media, createdAt: FieldValue.serverTimestamp() });
@@ -591,13 +606,14 @@ export async function addText(o: Owner, projectId: string) {
 export async function updateMedia(
   o: Owner,
   mediaId: string,
-  patch: { caption?: string; alt?: string; text?: string; display?: Partial<MediaDoc["display"]> },
+  patch: { caption?: string; alt?: string; text?: string; title?: string; display?: Partial<MediaDoc["display"]> },
 ) {
   const { ref, media } = await getMediaRef(o, mediaId);
   const u: Record<string, unknown> = {};
   if (patch.caption !== undefined) u.caption = text(patch.caption, 300) ?? "";
   if (patch.alt !== undefined) u.alt = text(patch.alt, 300) ?? "";
   if (patch.text !== undefined && media.type === "text") u.text = text(patch.text, 6000) ?? "";
+  if (patch.title !== undefined && media.type === "text") u.title = text(patch.title, 160) ?? "";
   if (patch.display) {
     for (const k of ["fullWidth", "lightbox", "autoplay"] as const) {
       if (patch.display[k] !== undefined) u[`display.${k}`] = !!patch.display[k];

@@ -94,6 +94,10 @@ export type Block =
         credits: boolean;
         hoverPlay: boolean;
         filter: boolean;
+        /** Round 8: each project's own card size and text, instead of one size for all. */
+        cardSizes?: boolean;
+        /** Round 8: only these projects, in this order (empty: all of them). */
+        picks?: string[];
         /** Shown while the artist has no projects yet. */
         samples: SampleArt[];
       }
@@ -313,7 +317,16 @@ export type BlockType = Block["type"];
 export type BlockOf<T extends BlockType> = Extract<Block, { type: T }>;
 
 /** "folder" is a menu item that only opens a dropdown of the pages inside it. */
-export type PageType = "gallery" | "custom" | "about" | "link" | "folder";
+export type PageType = "gallery" | "custom" | "about" | "link" | "folder" | "project";
+
+/** A project card's size in a gallery that follows each project's own size (round 8). */
+export type CardSize = "m" | "l" | "wide";
+/** What a project card shows under its cover. */
+export type CardText = "none" | "title" | "details";
+export interface ProjectCard {
+  size: CardSize;
+  text: CardText;
+}
 
 export interface PageDraft {
   id: string;
@@ -322,6 +335,8 @@ export interface PageDraft {
   type: PageType;
   /** External link pages only. */
   url?: string;
+  /** "project" menu items only: the project this menu item opens. */
+  projectId?: string;
   showInNav: boolean;
   /** Shown in this top-level page's dropdown in the menu, instead of in the menu itself. */
   parentId?: string | null;
@@ -366,6 +381,8 @@ export interface HeaderSettings {
   social: boolean;
   logoSize: number;
   titleSize: number;
+  /** Round 8: the font of the name when there's no logo picture (null: the site's heading font). */
+  logoFont: HeadingFont | ArabicFont | null;
   upperLinks: boolean;
   /** With a colour background: fades to this colour (round 7). */
   gradientTo: string | null;

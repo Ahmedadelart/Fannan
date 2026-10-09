@@ -24,6 +24,14 @@ The goal is to get a new visitor to **"that's my site"** in about a minute, aski
 
 **Right side of every step:** a live preview of their site that updates with each answer (name → logo, discipline → subtitle, layout → look, username → address bar). Use the real renderer at small scale, not a picture. On phones the preview collapses to a small card above the question.
 
+## Then: the guided setup, or straight to the editor (round 8)
+
+Right after step 6, one screen asks how to start:
+- **"Guide me" (about 10 minutes):** questions one at a time, each with a visual example, beside a live preview of the site being built. What you do → your name (font or logo) → the look → pages (drag, rename, dropdowns) → projects (cover, card size, card text, in the menu) → pictures and parts inside each project → page by page (starting section, pictures, project cards, extra sections as checkboxes) → review and build. Calm steps: a progress bar, Back / Next / Skip, no points or celebrations (Ahmed's choice). Answers are saved after each step.
+- **"I'll design it myself":** the editor with the starter site, as before.
+
+The guide can be run again from Home. It backs up the current pages first, and Home offers to bring them back for 30 days.
+
 ## First time in the editor (guided tips)
 
 Dim the rest of the interface and show **at most 3 tips**, one at a time, each pointing at the real control:

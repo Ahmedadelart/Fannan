@@ -57,7 +57,9 @@ test("English: from the homepage claim box to a saved site, then back in on anot
   await expect(page.getByRole("heading", { name: "Check your email" })).toBeVisible();
 
   await page.goto(await magicLink(email));
-  // The editor is the app: signing in lands there.
+  // Round 8: a choice first, the guided setup or the editor (the editor is the app).
+  await expect(page.getByTestId("start-guide")).toBeVisible({ timeout: 20_000 });
+  await page.getByTestId("start-self").click();
   await expect(page.getByTestId("canvas")).toBeVisible({ timeout: 20_000 });
   // The old dashboard lives on as the editor's Home panel (also at /home).
   await page.goto(at("app", "/home"));
@@ -125,6 +127,8 @@ test("Arabic: the whole sign-up in Arabic, right to left", async ({ browser }) =
   await expect(page.getByRole("heading", { name: "افحص بريدك الإلكتروني" })).toBeVisible();
 
   await page.goto(await magicLink(email));
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("كيف تحب أن تبدأ يا أحمد؟", { timeout: 20_000 });
+  await page.getByTestId("start-self").click();
   await expect(page.getByTestId("canvas")).toBeVisible({ timeout: 20_000 });
   await page.goto(at("app", "/home"));
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("موقعك", { timeout: 20_000 });

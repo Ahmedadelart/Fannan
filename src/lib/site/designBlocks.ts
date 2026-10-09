@@ -125,6 +125,9 @@ const W = {
   },
 };
 
+/** The sample words, so the guided setup can swap them for the artist's own (round 8). */
+export const designWords = W;
+
 // Sample drawings (public/samples) in a pleasing order for side-by-side pictures.
 const TONES = [1, 5, 11, 2, 12, 14, 6, 10].map((n) => sampleTone(n - 1));
 

@@ -2,7 +2,18 @@ import type { CSSProperties, ReactNode } from "react";
 import { dirFor, type Locale } from "@/i18n/locales";
 import { cx } from "@/lib/cx";
 import { imageSources, posterSources, type MediaLike } from "@/lib/media";
-import type { Block, BlockOf, FreeItem, PageDraft, SectionStyle, SiteDraft, ThumbRatio } from "@/lib/site/types";
+import type {
+  ArabicFont,
+  Block,
+  BlockOf,
+  FreeItem,
+  HeadingFont,
+  PageDraft,
+  ProjectCard,
+  SectionStyle,
+  SiteDraft,
+  ThumbRatio,
+} from "@/lib/site/types";
 import { parseVideoLink, videoPoster } from "@/lib/video";
 import { InlineText } from "@/components/editor/InlineText";
 import { CONTACT_WORDS, contactFormOf, type LegacyContactFields } from "@/lib/site/contact";
@@ -39,6 +50,7 @@ export interface GalleryProject {
   visibility: "public" | "password" | "hidden";
   coverId: string | null;
   mature: boolean;
+  card?: ProjectCard;
 }
 
 export interface SiteRenderProps {
@@ -213,9 +225,14 @@ function paragraphs(text: string) {
 /* ---------- blocks ---------- */
 
 function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
-  const projects = (ctx.projects ?? []).filter(
+  const shown = (ctx.projects ?? []).filter(
     (p) => p.visibility !== "hidden" && (b.source === "all" || p.category === b.source),
   );
+  // Picked projects keep the order they were picked in.
+  const projects = b.picks?.length
+    ? (b.picks.map((id) => shown.find((p) => p.id === id)).filter(Boolean) as GalleryProject[])
+    : shown;
+  const ownSizes = !!b.cardSizes && b.layout === "grid";
   const fullscreen = b.layout === "fullscreen";
   const cols = Math.max(1, Math.min(6, b.columns));
   const ratio = RATIO_CSS[b.ratio];
@@ -228,14 +245,18 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
     tone?: string;
     locked?: boolean;
     ratio?: string;
+    card?: ProjectCard;
   }> = projects.length
-    ? projects.map((p) => ({
+    ? projects.map((p, i) => ({
         key: p.id,
         slug: p.slug,
         title: p.title,
         meta: [p.client, p.role].filter(Boolean).join(" · "),
         m: p.coverId ? ctx.media[p.coverId] : null,
+        // Projects without a cover yet show sample art in the editor.
+        tone: ctx.editing && !p.coverId ? (b.samples[i % Math.max(1, b.samples.length)]?.tone ?? "sample:01") : undefined,
         locked: p.visibility === "password",
+        card: p.card,
       }))
     : ctx.editing
       ? b.samples.map((s, i) => ({ key: String(i), tone: s.tone, ratio: s.ratio.replace("/", " / ") }))
@@ -243,6 +264,14 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
   if (!tiles.length) return null;
 
   const tile = (t: (typeof tiles)[number]) => {
+    const size = ownSizes ? (t.card?.size ?? "m") : "m";
+    const showTitle = ownSizes ? (t.card?.text ?? "title") !== "none" : b.captions;
+    const showMeta = ownSizes ? t.card?.text === "details" : b.credits;
+    // Wide cards are as tall as the others, so their picture is twice as wide.
+    const tileRatio =
+      size === "wide" && ratio && ratio !== "auto"
+        ? ratio.replace(/^(\d+(?:\.\d+)?) \/ (\d+(?:\.\d+)?)$/, (_, w, h) => `${Number(w) * 2} / ${h}`)
+        : ratio;
     const inner = (
       <>
         <div
@@ -253,8 +282,8 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
             m={t.m}
             base={ctx.base}
             tone={t.tone}
-            ratio={ratio ?? t.ratio}
-            alt={b.captions ? "" : t.title}
+            ratio={tileRatio ?? t.ratio}
+            alt={showTitle ? "" : t.title}
             want={b.columns <= 2 ? 1600 : 800}
             sizes={`(min-width: 1200px) ${Math.round(1200 / cols)}px, ${cols > 1 ? "50vw" : "100vw"}`}
             eager={(ctx.index ?? 9) <= 1 && tiles.indexOf(t) < cols}
@@ -269,10 +298,10 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
             </span>
           )}
         </div>
-        {(b.captions || b.credits) && t.title && (
+        {(showTitle || showMeta) && t.title && (
           <figcaption className="flex flex-col gap-0.5" style={fullscreen ? { padding: "0 12px" } : undefined}>
-            {b.captions && <span className="font-semibold">{t.title}</span>}
-            {b.credits && t.meta && (
+            {showTitle && <span className="font-semibold">{t.title}</span>}
+            {showMeta && t.meta && (
               <span className="text-[14px]" style={{ color: "var(--site-muted)" }}>
                 {t.meta}
               </span>
@@ -283,17 +312,19 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
     );
     const style =
       b.layout === "masonry" ? { breakInside: "avoid" as const, marginBottom: b.gap, display: "flex" } : undefined;
+    const span = size === "l" ? "site-span-l" : size === "wide" ? "site-span-wide" : undefined;
     return ctx.live && t.slug ? (
       <a
         key={t.key}
         href={`/${t.slug}`}
-        className="site-tile m-0 flex flex-col gap-2 no-underline"
+        className={cx("site-tile m-0 flex flex-col gap-2 no-underline", span)}
         style={{ color: "inherit", ...style }}
+        data-card-size={ownSizes ? size : undefined}
       >
         {inner}
       </a>
     ) : (
-      <figure key={t.key} className="m-0 flex flex-col gap-2" style={style}>
+      <figure key={t.key} className={cx("m-0 flex flex-col gap-2", span)} style={style} data-card-size={ownSizes ? size : undefined}>
         {inner}
       </figure>
     );
@@ -339,7 +370,10 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
           {tiles.map(tile)}
         </div>
       ) : (
-        <div className="site-grid grid" style={{ gap: fullscreen ? 0 : b.gap, ["--cols" as string]: cols }}>
+        <div
+          className={cx("site-grid grid", ownSizes && "grid-flow-row-dense")}
+          style={{ gap: fullscreen ? 0 : b.gap, ["--cols" as string]: cols }}
+        >
           {tiles.map(tile)}
         </div>
       )}
@@ -2063,7 +2097,15 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
     ) : null;
   const partClass = cx(ctx.editing && "site-block", selected && "site-block-selected");
   const logo = theme.logoMediaId ? ctx.media[theme.logoMediaId] : null;
-  const links = site.pages.filter((p) => p.showInNav);
+  const logoFont = settings.logoFont
+    ? settings.logoFont in headingFonts
+      ? { fontFamily: headingFonts[settings.logoFont as HeadingFont].family, fontWeight: headingFonts[settings.logoFont as HeadingFont].weight }
+      : { fontFamily: arabicFonts[settings.logoFont as ArabicFont].family, fontWeight: 700 }
+    : null;
+  const titleStyle = (size: number): CSSProperties => ({ ...heading(size), ...logoFont });
+  // Project menu items open the project; they disappear while the project is hidden or deleted.
+  const projectSlug = (p: PageDraft) => ctx.projects?.find((x) => x.id === p.projectId && x.visibility !== "hidden")?.slug;
+  const links = site.pages.filter((p) => p.showInNav && (p.type !== "project" || !ctx.live || !!projectSlug(p)));
   // Pages inside another page show in its dropdown, not in the menu itself.
   const top = links.filter((p) => !p.parentId || !links.some((x) => x.id === p.parentId));
   const navLink = (p: PageDraft, style?: CSSProperties) => {
@@ -2074,7 +2116,7 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
         </span>
       );
     }
-    const href = p.type === "link" ? p.url || "#" : `/${p.slug}`;
+    const href = p.type === "link" ? p.url || "#" : p.type === "project" ? `/${projectSlug(p)}` : `/${p.slug}`;
     return (
       <a
         key={p.id}
@@ -2104,11 +2146,13 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
         <InlineText
           value={site.title}
           placeholder={ctx.typeHere ?? "Type here"}
-          style={heading(theme.nav === "minimal" ? Math.round(settings.titleSize * 0.77) : settings.titleSize)}
+          style={titleStyle(theme.nav === "minimal" ? Math.round(settings.titleSize * 0.77) : settings.titleSize)}
           onChange={(v) => ctx.onSiteText!("title", v)}
         />
       ) : (
-        <span style={heading(theme.nav === "minimal" ? Math.round(settings.titleSize * 0.77) : settings.titleSize)}>{site.title}</span>
+        <span style={titleStyle(theme.nav === "minimal" ? Math.round(settings.titleSize * 0.77) : settings.titleSize)} data-testid="site-name">
+          {site.title}
+        </span>
       )}
       {settings.tagline &&
         theme.nav !== "minimal" &&

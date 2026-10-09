@@ -27,6 +27,7 @@ import { defaultSectionStyle } from "@/lib/site/normalize";
 import { socialPath } from "@/components/site/socialIcons";
 import { presetIds, themes } from "@/lib/site/starter";
 import { freeBottom } from "@/lib/site/free";
+import { hasOwnPage } from "@/lib/site/pages";
 import type {
   Block,
   BlockOf,
@@ -843,9 +844,12 @@ export function PagesTab({
   canPassword,
   onPassword,
   part = "all",
+  projects = [],
 }: {
   /** "list": the page switcher (drag to reorder, add pages); "settings": the current page's settings. */
   part?: "all" | "list" | "settings";
+  /** The artist's projects, for "project" menu items (round 8). */
+  projects?: GalleryProject[];
   draft: SiteDraft;
   pageId: string;
   setPageId: (id: string) => void;
@@ -883,7 +887,10 @@ export function PagesTab({
     });
   const add = (type: PageType) => {
     const id = newId();
-    const title = t(`newTitles.${type}`);
+    // A project menu item starts with a project that isn't in the menu yet.
+    const project =
+      type === "project" ? (projects.find((x) => !draft.pages.some((p) => p.projectId === x.id)) ?? projects[0]) : undefined;
+    const title = project?.title.slice(0, 60) || t(`newTitles.${type}`);
     void locale;
     setDraft((d) => ({
       ...d,
@@ -902,6 +909,7 @@ export function PagesTab({
           showInNav: true,
           blocks: [],
           ...(type === "link" ? { url: "" } : {}),
+          ...(project ? { projectId: project.id } : {}),
         },
       ],
     }));
@@ -976,7 +984,26 @@ export function PagesTab({
       {part !== "list" && (
         <div className="border-line flex flex-col gap-3 rounded-md border p-3">
           <Text title={t("name")} value={page.title} onChange={(v) => setPage({ title: v }, `page-title-${page.id}`)} />
-          {index > 0 && page.type !== "link" && page.type !== "folder" && (
+          {page.type === "project" && (
+            <Label title={t("project")} hint={t("projectHint")}>
+              <select
+                className={inputCls}
+                value={page.projectId ?? ""}
+                onChange={(e) => {
+                  const p = projects.find((x) => x.id === e.target.value);
+                  setPage({ projectId: e.target.value, ...(p ? { title: p.title.slice(0, 60) } : {}) });
+                }}
+                data-testid="page-project"
+              >
+                {projects.map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {x.title}
+                  </option>
+                ))}
+              </select>
+            </Label>
+          )}
+          {index > 0 && hasOwnPage(page) && (
             <Text
               title={t("slug")}
               dir="ltr"
@@ -1042,7 +1069,7 @@ export function PagesTab({
               {t("delete")}
             </Button>
           </div>
-          {page.type !== "link" && page.type !== "folder" && (
+          {hasOwnPage(page) && (
             <div className="border-line flex flex-col gap-1.5 border-t pt-3">
               {canPassword ? (
                 <form
@@ -1086,7 +1113,9 @@ export function PagesTab({
         <>
           <div className="text-muted text-[11px] font-semibold tracking-[0.08em] uppercase">{t("add")}</div>
           <div className="grid grid-cols-2 gap-2">
-            {(["gallery", "custom", "about", "link", "folder"] as PageType[]).map((type) => (
+            {(["gallery", "custom", "about", "link", "folder", "project"] as PageType[])
+              .filter((type) => type !== "project" || projects.length > 0)
+              .map((type) => (
               <Button key={type} size="sm" variant="outline" onClick={() => add(type)}>
                 {t(`types.${type}`)}
               </Button>
@@ -1269,6 +1298,28 @@ export function SitePartSettings({
             <StyleTab section="logo" draft={draft} media={media} setDraft={setDraft} openPicker={openPicker} />
             <Range title={t("logoSize")} value={header.logoSize} min={20} max={140} unit="px" onChange={(v) => setHeader({ logoSize: v }, "h-logo")} />
             <Range title={t("titleSize")} value={header.titleSize} min={14} max={72} unit="px" onChange={(v) => setHeader({ titleSize: v }, "h-title")} />
+            {!draft.theme.logoMediaId && (
+              <Label title={t("logoFont")}>
+                <select
+                  className={inputCls}
+                  value={header.logoFont ?? ""}
+                  onChange={(e) => setHeader({ logoFont: (e.target.value || null) as HeaderSettings["logoFont"] })}
+                  data-testid="logo-font"
+                >
+                  <option value="">{t("logoFontSite")}</option>
+                  {Object.entries(headingFonts).map(([id, f]) => (
+                    <option key={id} value={id}>
+                      {f.label}
+                    </option>
+                  ))}
+                  {Object.entries(arabicFonts).map(([id, f]) => (
+                    <option key={id} value={id}>
+                      {f.label}
+                    </option>
+                  ))}
+                </select>
+              </Label>
+            )}
             <Switch title={t("upperLinks")} checked={header.upperLinks} onChange={(v) => setHeader({ upperLinks: v })} />
             <Choice
               title={t("background")}
@@ -1811,7 +1862,32 @@ export function BlockSettings({
             <Switch title={g("credits")} checked={b.credits} onChange={(v) => set({ credits: v })} />
             <Switch title={g("hoverPlay")} checked={b.hoverPlay} onChange={(v) => set({ hoverPlay: v })} />
             <Switch title={g("filter")} checked={b.filter} onChange={(v) => set({ filter: v })} />
+            {b.layout === "grid" && (
+              <Switch title={g("cardSizes")} checked={!!b.cardSizes} onChange={(v) => set({ cardSizes: v })} />
+            )}
           </fieldset>
+          {projects.length > 1 && (
+            <fieldset className="border-line flex flex-col gap-1.5 border-t pt-3" data-testid="gallery-picks">
+              <legend className="mb-1 text-[12px] font-semibold">{g("picks")}</legend>
+              <p className="text-muted m-0 text-[12px]">{g("picksHint")}</p>
+              {projects
+                .filter((p) => p.visibility !== "hidden")
+                .map((p) => {
+                  const on = !!b.picks?.includes(p.id);
+                  return (
+                    <label key={p.id} className="flex items-center gap-2 text-[13px]">
+                      <input
+                        type="checkbox"
+                        className="accent-primary size-4"
+                        checked={on}
+                        onChange={() => set({ picks: on ? (b.picks ?? []).filter((x) => x !== p.id) : [...(b.picks ?? []), p.id] })}
+                      />
+                      {p.title}
+                    </label>
+                  );
+                })}
+            </fieldset>
+          )}
           <p className="text-muted text-[12px]">{g("samples")}</p>
         </>
       );

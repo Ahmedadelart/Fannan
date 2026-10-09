@@ -12,6 +12,7 @@ import type { Locale } from "@/i18n/locales";
 import { cx } from "@/lib/cx";
 import { blockKinds, networkName, newId, type BlockKind } from "@/lib/site/blocks";
 import { setPath } from "@/lib/site/fields";
+import { hasOwnPage } from "@/lib/site/pages";
 import { normalizeFooter } from "@/lib/site/normalize";
 import { moveTo, startSortDrag } from "@/components/editor/sortDrag";
 import { getClip, mod, setClip, typing } from "@/components/editor/clipboard";
@@ -717,8 +718,14 @@ export function Editor({
         setPanelOpen(true);
         if (panel === "projects" && q.get("id")) setProjectId(q.get("id"));
       }
+      // Just built by the guided setup (round 8).
+      if (q.get("ready")) {
+        toast(t("guideReady"), "check");
+        window.history.replaceState(null, "", window.location.pathname);
+      }
     });
     return () => cancelAnimationFrame(frame);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [panelTab, setPanelTab] = useState<"blocks" | "page">("blocks");
   const [pagesOpen, setPagesOpen] = useState(false);
@@ -1022,7 +1029,7 @@ export function Editor({
     e.preventDefault();
     const [path, hash] = href.split("#");
     const slug = path.replace(/^\/+/, "");
-    const target = draft.pages.find((p) => p.slug === slug && p.type !== "link" && p.type !== "folder");
+    const target = draft.pages.find((p) => p.slug === slug && hasOwnPage(p));
     if (target) {
       setPreviewPage(target.id);
       requestAnimationFrame(() => {
@@ -1241,6 +1248,15 @@ export function Editor({
                 <Icon name="help" size={18} />
                 {t("shortcuts.title")}
               </button>
+              <a
+                role="menuitem"
+                href="/guide"
+                className="hover:bg-mist flex h-10 items-center gap-2.5 rounded-[10px] px-2.5 text-[14px] font-semibold"
+                data-testid="account-guide"
+              >
+                <Icon name="sparkle" size={18} />
+                {t("account.guide")}
+              </a>
               {account.admin && (
                 <a
                   role="menuitem"
@@ -1347,6 +1363,7 @@ export function Editor({
                     setDraft={setDraft}
                     canPassword={canPassword}
                     onPassword={pagePassword}
+                    projects={projects}
                   />
                 </div>
               ) : (
@@ -1383,6 +1400,7 @@ export function Editor({
                         setDraft={setDraft}
                         canPassword={canPassword}
                         onPassword={pagePassword}
+                        projects={projects}
                       />
                     </div>
                   )}
@@ -1581,6 +1599,10 @@ export function Editor({
           ) : page.type === "folder" ? (
             <div className="text-muted flex h-[400px] items-center justify-center p-10 text-center" data-testid="folder-note">
               {t("pages.folderCanvas")}
+            </div>
+          ) : page.type === "project" ? (
+            <div className="text-muted flex h-[400px] items-center justify-center p-10 text-center" data-testid="project-note">
+              {t("pages.projectCanvas", { project: projects.find((x) => x.id === page.projectId)?.title ?? "…" })}
             </div>
           ) : (
             <SiteRender

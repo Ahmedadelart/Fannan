@@ -596,7 +596,7 @@ export function ProjectEditor({
                           )}
                         </span>
                         <span className="truncate text-[12px] font-semibold">
-                          {m.type === "embed" ? m.embed?.title : m.type === "text" ? t("kinds.text") : m.fileName}
+                          {m.type === "embed" ? m.embed?.title : m.type === "text" ? m.title || t("kinds.text") : m.fileName}
                         </span>
                       </button>
                     </li>
@@ -639,6 +639,15 @@ export function ProjectEditor({
                 )}
                 <div className="flex flex-[1_1_260px] flex-col gap-3">
                   {selected.type === "text" ? (
+                    <>
+                    <Field label={t("partTitle")} hint={t("partHint")}>
+                      <input
+                        className={inputCls}
+                        value={selected.title ?? ""}
+                        data-testid="part-title"
+                        onChange={(e) => editItem(selected.id, { title: e.target.value }, { title: e.target.value })}
+                      />
+                    </Field>
                     <Field label={t("textBody")}>
                       <textarea
                         className={cx(areaCls, "min-h-[160px]")}
@@ -646,6 +655,7 @@ export function ProjectEditor({
                         onChange={(e) => editItem(selected.id, { text: e.target.value }, { text: e.target.value })}
                       />
                     </Field>
+                    </>
                   ) : (
                     <>
                       <Field label={t("caption")}>
@@ -865,6 +875,48 @@ export function ProjectEditor({
                 onChange={(e) => save("tags", { tags: e.target.value })}
               />
             </Field>
+          </Panel>
+
+          <Panel title={t("card.title")}>
+            <p className="text-muted m-0 text-[12px]">{t("card.hint")}</p>
+            {(
+              [
+                ["size", ["m", "l", "wide"]],
+                ["text", ["none", "title", "details"]],
+              ] as const
+            ).map(([field, values]) => (
+              <div key={field} className="flex flex-col gap-1.5">
+                <span className="text-[12px] font-semibold">{t(`card.${field}`)}</span>
+                <div role="radiogroup" aria-label={t(`card.${field}`)} className="grid grid-cols-3 gap-1.5">
+                  {values.map((v) => {
+                    const card = p.card ?? { size: "m", text: "title" };
+                    const on = card[field] === v;
+                    return (
+                      <button
+                        key={v}
+                        type="button"
+                        role="radio"
+                        aria-checked={on}
+                        onClick={() =>
+                          setField(
+                            "card",
+                            { ...card, [field]: v },
+                            field === "size" ? { cardSize: v as "m" } : { cardText: v as "none" },
+                            0,
+                          )
+                        }
+                        className={cx(
+                          "h-9 rounded-[8px] px-2 text-[12px] font-semibold",
+                          on ? "bg-secondary-container text-on-secondary-container" : "border-line bg-paper hover:bg-mist border",
+                        )}
+                      >
+                        {t(`card.${v}`)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </Panel>
 
           <Panel title={t("visibility.title")}>

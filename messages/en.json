@@ -584,6 +584,19 @@
       "sound": "Music and performance",
       "words": "Writing",
       "other": "Other"
+    },
+    "partTitle": "Headline",
+    "partHint": "A headline starts a new part of the project, like “Sketches” or “Final frames”.",
+    "card": {
+      "title": "Title",
+      "hint": "How this project looks in galleries that use each project's own card size.",
+      "size": "Size",
+      "text": "Text",
+      "m": "Normal",
+      "l": "Big",
+      "wide": "Wide",
+      "none": "None",
+      "details": "Title + details"
     }
   },
   "editor": {
@@ -746,14 +759,16 @@
         "custom": "Custom page",
         "about": "About / CV",
         "link": "External link",
-        "folder": "Dropdown"
+        "folder": "Dropdown",
+        "project": "Project"
       },
       "newTitles": {
         "gallery": "Work",
         "custom": "New page",
         "about": "About",
         "link": "Link",
-        "folder": "Artwork"
+        "folder": "Artwork",
+        "project": "Project"
       },
       "name": "Page name",
       "slug": "Address",
@@ -772,7 +787,10 @@
       "insideHint": "Puts this page in another menu item's dropdown, like Artwork → Sketches.",
       "hasPages": "Other pages are in this one's dropdown.",
       "folderHint": "A dropdown is a menu item that opens a list. Put pages in it from their own settings.",
-      "folderCanvas": "This is a dropdown in your menu, not a page. Open a page's settings and choose this dropdown under “Show in a dropdown”."
+      "folderCanvas": "This is a dropdown in your menu, not a page. Open a page's settings and choose this dropdown under “Show in a dropdown”.",
+      "project": "Project",
+      "projectHint": "This menu item opens the project's page.",
+      "projectCanvas": "This menu item opens your project “{project}”. Edit the project from Projects."
     },
     "fields": {
       "heading": "Heading",
@@ -844,7 +862,10 @@
       "credits": "Show credits (client · role)",
       "hoverPlay": "Play loop on hover",
       "filter": "Category filter",
-      "samples": "Sample art shows until you add projects."
+      "samples": "Sample art shows until you add projects.",
+      "cardSizes": "Each project's own card size",
+      "picks": "Which projects",
+      "picksHint": "Tick the ones to show here. None ticked: all of them."
     },
     "picker": {
       "title": "Choose media",
@@ -1136,13 +1157,16 @@
       "groupTitle": "Column title",
       "linkLabel": "Words",
       "removeGroup": "Remove column",
-      "addGroup": "Add a column"
+      "addGroup": "Add a column",
+      "logoFont": "Font of your name",
+      "logoFontSite": "Same as headings"
     },
     "account": {
       "label": "Your account",
       "goPro": "Go Pro",
       "addTime": "Add Pro time",
-      "admin": "Admin"
+      "admin": "Admin",
+      "guide": "Guided setup"
     },
     "copied": "Copied",
     "cut": "Cut",
@@ -1352,7 +1376,8 @@
       "stars": "Stars",
       "video": "YouTube or Vimeo link",
       "navHint": "Links go to a section's link name (#name), set in that section's Design tab."
-    }
+    },
+    "guideReady": "Your site is ready. Change anything you like."
   },
   "inbox": {
     "title": "Messages",
@@ -2371,6 +2396,239 @@
           ]
         }
       ]
+    }
+  },
+  "guide": {
+    "metaTitle": "Guided setup",
+    "stepOf": "Step {step} of {total}",
+    "progress": "Your progress",
+    "next": "Next",
+    "back": "Back",
+    "skip": "Skip this step",
+    "buildNow": "Build my site now",
+    "later": "Finish later",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "preview": "Your site so far",
+    "previewOf": "Preview of {address}",
+    "buildFailed": "Something went wrong while building. Your answers are saved; please try again.",
+    "what": {
+      "short": "What you do",
+      "kicker": "Step 1",
+      "title": "What do you do?",
+      "hint": "It picks sample pictures, words and pages that fit your work.",
+      "label": "Your work",
+      "needed": "Tell us what you do, or pick one below."
+    },
+    "name": {
+      "short": "Your name",
+      "kicker": "Step 2",
+      "title": "How should your name look?",
+      "useName": "Use my name",
+      "useNameHint": "Type it and pick one of our fonts.",
+      "haveLogo": "I have a logo",
+      "haveLogoHint": "Upload it as a picture (PNG or SVG works best).",
+      "nameLabel": "Your name, or your studio's",
+      "font": "Pick a font",
+      "upload": "Upload my logo",
+      "replace": "Change logo",
+      "uploading": "Uploading…",
+      "logoTip": "Tip: a logo with a see-through background looks good on any colour.",
+      "tagline": "A short line under your name (optional)",
+      "taglinePlaceholder": "e.g. Character designer in Cairo",
+      "needed": "Type the name to show on your site."
+    },
+    "look": {
+      "short": "The look",
+      "kicker": "Step 3",
+      "title": "Pick a look you like",
+      "hint": "Colours and fonts for the whole site. You can change every detail later.",
+      "accent": "Accent colour",
+      "themeAccent": "The look's own"
+    },
+    "pages": {
+      "short": "Your pages",
+      "kicker": "Step 4",
+      "title": "Which pages do you need?",
+      "hint": "Drag to change the order. Click a name to rename it. Use ⋮ to make a dropdown menu or hide a page.",
+      "drag": "Drag {page} to move it",
+      "rename": "Rename",
+      "more": "More for {page}",
+      "homeTag": "First page",
+      "folderTag": "Dropdown · {count, plural, =0 {empty} one {# page} other {# pages}}",
+      "hiddenTag": "Not in menu",
+      "toFolder": "Turn into a dropdown menu",
+      "toPage": "Turn back into a page",
+      "moveInto": "Move into “{folder}”",
+      "moveOut": "Move out of the dropdown",
+      "hide": "Hide from the menu",
+      "show": "Show in the menu",
+      "remove": "Remove",
+      "addPage": "Add a page",
+      "addFolder": "Add a dropdown menu",
+      "newPage": "New page",
+      "suggestions": "Pages people like you often add",
+      "tip": "Drop a page right under a dropdown to put it inside."
+    },
+    "projects": {
+      "short": "Projects",
+      "kicker": "Step 5",
+      "title": "What projects do you want to show?",
+      "hint": "Each project gets its own page. Give it a name, a cover and choose how its card looks.",
+      "name": "Project name",
+      "namePlaceholder": "e.g. Short film “Sandstorm”",
+      "add": "Add project",
+      "limit": "The Free plan has room for {count} projects.",
+      "goPro": "Get Pro for unlimited projects",
+      "cover": "Cover for {project}",
+      "size": "Card size",
+      "sizes": {
+        "m": "Normal",
+        "l": "Big",
+        "wide": "Wide"
+      },
+      "text": "Text on the card",
+      "texts": {
+        "none": "No text",
+        "title": "Title",
+        "details": "Title + details"
+      },
+      "inMenu": "Show in the menu",
+      "inMenuHint": "Its page gets a link in your menu.",
+      "group": "Put the projects in the menu under one “Projects” dropdown",
+      "remove": "Delete {project}",
+      "removeConfirm": "Delete “{project}” and its pictures?",
+      "include": "Use this project",
+      "none": "No projects yet. Add your first one above, or skip this step."
+    },
+    "inside": {
+      "short": "Inside projects",
+      "kicker": "Step 6",
+      "title": "Add pictures to each project",
+      "hint": "Upload as many as you like. Split them into parts with a headline and a few words, like “Sketches” and “Final frames”. Drag to change the order.",
+      "projects": "Your projects",
+      "noProjects": "You haven't added projects. Go back a step to add some, or skip this one.",
+      "drop": "Drop pictures here",
+      "choose": "Choose pictures",
+      "addPart": "Add a part (headline)",
+      "partDefault": "New part",
+      "uploading": "Uploading {count}…",
+      "drag": "Drag to move",
+      "partTitle": "Headline",
+      "partText": "A few words (optional)",
+      "removeItem": "Remove",
+      "empty": "No pictures yet.",
+      "description": "About this project (optional)"
+    },
+    "pages2": {
+      "short": "Page by page"
+    },
+    "page": {
+      "kicker": "Step 7 · page {n} of {total}",
+      "title": "Your “{page}” page",
+      "pages": "Pages",
+      "start": "How should it start?",
+      "noStart": "Start empty",
+      "pictures": "Pictures for this page",
+      "picturesHint": "They fill the section above first, then follow in rows.",
+      "add": "Add",
+      "removePicture": "Remove picture",
+      "projects": "Show project cards here",
+      "projectsHint": "Each card uses the size and text you picked.",
+      "projectsNone": "Cards appear once you add projects.",
+      "projectsPick": "None picked: all of them",
+      "extras": "Add more to this page",
+      "socialHint": "Your links show as icons. They're the same on every page.",
+      "network": "Network",
+      "link": "Link",
+      "addRow": "Add another",
+      "removeRow": "Remove",
+      "photo": "Your photo",
+      "x": {
+        "about": "About me",
+        "contact": "Contact form",
+        "social": "Social links",
+        "logos": "Clients and logos",
+        "testimonials": "What people say",
+        "cv": "CV and credits",
+        "offers": "Services and prices",
+        "faq": "Questions and answers",
+        "stats": "Numbers",
+        "cta": "Call to action"
+      },
+      "xText": {
+        "about": "A few lines about you",
+        "contact": "A short note above the form",
+        "cta": "The big line, e.g. “Want to work together?”"
+      },
+      "f": {
+        "logos": {
+          "title": "Client name",
+          "media": "Logo"
+        },
+        "testimonials": {
+          "title": "Name",
+          "meta": "Role or company",
+          "text": "What they said",
+          "media": "Photo"
+        },
+        "cv": {
+          "meta": "Year",
+          "title": "Project",
+          "text": "Your role"
+        },
+        "offers": {
+          "title": "Service",
+          "meta": "Price",
+          "text": "What's included (one per line)"
+        },
+        "faq": {
+          "title": "Question",
+          "text": "Answer"
+        },
+        "stats": {
+          "title": "Number, e.g. 120+",
+          "text": "What it counts"
+        }
+      }
+    },
+    "build": {
+      "short": "Build",
+      "kicker": "Step 8",
+      "title": "Ready to build your site?",
+      "what": "What you do",
+      "name": "Name",
+      "logo": "Your logo",
+      "look": "Look",
+      "pages": "Pages",
+      "projects": "Projects",
+      "change": "Change",
+      "rerun": "This rebuilds your pages from these answers. Your projects and pictures stay, and your current pages are kept as a backup you can bring back from Home.",
+      "button": "Build my site",
+      "building": "Building your site…",
+      "after": "Then change anything you like in the editor."
+    },
+    "start": {
+      "kicker": "Welcome",
+      "title": "How do you want to start, {first}?",
+      "hint": "Either way you can change everything later, and nothing goes live until you publish.",
+      "time": "About 10 minutes",
+      "guide": "Build it with me",
+      "guideHint": "Answer a few questions, add your projects and pictures, and we'll put the site together for you.",
+      "guideButton": "Guide me",
+      "self": "I'll design it myself",
+      "selfHint": "Go straight to the editor with a ready starter site.",
+      "selfButton": "Open the editor",
+      "later": "You can start the guided setup any time from Home."
+    },
+    "home": {
+      "title": "Guided setup",
+      "text": "Answer a few questions and we'll build your pages for you. Your projects and pictures stay.",
+      "run": "Start the guided setup",
+      "backup": "Backup from {date}, made before the last build.",
+      "restore": "Bring back my old site",
+      "restoreConfirm": "Put back your pages as they were before the last guided build?",
+      "restoreFailed": "Couldn't bring it back. Please try again."
     }
   }
 }

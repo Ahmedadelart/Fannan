@@ -19,7 +19,7 @@ export async function GET() {
       const lastmod = new Date(site.publishedAt).toISOString().slice(0, 10);
       urls = [
         ...site.pages
-          .filter((p) => p.type !== "link" && p.type !== "folder" && !p.passwordHash)
+          .filter((p) => p.type !== "link" && p.type !== "folder" && p.type !== "project" && !p.passwordHash)
           .map((p) => ({ loc: `${origin}/${p.slug}`, lastmod })),
         ...site.projects.filter((p) => p.visibility === "public").map((p) => ({ loc: `${origin}/${p.slug}`, lastmod })),
       ];
