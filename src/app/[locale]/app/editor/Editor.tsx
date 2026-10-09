@@ -19,6 +19,8 @@ import type { Block, BlockOf, FreeKind, SiteDraft } from "@/lib/site/types";
 import { addFreeItem, ITEM_GROUPS } from "@/lib/site/free";
 import { FreeEditor, KIND_ICONS } from "@/components/editor/FreeEditor";
 import { LanguageButton, LogoutButton } from "../(dash)/DashClient";
+import { SiteEnhancer } from "@/components/site/live/SiteEnhancer";
+import { CONTACT_WORDS, contactFormOf, type LegacyContactFields } from "@/lib/site/contact";
 import { editorTipsSeen, publishSite, savePagePassword, saveSiteDraft } from "./actions";
 import {
   BlockSettings,
@@ -482,6 +484,59 @@ function Canvas({
   );
 }
 
+/* ---------- the contact form in the preview: looks real, sends nothing ---------- */
+
+function PreviewContact({
+  block,
+  language,
+  fallback,
+}: {
+  block: BlockOf<"contact">;
+  language: Locale;
+  fallback: LegacyContactFields;
+}) {
+  const t = useTranslations("editor");
+  const toast = useToast();
+  const form = contactFormOf(block, fallback);
+  const w = CONTACT_WORDS[language];
+  const box = {
+    border: "1px solid var(--site-line)",
+    borderRadius: "var(--site-radius)",
+    background: "var(--site-bg)",
+    color: "var(--site-text)",
+  };
+  const field = (label: string, tall?: boolean) => (
+    <label key={label} className="grid gap-1.5 text-[14px] font-semibold">
+      {label}
+      {tall ? (
+        <textarea rows={4} className="w-full px-3.5 py-3 text-[16px] outline-none" style={box} />
+      ) : (
+        <input className="w-full px-3.5 py-3 text-[16px] outline-none" style={box} />
+      )}
+    </label>
+  );
+  return (
+    <form
+      className="mt-2 grid w-full max-w-[560px] gap-3"
+      onSubmit={(e) => {
+        e.preventDefault();
+        toast(t("previewSend"), "messages");
+      }}
+    >
+      {field(form.labels.name || w.name)}
+      {field(form.labels.email || w.email)}
+      {form.projectType && field(w.projectType)}
+      {form.budget && field(w.budget)}
+      {form.deadline && field(w.deadline)}
+      {form.custom && field(form.custom)}
+      {field(form.labels.message || w.message, true)}
+      <button type="submit" className="site-button justify-self-start border-0" style={{ cursor: "pointer", font: "inherit", fontWeight: 600 }}>
+        {block.button}
+      </button>
+    </form>
+  );
+}
+
 /* ---------- first-run tips (3 max, ONBOARDING.md) ---------- */
 
 function Tips({ onDone }: { onDone: () => void }) {
@@ -563,7 +618,7 @@ export function Editor({
   account,
 }: {
   /** The account menu and the Messages dot. */
-  account: { name: string; admin: boolean; pro: boolean; unread: number; deletionPending: boolean };
+  account: { name: string; admin: boolean; pro: boolean; unread: number; deletionPending: boolean; siteUrl: string };
   /** Social links, CV and older contact settings, edited from the footer and contact sections. */
   initialSettings: EditorSiteSettings;
   /** Pro sites can publish the showpiece blocks. */
@@ -645,6 +700,8 @@ export function Editor({
   const [version, setVersion] = useState(published.version);
   const [publishing, setPublishing] = useState(false);
   const [preview, setPreview] = useState(false);
+  // The page shown in the preview (its links switch it without changing the page being edited).
+  const [previewPage, setPreviewPage] = useState(initialDraft.pages[0].id);
   // Zoomed-out view where whole sections are dragged into a new order.
   const [reorder, setReorder] = useState(false);
   const [tips, setTips] = useState(showTips);
@@ -808,7 +865,8 @@ export function Editor({
   }
 
   sectionKeys.current = (e: KeyboardEvent) => {
-    if (typing(e)) return;
+    // Nothing on the page changes from the keyboard while the preview is open.
+    if (typing(e) || preview) return;
     const k = e.key.toLowerCase();
     if (mod(e) && k === "s") {
       // Ctrl+S: save now (the editor also saves by itself).
@@ -908,6 +966,37 @@ export function Editor({
       (d) => (field === "footer" ? { ...d, footer: { ...normalizeFooter(d.footer), text: value } } : { ...d, [field]: value }),
       `site-${field}`,
     );
+
+  /** Links in the preview: pages switch in place, projects open on the live site, the rest as usual. */
+  function previewClick(e: React.MouseEvent) {
+    const a = (e.target as HTMLElement).closest("a[href]") as HTMLAnchorElement | null;
+    if (!a) return;
+    const href = a.getAttribute("href") ?? "";
+    if (/^(https?:|mailto:|tel:)/i.test(href)) {
+      a.target = "_blank";
+      a.rel = "noopener";
+      return;
+    }
+    if (!href.startsWith("/")) return;
+    e.preventDefault();
+    const [path, hash] = href.split("#");
+    const slug = path.replace(/^\/+/, "");
+    const target = draft.pages.find((p) => p.slug === slug && p.type !== "link" && p.type !== "folder");
+    if (target) {
+      setPreviewPage(target.id);
+      requestAnimationFrame(() => {
+        const box = (e.currentTarget as HTMLElement | null)?.closest('[role="dialog"]');
+        const anchor = hash ? document.getElementById(hash) : null;
+        if (anchor) anchor.scrollIntoView({ behavior: "smooth" });
+        else box?.scrollTo({ top: 0 });
+      });
+      return;
+    }
+    if (projects.some((p) => p.slug === slug)) {
+      if (version !== null) window.open(`${account.siteUrl}/${slug}`, "_blank", "noopener");
+      else toast(t("previewProject"), "projects");
+    }
+  }
 
   async function doPublish() {
     setPublishing(true);
@@ -1385,7 +1474,10 @@ export function Editor({
               aria-label={t("preview")}
               title={t("preview")}
               data-testid="preview-button"
-              onClick={() => setPreview(true)}
+              onClick={() => {
+                setPreviewPage(page.id);
+                setPreview(true);
+              }}
               className="bg-paper text-ink flex size-9 items-center justify-center rounded-full hover:bg-white"
             >
               <Icon name="preview" size={18} />
@@ -1549,8 +1641,17 @@ export function Editor({
             className={cx("min-h-full", device !== "desktop" && "mx-auto my-6 overflow-hidden rounded-[10px] shadow-[0_2px_24px_rgba(20,20,20,.12)]")}
             style={device === "desktop" ? undefined : { width: WIDTHS[device], maxWidth: "100%" }}
             data-testid="preview"
+            onClickCapture={previewClick}
           >
-            <SiteRender {...renderProps} />
+            {/* Clickable like the live site: pages switch here, projects open on the published site. */}
+            <SiteRender
+              {...renderProps}
+              pageId={previewPage}
+              live
+              contactHref={`/${draft.pages.find((p) => p.blocks.some((b) => b.type === "contact"))?.slug ?? ""}#contact`}
+              renderContact={(b) => <PreviewContact block={b} language={draft.language} fallback={siteSettings.contact} />}
+            />
+            <SiteEnhancer key={previewPage} protectImages={false} closeLabel={t("closePreview")} />
           </div>
           <div className="bg-ink shadow-float fixed bottom-5 start-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-pill p-1.5 ring-1 ring-white/20 rtl:translate-x-1/2">
             {(["desktop", "tablet", "phone"] as Device[]).map((d) => (

@@ -394,3 +394,19 @@ test("dropdown menus: pages inside a menu item open from the header", async ({ p
   await expect(visitor).toHaveURL(/\/(work|sketches)[a-z0-9-]*$/);
   await visitor.screenshot({ path: `test-results/r7-dropdown-${info.project.name}.png` });
 });
+
+test("the preview is clickable: menu links switch pages, the contact form doesn't send", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop");
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signUp(page);
+  await openEditor(page);
+  await page.getByTestId("preview-button").click();
+  const preview = page.getByTestId("preview");
+  await preview.getByRole("link", { name: "About", exact: true }).click();
+  await expect(preview.getByRole("link", { name: "About", exact: true })).toHaveAttribute("aria-current", "page");
+  await preview.getByRole("link", { name: "Contact", exact: true }).click();
+  await expect(preview.getByRole("link", { name: "Contact", exact: true })).toHaveAttribute("aria-current", "page");
+  // Still in the editor, nothing navigated away.
+  await expect(page).toHaveURL(/\/editor/);
+});

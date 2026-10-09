@@ -1125,7 +1125,9 @@
       "save": "Save now",
       "help": "Show this list",
       "mac": "On a Mac, use Cmd instead of Ctrl."
-    }
+    },
+    "previewProject": "Projects open on your published site. Publish to try them.",
+    "previewSend": "Messages are sent from your live site. Nothing was sent from the preview."
   },
   "inbox": {
     "title": "Messages",

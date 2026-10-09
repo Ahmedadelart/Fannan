@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/app/edit
 export default async function EditorPage({ params }: PageProps<"/[locale]/app/editor">) {
   const { locale } = (await params) as { locale: Locale };
   setRequestLocale(locale);
-  const { user, site, draft, render, limits, session, pro } = await loadDashboard();
+  const { user, site, draft, render, limits, session, pro, siteUrl } = await loadDashboard();
   const unread = await countUnread(site.id).catch(() => 0);
   const tp = await getTranslations("projects");
   const categories = Object.fromEntries(
@@ -36,6 +36,7 @@ export default async function EditorPage({ params }: PageProps<"/[locale]/app/ed
         pro: pro.plan === "pro",
         unread,
         deletionPending: !!(user as { deletion?: unknown }).deletion,
+        siteUrl,
       }}
       initialSettings={{ social: settings.social, cvMediaId: settings.cvMediaId, contact: settings.contact }}
       initialDraft={draft}
