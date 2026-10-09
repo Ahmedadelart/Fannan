@@ -13,6 +13,7 @@ import { socialPath } from "./socialIcons";
 import { EDGE_PATHS } from "./edges";
 import { patternCss } from "./patterns";
 import { DecoLabel, DecoSvg } from "./deco";
+import { iconBodies, type IconName } from "@/components/ui/icons.generated";
 
 // Renders an artist site from its draft (or a published snapshot). Artist sites use the artist's
 // theme, never Fannan's brand. Layout reacts to the width of its own box (container queries), so
@@ -81,6 +82,8 @@ export interface SiteRenderProps {
   contactHref?: string;
   /** Replaces the page's blocks (project pages, password screens) while keeping the site's header and theme. */
   content?: ReactNode;
+  /** A band around `content` (the password page's own background). */
+  contentStyle?: SectionStyle;
 }
 
 const RATIO_CSS: Record<ThumbRatio, string | undefined> = {
@@ -836,6 +839,307 @@ export function FreeItemContent({
   }
 }
 
+/* ---------- card sections (round 7) ---------- */
+
+function CardIcon({ name, size = 40 }: { name: string; size?: number }) {
+  const body = iconBodies[(name in iconBodies ? name : "sparkle") as IconName];
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="square"
+      aria-hidden
+      className="block flex-none"
+      dangerouslySetInnerHTML={{ __html: body }}
+    />
+  );
+}
+
+function CardsView({ b, ctx }: { b: BlockOf<"cards">; ctx: Ctx }) {
+  const m = (id: string | null) => (id ? (ctx.media[id] ?? null) : null);
+  const center = b.align === "center";
+  const cols = Math.max(1, Math.min(6, b.columns));
+  const grid = { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` };
+  const tx = (n: number, field: "title" | "text" | "meta" | "button" | "price", props: Partial<Parameters<typeof T>[0]> = {}) => (
+    <T ctx={ctx} path={`items.${n}.${field}`} value={b.items[n][field]} {...props} />
+  );
+  const link = (href: string, children: ReactNode, cls: string, style?: CSSProperties) =>
+    ctx.live && href ? (
+      <a href={href} className={cls} style={{ textDecoration: "none", ...style }}>
+        {children}
+      </a>
+    ) : (
+      <span className={cls} style={style}>
+        {children}
+      </span>
+    );
+  const head =
+    b.heading || b.intro || ctx.onText ? (
+      <div className={cx("flex flex-col gap-3", center && "items-center text-center")}>
+        <T ctx={ctx} path="heading" value={b.heading} as="h2" style={heading(36)} />
+        <T ctx={ctx} path="intro" value={b.intro} as="p" className="m-0 max-w-[640px]" style={{ color: "var(--site-muted)" }} multiline />
+      </div>
+    ) : null;
+  const card = { background: "var(--site-surface)", borderRadius: "calc(var(--site-radius) * 2)" };
+
+  let body: ReactNode = null;
+  switch (b.variant) {
+    case "icons":
+      body = (
+        <div className="site-cards-grid grid gap-8" style={grid}>
+          {b.items.map((it, n) => (
+            <div key={n} className={cx("flex flex-col gap-3", center && "items-center text-center")}>
+              <span style={{ color: "var(--site-accent)" }}>
+                <CardIcon name={it.icon} size={44} />
+              </span>
+              {tx(n, "title", { as: "h3", style: heading(20) })}
+              {tx(n, "text", { as: "p", className: "m-0 text-[15px]", style: { color: "var(--site-muted)" }, multiline: true })}
+            </div>
+          ))}
+        </div>
+      );
+      break;
+    case "images":
+      body = (
+        <div className="site-cards-grid grid gap-6" style={grid}>
+          {b.items.map((it, n) => (
+            <div key={n} className="flex flex-col overflow-hidden" style={card}>
+              <Picture m={m(it.mediaId)} base={ctx.base} tone={it.tone} ratio="4 / 3" className="!rounded-none" />
+              <div className="flex flex-1 flex-col items-start gap-2 p-6">
+                {tx(n, "title", { as: "h3", style: heading(22) })}
+                {tx(n, "text", { as: "p", className: "m-0 text-[15px]", style: { color: "var(--site-muted)" }, multiline: true })}
+                {(it.button || ctx.onText) && link(it.link, tx(n, "button"), "site-button mt-auto text-[14px]")}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+      break;
+    case "stats":
+      body = (
+        <div className="site-cards-grid grid gap-8" style={grid}>
+          {b.items.map((it, n) => (
+            <div key={n} className={cx("flex flex-col gap-1", center && "items-center text-center")}>
+              {tx(n, "title", { as: "div", style: { ...heading(56), color: "var(--site-accent)" } })}
+              {tx(n, "text", { as: "p", className: "m-0 text-[15px]", style: { color: "var(--site-muted)" } })}
+            </div>
+          ))}
+        </div>
+      );
+      break;
+    case "faq":
+      body = (
+        <div className="mx-auto flex w-full max-w-[820px] flex-col">
+          {b.items.map((it, n) => (
+            <details key={n} open={!ctx.live} className="py-4" style={{ borderBottom: "1px solid var(--site-line)" }}>
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[18px] font-semibold">
+                {tx(n, "title")}
+                <span aria-hidden style={{ color: "var(--site-accent)" }}>
+                  +
+                </span>
+              </summary>
+              {tx(n, "text", { as: "p", className: "mt-2 mb-0", style: { color: "var(--site-muted)" }, multiline: true })}
+            </details>
+          ))}
+        </div>
+      );
+      break;
+    case "mosaic":
+      body = (
+        <div className="relative">
+          <div className="site-cards-grid grid" style={grid}>
+            {b.items.map((it, n) => (
+              <Picture key={n} m={m(it.mediaId)} base={ctx.base} tone={it.tone} ratio="1 / 1" className="!rounded-none" />
+            ))}
+          </div>
+          {(b.button || ctx.onText) && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              {link(b.link, <T ctx={ctx} path="button" value={b.button} />, "rounded-full px-8 py-3 text-[14px] font-semibold shadow-lg", {
+                background: "var(--site-bg)",
+                color: "var(--site-text)",
+              })}
+            </div>
+          )}
+        </div>
+      );
+      break;
+    case "nav":
+      body = (
+        <nav
+          className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 py-3 text-[15px] font-semibold"
+          style={{ position: ctx.live ? "sticky" : undefined, top: 0 }}
+          data-testid="section-nav"
+        >
+          {b.items.map((it, n) => (
+            <span key={n}>{link(it.link, tx(n, "title"), "", { color: "inherit" })}</span>
+          ))}
+        </nav>
+      );
+      break;
+    case "marquee": {
+      // Two copies roll by; it stops for visitors who prefer less motion.
+      const row = b.items.map((it, n) => (
+        <span key={n} className="flex flex-none items-center px-8" style={{ color: "var(--site-muted)" }}>
+          {it.mediaId ? (
+            <span className="block h-10 w-32">
+              <Picture m={m(it.mediaId)} base={ctx.base} ratio="auto" className="h-full [&_img]:object-contain" />
+            </span>
+          ) : (
+            <span style={{ ...heading(26), color: "inherit" }}>{it.title}</span>
+          )}
+        </span>
+      ));
+      body = (
+        <div className="site-marquee overflow-hidden" data-testid="marquee">
+          <div className="site-marquee-track flex w-max">
+            {row}
+            <span aria-hidden className="flex">
+              {row}
+            </span>
+          </div>
+        </div>
+      );
+      break;
+    }
+    case "testimonials":
+      body = (
+        <div className="site-snap -mx-[var(--site-pad)] flex snap-x snap-mandatory gap-5 overflow-x-auto px-[var(--site-pad)] pb-2">
+          {b.items.map((it, n) => (
+            <figure
+              key={n}
+              className="m-0 flex w-[min(360px,80%)] flex-none snap-start flex-col gap-4 p-7"
+              style={{ ...card, border: "1px solid var(--site-line)" }}
+            >
+              <span aria-label={`${it.stars}/5`} style={{ color: "var(--site-accent)", letterSpacing: "0.15em" }}>
+                {"★".repeat(it.stars)}
+              </span>
+              {tx(n, "text", { as: "p", className: "m-0 text-[17px]", multiline: true })}
+              <figcaption className="mt-auto flex items-center gap-3">
+                <span className="block size-11 flex-none overflow-hidden rounded-full">
+                  <Picture m={m(it.mediaId)} base={ctx.base} tone={it.tone} ratio="1 / 1" className="!rounded-full" />
+                </span>
+                <span className="flex flex-col">
+                  {tx(n, "title", { className: "font-semibold" })}
+                  {tx(n, "meta", { className: "text-[13px]", style: { color: "var(--site-muted)" } })}
+                </span>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      );
+      break;
+    case "timeline":
+      body = (
+        <div className="site-timeline relative mx-auto flex w-full max-w-[1000px] flex-col gap-10">
+          <span aria-hidden className="site-timeline-line absolute inset-y-0 start-1/2 w-[2px] -translate-x-1/2" style={{ background: "var(--site-line)" }} />
+          {b.items.map((it, n) => (
+            <div key={n} className={cx("site-timeline-row relative grid grid-cols-2 items-center gap-12", n % 2 === 1 && "site-timeline-flip")}>
+              <div className={cx(n % 2 ? "order-2" : "order-1")}>
+                <Picture m={m(it.mediaId)} base={ctx.base} tone={it.tone} ratio="4 / 3" />
+              </div>
+              <div className={cx("flex flex-col gap-2", n % 2 ? "order-1 items-end text-end" : "order-2")}>
+                {tx(n, "meta", { className: "text-[13px] font-semibold tracking-[0.06em] uppercase", style: { color: "var(--site-accent)" } })}
+                {tx(n, "title", { as: "h3", style: heading(26) })}
+                {tx(n, "text", { as: "p", className: "m-0", style: { color: "var(--site-muted)" }, multiline: true })}
+              </div>
+              <span aria-hidden className="absolute start-1/2 top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ background: "var(--site-accent)", boxShadow: "0 0 0 6px var(--site-bg)" }} />
+            </div>
+          ))}
+        </div>
+      );
+      break;
+    case "press":
+      body = (
+        <div className="site-cards-grid grid items-center gap-12" style={{ gridTemplateColumns: "minmax(0, 0.9fr) minmax(0, 1.1fr)" }}>
+          <Picture m={m(b.mediaId)} base={ctx.base} tone={b.tone} ratio="4 / 5" />
+          <div className="flex flex-col">
+            {b.items.map((it, n) => (
+              <div key={n}>
+                {link(
+                  it.link,
+                  <span className="flex items-center justify-between gap-4 py-4" style={{ borderBottom: "1px solid var(--site-line)" }}>
+                    <span className="flex flex-col">
+                      {tx(n, "title", { className: "text-[18px] font-semibold" })}
+                      {tx(n, "meta", { className: "text-[14px]", style: { color: "var(--site-muted)" } })}
+                    </span>
+                    <span aria-hidden className="rtl:-scale-x-100" style={{ color: "var(--site-accent)" }}>
+                      →
+                    </span>
+                  </span>,
+                  "block",
+                  { color: "inherit" },
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+      break;
+    case "films":
+      body = (
+        <div className="site-cards-grid grid gap-8" style={grid}>
+          {b.items.map((it, n) => (
+            <div key={n} className="flex flex-col gap-3">
+              {it.url ? (
+                <VideoView url={it.url} caption="" ctx={ctx} />
+              ) : (
+                <Picture m={m(it.mediaId)} base={ctx.base} tone={it.tone} ratio="16 / 9" />
+              )}
+              {tx(n, "title", { as: "h3", style: heading(22) })}
+              {tx(n, "text", { as: "p", className: "m-0 text-[15px]", style: { color: "var(--site-muted)" }, multiline: true })}
+            </div>
+          ))}
+        </div>
+      );
+      break;
+    case "offers":
+      body = (
+        <div className="site-cards-grid grid items-stretch gap-6" style={grid}>
+          {b.items.map((it, n) => {
+            const hot = !!it.meta;
+            return (
+              <div
+                key={n}
+                className="relative flex flex-col gap-4 p-7"
+                style={{ ...card, border: hot ? "2px solid var(--site-accent)" : "1px solid var(--site-line)" }}
+              >
+                {hot && (
+                  <span className="absolute -top-3 start-6 rounded-full px-3 py-1 text-[12px] font-bold" style={{ background: "var(--site-accent)", color: "var(--site-on-accent)" }}>
+                    {it.meta}
+                  </span>
+                )}
+                {tx(n, "title", { as: "h3", style: heading(22) })}
+                {tx(n, "price", { as: "div", style: heading(34) })}
+                <ul className="m-0 flex list-none flex-col gap-1.5 p-0 text-[15px]">
+                  {it.text.split("\n").filter(Boolean).map((line, i) => (
+                    <li key={i} className="flex gap-2">
+                      <span aria-hidden style={{ color: "var(--site-accent)" }}>
+                        ✓
+                      </span>
+                      {line}
+                    </li>
+                  ))}
+                </ul>
+                {(it.button || ctx.onText) && link(it.link, tx(n, "button"), "site-button mt-auto justify-center text-[14px]")}
+              </div>
+            );
+          })}
+        </div>
+      );
+      break;
+  }
+  return (
+    <div className="flex flex-col gap-10" data-testid={`cards-${b.variant}`}>
+      {b.variant !== "nav" && head}
+      {body}
+    </div>
+  );
+}
+
 function FreeSectionView({ b, ctx }: { b: BlockOf<"free">; ctx: Ctx }) {
   const bg = b.bgMediaId ? (ctx.media[b.bgMediaId] ?? null) : null;
   const order = freeOrder(b.items);
@@ -875,6 +1179,8 @@ function FreeSectionView({ b, ctx }: { b: BlockOf<"free">; ctx: Ctx }) {
 function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
   const m = (id: string | null) => (id ? (ctx.media[id] ?? null) : null);
   switch (b.type) {
+    case "cards":
+      return <CardsView b={b} ctx={ctx} />;
     case "cover": {
       const img = m(b.mediaId);
       return (
@@ -1621,7 +1927,39 @@ function Footer({
           : {}),
       }}
     >
-      {columns ? (
+      {settings.layout === "links" ? (
+        // Like Jackie's footer: the name, a line and the social links, then columns of links.
+        <div
+          className="grid w-full gap-8 @max-2xl:grid-cols-2"
+          style={{ gridTemplateColumns: `minmax(0, 1.4fr) repeat(${Math.max(1, settings.groups.length)}, minmax(0, 1fr))` }}
+          data-testid="footer-groups"
+        >
+          <div className="flex flex-col gap-2 @max-2xl:col-span-2">
+            <span style={{ ...heading(20), color: settings.textColor ?? "var(--site-text)" }}>{site.title}</span>
+            {textPart}
+            {email}
+            {linkRow}
+          </div>
+          {settings.groups.map((g, i) => (
+            <div key={i} className="flex flex-col gap-2 text-[14px]">
+              <span className="text-[12px] font-bold tracking-[0.08em] uppercase" style={{ color: "var(--site-accent)" }}>
+                {g.title}
+              </span>
+              {g.links.map((l, j) =>
+                ctx.live && l.link ? (
+                  <a key={j} href={l.link} style={{ color: settings.textColor ?? "var(--site-text)", textDecoration: "none" }}>
+                    {l.label}
+                  </a>
+                ) : (
+                  <span key={j} style={{ color: settings.textColor ?? "var(--site-text)" }}>
+                    {l.label}
+                  </span>
+                ),
+              )}
+            </div>
+          ))}
+        </div>
+      ) : columns ? (
         <div className="grid w-full grid-cols-3 items-center gap-6 @max-2xl:grid-cols-1">
           <div className="flex flex-col gap-1">
             {title}
@@ -1956,6 +2294,7 @@ export function SiteRender({
   bare = false,
   contactFallback,
   social,
+  contentStyle,
 }: SiteRenderProps) {
   const page = site.pages.find((p) => p.id === pageId) ?? site.pages[0];
   const { theme } = site;
@@ -2004,7 +2343,21 @@ export function SiteRender({
   } as CSSProperties;
 
   const body = content ? (
-    <main className="flex flex-col gap-10">{content}</main>
+    <main className="flex flex-col gap-10" style={{ ["--section-gap" as string]: "48px" }}>
+      {contentStyle ? (
+        <SectionBand
+          b={{ id: "lock", type: "hire", text: "", style: { ...contentStyle, padTop: Math.max(contentStyle.padTop, 96), padBottom: Math.max(contentStyle.padBottom, 160) } }}
+          ctx={ctx}
+          selected={false}
+          prevBanded={false}
+          nextBanded={false}
+        >
+          {content}
+        </SectionBand>
+      ) : (
+        content
+      )}
+    </main>
   ) : (
     <main
       className="flex flex-col"

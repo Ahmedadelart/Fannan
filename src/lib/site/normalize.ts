@@ -3,6 +3,9 @@
 
 import { isSampleTone, upgradeTone } from "./samples";
 import { defaultDeco } from "./deco";
+import { defaultSectionStyle } from "./style";
+
+export { defaultSectionStyle };
 import { blockKinds, newId, sampleArt } from "./blocks";
 import { FREE_COLS, FREE_KINDS } from "./free";
 import { themes } from "./starter";
@@ -105,35 +108,6 @@ export function normalizeBlock(raw: unknown): Block | null {
   return style ? { ...block, style } : block;
 }
 
-export function defaultSectionStyle(): SectionStyle {
-  return {
-    bg: {
-      kind: "none",
-      color: "#F4F1E6",
-      color2: "#FFFFFF",
-      color3: null,
-      angle: 180,
-      radial: false,
-      mediaId: null,
-      overlay: "#000000",
-      overlayOpacity: 40,
-      pattern: "dots",
-      patternColor: "#141414",
-      patternOpacity: 12,
-      patternScale: 100,
-    },
-    edgeTop: { shape: "none", height: 60, flip: false },
-    edgeBottom: { shape: "none", height: 60, flip: false },
-    padTop: 48,
-    padBottom: 48,
-    width: "normal",
-    card: { on: false, color: null, radius: 24, shadow: true, padding: 40 },
-    text: null,
-    anchor: "",
-    animate: "none",
-  };
-}
-
 const EDGES = ["none", "wave", "curve", "slant", "torn", "zigzag", "scallop"] as const;
 
 export function normalizeSectionStyle(raw: unknown): SectionStyle {
@@ -181,10 +155,44 @@ export function normalizeSectionStyle(raw: unknown): SectionStyle {
   };
 }
 
+const CARD_VARIANTS = ["icons", "images", "stats", "faq", "mosaic", "nav", "marquee", "testimonials", "timeline", "press", "films", "offers"] as const;
+
+function normalizeCards(id: string, b: Any): Block {
+  return {
+    id,
+    type: "cards",
+    design: typeof b.design === "string" && /^c-[a-z0-9-]{1,30}$/.test(b.design) ? b.design : "c-cards",
+    variant: pick(b.variant, CARD_VARIANTS, "images"),
+    heading: str(b.heading, 200),
+    intro: str(b.intro, 600),
+    columns: num(b.columns, 1, 6, 3),
+    align: pick(b.align, ["start", "center"], "start"),
+    button: str(b.button, 60),
+    link: safeLink(b.link),
+    mediaId: idOrNull(b.mediaId),
+    tone: tone(b.tone, "#5B3A2E"),
+    items: list(b.items, 24, (x: Any) => ({
+      title: str(x?.title, 200),
+      text: str(x?.text, 1200),
+      meta: str(x?.meta, 120),
+      icon: typeof x?.icon === "string" ? x.icon.replace(/[^a-z0-9-]/g, "").slice(0, 30) : "sparkle",
+      mediaId: idOrNull(x?.mediaId),
+      tone: tone(x?.tone, "#5B3A2E"),
+      link: safeLink(x?.link),
+      button: str(x?.button, 60),
+      stars: num(x?.stars, 0, 5, 0),
+      price: str(x?.price, 40),
+      url: str(x?.url, 500),
+    })),
+  };
+}
+
 function normalizeBlockBody(raw: unknown): Block | null {
   const b = (raw ?? {}) as Any;
   const id = typeof b.id === "string" && b.id ? b.id.slice(0, 40) : newId();
   switch (b.type) {
+    case "cards":
+      return normalizeCards(id, b);
     case "cover":
       return {
         id,
@@ -522,7 +530,11 @@ export function normalizeFooter(raw: unknown): FooterSettings {
     align: f.align === "start" ? "start" : "center",
     social: f.social !== false,
     cv: f.cv !== false,
-    layout: f.layout === "columns" ? "columns" : "stack",
+    layout: f.layout === "columns" ? "columns" : f.layout === "links" ? "links" : "stack",
+    groups: list(f.groups, 4, (g: Any) => ({
+      title: str(g?.title, 40),
+      links: list(g?.links, 8, (l: Any) => ({ label: str(l?.label, 40), link: safeLink(l?.link) })),
+    })),
     background: HEX.test(String(f.background)) ? String(f.background).toUpperCase() : null,
     textColor: HEX.test(String(f.textColor)) ? String(f.textColor).toUpperCase() : null,
     showTitle: bool(f.showTitle),
@@ -553,6 +565,15 @@ export function normalizeDraft(raw: Any & { pages?: unknown[] }): SiteDraft {
     theme: normalizeTheme(raw.theme),
     header: normalizeHeader(raw.header),
     footer: normalizeFooter(raw.footer),
+    ...(raw.lock && typeof raw.lock === "object"
+      ? {
+          lock: {
+            title: str((raw.lock as Any).title, 120),
+            text: str((raw.lock as Any).text, 500),
+            style: normalizeSectionStyle((raw.lock as Any).style),
+          },
+        }
+      : {}),
     pages: pages.length
       ? pages
       : [{ id: "home", slug: "", title: "Work", type: "gallery", showInNav: true, blocks: [] }],

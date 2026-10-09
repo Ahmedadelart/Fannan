@@ -111,7 +111,58 @@ export type Block =
   | B<"hire", { text: string }>
   | B<"social", { links: Array<{ network: string; url: string }> }>
   | B<"quote", { text: string; author: string }>
-  | B<"free", FreeSection>;
+  | B<"free", FreeSection>
+  | B<"cards", CardsSection>;
+
+/* ---------- card sections (round 7) ---------- */
+
+export type CardVariant =
+  | "icons"
+  | "images"
+  | "stats"
+  | "faq"
+  | "mosaic"
+  | "nav"
+  | "marquee"
+  | "testimonials"
+  | "timeline"
+  | "press"
+  | "films"
+  | "offers";
+
+export interface CardItem {
+  title: string;
+  text: string;
+  /** Small line: a role, a date, "Step 1", a badge like "Popular". */
+  meta: string;
+  icon: string;
+  mediaId: string | null;
+  tone: string;
+  link: string;
+  button: string;
+  /** Testimonials: 0–5. */
+  stars: number;
+  price: string;
+  /** Films: YouTube or Vimeo address. */
+  url: string;
+}
+
+export interface CardsSection {
+  /** Which library entry it came from ("c-…"); Pro ones hide on Free sites. */
+  design: string;
+  variant: CardVariant;
+  heading: string;
+  intro: string;
+  columns: number;
+  align: "start" | "center";
+  /** One button for the whole section (the mosaic's "See more"). */
+  button: string;
+  link: string;
+  /** One picture for the whole section (press: the book cover). */
+  mediaId: string | null;
+  tone: string;
+  items: CardItem[];
+}
 
 /* ---------- free-form sections (phase 8C) ---------- */
 
@@ -326,8 +377,10 @@ export interface FooterSettings {
   align: "center" | "start";
   social: boolean;
   cv: boolean;
-  /** Round 5: one column, or name / links / email in three columns. */
-  layout: "stack" | "columns";
+  /** One column; name / links / email in three columns; or columns of links (round 7). */
+  layout: "stack" | "columns" | "links";
+  /** Link columns (layout "links"): a title and a few links each. */
+  groups: Array<{ title: string; links: Array<{ label: string; link: string }> }>;
   background: string | null;
   textColor: string | null;
   showTitle: boolean;
@@ -348,6 +401,8 @@ export interface SiteDraft {
   pages: PageDraft[];
   header?: HeaderSettings;
   footer?: FooterSettings;
+  /** The password page's words and background (round 7, like Jackie's NDA page). */
+  lock?: { title: string; text: string; style: SectionStyle };
   /** Which starter it came from (sign-up step 4). */
   layout?: LayoutId;
 }

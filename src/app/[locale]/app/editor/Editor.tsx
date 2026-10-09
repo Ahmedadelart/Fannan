@@ -1394,7 +1394,7 @@ export function Editor({
           {rail === "design" && (
             <div className="flex flex-col">
               <h2 className="text-muted px-4 pt-4 pb-2 text-[11px] font-semibold tracking-[0.1em] uppercase">{t("rail.design")}</h2>
-              {(["logo", "nav", "styles", "footer"] as DesignSection[]).map((sec) => (
+              {(["logo", "nav", "styles", "footer", "lock"] as DesignSection[]).map((sec) => (
                 <div key={sec} className="border-line border-b">
                   <button
                     type="button"

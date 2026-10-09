@@ -450,6 +450,58 @@ html[data-embed] .dash-main {
   }
 }
 
+/* Card sections (round 7). */
+.site-root .site-marquee-track {
+  animation: site-marquee 32s linear infinite;
+}
+.site-root .site-marquee:hover .site-marquee-track {
+  animation-play-state: paused;
+}
+.site-root[dir="rtl"] .site-marquee-track {
+  animation-direction: reverse;
+}
+@keyframes site-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-root .site-marquee-track {
+    animation: none;
+  }
+}
+.site-root .site-snap {
+  scrollbar-width: thin;
+}
+@container (max-width: 820px) {
+  .site-root .site-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@container (max-width: 560px) {
+  .site-root .site-cards-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .site-root .site-timeline-line {
+    inset-inline-start: 8px;
+    transform: none;
+  }
+  .site-root .site-timeline-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    padding-inline-start: 32px;
+  }
+  .site-root .site-timeline-row > div {
+    order: 0 !important;
+    align-items: flex-start !important;
+    text-align: start !important;
+  }
+  .site-root .site-timeline-row > span[aria-hidden] {
+    inset-inline-start: 9px;
+    top: 12px;
+  }
+}
+
 /* Public site lightbox (SiteEnhancer). */
 .site-lightbox {
   width: 100vw;

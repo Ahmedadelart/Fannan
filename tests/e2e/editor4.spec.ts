@@ -466,11 +466,11 @@ test("decorations: underline, arrow, doodle, badge, icon and their controls", as
     await page.getByRole("menuitem", { name, exact: true }).click();
   };
   for (const name of ["Underline", "Arrow", "Doodle", "Badge", "Icon", "Divider", "Highlight", "Panel"]) await add(name);
-  await expect(page.locator('[data-deco="underline"]')).toBeVisible();
-  await expect(page.locator('[data-deco="arrow"]')).toBeVisible();
+  await expect(canvas(page).locator('[data-deco="underline"]').first()).toBeVisible();
+  await expect(canvas(page).locator('[data-deco="arrow"]').first()).toBeVisible();
 
   // The arrow's controls change its drawing.
-  const arrow = page.locator('[data-kind="arrow"]');
+  const arrow = canvas(page).locator('[data-kind="arrow"]');
   await arrow.click();
   await page.getByTestId("item-edit").click();
   const card = page.getByTestId("block-settings");
@@ -482,7 +482,7 @@ test("decorations: underline, arrow, doodle, badge, icon and their controls", as
   await expect(arrow.locator("path")).toHaveCount(3);
 
   // The underline's style and wave height.
-  const underline = page.locator('[data-kind="underline"]');
+  const underline = canvas(page).locator('[data-kind="underline"]').last();
   await underline.click({ force: true });
   await page.getByTestId("item-edit").click();
   await card.getByRole("tab", { name: "Design" }).click();
@@ -490,4 +490,55 @@ test("decorations: underline, arrow, doodle, badge, icon and their controls", as
   await card.getByRole("radio", { name: "Zigzag" }).click();
   await expect.poll(() => underline.locator("path").first().getAttribute("d")).not.toBe(wave);
   await page.screenshot({ path: `test-results/r7-deco-${info.project.name}.png` });
+});
+
+test("new sections publish; Pro ones hide on Free sites; footer link columns", async ({ page, browser }, info) => {
+  test.setTimeout(180_000);
+  if (info.project.name !== "mobile") await page.setViewportSize({ width: 1440, height: 900 });
+  const { username } = await signUp(page);
+  await openEditor(page);
+  if (info.project.name === "mobile") {
+    await page.getByRole("button", { name: "Pages & sections" }).click();
+  }
+  for (const key of ["d-hero-split", "c-icons", "c-stats", "c-faq", "c-cards", "c-testimonials"]) {
+    await page.getByTestId(`add-${key}`).scrollIntoViewIfNeeded();
+    await page.getByTestId(`add-${key}`).click();
+    const tryIt = page.getByRole("button", { name: "Try it here" });
+    if (await tryIt.isVisible({ timeout: 800 }).catch(() => false)) await tryIt.click();
+    if (info.project.name === "mobile" && !(await page.getByTestId("left-panel").isVisible())) {
+      await page.getByRole("button", { name: "Pages & sections" }).click();
+    }
+  }
+  await expect(canvas(page).getByTestId("cards-icons")).toBeVisible();
+  await expect(canvas(page).getByTestId("cards-testimonials")).toBeVisible();
+
+  if (info.project.name !== "mobile") {
+    // Footer: columns of links.
+    const footer = canvas(page).locator('[data-site-part="footer"]');
+    await footer.scrollIntoViewIfNeeded();
+    await footer.click({ position: { x: 4, y: 4 } });
+    await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+    await page.getByTestId("footer-settings").getByRole("radio", { name: "Link columns" }).click();
+    await expect(canvas(page).getByTestId("footer-groups")).toBeVisible();
+    // The password page design is in Design.
+    await page.getByRole("button", { name: "Design" }).click();
+    await page.getByRole("button", { name: "Password page" }).click();
+    await expect(page.getByTestId("lock-settings")).toBeVisible();
+  } else if (await page.getByTestId("panel-backdrop").isVisible()) {
+    // On a phone the panel floats over the page: tap outside to close it.
+    const box = (await page.getByTestId("panel-backdrop").boundingBox())!;
+    await page.mouse.click(box.x + box.width - 12, box.y + box.height / 2);
+  }
+
+  await page.getByRole("button", { name: "Publish" }).click();
+  await expect(page.getByTestId("editor-status")).toHaveText("Live site is up to date", { timeout: 20_000 });
+  const visitor = await (await browser.newContext({ ...info.project.use })).newPage();
+  await visitor.goto(at(username));
+  await expect(visitor.getByTestId("cards-icons")).toBeVisible();
+  await expect(visitor.getByTestId("cards-faq")).toBeVisible();
+  // Testimonials are a Pro section: hidden on a Free site.
+  await expect(visitor.getByTestId("cards-testimonials")).toHaveCount(0);
+  const overflow = await visitor.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
+  await visitor.screenshot({ path: `test-results/r7-new-${info.project.name}.png`, fullPage: true });
 });

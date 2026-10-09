@@ -23,6 +23,7 @@ export interface BlockKind {
 
 export { newId } from "./ids";
 import { newId } from "./ids";
+import { cardsBlock, type CardKey } from "./cards";
 import { sampleTone } from "./samples";
 
 export const sampleArt = (n: number, ratio: SampleArt["ratio"] = "4/3"): SampleArt[] =>
@@ -275,6 +276,11 @@ export const blockGroups: BlockGroup[] = ["freeform", "layout", "galleries", "me
 /* ---------- the library as artists see it (Carbonmade-style list of real previews) ---------- */
 
 const DESIGN_ICONS: Record<DesignKey, IconName> = {
+  "d-hero-split": "hero-headline",
+  "d-hero-photo": "fullscreen-cover",
+  "d-about-circle": "about-cv",
+  "d-cta-banner": "contact-form",
+  "d-before-after": "before-after",
   "d-cover": "fullscreen-cover",
   "d-title": "hero-headline",
   "d-statement": "hero-headline",
@@ -305,18 +311,71 @@ export const designKinds: BlockKind[] = (Object.keys(DESIGN_ICONS) as DesignKey[
 }));
 blockKinds.push(...designKinds);
 
+const CARD_ICONS: Record<CardKey, IconName> = {
+  "c-icons": "columns",
+  "c-cards": "grid",
+  "c-stats": "stats",
+  "c-faq": "list",
+  "c-mosaic": "masonry",
+  "c-nav": "link",
+  "c-marquee": "logo-wall",
+  "c-testimonials": "quote",
+  "c-timeline": "reorder",
+  "c-press": "book",
+  "c-films": "film",
+  "c-offers": "hire-me-badge",
+};
+export const cardKinds: BlockKind[] = (Object.keys(CARD_ICONS) as CardKey[]).map((key) => ({
+  key,
+  type: "cards",
+  group: "freeform",
+  icon: CARD_ICONS[key],
+  pro: plansConfig.proBlocks.keys.includes(key),
+  make: (l) => cardsBlock(key, l),
+}));
+blockKinds.push(...cardKinds);
+
 export type LibraryGroup = "intro" | "work" | "images" | "text" | "about" | "media" | "blank";
 
 /** What the library shows, in this order. Older block kinds still work on existing pages. */
 export const LIBRARY: Array<{ group: LibraryGroup; keys: string[] }> = [
-  { group: "intro", keys: ["d-cover", "d-title", "d-statement"] },
-  { group: "work", keys: ["grid", "masonry", "slider"] },
+  { group: "intro", keys: ["d-hero-split", "d-hero-photo", "d-cover", "d-title", "d-statement", "c-nav"] },
+  { group: "work", keys: ["grid", "masonry", "slider", "c-mosaic", "c-films"] },
   {
     group: "images",
-    keys: ["d-image-caption", "d-grid-4", "d-two-images", "d-headline-image", "d-split-headline", "d-brand-pair", "d-big-type", "d-collage"],
+    keys: [
+      "d-image-caption",
+      "d-grid-4",
+      "d-two-images",
+      "d-headline-image",
+      "d-split-headline",
+      "d-brand-pair",
+      "d-big-type",
+      "d-collage",
+      "d-before-after",
+    ],
   },
-  { group: "text", keys: ["d-info", "d-long-text", "d-project-info", "d-resume", "quote"] },
-  { group: "about", keys: ["d-about", "d-contact-me", "contact", "hire", "social", "credits", "d-logo-wall"] },
+  { group: "text", keys: ["c-icons", "c-stats", "c-faq", "d-info", "d-long-text", "d-project-info", "d-resume", "quote"] },
+  {
+    group: "about",
+    keys: [
+      "d-about-circle",
+      "d-about",
+      "c-cards",
+      "c-testimonials",
+      "c-timeline",
+      "c-press",
+      "c-offers",
+      "d-cta-banner",
+      "d-contact-me",
+      "contact",
+      "hire",
+      "social",
+      "credits",
+      "c-marquee",
+      "d-logo-wall",
+    ],
+  },
   { group: "media", keys: ["reel", "video", "loop", "beforeAfter", "pdf"] },
   { group: "blank", keys: ["free-blank"] },
 ];
@@ -325,11 +384,11 @@ export const kindByKey = (key: string) => blockKinds.find((k) => k.key === key);
 
 /** Is this block on the page one of the Pro showpieces? */
 export const isProBlock = (b: Block) =>
-  b.type === "free" && !!b.design && plansConfig.proBlocks.keys.includes(b.design);
+  (b.type === "free" || b.type === "cards") && !!b.design && plansConfig.proBlocks.keys.includes(b.design);
 
 /** The catalogue entry for a block on the page (galleries map back to their layout). */
 export function kindOf(b: Block): BlockKind {
-  if (b.type === "free" && b.design) return blockKinds.find((k) => k.key === b.design) ?? blockKinds[0];
+  if ((b.type === "free" || b.type === "cards") && b.design) return blockKinds.find((k) => k.key === b.design) ?? blockKinds[0];
   if (b.type === "gallery") return blockKinds.find((k) => k.key === (b.layout === "fullscreen" ? "grid" : b.layout))!;
   return blockKinds.find((k) => k.type === b.type)!;
 }

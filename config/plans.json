@@ -81,7 +81,14 @@
       "d-brand-pair",
       "d-big-type",
       "d-logo-wall",
-      "d-collage"
+      "d-collage",
+      "c-marquee",
+      "c-testimonials",
+      "c-timeline",
+      "c-press",
+      "c-films",
+      "c-offers",
+      "d-before-after"
     ]
   }
 }

@@ -423,7 +423,9 @@ function MediaField({
 function previewHeight(b: Block): number {
   switch (b.type) {
     case "free":
-      return Math.round(b.rows * 47 + 40);
+      return Math.round(b.rows * 47 + 40 + (b.style ? b.style.padTop + b.style.padBottom : 0));
+    case "cards":
+      return b.variant === "nav" ? 160 : b.variant === "marquee" || b.variant === "stats" ? 320 : b.variant === "timeline" ? 1100 : 640;
     case "gallery":
       return b.layout === "slider" ? 520 : 720;
     case "credits":
@@ -613,7 +615,7 @@ function NavSketch({ nav }: { nav: NavLayout }) {
   }
 }
 
-export type DesignSection = "logo" | "nav" | "styles" | "footer";
+export type DesignSection = "logo" | "nav" | "styles" | "footer" | "lock";
 
 export function StyleTab({
   draft,
@@ -684,6 +686,29 @@ export function StyleTab({
             </button>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  if (section === "lock") {
+    const lock = draft.lock ?? { title: "", text: "", style: { ...defaultSectionStyle(), bg: { ...defaultSectionStyle().bg, kind: "pattern" as const, pattern: "doodles" as const } } };
+    const setLock = (patch: Partial<NonNullable<SiteDraft["lock"]>>, key?: string) =>
+      setDraft((d) => ({ ...d, lock: { ...lock, ...(d.lock ?? {}), ...patch } }), key);
+    return (
+      <div className="flex flex-col gap-4" data-testid="lock-settings">
+        <p className="text-muted text-[12px]">{t("lockHint")}</p>
+        <Text title={t("lockTitle")} value={lock.title} placeholder={t("lockTitlePlaceholder")} onChange={(v) => setLock({ title: v }, "lock-title")} />
+        <Area title={t("lockText")} value={lock.text} onChange={(v) => setLock({ text: v }, "lock-text")} />
+        <SectionDesign
+          value={lock.style}
+          onChange={(style, key) => setLock({ style }, key ? `lock-${key}` : undefined)}
+          theme={draft.theme}
+          isPro={true}
+          mediaField={(title, id, kind, apply) => (
+            <MediaField title={title} id={id} kind={kind} media={media} onChange={apply} openPicker={openPicker} />
+          )}
+          compact
+        />
       </div>
     );
   }
@@ -1339,9 +1364,79 @@ export function SitePartSettings({
             options={[
               ["stack", t("stack")],
               ["columns", t("columns")],
+              ["links", t("linkColumns")],
             ]}
-            onChange={(v) => setFooter({ layout: v })}
+            onChange={(v) =>
+              setFooter({
+                layout: v,
+                // Starting link columns from the site's own pages.
+                ...(v === "links" && !footer.groups.length
+                  ? {
+                      groups: [
+                        {
+                          title: t("pagesGroup"),
+                          links: draft.pages.filter((p) => p.type !== "folder").slice(0, 6).map((p) => ({ label: p.title, link: p.slug ? `/${p.slug}` : "/" })),
+                        },
+                      ],
+                    }
+                  : {}),
+              })
+            }
           />
+          {footer.layout === "links" && (
+            <div className="flex flex-col gap-3" data-testid="footer-groups-editor">
+              {footer.groups.map((g, gi) => {
+                const setGroup = (patch: Partial<(typeof footer.groups)[number]>) =>
+                  setFooter({ groups: footer.groups.map((x, j) => (j === gi ? { ...x, ...patch } : x)) }, `fg-${gi}`);
+                return (
+                  <div key={gi} className="border-line flex flex-col gap-2 rounded-[12px] border p-2.5">
+                    <Text title={t("groupTitle")} value={g.title} onChange={(v) => setGroup({ title: v })} />
+                    {g.links.map((l, li) => (
+                      <div key={li} className="grid grid-cols-[1fr_1fr_auto] gap-1.5">
+                        <input
+                          aria-label={t("linkLabel")}
+                          className={inputCls}
+                          value={l.label}
+                          onChange={(e) => setGroup({ links: g.links.map((x, j) => (j === li ? { ...x, label: e.target.value } : x)) })}
+                        />
+                        <input
+                          aria-label={t("linkUrl")}
+                          className={inputCls}
+                          dir="ltr"
+                          placeholder="/about"
+                          value={l.link}
+                          onChange={(e) => setGroup({ links: g.links.map((x, j) => (j === li ? { ...x, link: e.target.value } : x)) })}
+                        />
+                        <button
+                          type="button"
+                          aria-label={t("removeLink")}
+                          className="text-muted hover:text-ink flex size-9 items-center justify-center"
+                          onClick={() => setGroup({ links: g.links.filter((_, j) => j !== li) })}
+                        >
+                          <Icon name="close" size={16} />
+                        </button>
+                      </div>
+                    ))}
+                    <div className="flex flex-wrap gap-1.5">
+                      {g.links.length < 8 && (
+                        <Button size="sm" variant="outline" icon="add" onClick={() => setGroup({ links: [...g.links, { label: "", link: "" }] })}>
+                          {t("addLink")}
+                        </Button>
+                      )}
+                      <Button size="sm" variant="ghost" icon="delete" onClick={() => setFooter({ groups: footer.groups.filter((_, j) => j !== gi) })}>
+                        {t("removeGroup")}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+              {footer.groups.length < 4 && (
+                <Button size="sm" variant="outline" icon="add" onClick={() => setFooter({ groups: [...footer.groups, { title: "", links: [] }] })}>
+                  {t("addGroup")}
+                </Button>
+              )}
+            </div>
+          )}
           {footer.layout === "stack" && (
             <Choice
               title={t("align")}
@@ -1495,6 +1590,107 @@ export function BlockSettings({
 
   let body: ReactNode = null;
   switch (block.type) {
+    case "cards": {
+      const v = block.variant;
+      const cf = (name: string) => t(`cardsForm.${name}`);
+      const withIcon = v === "icons";
+      const withPicture = ["images", "mosaic", "testimonials", "timeline", "films", "marquee"].includes(v);
+      const withText = ["icons", "images", "stats", "faq", "testimonials", "timeline", "films", "offers"].includes(v);
+      const withMeta = ["testimonials", "timeline", "press", "offers"].includes(v);
+      const withLink = ["images", "nav", "press", "offers"].includes(v);
+      const withButton = ["images", "offers"].includes(v);
+      body = (
+        <>
+          {v !== "nav" && v !== "mosaic" && (
+            <>
+              <Text title={f("heading")} value={block.heading} onChange={(x) => set({ heading: x }, k("h"))} />
+              <Area title={cf("intro")} value={block.intro} onChange={(x) => set({ intro: x }, k("intro"))} />
+            </>
+          )}
+          {["icons", "images", "stats", "mosaic", "films", "offers"].includes(v) && (
+            <Range title={cf("columns")} value={block.columns} min={1} max={6} onChange={(x) => set({ columns: x }, k("cols"))} />
+          )}
+          {["icons", "stats"].includes(v) && (
+            <Choice
+              title={f("align")}
+              value={block.align}
+              options={[
+                ["start", f("alignStart")],
+                ["center", f("alignCenter")],
+              ]}
+              onChange={(x) => set({ align: x })}
+            />
+          )}
+          {v === "mosaic" && (
+            <>
+              <Text title={f("button")} value={block.button} onChange={(x) => set({ button: x }, k("btn"))} />
+              <Text title={cf("link")} dir="ltr" placeholder="/sketches" value={block.link} onChange={(x) => set({ link: x }, k("lnk"))} />
+            </>
+          )}
+          {v === "press" && mediaField(cf("cover"), block.mediaId, "image", (id) => set({ mediaId: id }))}
+          {list(
+            block.items,
+            (it, change) => (
+              <>
+                {withIcon && (
+                  <div className="grid grid-cols-6 gap-1" role="radiogroup" aria-label={t("deco.icon")}>
+                    {(DECO_STYLES.icon ?? []).slice(0, 12).map((name) => (
+                      <button
+                        key={name}
+                        type="button"
+                        role="radio"
+                        aria-checked={it.icon === name}
+                        aria-label={name}
+                        onClick={() => change({ icon: name })}
+                        className={cx(
+                          "flex h-8 items-center justify-center rounded-[8px] border",
+                          it.icon === name ? "border-primary bg-secondary-container" : "border-line hover:bg-mist",
+                        )}
+                      >
+                        <Icon name={name as IconName} size={16} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {withPicture && mediaField(v === "testimonials" ? cf("photo") : v === "marquee" ? cf("logo") : f("image"), it.mediaId, "image", (id) => change({ mediaId: id }))}
+                {v !== "mosaic" && (
+                  <Text
+                    title={v === "stats" ? cf("number") : v === "testimonials" ? cf("name") : v === "faq" ? cf("question") : f("title")}
+                    value={it.title}
+                    onChange={(x) => change({ title: x })}
+                  />
+                )}
+                {withMeta && (
+                  <Text
+                    title={v === "testimonials" ? cf("role") : v === "timeline" ? cf("step") : v === "offers" ? cf("badge") : cf("meta")}
+                    value={it.meta}
+                    onChange={(x) => change({ meta: x })}
+                  />
+                )}
+                {v === "offers" && <Text title={cf("price")} value={it.price} onChange={(x) => change({ price: x })} />}
+                {withText && (
+                  <Area
+                    title={v === "stats" ? cf("label") : v === "faq" ? cf("answer") : v === "testimonials" ? cf("quote") : v === "offers" ? cf("lines") : f("text")}
+                    value={it.text}
+                    onChange={(x) => change({ text: x })}
+                  />
+                )}
+                {v === "testimonials" && <Range title={cf("stars")} value={it.stars} min={0} max={5} onChange={(x) => change({ stars: x })} />}
+                {v === "films" && <Text title={cf("video")} dir="ltr" placeholder="https://youtu.be/" value={it.url} onChange={(x) => change({ url: x })} />}
+                {withButton && <Text title={f("button")} value={it.button} onChange={(x) => change({ button: x })} />}
+                {withLink && (
+                  <Text title={cf("link")} dir="ltr" placeholder={v === "nav" ? "#work" : "https://"} value={it.link} onChange={(x) => change({ link: x })} />
+                )}
+              </>
+            ),
+            { title: "", text: "", meta: "", icon: "sparkle", mediaId: null, tone: block.tone, link: "", button: "", stars: v === "testimonials" ? 5 : 0, price: "", url: "" },
+            24,
+          )}
+          {v === "nav" && <p className="text-muted text-[12px]">{cf("navHint")}</p>}
+        </>
+      );
+      break;
+    }
     case "cover":
       body = (
         <>
@@ -1977,7 +2173,10 @@ function SectionDesign({
   theme,
   isPro,
   mediaField,
+  compact = false,
 }: {
+  /** Background only (the password page): no edges, card, anchor or motion. */
+  compact?: boolean;
   value?: SectionStyle;
   onChange: (s: SectionStyle, key?: string) => void;
   theme?: Theme;
@@ -2132,7 +2331,7 @@ function SectionDesign({
       </div>
 
       {/* Edges */}
-      {(["edgeTop", "edgeBottom"] as const).map((which) => {
+      {!compact && (["edgeTop", "edgeBottom"] as const).map((which) => {
         const e = st[which];
         return (
           <div key={which} className="border-line flex flex-col gap-2.5 border-t pt-4">
@@ -2168,6 +2367,7 @@ function SectionDesign({
       })}
 
       {/* Spacing and width */}
+      {!compact && (
       <div className="border-line flex flex-col gap-3 border-t pt-4">
         <span className="text-[13px] font-semibold">{d("spacing")}</span>
         <Range title={d("padTop")} value={st.padTop} min={0} max={240} unit="px" onChange={(v) => set({ padTop: v }, "pt")} />
@@ -2184,8 +2384,10 @@ function SectionDesign({
           onChange={(v) => set({ width: v })}
         />
       </div>
+      )}
 
       {/* Inset card */}
+      {!compact && (
       <div className="border-line flex flex-col gap-3 border-t pt-4">
         <Switch title={d("card")} checked={st.card.on} onChange={(v) => set({ card: { ...st.card, on: v } })} />
         {st.card.on && (
@@ -2197,10 +2399,13 @@ function SectionDesign({
           </>
         )}
       </div>
+      )}
 
       {/* Text colour, anchor, motion */}
       <div className="border-line flex flex-col gap-3 border-t pt-4">
         <ColorField title={d("textColor")} value={st.text} themeLabel={d("auto")} onChange={(v) => set({ text: v }, "tx")} />
+        {!compact && (
+          <>
         <Text
           title={d("anchor")}
           dir="ltr"
@@ -2225,7 +2430,9 @@ function SectionDesign({
           />
           {!isPro && st.animate !== "none" && <p className="text-muted text-[12px]">{d("animPro")}</p>}
         </div>
-        {value && (
+          </>
+        )}
+        {value && !compact && (
           <Button size="sm" variant="ghost" icon="undo" onClick={() => onChange(defaultSectionStyle())}>
             {d("reset")}
           </Button>

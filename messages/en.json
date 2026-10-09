@@ -663,7 +663,24 @@
       "d-collage": "Collage",
       "d-about": "About me",
       "d-contact-me": "Contact me",
-      "d-logo-wall": "Client logos"
+      "d-logo-wall": "Client logos",
+      "d-hero-split": "Hero with picture",
+      "d-hero-photo": "Hero on a photo",
+      "d-about-circle": "Hi, I'm…",
+      "d-cta-banner": "Call to action",
+      "d-before-after": "Before → after",
+      "c-icons": "Feature row",
+      "c-cards": "Cards",
+      "c-stats": "Numbers",
+      "c-faq": "FAQ",
+      "c-mosaic": "Mosaic + button",
+      "c-nav": "Page menu",
+      "c-marquee": "Logo strip (moving)",
+      "c-testimonials": "Testimonials",
+      "c-timeline": "Timeline",
+      "c-press": "Press & books",
+      "c-films": "Films",
+      "c-offers": "Offers & prices"
     },
     "addHint": "Click to add below the selected section, or drag onto the page.",
     "dropHere": "Drop the section here",
@@ -715,7 +732,11 @@
       },
       "footerAbout": "Your footer shows your social links and CV from Settings, plus a small “Report this site” link.",
       "footerCredit": "On the Free plan it also shows a small “Made with Fannan” credit.",
-      "footerSocial": "Edit social links and CV in Settings"
+      "footerSocial": "Edit social links and CV in Settings",
+      "lockHint": "What visitors see on a page or site with a password, like an NDA page.",
+      "lockTitle": "Title",
+      "lockTitlePlaceholder": "This page is private",
+      "lockText": "Text"
     },
     "pages": {
       "title": "Pages",
@@ -990,7 +1011,8 @@
       "logo": "Logo & title",
       "nav": "Site navigation",
       "styles": "Global styles",
-      "footer": "Footer"
+      "footer": "Footer",
+      "lock": "Password page"
     },
     "statsText": "See who visits your site, which projects they look at and where they come from.",
     "openStats": "Open stats",
@@ -1108,7 +1130,13 @@
       "email": "Email address",
       "backToTop": "Back to top button",
       "gradientTo": "Fade to",
-      "noGradient": "None"
+      "noGradient": "None",
+      "linkColumns": "Link columns",
+      "pagesGroup": "Pages",
+      "groupTitle": "Column title",
+      "linkLabel": "Words",
+      "removeGroup": "Remove column",
+      "addGroup": "Add a column"
     },
     "account": {
       "label": "Your account",
@@ -1301,6 +1329,29 @@
       "gradientTo": "Fade to",
       "noGradient": "None",
       "textShadow": "Text shadow"
+    },
+    "cardsForm": {
+      "intro": "Intro",
+      "columns": "Columns",
+      "link": "Link",
+      "cover": "Cover picture",
+      "photo": "Photo",
+      "logo": "Logo",
+      "number": "Number",
+      "name": "Name",
+      "question": "Question",
+      "role": "Role",
+      "step": "Step",
+      "badge": "Badge (e.g. Popular)",
+      "meta": "Detail",
+      "price": "Price",
+      "label": "Label",
+      "answer": "Answer",
+      "quote": "Quote",
+      "lines": "What's included (one per line)",
+      "stars": "Stars",
+      "video": "YouTube or Vimeo link",
+      "navHint": "Links go to a section's link name (#name), set in that section's Design tab."
     }
   },
   "inbox": {

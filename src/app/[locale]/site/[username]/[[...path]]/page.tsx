@@ -52,6 +52,7 @@ const asDraft = (s: LiveSite): SiteDraft => ({
   theme: s.theme,
   header: s.header,
   footer: s.footer,
+  lock: s.lock,
   pages: s.pages,
 });
 
@@ -140,14 +141,20 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
 /* ---------- pieces ---------- */
 
-async function PasswordScreen({ username, scope }: { username: string; scope: string }) {
+async function PasswordScreen({ username, scope, lock }: { username: string; scope: string; lock?: SiteDraft["lock"] }) {
   const t = await getTranslations("site.password");
   return (
     <PasswordForm
       username={username}
       scope={scope}
       unlock={unlock}
-      labels={{ title: t("title"), text: t("text"), label: t("label"), open: t("open"), wrong: t("wrong") }}
+      labels={{
+        title: lock?.title || t("title"),
+        text: lock?.text || t("text"),
+        label: t("label"),
+        open: t("open"),
+        wrong: t("wrong"),
+      }}
     />
   );
 }
@@ -478,9 +485,11 @@ export default async function ArtistSite({ params }: { params: Promise<Params> }
   const credit = site.plan === "free" ? ts("credit") : null;
 
   let content: ReactNode | undefined;
-  if (siteLocked) content = <PasswordScreen username={username} scope="site" />;
-  else if (!unlocked) content = <PasswordScreen username={username} scope={r.scope} />;
+  if (siteLocked) content = <PasswordScreen username={username} scope="site" lock={site.lock} />;
+  else if (!unlocked) content = <PasswordScreen username={username} scope={r.scope} lock={site.lock} />;
   else if (r.kind === "project") content = <ProjectView site={site} project={r.project} base={base} />;
+  // The password page can have its own background (Design → Password page).
+  const contentStyle = (siteLocked || !unlocked) && site.lock ? site.lock.style : undefined;
 
   // Visitors only download the text the site needs.
   const messages = (await getMessages()) as Record<string, unknown>;
@@ -495,6 +504,7 @@ export default async function ArtistSite({ params }: { params: Promise<Params> }
         mediaBase={base}
         live
         content={content}
+        contentStyle={contentStyle}
         credit={credit}
         footerLinks={footerLinks(site, ts("cv"))}
         report={{

@@ -113,6 +113,7 @@ export async function saveDraft(o: Owner, raw: unknown): Promise<{ savedAt: numb
     theme: draft.theme,
     header: draft.header ?? null,
     footer: draft.footer ?? null,
+    lock: draft.lock ?? null,
     language: draft.language,
     aboutWritten: aboutWritten(draft.pages),
     draftUpdatedAt: FieldValue.serverTimestamp(),
@@ -172,6 +173,7 @@ export interface PublishedSite {
   theme: SiteDraft["theme"];
   header?: SiteDraft["header"];
   footer?: SiteDraft["footer"];
+  lock?: SiteDraft["lock"];
   available: SiteDoc["available"];
   plan: "free" | "pro";
   pages: Array<PageDraft & { passwordHash: string | null }>;
@@ -185,6 +187,8 @@ function blockMediaIds(b: Block): Array<string | null> {
 
 function blockOwnMediaIds(b: Block): Array<string | null> {
   switch (b.type) {
+    case "cards":
+      return [b.mediaId, ...b.items.map((x) => x.mediaId)];
     case "cover":
     case "image":
     case "loop":
@@ -256,6 +260,7 @@ export async function publish(o: Owner): Promise<{ version: number }> {
   draft.pages.forEach((p) => p.blocks.forEach((b) => blockMediaIds(b).forEach((id) => id && used.add(id))));
   if (draft.theme.logoMediaId) used.add(draft.theme.logoMediaId);
   if (draft.theme.faviconMediaId) used.add(draft.theme.faviconMediaId);
+  if (draft.lock?.style.bg.mediaId) used.add(draft.lock.style.bg.mediaId);
   const media: Record<string, SiteMedia> = {};
   for (const id of used) {
     const m = allMedia.get(id);
@@ -273,6 +278,8 @@ export async function publish(o: Owner): Promise<{ version: number }> {
     theme: draft.theme,
     header: draft.header,
     footer: draft.footer,
+    // Only when designed: the database refuses empty (undefined) values.
+    ...(draft.lock ? { lock: draft.lock } : {}),
     available: site.available,
     plan: o.plan,
     pages: draft.pages.map((p) => ({
