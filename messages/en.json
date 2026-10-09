@@ -846,7 +846,8 @@
       "hint": "Tip: click any text on the page to type in it. Drag the ⠿ handle on the section to move it.",
       "reorderHint": "Drag sections to change their order, then press Done.",
       "close": "Close",
-      "addSection": "Add section"
+      "addSection": "Add section",
+      "moveCard": "Drag to move · double-click to put it back"
     },
     "free": {
       "item": "Element",

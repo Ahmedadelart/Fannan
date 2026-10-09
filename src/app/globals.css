@@ -217,6 +217,22 @@
   box-shadow: 0 0 0 8px #c6f432;
 }
 
+/* The settings card on the canvas is compact (Ahmed: smaller, movable). */
+.fannan-compact :where(.gap-5) {
+  gap: 0.875rem;
+}
+.fannan-compact :where(.gap-4) {
+  gap: 0.75rem;
+}
+.fannan-compact :where(input:not([type="range"]):not([type="color"]), select) {
+  height: 36px;
+  font-size: 13px;
+}
+.fannan-compact :where(textarea) {
+  min-height: 72px;
+  font-size: 13px;
+}
+
 /* Dashboard pages inside the editor's wide panel (round 4, stage B): no sidebar of their own. */
 html[data-embed] .dash-chrome,
 html[data-embed] .embed-hide {

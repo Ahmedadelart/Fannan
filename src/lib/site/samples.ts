@@ -1,23 +1,24 @@
-// Sample artwork for empty pictures (round 4): 16 original drawings in public/samples, shown until
+// Sample artwork for empty pictures (round 4, redrawn after Ahmed's feedback: one flat style, no
+// outlines or people, a small palette): 16 original drawings in public/samples, shown until
 // the artist adds their own. A placeholder's `tone` is either a colour (#RRGGBB) or "sample:NN".
 
 const BASES: Record<string, string> = {
-  "01": "#FFC9A8",
-  "02": "#C9B6E4",
-  "03": "#F3E3C3",
-  "04": "#FFF6E9",
-  "05": "#FBE1D6",
-  "06": "#FFF6E9",
-  "07": "#F3E3C3",
-  "08": "#BFE3C0",
-  "09": "#6B4E71",
-  "10": "#F4A6B7",
-  "11": "#FBE1D6",
-  "12": "#F3E3C3",
-  "13": "#F2C14E",
-  "14": "#FFC9A8",
-  "15": "#FFF6E9",
-  "16": "#FBE1D6",
+  "01": "#F4F1E6",
+  "02": "#E4DBC4",
+  "03": "#F4F1E6",
+  "04": "#F4F1E6",
+  "05": "#F4F1E6",
+  "06": "#6F8445",
+  "07": "#EFD3BF",
+  "08": "#F4F1E6",
+  "09": "#E4DBC4",
+  "10": "#EFD3BF",
+  "11": "#F4F1E6",
+  "12": "#E4DBC4",
+  "13": "#F4F1E6",
+  "14": "#EFD3BF",
+  "15": "#E4DBC4",
+  "16": "#F4F1E6",
 };
 const IDS = Object.keys(BASES);
 
@@ -31,7 +32,7 @@ export function toneFill(tone: string | null | undefined): string | undefined {
   if (!tone) return undefined;
   if (!isSampleTone(tone)) return tone;
   const id = tone.slice(7);
-  return `url(/samples/${id}.svg) center / cover no-repeat ${BASES[id]}`;
+  return `url(/samples/${id}.svg?v=2) center / cover no-repeat ${BASES[id]}`;
 }
 
 /** The main colour behind a placeholder, for picking readable text on it. */

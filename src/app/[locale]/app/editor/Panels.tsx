@@ -459,7 +459,10 @@ export function BlocksTab({
   draft,
   media,
   projects,
+  compact = false,
 }: {
+  /** The small picker under "Add section" on the canvas: two columns, click to add. */
+  compact?: boolean;
   onAdd: (k: BlockKind) => void;
   draft: SiteDraft;
   media: Record<string, SiteMedia>;
@@ -475,7 +478,7 @@ export function BlocksTab({
       on ? "bg-lime text-on-lime" : "bg-mist text-ink-soft hover:text-ink",
     );
   return (
-    <div className="flex flex-col gap-4 px-3 pt-3 pb-6" data-tip="blocks">
+    <div className="flex flex-col gap-4 px-3 pt-3 pb-6" data-tip={compact ? undefined : "blocks"}>
       <label className="border-line text-muted flex h-10 items-center gap-2 rounded-[10px] border px-3">
         <Icon name="search" size={18} />
         <input
@@ -497,13 +500,13 @@ export function BlocksTab({
           </button>
         ))}
       </div>
-      <p className="text-muted -mt-2 text-[12px]">{t("dragHint")}</p>
+      {!compact && <p className="text-muted -mt-2 text-[12px]">{t("dragHint")}</p>}
       {LIBRARY.filter(({ group }) => only === "all" || only === group).map(({ group, keys }) => {
         const items = keys.map(kindByKey).filter((k): k is BlockKind => !!k && match(k));
         if (!items.length) return null;
         return (
-          <section key={group} className="flex flex-col gap-2.5" aria-label={t(`library.${group}`)}>
-            <h3 className="bg-paper text-ink sticky top-0 z-10 -mx-3 flex items-baseline justify-between px-3 pt-3 pb-2 text-[14px] font-semibold">
+          <section key={group} className={cx("gap-2.5", compact ? "grid grid-cols-2" : "flex flex-col")} aria-label={t(`library.${group}`)}>
+            <h3 className={cx("bg-paper text-ink col-span-2 -mx-3 flex items-baseline justify-between px-3 pt-3 pb-2 text-[14px] font-semibold", !compact && "sticky top-0 z-10")}>
               {t(`library.${group}`)}
               <span className="text-muted text-[12px] font-medium">{items.length}</span>
             </h3>
@@ -511,15 +514,17 @@ export function BlocksTab({
               <button
                 key={k.key}
                 type="button"
-                draggable
+                draggable={!compact}
                 data-block-key={k.key}
-                data-testid={`add-${k.key}`}
+                data-testid={compact ? `pick-${k.key}` : `add-${k.key}`}
                 aria-label={`${t(`blocks.${k.key}`)}${k.pro ? " (Pro)" : ""}`}
                 onDragStart={(e: DragEvent) => {
                   e.dataTransfer.setData("application/x-fannan-block", k.key);
                   e.dataTransfer.effectAllowed = "copy";
                 }}
                 onClick={() => onAdd(k)}
+                // In the picker on the canvas, pressing doesn't scroll the button away before the click lands.
+                onMouseDown={compact ? (e) => e.preventDefault() : undefined}
                 className="group border-line hover:border-lime relative flex w-full cursor-grab flex-col overflow-hidden rounded-[12px] border bg-[#141414] text-start transition-colors active:cursor-grabbing"
                 style={{ contentVisibility: "auto", containIntrinsicSize: "auto 160px" }}
               >

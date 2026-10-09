@@ -63,7 +63,9 @@ export interface SectionActions {
 }
 
 function Canvas({
-  width,
+  width: deviceWidth,
+  fluid,
+  library,
   children,
   onPick,
   onDropBlock,
@@ -78,6 +80,10 @@ function Canvas({
   onAddElement,
 }: {
   width: number;
+  /** Desktop: the site fills the whole width of the canvas (no grey gaps beside it). */
+  fluid?: boolean;
+  /** The section library, shown by "Add section" right under the selected section. */
+  library?: (close: () => void) => React.ReactNode;
   children: React.ReactNode;
   onPick: (blockId: string | null, onFreeItem: boolean) => void;
   onDropBlock: (kindKey: string, index: number) => void;
@@ -101,6 +107,10 @@ function Canvas({
   const inner = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const [height, setHeight] = useState(600);
+  const [width, setWidth] = useState(deviceWidth);
+  const [sectionMenu, setSectionMenu] = useState(false);
+  // The settings card can be dragged out of the way (Squarespace-style); it keeps its place.
+  const [cardShift, setCardShift] = useState({ x: 0, y: 0 });
   const [dropAt, setDropAt] = useState<{ index: number; y: number } | null>(null);
   const [mark, setMark] = useState<{ y: number } | null>(null);
   const [dragging, setDragging] = useState<string | null>(null);
@@ -124,6 +134,7 @@ function Canvas({
   if (menuFor !== selectedId) {
     setMenuFor(selectedId);
     setElementMenu(false);
+    setSectionMenu(false);
   }
 
   useLayoutEffect(() => {
@@ -131,9 +142,13 @@ function Canvas({
     const i = inner.current;
     if (!o || !i) return;
     const update = () => {
-      const fit = Math.min(1, (o.clientWidth - 48) / width);
+      const room = o.clientWidth - (fluid ? 0 : 48);
+      // Desktop fills the canvas (at least 1024px wide, shrunk below that); tablet and phone keep their width.
+      const w = fluid ? Math.max(1024, room) : deviceWidth;
+      const fit = Math.min(1, room / w);
       // The reorder view shows the whole page small, so long pages fit on screen.
       const s = reorder ? Math.min(fit, 0.34) : fit;
+      setWidth(w);
       setScale(s);
       setHeight(i.scrollHeight * s);
     };
@@ -142,7 +157,7 @@ function Canvas({
     ro.observe(o);
     ro.observe(i);
     return () => ro.disconnect();
-  }, [width, reorder]);
+  }, [deviceWidth, fluid, reorder]);
 
   // Where the selected section is, in the frame's (scaled) coordinates.
   useLayoutEffect(() => {
@@ -200,7 +215,7 @@ function Canvas({
   const tool = "flex size-8 items-center justify-center rounded-full text-ink hover:bg-mist";
 
   return (
-    <div ref={outer} className="bg-mist flex-1 overflow-auto px-6 py-6" data-tip="canvas">
+    <div ref={outer} className={cx("bg-mist flex-1 overflow-auto", fluid ? "pt-12 pb-20" : "px-6 py-6")} data-tip="canvas">
       {reorder && (
         <p role="status" className="bg-ink sticky top-0 z-30 mx-auto mb-4 w-fit rounded-pill px-4 py-2 text-[13px] font-semibold text-white">
           {t("reorderHint")}
@@ -231,7 +246,10 @@ function Canvas({
         <div
           ref={inner}
           data-testid="canvas"
-          className="absolute start-0 top-0 origin-top-left overflow-hidden rounded-[6px] bg-white shadow-[0_1px_3px_rgba(20,20,20,.08)] rtl:origin-top-right"
+          className={cx(
+            "absolute start-0 top-0 origin-top-left overflow-hidden bg-white rtl:origin-top-right",
+            !fluid && "rounded-[6px] shadow-[0_1px_3px_rgba(20,20,20,.08)]",
+          )}
           style={{ width, transform: `scale(${scale})`, minHeight: 600 }}
           onClick={(e: MouseEvent) => {
             if (reorder) return;
@@ -359,35 +377,77 @@ function Canvas({
                 )}
               </div>
             )}
-            <button
-              type="button"
-              className="bg-paper text-ink shadow-float border-line flex h-9 items-center gap-1.5 rounded-pill border px-3.5 text-[13px] font-semibold hover:bg-white"
-              onClick={actions.add}
-            >
-              <Icon name="add" size={16} />
-              {t("addSection")}
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                aria-expanded={sectionMenu}
+                className="bg-paper text-ink shadow-float border-line flex h-9 items-center gap-1.5 rounded-pill border px-3.5 text-[13px] font-semibold hover:bg-white"
+                onClick={() => (library ? setSectionMenu(!sectionMenu) : actions.add())}
+              >
+                <Icon name="add" size={16} />
+                {t("addSection")}
+              </button>
+              {sectionMenu && library && (
+                <div
+                  role="dialog"
+                  aria-label={t("addSection")}
+                  data-testid="section-picker"
+                  ref={(el) => el?.scrollIntoView({ block: "nearest" })}
+                  className="fannan-dark bg-paper text-ink shadow-float absolute start-0 top-11 z-40 max-h-[460px] w-[340px] overflow-y-auto rounded-[20px]"
+                  onKeyDown={(e) => e.key === "Escape" && setSectionMenu(false)}
+                >
+                  {library(() => setSectionMenu(false))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
-        {/* The section's settings, right next to it (replaces the old side panel). */}
+        {/* The section's settings, right next to it. Drag its top bar to move it out of the way. */}
         {box && settingsOpen && settings && !reorder && (
           <div
             role="dialog"
             aria-label={t("settings")}
             data-testid="block-settings"
-            className="bg-paper text-ink shadow-float border-line absolute z-30 flex max-h-[70vh] w-[320px] flex-col overflow-hidden rounded-[14px] border"
-            // Near the bottom of the page the card moves up so it stays within the page.
-            style={{ top: Math.max(0, Math.min(toolsTop(box) + 48, height - 440)), left: popLeft(box) }}
+            className="bg-paper text-ink shadow-float border-line absolute z-30 flex max-h-[62vh] w-[288px] flex-col overflow-hidden rounded-[16px] border text-[13px]"
+            style={{
+              top: Math.max(0, Math.min(toolsTop(box) + 48, height - 440)) + cardShift.y,
+              left: popLeft(box) + cardShift.x,
+            }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="border-line flex items-center justify-between border-b px-4 py-2.5">
-              <span className="text-[13px] font-semibold">{t("settings")}</span>
-              <button type="button" aria-label={t("close")} className="text-muted hover:text-ink" onClick={onCloseSettings}>
-                <Icon name="close" size={18} />
+            <div
+              className="border-line flex cursor-move touch-none items-center justify-between border-b py-1.5 ps-3 pe-1.5 select-none"
+              title={t("moveCard")}
+              data-testid="settings-handle"
+              onPointerDown={(e) => {
+                if ((e.target as HTMLElement).closest("button")) return;
+                const from = { pointerX: e.clientX, pointerY: e.clientY, x: cardShift.x, y: cardShift.y };
+                const move = (ev: PointerEvent) =>
+                  setCardShift({ x: from.x + ev.clientX - from.pointerX, y: from.y + ev.clientY - from.pointerY });
+                const up = () => {
+                  window.removeEventListener("pointermove", move);
+                  window.removeEventListener("pointerup", up);
+                };
+                window.addEventListener("pointermove", move);
+                window.addEventListener("pointerup", up);
+              }}
+              onDoubleClick={() => setCardShift({ x: 0, y: 0 })}
+            >
+              <span className="flex items-center gap-1.5 text-[12px] font-semibold">
+                <Icon name="drag" size={16} className="text-muted" />
+                {t("settings")}
+              </span>
+              <button
+                type="button"
+                aria-label={t("close")}
+                className="text-muted hover:text-ink hover:bg-mist flex size-7 items-center justify-center rounded-full"
+                onClick={onCloseSettings}
+              >
+                <Icon name="close" size={16} />
               </button>
             </div>
-            <div className="overflow-y-auto p-4">{settings}</div>
+            <div className="fannan-compact overflow-y-auto p-3">{settings}</div>
           </div>
         )}
       </div>
@@ -1225,6 +1285,19 @@ export function Editor({
 
         <Canvas
           width={WIDTHS[device]}
+          fluid={device === "desktop"}
+          library={(close) => (
+            <BlocksTab
+              compact
+              onAdd={(k) => {
+                close();
+                addBlock(k);
+              }}
+              draft={draft}
+              media={media}
+              projects={projects}
+            />
+          )}
           selectedId={selected}
           reorder={reorder}
           actions={sectionActions}
