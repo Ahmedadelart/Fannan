@@ -44,7 +44,7 @@ export default async function ExamplesPage({ params }: PageProps<"/[locale]/mark
         <div className="bg-mist flex max-w-[620px] flex-col items-start gap-3 rounded-[16px] p-8">
           <h2 className="font-heading font-heading-weight text-[24px]">{t("emptyTitle")}</h2>
           <p className="text-ink-soft">{t("emptyText")}</p>
-          <a href={`${mHref(locale, "/")}#claim`} className="bg-ink hover:bg-ink-soft flex h-12 items-center rounded-md px-6 font-semibold text-white">
+          <a href={`${mHref(locale, "/")}#claim`} className="bg-primary text-on-primary rounded-pill font-medium hover:brightness-110 flex h-12 items-center px-6">
             {t("cta")}
           </a>
         </div>

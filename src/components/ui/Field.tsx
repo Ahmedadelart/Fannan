@@ -37,7 +37,7 @@ function FieldShell({ id, label, hint, error, children }: FieldShellProps) {
 
 const boxBase =
   "flex h-10 items-center gap-2 rounded-md border bg-paper px-3 text-[14px] text-ink transition-colors " +
-  "focus-within:border-ink has-[:disabled]:bg-mist has-[:disabled]:opacity-60";
+  "focus-within:border-primary focus-within:shadow-[0_0_0_1px_var(--color-primary)] has-[:disabled]:bg-mist has-[:disabled]:opacity-60";
 
 interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "size"> {
   label?: string;

@@ -38,7 +38,7 @@ export function ClaimBox({ signupUrl, domain }: { signupUrl: string; domain: str
       <div className="flex flex-wrap gap-2.5">
         <div
           dir="ltr"
-          className="border-ink bg-paper flex h-14 min-w-0 flex-[1_1_260px] items-center rounded-md border-2 px-4 text-[17px] focus-within:shadow-[0_0_0_4px_var(--color-lime)]"
+          className="border-outline bg-paper flex h-14 min-w-0 flex-[1_1_260px] items-center rounded-[16px] border px-4 text-[17px] focus-within:border-primary focus-within:shadow-[0_0_0_1px_var(--color-primary)]"
         >
           <input
             id="claim-name"
@@ -59,7 +59,7 @@ export function ClaimBox({ signupUrl, domain }: { signupUrl: string; domain: str
         <button
           type="submit"
           disabled={busy}
-          className="bg-lime text-ink border-ink h-14 rounded-md border-2 px-[26px] text-[17px] font-semibold hover:brightness-95 disabled:opacity-50"
+          className="bg-lime text-on-lime rounded-pill h-14 px-[28px] text-[17px] font-medium hover:brightness-95 disabled:opacity-50"
         >
           {busy ? t("claimChecking") : t("claimButton")}
         </button>

@@ -38,7 +38,7 @@ export async function MarketingHeader({ locale, path = "/" }: { locale: Locale; 
         </a>
         <a
           href={`${mHref(locale, "/")}#claim`}
-          className="bg-ink hover:bg-ink-soft flex h-11 items-center rounded-md px-[18px] font-semibold whitespace-nowrap text-white"
+          className="bg-primary text-on-primary rounded-pill font-medium hover:brightness-110 flex h-11 items-center px-5 whitespace-nowrap"
         >
           {t("claim")}
         </a>

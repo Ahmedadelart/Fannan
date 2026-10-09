@@ -58,9 +58,9 @@ const kindIcon: Record<string, IconName> = {
 /* ---------- small building blocks matching Project.dc.html ---------- */
 
 const inputCls =
-  "h-10 w-full rounded-[10px] border border-line bg-paper px-3 text-[14px] font-normal text-ink outline-none focus:border-ink";
+  "h-10 w-full rounded-[10px] border border-line bg-paper px-3 text-[14px] font-normal text-ink outline-none focus:border-primary";
 const areaCls =
-  "min-h-[76px] w-full resize-y rounded-[10px] border border-line bg-paper px-3 py-2.5 text-[14px] font-normal text-ink outline-none focus:border-ink";
+  "min-h-[76px] w-full resize-y rounded-[10px] border border-line bg-paper px-3 py-2.5 text-[14px] font-normal text-ink outline-none focus:border-primary";
 
 function Panel({ title, children, aside }: { title: ReactNode; children: ReactNode; aside?: ReactNode }) {
   return (

@@ -36,8 +36,11 @@ export function DashNav({
             href={n.href}
             aria-current={active ? "page" : undefined}
             className={cx(
-              "flex h-10 flex-none items-center gap-2.5 rounded-[10px] px-2.5 text-[14px] whitespace-nowrap transition-colors",
-              active ? "bg-mist text-ink font-semibold" : "text-ink-soft hover:bg-mist/60 hover:text-ink font-medium",
+              // Material 3 navigation drawer: the active item sits in a soft pill.
+              "flex h-11 flex-none items-center gap-2.5 rounded-pill px-3 text-[14px] whitespace-nowrap transition-colors",
+              active
+                ? "bg-secondary-container text-on-secondary-container font-semibold"
+                : "text-ink-soft hover:bg-ink/8 hover:text-ink font-medium",
             )}
           >
             {active ? (
@@ -156,7 +159,7 @@ export function AvailabilityCard({ on, types }: { on: boolean; types: string[] }
               }
               className={cx(
                 "rounded-pill px-2.5 py-1 text-[12px] font-semibold transition-colors",
-                selected ? "bg-ink text-white" : "bg-mist text-ink hover:bg-line",
+                selected ? "bg-secondary-container text-on-secondary-container" : "bg-mist text-ink hover:bg-line",
               )}
             >
               {t(`types.${w}`)}

@@ -75,7 +75,7 @@ export default async function AdminPage({ params, searchParams }: PageProps<"/[l
             aria-current={tab === k ? "page" : undefined}
             className={cx(
               "flex h-9 items-center rounded-[8px] px-3.5 text-[14px] font-semibold",
-              tab === k ? "bg-ink text-white" : "border-line bg-paper text-ink-soft border",
+              tab === k ? "bg-secondary-container text-on-secondary-container" : "border-line bg-paper text-ink-soft border",
             )}
           >
             {t(`tabs.${k}`)}

@@ -147,7 +147,7 @@ export function CropModal({
             onClick={() => applyRatio(r.value)}
             className={cx(
               "rounded-pill px-3 py-1 text-[12px] font-semibold",
-              ratio === r.value ? "bg-ink text-white" : "border-line bg-paper text-ink border",
+              ratio === r.value ? "bg-secondary-container text-on-secondary-container" : "border-line bg-paper text-ink border",
             )}
           >
             {r.id === "free" ? t("cropFree") : r.id}

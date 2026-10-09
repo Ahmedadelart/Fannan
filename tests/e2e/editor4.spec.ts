@@ -101,7 +101,7 @@ test("the Arabic font applies on any site, and lime keeps dark text in the dark 
   // A Pro badge in the dark section list: dark words on lime.
   const badge = page.getByTestId("left-panel").getByText("PRO", { exact: true }).first();
   await badge.scrollIntoViewIfNeeded();
-  expect(await badge.evaluate((el) => getComputedStyle(el).color)).toBe("rgb(20, 20, 20)");
+  expect(await badge.evaluate((el) => getComputedStyle(el).color)).toBe("rgb(20, 31, 0)");
 
   // English site: picking Marhey puts it in the font stack for Arabic words.
   await page.getByRole("button", { name: "Design" }).click();

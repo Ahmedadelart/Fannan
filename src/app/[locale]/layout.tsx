@@ -24,6 +24,13 @@ const plex = localFont({
   variable: "--font-plex",
   adjustFontFallback: false,
 });
+// Google Sans Flex (OFL): the UI and headline font of the Material 3 look (round 4, stage C).
+const googleSans = localFont({
+  src: "../../fonts/google-sans-flex-latin-wght-normal.woff2",
+  weight: "1 1000",
+  variable: "--font-google",
+  adjustFontFallback: false,
+});
 const plexArabic = localFont({
   src: [
     { path: "../../fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2", weight: "400" },
@@ -59,7 +66,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
     <html
       lang={locale}
       dir={dirFor(locale)}
-      className={`${bricolage.variable} ${plex.variable} ${plexArabic.variable} ${marhey.variable}`}
+      className={`${bricolage.variable} ${plex.variable} ${googleSans.variable} ${plexArabic.variable} ${marhey.variable}`}
     >
       <body className="min-h-dvh">
         <ToastProvider>{children}</ToastProvider>

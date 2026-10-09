@@ -7,6 +7,15 @@ One accent on white: a lime highlighter stroke that says *you're the one who got
 - Arabic line: **خلّي الفرص تلاقيك.** · secondary: **شغلانتك الجاية بتدوّر عليك.**
 - Domain: **fannan.net** — every artist lives at their own subdomain, `name.fannan.net` (always lowercase; letters, numbers and hyphens).
 
+> **Update, 9 Oct 2026: the Material 3 look.** Ahmed chose a "full Google look" for the Fannan interface.
+> - **Unchanged:** the logo, the lime stroke, "no blue", and "lime only behind dark text".
+> - **Changed:**
+>   - colour roles now follow Material 3 (primary olive `#4C6700`, lime as primary container, soft tinted surfaces);
+>   - interface type is Google Sans Flex;
+>   - shapes follow the M3 scale (round buttons, 28px cards);
+>   - selected states use the soft secondary container.
+> - Where this book's interface sections (colours in UI, buttons, corners) differ, `design/tokens.json` and CLAUDE.md win.
+
 ---
 
 ## 1. The logo

@@ -53,7 +53,7 @@ export function Inbox({ initial, siteTitle }: { initial: Message[]; siteTitle: s
             onClick={() => setFilter(f)}
             className={cx(
               "h-8 rounded-[8px] px-3 text-[13px] font-semibold",
-              filter === f ? "bg-ink text-white" : "text-ink-soft hover:bg-mist",
+              filter === f ? "bg-secondary-container text-on-secondary-container" : "text-ink-soft hover:bg-mist",
             )}
           >
             {f === "all" ? t("all") : t("unread", { count: unread })}

@@ -33,7 +33,7 @@ export function Toggle({ checked, defaultChecked = false, onChange, label, hideL
         }}
         className={cx(
           "rounded-pill relative h-[26px] w-11 flex-none transition-colors disabled:opacity-40",
-          on ? "bg-ink" : "bg-line",
+          on ? "bg-primary" : "bg-line-strong",
         )}
       >
         <span
@@ -132,7 +132,7 @@ export function Segmented<T extends string>({ options, value, defaultValue, onCh
             }}
             className={cx(
               "flex h-8 items-center gap-2 rounded-[8px] px-3.5 text-[13px] font-semibold transition-colors",
-              selected ? "bg-ink text-white" : "text-ink-soft hover:text-ink",
+              selected ? "bg-secondary-container text-on-secondary-container" : "text-ink-soft hover:text-ink",
             )}
           >
             {o.label}

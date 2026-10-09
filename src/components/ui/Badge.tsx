@@ -59,7 +59,7 @@ export function Chip({
       onClick={onClick}
       className={cx(
         "rounded-pill px-3 py-1 text-[12px] font-semibold transition-colors",
-        selected ? "bg-ink text-white" : "border-line bg-paper text-ink hover:bg-mist border",
+        selected ? "bg-secondary-container text-on-secondary-container" : "border-line bg-paper text-ink hover:bg-mist border",
       )}
     >
       {children}

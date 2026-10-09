@@ -23,7 +23,7 @@ export interface FormText {
 }
 
 const input =
-  "border-line bg-paper text-ink h-11 w-full rounded-md border px-3 text-[15px] focus:border-ink focus-visible:shadow-none";
+  "border-line bg-paper text-ink h-11 w-full rounded-md border px-3 text-[15px] focus:border-primary focus-visible:shadow-none";
 
 export function PublicForm({
   kind,
@@ -168,7 +168,7 @@ export function PublicForm({
       <button
         type="submit"
         disabled={state === "sending"}
-        className="bg-ink hover:bg-ink-soft h-12 self-start rounded-md px-6 font-semibold text-white disabled:opacity-50"
+        className="bg-primary text-on-primary rounded-pill font-medium hover:brightness-110 h-12 self-start px-6 disabled:opacity-50"
       >
         {state === "sending" ? text.sending : text.submit}
       </button>

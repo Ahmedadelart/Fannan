@@ -137,7 +137,7 @@ export default async function StatsPage({ params, searchParams }: PageProps<"/[l
                 aria-current={on ? "page" : undefined}
                 className={cx(
                   "flex h-[34px] items-center rounded-[8px] px-3.5 font-semibold",
-                  on ? "bg-ink text-white" : "text-ink-soft hover:bg-mist",
+                  on ? "bg-secondary-container text-on-secondary-container" : "text-ink-soft hover:bg-mist",
                 )}
               >
                 {t("days", { n: r })}

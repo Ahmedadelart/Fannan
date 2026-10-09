@@ -1,28 +1,25 @@
 @import "tailwindcss";
 @import "../styles/tokens.generated.css";
 
-/* Text on lime is always ink, even inside the dark editor panels. */
-@theme {
-  --color-on-lime: #141414;
-}
-
 /* Font families. The variables are set by next/font in the root layout. */
 @theme inline {
   --font-*: initial;
+  /* The logo keeps Bricolage; everything else is Google Sans Flex (Material 3 look, round 4). */
   --font-display: var(--font-bricolage), system-ui, sans-serif;
-  --font-body: var(--font-plex), var(--font-plex-arabic), system-ui, sans-serif;
+  --font-body: var(--font-google), var(--font-plex-arabic), system-ui, sans-serif;
   --font-arabic: var(--font-marhey), var(--font-plex-arabic), sans-serif;
   /* Headline font that follows the page language: Bricolage in English, Marhey in Arabic. */
   --font-heading: var(--heading-family);
   --shadow-*: initial;
-  --shadow-float: 0 12px 32px rgba(20, 20, 20, 0.14);
+  /* Material 3 elevation level 3. */
+  --shadow-float: 0 4px 8px 3px rgba(26, 28, 22, 0.12), 0 1px 3px rgba(26, 28, 22, 0.24);
 }
 
 :root {
-  --heading-family: var(--font-bricolage), system-ui, sans-serif;
+  --heading-family: var(--font-google), var(--font-plex-arabic), system-ui, sans-serif;
 }
 :root[lang="ar"] {
-  --heading-family: var(--font-marhey), var(--font-plex-arabic), sans-serif;
+  --heading-family: var(--font-plex-arabic), var(--font-google), sans-serif;
 }
 
 @layer base {
@@ -30,7 +27,7 @@
     -webkit-text-size-adjust: 100%;
   }
   body {
-    background: var(--color-paper);
+    background: var(--color-surface);
     color: var(--color-ink);
     font-family: var(--font-body);
     font-size: 14px;
@@ -51,9 +48,11 @@
 }
 
 @utility font-heading-weight {
-  font-weight: 800;
+  font-weight: 600;
+  letter-spacing: -0.015em;
   :root[lang="ar"] & {
     font-weight: 700;
+    letter-spacing: 0;
   }
 }
 
@@ -230,21 +229,29 @@ html[data-embed] .dash-main {
 /* Editor panels are dark (Carbonmade-style, decided by Ahmed for the editor only). The colour
    tokens are swapped inside them, so every control flips without its own dark variant. */
 .fannan-dark {
-  --color-paper: #1f1f22;
-  --color-mist: #2a2a2e;
-  --color-line: #34343a;
-  --color-line-strong: #4a4a50;
-  --color-ink: #f4f4f2;
-  --color-ink-soft: #cfcfcb;
-  --color-muted: #9a9aa2;
-  --color-white: #141414;
+  /* Material 3 dark scheme from the Fannan lime seed. */
+  --color-paper: #1e2019;
+  --color-surface: #12140e;
+  --color-mist: #292b24;
+  --color-surface-high: #33362e;
+  --color-line: #3a3d33;
+  --color-line-strong: #5d6052;
+  --color-outline: #909284;
+  --color-ink: #e3e4d9;
+  --color-ink-soft: #c6c8ba;
+  --color-muted: #a9ab9d;
+  --color-white: #12140e;
+  --color-primary: #b1d36a;
+  --color-on-primary: #233600;
+  --color-secondary-container: #42492f;
+  --color-on-secondary-container: #dee6c8;
   color-scheme: dark;
 }
 /* Lime always carries real ink, even inside the dark panels (where "ink" is light). */
 .fannan-dark .bg-lime {
-  --color-ink: #141414;
-  --color-ink-soft: #141414;
-  color: #141414;
+  --color-ink: #141f00;
+  --color-ink-soft: #141f00;
+  color: #141f00;
 }
 .fannan-dark input[type="color"] {
   background: #2a2a2e;

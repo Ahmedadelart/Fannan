@@ -12,9 +12,9 @@ import { AuthShell } from "../AuthShell";
 import { EMAIL_KEY } from "@/components/auth/AuthProvider";
 
 const input =
-  "h-[52px] w-full rounded-md border-2 border-ink bg-paper px-4 text-[17px] outline-none placeholder:text-muted focus:shadow-[0_0_0_4px_var(--color-lime)]";
+  "h-[52px] w-full rounded-[16px] border border-outline bg-paper px-4 text-[17px] outline-none placeholder:text-muted focus:border-primary focus:shadow-[0_0_0_1px_var(--color-primary)]";
 const primary =
-  "inline-flex h-[52px] items-center justify-center rounded-md bg-ink px-6 text-[16px] font-semibold text-white hover:bg-ink-soft disabled:opacity-40";
+  "inline-flex h-[52px] items-center justify-center rounded-pill bg-primary px-7 text-[16px] font-medium text-on-primary hover:brightness-110 disabled:opacity-40";
 
 export function LoginForm() {
   const t = useTranslations("login");

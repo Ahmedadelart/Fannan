@@ -200,7 +200,7 @@ function Canvas({
   const tool = "flex size-8 items-center justify-center rounded-full text-ink hover:bg-mist";
 
   return (
-    <div ref={outer} className="flex-1 overflow-auto bg-[#ECECE8] px-6 py-6" data-tip="canvas">
+    <div ref={outer} className="bg-mist flex-1 overflow-auto px-6 py-6" data-tip="canvas">
       {reorder && (
         <p role="status" className="bg-ink sticky top-0 z-30 mx-auto mb-4 w-fit rounded-pill px-4 py-2 text-[13px] font-semibold text-white">
           {t("reorderHint")}
@@ -800,13 +800,13 @@ export function Editor({
 
   /* ---------- render ---------- */
   const railItems = [
-    { id: "home", icon: "dashboard", label: t("rail.home") },
-    { id: "blocks", icon: "site-editor", label: t("rail.blocks") },
-    { id: "projects", icon: "projects", label: t("rail.projects") },
-    { id: "design", icon: "palette", label: t("rail.design") },
-    { id: "messages", icon: "messages", label: t("rail.messages") },
-    { id: "stats", icon: "stats", label: t("rail.stats") },
-    { id: "settings", icon: "settings", label: t("rail.settings") },
+    { id: "home", icon: "dashboard", label: t("rail.home"), short: t("rail.home") },
+    { id: "blocks", icon: "site-editor", label: t("rail.blocks"), short: t("rail.pages") },
+    { id: "projects", icon: "projects", label: t("rail.projects"), short: t("rail.projects") },
+    { id: "design", icon: "palette", label: t("rail.design"), short: t("rail.design") },
+    { id: "messages", icon: "messages", label: t("rail.messages"), short: t("rail.messages") },
+    { id: "stats", icon: "stats", label: t("rail.stats"), short: t("rail.stats") },
+    { id: "settings", icon: "settings", label: t("rail.settings"), short: t("rail.settings") },
   ] as const;
   const openRail = (id: Rail) => {
     if (rail === id && panelOpen && !(id === "projects" && projectId)) return setPanelOpen(false);
@@ -814,10 +814,15 @@ export function Editor({
     if (id === "projects") setProjectId(null);
     setPanelOpen(true);
   };
-  const railTool =
-    "group relative flex size-10 items-center justify-center rounded-[10px] text-white/70 transition-colors hover:bg-white/10 hover:text-white";
-  const railTip =
-    "bg-lime text-ink pointer-events-none absolute start-[48px] z-50 hidden whitespace-nowrap rounded-pill px-2.5 py-1 text-[11px] font-semibold tracking-[0.06em] uppercase group-hover:block";
+  // Material 3 navigation rail: an icon in a pill (lime when active) with a short label under it.
+  const railTool = "group relative flex w-full flex-col items-center gap-1 py-0.5 text-[#C6C8BA] hover:text-[#E3E4D9]";
+  const railPill = (on: boolean) =>
+    cx(
+      "flex h-8 w-14 items-center justify-center rounded-pill transition-colors",
+      on ? "bg-lime text-on-lime" : "group-hover:bg-white/8",
+    );
+  const railLabel = (on: boolean) =>
+    cx("max-w-[76px] truncate text-[11px] leading-tight", on ? "font-semibold text-[#E3E4D9]" : "font-medium");
   const partSettings =
     selected === "__header" || selected === "__footer" ? (
       <SitePartSettings
@@ -849,17 +854,17 @@ export function Editor({
   ) : null);
 
   return (
-    <div className="text-ink relative flex h-dvh bg-[#E9E9E5]">
-      {/* Icon rail (dark, like Carbonmade). */}
+    <div className="text-ink bg-surface relative flex h-dvh">
+      {/* Navigation rail (Material 3, dark like Carbonmade). */}
       <nav
         aria-label={t("rail.label")}
-        className="relative z-40 flex w-14 flex-none flex-col items-center gap-1.5 bg-[#141414] py-3"
+        className="relative z-40 flex w-20 flex-none flex-col items-center gap-2.5 bg-[#12140E] py-3"
       >
         <button
           type="button"
           onClick={() => openRail("home")}
           aria-label={t("rail.home")}
-          className="mb-3 flex size-10 items-center justify-center rounded-full bg-white/10"
+          className="mb-2 flex size-11 items-center justify-center rounded-[14px] bg-white/10"
         >
           <span className="font-heading font-heading-weight text-lime text-[18px] leading-none">{locale === "ar" ? "ف" : "f"}</span>
         </button>
@@ -870,20 +875,28 @@ export function Editor({
             aria-label={r.label}
             aria-pressed={rail === r.id && panelOpen}
             data-tip={r.id === "blocks" ? "rail-blocks" : undefined}
-            className={cx(railTool, rail === r.id && panelOpen && "bg-white/10 text-white")}
+            className={railTool}
             onClick={() => openRail(r.id)}
           >
-            <Icon name={r.icon} size={20} />
+            <span className={railPill(rail === r.id && panelOpen)}>
+              <Icon name={r.icon} size={20} />
+            </span>
             {r.id === "messages" && account.unread > 0 && (
-              <span className="bg-lime absolute end-1.5 top-1.5 size-2 rounded-full" data-testid="unread-dot" />
+              <span className="bg-lime absolute end-4 top-0 size-2.5 rounded-full ring-2 ring-[#12140E]" data-testid="unread-dot" />
             )}
-            <span className={railTip}>{r.label}</span>
+            <span aria-hidden className={railLabel(rail === r.id && panelOpen)}>
+              {r.short}
+            </span>
           </button>
         ))}
         <span className="flex-1" />
         <a href={locale === "ar" ? "https://fannan.net/ar/help" : "https://fannan.net/help"} target="_blank" rel="noreferrer" className={railTool} aria-label={t("rail.help")}>
-          <Icon name="help" size={20} />
-          <span className={railTip}>{t("rail.help")}</span>
+          <span className={railPill(false)}>
+            <Icon name="help" size={20} />
+          </span>
+          <span aria-hidden className={railLabel(false)}>
+            {t("rail.help")}
+          </span>
         </a>
         {/* The account: plan, language, admin (admins only), sign out. */}
         <div className="relative">
@@ -939,7 +952,7 @@ export function Editor({
         <div
           aria-hidden
           data-testid="panel-backdrop"
-          className="bg-ink/30 absolute inset-y-0 start-14 end-0 z-20 lg:hidden"
+          className="bg-ink/30 absolute inset-y-0 start-20 end-0 z-20 lg:hidden"
           onClick={() => setPanelOpen(false)}
         />
       )}
@@ -948,9 +961,9 @@ export function Editor({
           className={cx(
             "border-line flex flex-none flex-col border-e",
             embed
-              ? "bg-mist w-[min(780px,60vw)] max-lg:w-[calc(100vw-56px)]"
-              : "fannan-dark bg-paper text-ink w-[300px] overflow-y-auto max-lg:w-[min(320px,calc(100vw-56px))]",
-            "max-lg:shadow-float max-lg:absolute max-lg:inset-y-0 max-lg:start-14 max-lg:z-30",
+              ? "bg-mist w-[min(780px,60vw)] max-lg:w-[calc(100vw-80px)]"
+              : "fannan-dark bg-paper text-ink w-[300px] overflow-y-auto max-lg:w-[min(320px,calc(100vw-80px))]",
+            "max-lg:shadow-float max-lg:absolute max-lg:inset-y-0 max-lg:start-20 max-lg:z-30",
           )}
           data-testid="left-panel"
           data-panel={rail}
@@ -997,7 +1010,7 @@ export function Editor({
                   type="button"
                   aria-expanded={pagesOpen}
                   onClick={() => setPagesOpen(!pagesOpen)}
-                  className="flex w-full items-center justify-between rounded-[12px] bg-[#141414] px-3.5 py-2.5 text-start"
+                  className="bg-surface flex w-full items-center justify-between rounded-[16px] px-4 py-2.5 text-start"
                   data-testid="page-switcher"
                 >
                   <span className="flex min-w-0 flex-col">
@@ -1158,7 +1171,7 @@ export function Editor({
               }}
               className={cx(
                 "flex h-9 items-center gap-1.5 rounded-pill px-3 text-[13px] font-semibold",
-                reorder ? "bg-ink text-white" : "bg-paper text-ink hover:bg-white",
+                reorder ? "bg-secondary-container text-on-secondary-container" : "bg-paper text-ink hover:bg-white",
               )}
             >
               <Icon name="reorder" size={16} />
@@ -1179,7 +1192,7 @@ export function Editor({
                   className={cx(
                     "flex size-8 items-center justify-center rounded-full",
                     d === "tablet" && "max-sm:hidden",
-                    device === d ? "bg-ink text-white" : "text-muted hover:text-ink",
+                    device === d ? "bg-secondary-container text-on-secondary-container" : "text-muted hover:text-ink",
                   )}
                 >
                   <Icon name={d === "phone" ? "mobile" : d} size={16} />

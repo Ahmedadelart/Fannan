@@ -23,8 +23,8 @@ const tokens = JSON.parse(read("design/tokens.json"));
 
 // Two greys the reference screens use that tokens.json doesn't name yet.
 const extraColors = [
-  { name: "ink-soft", value: "#3A3A40", usage: "Secondary UI text (labels, ghost buttons) in the screens." },
-  { name: "line-strong", value: "#CFCFC8", usage: "Empty checkbox borders and dashed empty-state outlines." },
+  { name: "ink-soft", value: "#45483D", usage: "M3 on-surface-variant: secondary UI text (labels, ghost buttons)." },
+  { name: "line-strong", value: "#C6C8BA", usage: "Empty checkbox borders and dashed empty-state outlines." },
 ];
 
 const css = [];

@@ -56,7 +56,7 @@ export default async function PricingPage({ params }: PageProps<"/[locale]/marke
               href={urls.app(`/upgrade?months=${d.months}`)}
               className={cx(
                 "mt-auto flex h-12 items-center justify-center rounded-md font-semibold",
-                d.months === 12 ? "bg-ink hover:bg-ink-soft text-white" : "border-ink border-2 hover:bg-mist",
+                d.months === 12 ? "bg-primary text-on-primary hover:brightness-110" : "border-outline text-primary border hover:bg-primary/8",
               )}
             >
               {t("get", { months: d.months })}

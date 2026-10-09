@@ -54,15 +54,18 @@ The screens are `.dc.html` files from Ahmed's design tool:
 - Treat them as the visual spec. Don't copy their markup structure.
 
 Non-negotiables:
+- **System:** Material 3 (Google), seeded from Fannan lime. Decided by Ahmed on 9 Oct 2026 ("full Google look"). Colour roles, shapes and type are in `design/tokens.json`.
 - **Colours:**
-  - lime `#C6F432` only sits **behind** ink, never as text or thin lines;
-  - ink `#141414` for text, icons and primary buttons;
-  - white and mist `#F4F4F2` for surfaces.
+  - lime `#C6F432` is the primary container and only sits **behind** dark text (`on-lime` `#141F00`), never as text or thin lines;
+  - primary `#4C6700` (olive) for filled buttons, links and selected controls;
+  - ink `#1A1C16` (on-surface) for text and icons;
+  - surfaces are soft tinted tones: surface `#FAFAF2`, mist `#F0F1E7`, white cards;
+  - the editor's panels use the M3 dark scheme from the same seed.
   - **No blue anywhere.**
-- **Type:** Bricolage Grotesque 800 for headings, IBM Plex Sans / IBM Plex Sans Arabic for UI and body, Marhey 700 for Arabic display only.
+- **Type:** Google Sans Flex (OFL) for UI and headings (600). IBM Plex Sans Arabic for Arabic text and headings. The logo keeps Bricolage Grotesque 800 and Marhey 700.
 - **Icons:** use only the SVGs in `design/icons/` (style "C · Swiss": 1.5 stroke, square ends, `currentColor`). An active item gets a lime tile behind its icon. Any new icon must follow `ICONS.md`.
-- **Corners:** 6px for badges, 12px for buttons, inputs and tiles, 22px for cards, 999px for pills.
-- **Shadows:** only floating things (menus, popovers) get one.
+- **Corners (M3 shape scale):** 8px for chips and badges, 12–16px for inputs and menus, 28px for cards and dialogs, fully round for buttons, toggles and navigation pills.
+- **Shadows:** M3 elevation. Floating things (menus, popovers, dialogs) get level 3; filled buttons lift slightly on hover. Cards are flat or outlined.
 - **The logo stroke:** `skewX(-14deg) rotate(-1.5deg)`, from 44% down to 6% above the bottom of the word box, overhanging -0.18em left and -0.09em right. In Arabic it's mirrored.
 - **RTL:** use CSS logical properties (`margin-inline-start` and so on). Mirror directional icons (undo/redo, arrows, the publish plane), not object icons.
 - Artist sites use the artist's chosen theme, not Fannan's brand. Fannan branding only appears as a small footer credit on the Free plan.

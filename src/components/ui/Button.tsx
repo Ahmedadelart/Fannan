@@ -2,28 +2,29 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { cx } from "@/lib/cx";
 import { Icon, type IconName } from "./Icon";
 
-// BRAND.md §6: ink = the main action (one per view) · lime = upload, upgrade and hire ·
-// outline = secondary · ghost = inside panels. Heights 32 / 40 / 44.
+// Material 3 buttons (round 4, stage C): primary = filled (the main action, one per view) ·
+// lime = filled tonal in the brand colour (upload, upgrade, hire) · outline = outlined ·
+// ghost = text button. Fully rounded; heights 32 / 40 / 44.
 
 export type ButtonVariant = "primary" | "lime" | "outline" | "ghost";
 export type ButtonSize = "sm" | "md" | "lg";
 
 const variants: Record<ButtonVariant, string> = {
-  primary: "bg-ink text-white hover:bg-ink-soft",
-  lime: "bg-lime text-ink hover:brightness-95",
-  outline: "bg-paper text-ink border border-line hover:bg-mist",
-  ghost: "text-ink-soft hover:bg-mist hover:text-ink",
+  primary: "bg-primary text-on-primary hover:shadow-[0_1px_3px_1px_rgba(26,28,22,.15),0_1px_2px_rgba(26,28,22,.3)] hover:brightness-110",
+  lime: "bg-lime text-on-lime hover:brightness-95 hover:shadow-[0_1px_3px_1px_rgba(26,28,22,.15)]",
+  outline: "bg-transparent text-primary border border-outline hover:bg-primary/8",
+  ghost: "text-primary hover:bg-primary/8",
 };
 
 const sizes: Record<ButtonSize, { box: string; icon: 16 | 18 }> = {
-  sm: { box: "h-8 px-2.5 text-[13px]", icon: 16 },
-  md: { box: "h-10 px-4 text-[14px]", icon: 18 },
-  lg: { box: "h-11 px-[18px] text-[14px]", icon: 18 },
+  sm: { box: "h-8 px-3.5 text-[13px]", icon: 16 },
+  md: { box: "h-10 px-5 text-[14px]", icon: 18 },
+  lg: { box: "h-11 px-6 text-[15px]", icon: 18 },
 };
 
 export function buttonClasses(variant: ButtonVariant = "primary", size: ButtonSize = "md") {
   return cx(
-    "inline-flex flex-none items-center justify-center gap-2 whitespace-nowrap rounded-md font-semibold",
+    "inline-flex flex-none items-center justify-center gap-2 whitespace-nowrap rounded-pill font-medium",
     "transition-colors disabled:cursor-not-allowed disabled:opacity-40",
     variants[variant],
     sizes[size].box,
@@ -57,10 +58,10 @@ export function Button({
 export type IconButtonVariant = "outline" | "mist" | "ghost" | "active";
 
 const iconButtonVariants: Record<IconButtonVariant, string> = {
-  outline: "border border-line bg-paper text-ink hover:bg-mist",
-  mist: "bg-mist text-ink hover:bg-line",
-  ghost: "text-ink hover:bg-mist",
-  active: "bg-lime text-ink",
+  outline: "border border-line bg-paper text-ink-soft hover:bg-mist",
+  mist: "bg-mist text-ink-soft hover:bg-surface-high",
+  ghost: "text-ink-soft hover:bg-ink/8",
+  active: "bg-lime text-on-lime",
 };
 
 interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
@@ -87,7 +88,7 @@ export function IconButton({
       aria-label={label}
       title={label}
       className={cx(
-        "inline-flex flex-none items-center justify-center rounded-md transition-colors disabled:cursor-not-allowed disabled:opacity-40",
+        "inline-flex flex-none items-center justify-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-40",
         size === "md" ? "size-10" : "size-8",
         iconButtonVariants[variant],
         className,

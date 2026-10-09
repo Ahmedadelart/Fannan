@@ -39,9 +39,9 @@ type Check = { state: "checking" } | CheckResult;
 /* ---------- small pieces matching Onboarding.dc.html ---------- */
 
 const bigInput =
-  "h-[60px] w-full rounded-md border-2 border-ink bg-paper px-[18px] text-[20px] text-ink outline-none placeholder:text-muted focus:shadow-[0_0_0_4px_var(--color-lime)]";
+  "h-[60px] w-full rounded-[16px] border border-outline bg-paper px-[18px] text-[20px] text-ink outline-none placeholder:text-muted focus:border-primary focus:shadow-[0_0_0_1px_var(--color-primary)]";
 const bigButton =
-  "inline-flex h-[52px] flex-none items-center justify-center gap-2 whitespace-nowrap rounded-md bg-ink px-6 text-[16px] font-semibold text-white transition-colors hover:bg-ink-soft disabled:opacity-40";
+  "inline-flex h-[52px] flex-none items-center justify-center gap-2 whitespace-nowrap rounded-pill bg-primary px-7 text-[16px] font-medium text-on-primary transition-colors hover:brightness-110 disabled:opacity-40";
 const backButton = "inline-flex h-[52px] items-center px-1.5 text-[15px] font-semibold text-muted hover:text-ink";
 
 function Kicker({ children }: { children: ReactNode }) {
@@ -517,7 +517,7 @@ export function SignupFlow({
                       }}
                       className={cx(
                         "rounded-pill h-[38px] px-3.5 text-[14px] font-semibold transition-colors",
-                        on ? "bg-ink text-white" : "border-line bg-paper hover:bg-mist border",
+                        on ? "bg-secondary-container text-on-secondary-container" : "border-line bg-paper hover:bg-mist border",
                       )}
                     >
                       {disciplineLabel(c, locale)}

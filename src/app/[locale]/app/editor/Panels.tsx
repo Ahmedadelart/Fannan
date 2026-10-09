@@ -41,9 +41,9 @@ import { saveSiteSettings } from "../(dash)/settings/actions";
 /* ---------- small form pieces (Editor.dc.html right panel) ---------- */
 
 const inputCls =
-  "h-10 w-full rounded-[10px] border border-line bg-paper px-3 text-[14px] font-normal text-ink outline-none focus:border-ink";
+  "h-10 w-full rounded-[10px] border border-line bg-paper px-3 text-[14px] font-normal text-ink outline-none focus:border-primary";
 const areaCls =
-  "min-h-[96px] w-full resize-y rounded-[10px] border border-line bg-paper px-3 py-2.5 text-[14px] font-normal text-ink outline-none focus:border-ink";
+  "min-h-[96px] w-full resize-y rounded-[10px] border border-line bg-paper px-3 py-2.5 text-[14px] font-normal text-ink outline-none focus:border-primary";
 
 export function Label({ title, children, hint }: { title: string; children: ReactNode; hint?: ReactNode }) {
   return (
@@ -128,7 +128,7 @@ function Choice<T extends string>({
             onClick={() => onChange(v)}
             className={cx(
               "h-9 rounded-[8px] px-2 text-[12px] font-semibold",
-              v === value ? "bg-ink text-white" : "border-line bg-paper text-ink hover:bg-mist border",
+              v === value ? "bg-secondary-container text-on-secondary-container" : "border-line bg-paper text-ink hover:bg-mist border",
             )}
           >
             {label}
@@ -206,7 +206,7 @@ function ColorField({
           onClick={() => onChange(null)}
           className={cx(
             "h-9 rounded-[8px] px-3 text-[12px] font-semibold",
-            value === null ? "bg-ink text-white" : "border-line bg-paper hover:bg-mist border",
+            value === null ? "bg-secondary-container text-on-secondary-container" : "border-line bg-paper hover:bg-mist border",
           )}
         >
           {themeLabel}

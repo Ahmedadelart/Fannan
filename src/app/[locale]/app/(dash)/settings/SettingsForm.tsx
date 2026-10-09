@@ -130,7 +130,7 @@ function Chip({ on, onClick, children, disabled }: { on: boolean; onClick?: () =
       onClick={onClick}
       className={cx(
         "rounded-pill h-8 px-3 text-[12px] font-semibold transition-colors disabled:cursor-default",
-        on ? "bg-ink text-white" : "bg-mist text-ink hover:bg-line",
+        on ? "bg-secondary-container text-on-secondary-container" : "bg-mist text-ink hover:bg-line",
       )}
     >
       {children}

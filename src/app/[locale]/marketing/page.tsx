@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { sampleTone, toneFill } from "@/lib/site/samples";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { MarketingFooter, MarketingHeader } from "@/components/marketing/Chrome";
 import { mHref } from "@/components/marketing/links";
@@ -22,10 +23,11 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/marketin
   };
 }
 
+// Example sites, drawn with the sample artwork (public/samples): no muddy tiles, no blue.
 const EXAMPLES = [
-  { key: "animator", bg: "#1E1E22", bar: "#F4F1EA", c: ["#5B3A2E", "#7A4E3A", "#3A2A22"] },
-  { key: "illustrator", bg: "#FFFFFF", bar: "#141414", c: ["#E8A0A0", "#9CC7C1", "#F2D27A"] },
-  { key: "character", bg: "#EDE6F5", bar: "#3A2E5B", c: ["#3A2E5B", "#7B6BB0", "#B9AEDC"] },
+  { key: "animator", bg: "#1E1E22", bar: "#F4F1EA", c: ["sample:15", "sample:09", "sample:01"] },
+  { key: "illustrator", bg: "#FFFFFF", bar: "#1A1C16", c: ["sample:11", "sample:14", "sample:06"] },
+  { key: "character", bg: "#EDE6F5", bar: "#3A2E5B", c: ["sample:02", "sample:08", "sample:04"] },
 ] as const;
 
 export default async function MarketingHome({ params }: PageProps<"/[locale]/marketing">) {
@@ -78,8 +80,8 @@ export default async function MarketingHome({ params }: PageProps<"/[locale]/mar
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  {["#5B3A2E", "#2E4A5B", "#4E5B2E", "#5B2E4F", "#3A3A44", "#5B4C2E"].map((c) => (
-                    <div key={c} className="aspect-square rounded-sm" style={{ background: c }} />
+                  {[2, 11, 1, 14, 6, 10].map((n) => (
+                    <div key={n} className="aspect-square rounded-sm" style={{ background: toneFill(sampleTone(n - 1)) }} />
                   ))}
                 </div>
               </div>
@@ -150,7 +152,7 @@ export default async function MarketingHome({ params }: PageProps<"/[locale]/mar
                   <div className="h-3 w-2/5 rounded-[6px]" style={{ background: e.bar }} />
                   <div className="grid grid-cols-3 gap-1.5">
                     {[0, 1, 2, 1, 2, 0].map((c, i) => (
-                      <div key={i} className="aspect-square rounded-[4px]" style={{ background: e.c[c] }} />
+                      <div key={i} className="aspect-square rounded-[6px]" style={{ background: toneFill(e.c[c]) }} />
                     ))}
                   </div>
                 </div>
@@ -176,7 +178,7 @@ export default async function MarketingHome({ params }: PageProps<"/[locale]/mar
                   <li key={k}>{k === "address" ? <span dir="ltr">yourname.fannan.net</span> : t(`free.${k}`)}</li>
                 ))}
               </ul>
-              <a href="#claim" className="border-ink mt-auto flex h-[50px] items-center justify-center rounded-md border-2 font-semibold hover:bg-mist">
+              <a href="#claim" className="border-outline text-primary hover:bg-primary/8 mt-auto flex h-[50px] items-center justify-center rounded-pill border font-medium">
                 {t("free.cta")}
               </a>
             </div>
@@ -200,7 +202,7 @@ export default async function MarketingHome({ params }: PageProps<"/[locale]/mar
               </ul>
               <a
                 href={mHref(locale, "/pricing")}
-                className="bg-ink hover:bg-ink-soft mt-auto flex h-[50px] items-center justify-center rounded-md font-semibold text-white"
+                className="bg-primary text-on-primary rounded-pill font-medium hover:brightness-110 mt-auto flex h-[50px] items-center justify-center"
               >
                 {t("pro.cta")}
               </a>
@@ -214,7 +216,7 @@ export default async function MarketingHome({ params }: PageProps<"/[locale]/mar
             <p className="font-heading font-heading-weight text-[clamp(42px,6vw,76px)] leading-[1.02] tracking-[-0.03em]">
               {t("closing")}
             </p>
-            <a href="#claim" className="bg-ink hover:bg-ink-soft flex h-14 items-center rounded-md px-[30px] text-[17px] font-semibold text-white">
+            <a href="#claim" className="bg-primary text-on-primary rounded-pill font-medium hover:brightness-110 flex h-14 items-center px-[30px] text-[17px]">
               {t("closingCta")}
             </a>
           </div>
