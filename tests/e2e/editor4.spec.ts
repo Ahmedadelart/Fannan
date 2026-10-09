@@ -42,6 +42,7 @@ test("header, footer and contact form are edited on the page and reach the live 
   await expect(header).toBeVisible();
   // Only settings for the header: it can't be dragged, copied or deleted.
   await expect(page.getByTestId("section-toolbar").getByRole("button")).toHaveCount(1);
+  await header.getByRole("tab", { name: "Items" }).click();
   await header.getByRole("radio", { name: "Always" }).click();
   await header.getByRole("textbox", { name: "Button words" }).fill("Work with me");
   await expect(canvas(page).locator('[data-site-part="header"]')).toContainText("Work with me");
@@ -180,4 +181,75 @@ test("full-width canvas, a settings card you can move, and Add section right on 
   expect(a.x - b.x).toBeGreaterThan(150);
   expect(b.y - a.y).toBeGreaterThan(80);
   await page.screenshot({ path: `test-results/r4d-card-${info.project.name}.png` });
+});
+
+test("items: layers restack and hide, new kinds, quick toolbar first", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop");
+  test.setTimeout(150_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signUp(page);
+  await openEditor(page);
+  await page.getByTestId("add-free-blank").click();
+  const items = page.getByTestId("free-item");
+  await expect(items).toHaveCount(2);
+
+  // New kinds from the grouped menu.
+  for (const name of ["Quote", "Social links", "List / FAQ"]) {
+    await page.getByRole("button", { name: "Add item" }).click();
+    await page.getByRole("menuitem", { name, exact: true }).click();
+  }
+  await expect(items).toHaveCount(5);
+  await expect(page.locator('[data-kind="quote"]')).toBeVisible();
+  await expect(page.getByTestId("social-item")).toBeVisible();
+
+  // Layers: newest on top; drag the bottom one to the top, then hide it.
+  await page.getByTestId("layers-button").click();
+  const rows = page.getByTestId("layers-panel").getByRole("listitem");
+  await expect(rows).toHaveCount(5);
+  const bottomName = await rows.last().textContent();
+  const from = (await rows.last().boundingBox())!;
+  const to = (await rows.first().boundingBox())!;
+  await page.mouse.move(from.x + 40, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(to.x + 40, to.y + 4, { steps: 8 });
+  await page.mouse.up();
+  await expect(rows.first()).toHaveText(bottomName!);
+  await rows.first().hover();
+  await rows.first().getByRole("button", { name: "Hide" }).click();
+  await expect(page.locator("[data-hidden]")).toHaveCount(1);
+  await page.screenshot({ path: `test-results/r5-layers-${info.project.name}.png` });
+
+  // Selecting an item shows the quick toolbar; the pencil opens settings with Content and Design.
+  await items.first().click({ force: true });
+  await expect(page.getByTestId("free-toolbar")).toBeVisible();
+  await page.getByTestId("item-edit").click();
+  await expect(page.getByTestId("block-settings").getByRole("tab", { name: "Design" })).toBeVisible();
+  await page.screenshot({ path: `test-results/r5-item-${info.project.name}.png` });
+});
+
+test("header and footer: more settings in tabs", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop");
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signUp(page);
+  await openEditor(page);
+  await canvas(page).locator('[data-site-part="header"]').click({ position: { x: 4, y: 4 } });
+  const header = page.getByTestId("header-settings");
+  await header.getByRole("tab", { name: "Items" }).click();
+  await header.getByRole("switch", { name: "Social links in the header" }).click();
+  await expect(page.getByTestId("header-social")).toBeVisible();
+  await header.getByRole("tab", { name: "Style" }).click();
+  await header.getByRole("switch", { name: "Drop shadow" }).click();
+  await page.screenshot({ path: `test-results/r5-header-${info.project.name}.png` });
+
+  const footer = canvas(page).locator('[data-site-part="footer"]');
+  await footer.scrollIntoViewIfNeeded();
+  await footer.click({ position: { x: 4, y: 4 } });
+  const fs = page.getByTestId("footer-settings");
+  await fs.getByRole("radio", { name: "Three columns" }).click();
+  await fs.getByRole("tab", { name: "Items" }).click();
+  await fs.getByRole("switch", { name: "Site name" }).click();
+  await fs.getByRole("textbox", { name: "Email address" }).fill("nour@example.com");
+  await expect(footer).toContainText("nour@example.com");
+  await page.screenshot({ path: `test-results/r5-footer-${info.project.name}.png` });
 });

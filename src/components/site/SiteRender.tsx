@@ -9,6 +9,7 @@ import { CONTACT_WORDS, contactFormOf, type LegacyContactFields } from "@/lib/si
 import { normalizeFooter, normalizeHeader } from "@/lib/site/normalize";
 import { isSampleTone, toneFill } from "@/lib/site/samples";
 import { arabicFonts, bodyFonts, headingFonts, siteFontVars } from "./fonts";
+import { socialPath } from "./socialIcons";
 
 // Renders an artist site from its draft (or a published snapshot). Artist sites use the artist's
 // theme, never Fannan's brand. Layout reacts to the width of its own box (container queries), so
@@ -62,6 +63,8 @@ export interface SiteRenderProps {
   credit?: string | null;
   /** Social links and CV from Settings, shown in the footer. */
   footerLinks?: Array<{ href: string; label: string; download?: boolean; kind?: "social" | "cv" }>;
+  /** Social links from Settings (social link items, header and footer icons). */
+  social?: Array<{ network: string; url: string }>;
   /** Site-wide contact form settings, for contact sections made before they had their own. */
   contactFallback?: LegacyContactFields | null;
   /** "Report this site" (live sites only). */
@@ -416,6 +419,52 @@ export function freeOrder(items: FreeItem[]): Map<string, number> {
   return new Map(sorted.map((it, i) => [it.id, i]));
 }
 
+/** Typography shared by the text-like items (text, heading, button, quote, list). */
+function itemType(it: FreeItem): CSSProperties {
+  return {
+    fontFamily: it.font === "heading" ? "var(--site-heading)" : "var(--site-body)",
+    fontWeight: it.weight,
+    lineHeight: it.lineHeight / 100,
+    // Arabic letters join, so letter spacing only applies to Latin text (the site sets lang).
+    letterSpacing: it.tracking ? `${it.tracking / 100}em` : undefined,
+    textTransform: it.upper ? "uppercase" : undefined,
+    fontStyle: it.italic ? "italic" : undefined,
+  };
+}
+
+/** The frame around pictures, shapes, buttons, videos and cards. */
+function itemFrame(it: FreeItem): CSSProperties {
+  return {
+    border: it.borderWidth ? `${it.borderWidth}px solid ${it.borderColor ?? "var(--site-text)"}` : undefined,
+    boxShadow: it.shadow ? "0 10px 30px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.12)" : undefined,
+  };
+}
+
+/** Shape outlines beyond corner radius. */
+const SHAPE_CLIP: Record<FreeItem["shape"], string | undefined> = {
+  rect: undefined,
+  circle: undefined,
+  pill: undefined,
+  triangle: "polygon(50% 0, 100% 100%, 0 100%)",
+  arch: undefined,
+};
+
+/** SoundCloud and Spotify links become their players. */
+function audioEmbed(url: string): string | null {
+  try {
+    const u = new URL(url);
+    if (/(^|\.)soundcloud\.com$/.test(u.hostname))
+      return `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23141414&visual=false`;
+    if (u.hostname === "open.spotify.com") return `https://open.spotify.com/embed${u.pathname}`;
+  } catch {}
+  return null;
+}
+
+export interface FreeExtras {
+  social?: Array<{ network: string; url: string }>;
+  projects?: GalleryProject[];
+}
+
 /** What a free-form item shows. `text` lets the editor swap in text typed in place. */
 export function FreeItemContent({
   it,
@@ -423,14 +472,17 @@ export function FreeItemContent({
   base,
   live,
   text,
+  extras = {},
 }: {
   it: FreeItem;
   media: Record<string, SiteMedia>;
   base: string;
   live: boolean;
   text?: ReactNode;
+  extras?: FreeExtras;
 }) {
   const align = { start: "start", center: "center", end: "end" }[it.align] as CSSProperties["textAlign"];
+  const justify = { start: "flex-start", center: "center", end: "flex-end" }[it.align];
   const wrapLink = (node: ReactNode) =>
     live && it.link ? (
       <a href={it.link} className="block h-full w-full" style={{ color: "inherit" }}>
@@ -445,58 +497,76 @@ export function FreeItemContent({
       return (
         <div
           className={cx("site-free-text h-full w-full", it.kind === "heading" && "site-free-heading")}
-          style={{
-            textAlign: align,
-            color: it.color ?? undefined,
-            ...(it.kind === "heading"
-              ? { fontFamily: "var(--site-heading)", fontWeight: "var(--site-heading-weight)" as unknown as number, lineHeight: 1.05 }
-              : { lineHeight: 1.55 }),
-          }}
+          style={{ textAlign: align, color: it.color ?? undefined, ...itemType(it) }}
         >
           {text ?? <span className="whitespace-pre-line">{it.text}</span>}
         </div>
       );
     case "image": {
       const m = it.mediaId ? (media[it.mediaId] ?? null) : null;
-      return wrapLink(
-        <Picture
-          m={m}
-          base={base}
-          tone={it.tone}
-          ratio="auto"
-          want={1600}
-          className={cx("h-full w-full", it.fit === "contain" && "[&_img]:!object-contain")}
-          alt={m?.alt}
-        />,
-      );
-    }
-    case "button":
-      return (
-        <div className="flex h-full w-full items-center" style={{ justifyContent: { start: "flex-start", center: "center", end: "flex-end" }[it.align] }}>
-          {(() => {
-            const inner = text ?? it.text;
-            const style: CSSProperties = {
-              background: it.fill ?? "var(--site-accent)",
-              color: it.color ?? (it.fill ? readableOn(it.fill) : "var(--site-on-accent)"),
-              borderRadius: it.radius,
-            };
-            return live && it.link ? (
-              <a href={it.link} className="site-free-button" style={style}>
-                {inner}
-              </a>
-            ) : (
-              <span className="site-free-button" style={style}>
-                {inner}
-              </span>
-            );
-          })()}
+      const pic = (
+        <div className="h-full w-full overflow-hidden" style={{ borderRadius: it.radius, ...itemFrame(it) }}>
+          <Picture
+            m={m}
+            base={base}
+            tone={it.tone}
+            ratio="auto"
+            want={1600}
+            className={cx("h-full w-full !rounded-none", it.fit === "contain" && "[&_img]:!object-contain")}
+            alt={m?.alt}
+          />
         </div>
       );
+      if (!it.caption) return wrapLink(pic);
+      return (
+        <figure className="m-0 flex h-full w-full flex-col gap-2">
+          <div className="min-h-0 flex-1">{wrapLink(pic)}</div>
+          <figcaption className="site-free-text" style={{ ["--fs" as string]: 14, color: "var(--site-muted)", textAlign: align }}>
+            {it.caption}
+          </figcaption>
+        </figure>
+      );
+    }
+    case "button": {
+      const inner = text ?? it.text;
+      const filled = it.variant === "filled";
+      const style: CSSProperties = {
+        background: filled ? (it.fill ?? "var(--site-accent)") : "transparent",
+        color:
+          it.color ??
+          (filled ? (it.fill ? readableOn(it.fill) : "var(--site-on-accent)") : (it.fill ?? "var(--site-text)")),
+        borderRadius: it.radius,
+        border: it.variant === "outline" ? `${Math.max(1, it.borderWidth || 2)}px solid ${it.fill ?? "var(--site-text)"}` : itemFrame(it).border,
+        boxShadow: itemFrame(it).boxShadow,
+        textDecoration: it.variant === "text" ? "underline" : undefined,
+        textUnderlineOffset: "0.25em",
+        ...itemType(it),
+      };
+      return (
+        <div className="flex h-full w-full items-center" style={{ justifyContent: justify }}>
+          {live && it.link ? (
+            <a href={it.link} className="site-free-button" style={style}>
+              {inner}
+            </a>
+          ) : (
+            <span className="site-free-button" style={style}>
+              {inner}
+            </span>
+          )}
+        </div>
+      );
+    }
     case "shape":
       return wrapLink(
         <div
           className="h-full w-full"
-          style={{ background: it.fill ?? "var(--site-text)", borderRadius: it.shape === "circle" ? "50%" : it.radius }}
+          style={{
+            background: it.fill ?? "var(--site-text)",
+            borderRadius:
+              it.shape === "circle" ? "50%" : it.shape === "pill" ? 9999 : it.shape === "arch" ? "9999px 9999px 0 0" : it.radius,
+            clipPath: SHAPE_CLIP[it.shape],
+            ...(it.shape === "triangle" ? {} : itemFrame(it)),
+          }}
         />,
       );
     case "line":
@@ -507,12 +577,129 @@ export function FreeItemContent({
       );
     case "video":
       return it.url ? (
-        <div className="h-full w-full overflow-hidden" style={{ borderRadius: it.radius }}>
+        <div className="h-full w-full overflow-hidden" style={{ borderRadius: it.radius, ...itemFrame(it) }}>
           <VideoView url={it.url} caption="" ctx={{ media, base, editing: !live, live } as Ctx} />
         </div>
       ) : (
         <div className="h-full w-full" style={{ background: toneFill(it.tone), borderRadius: it.radius }} />
       );
+    case "social": {
+      const links = extras.social ?? [];
+      const shown = links.length ? links : live ? [] : [{ network: "instagram", url: "#" }, { network: "behance", url: "#" }, { network: "linkedin", url: "#" }];
+      return (
+        <div
+          className="flex h-full w-full flex-wrap items-center"
+          style={{ justifyContent: justify, gap: "calc(var(--fs) * 100cqi / 1200 * 0.7)", color: it.color ?? "var(--site-text)" }}
+          data-testid="social-item"
+        >
+          {shown.map((l, i) => {
+            const icon = (
+              <svg viewBox="0 0 24 24" aria-hidden className="block" style={{ width: "max(16px, calc(var(--fs) * 100cqi / 1200))", height: "max(16px, calc(var(--fs) * 100cqi / 1200))", fill: "currentColor" }}>
+                <path d={socialPath(l.network)} />
+              </svg>
+            );
+            return live ? (
+              <a key={i} href={l.url} target="_blank" rel="me noopener" aria-label={l.network} style={{ color: "inherit" }}>
+                {icon}
+              </a>
+            ) : (
+              <span key={i}>{icon}</span>
+            );
+          })}
+        </div>
+      );
+    }
+    case "quote":
+      return (
+        <figure className="m-0 flex h-full w-full flex-col gap-3" style={{ textAlign: align, color: it.color ?? undefined }}>
+          <blockquote className="site-free-text m-0" style={itemType(it)}>
+            {text ?? <span className="whitespace-pre-line">“{it.text}”</span>}
+          </blockquote>
+          {it.caption && (
+            <figcaption className="site-free-text" style={{ ["--fs" as string]: Math.max(12, Math.round(it.size * 0.45)), color: "var(--site-muted)" }}>
+              {it.caption}
+            </figcaption>
+          )}
+        </figure>
+      );
+    case "list":
+      return (
+        <div className="site-free-text flex h-full w-full flex-col" style={{ color: it.color ?? undefined, textAlign: align }}>
+          {it.entries.map((e, i) => (
+            <details
+              key={i}
+              open={!live || i === 0}
+              className="py-3"
+              style={{ borderBottom: "1px solid var(--site-line)" }}
+            >
+              <summary className="cursor-pointer list-none font-semibold" style={itemType(it)}>
+                {e.title}
+              </summary>
+              <p className="mt-2 mb-0 whitespace-pre-line" style={{ color: "var(--site-muted)" }}>
+                {e.body}
+              </p>
+            </details>
+          ))}
+        </div>
+      );
+    case "map":
+      return (
+        <div className="h-full w-full overflow-hidden" style={{ borderRadius: it.radius, ...itemFrame(it) }}>
+          {it.text ? (
+            <iframe
+              title={it.text}
+              src={`https://www.google.com/maps?q=${encodeURIComponent(it.text)}&output=embed`}
+              className="h-full w-full border-0"
+              loading="lazy"
+              style={{ pointerEvents: live ? undefined : "none" }}
+            />
+          ) : (
+            <div className="h-full w-full" style={{ background: "var(--site-surface)" }} />
+          )}
+        </div>
+      );
+    case "audio": {
+      const src = it.url ? audioEmbed(it.url) : null;
+      return src ? (
+        <iframe
+          title="Audio"
+          src={src}
+          className="h-full w-full border-0"
+          loading="lazy"
+          allow="autoplay; encrypted-media"
+          style={{ borderRadius: it.radius, pointerEvents: live ? undefined : "none" }}
+        />
+      ) : (
+        <div
+          className="flex h-full w-full items-center gap-3 px-4"
+          style={{ background: "var(--site-surface)", borderRadius: it.radius, color: "var(--site-muted)" }}
+        >
+          <span className="size-9 flex-none rounded-full" style={{ background: "var(--site-accent)" }} />
+          <span className="h-1.5 flex-1 rounded-full" style={{ background: "var(--site-line)" }} />
+        </div>
+      );
+    }
+    case "project": {
+      const pr = extras.projects?.find((x) => x.id === it.projectId) ?? (live ? null : extras.projects?.[0]);
+      const m = pr?.coverId ? (media[pr.coverId] ?? null) : null;
+      const card = (
+        <div className="flex h-full w-full flex-col gap-2">
+          <div className="min-h-0 flex-1 overflow-hidden" style={{ borderRadius: it.radius, ...itemFrame(it) }}>
+            <Picture m={m} base={base} tone={it.tone} ratio="auto" want={1200} className="h-full w-full !rounded-none" alt={pr?.title} />
+          </div>
+          <span className="site-free-text font-semibold" style={{ ...itemType(it), textAlign: align, color: it.color ?? undefined }}>
+            {pr?.title ?? ""}
+          </span>
+        </div>
+      );
+      return live && pr && pr.visibility !== "hidden" ? (
+        <a href={`/${pr.slug}`} className="block h-full w-full" style={{ color: "inherit", textDecoration: "none" }}>
+          {card}
+        </a>
+      ) : (
+        card
+      );
+    }
   }
 }
 
@@ -528,16 +715,24 @@ function FreeSectionView({ b, ctx }: { b: BlockOf<"free">; ctx: Ctx }) {
       )}
       <div className="site-free relative">
         <div className="site-free-grid" style={{ ["--rows" as string]: b.rows }}>
-          {b.items.map((it) => (
-            <div
-              key={it.id}
-              className={cx("site-free-item", `site-free-${it.kind}`)}
-              data-phone-hidden={it.hideOnPhone || undefined}
-              style={freeItemStyle(it, order.get(it.id) ?? 0)}
-            >
-              <FreeItemContent it={it} media={ctx.media} base={ctx.base} live={ctx.live} />
-            </div>
-          ))}
+          {b.items
+            .filter((it) => !it.hidden)
+            .map((it) => (
+              <div
+                key={it.id}
+                className={cx("site-free-item", `site-free-${it.kind}`)}
+                data-phone-hidden={it.hideOnPhone || undefined}
+                style={freeItemStyle(it, order.get(it.id) ?? 0)}
+              >
+                <FreeItemContent
+                  it={it}
+                  media={ctx.media}
+                  base={ctx.base}
+                  live={ctx.live}
+                  extras={{ social: ctx.social, projects: ctx.projects }}
+                />
+              </div>
+            ))}
         </div>
       </div>
     </div>
@@ -947,6 +1142,7 @@ interface Ctx {
   renderFree?: SiteRenderProps["renderFree"];
   contactFallback?: LegacyContactFields | null;
   language: Locale;
+  social?: Array<{ network: string; url: string }>;
 }
 
 /**
@@ -1012,59 +1208,134 @@ function Footer({
   const selected = ctx.selectedBlockId === "__footer";
   const links = all.filter((l) => (l.kind === "cv" ? settings.cv : settings.social));
   const editable = !!ctx.onSiteText;
-  if (!editable && !credit && !links.length && !report && !settings.text) return null;
+  if (!editable && !credit && !links.length && !report && !settings.text && !settings.showTitle && !settings.email) return null;
   const start = settings.align === "start";
+  const columns = settings.layout === "columns";
+  const band = !!settings.background || settings.border;
+  const iconFor = (href: string) => ctx.social?.find((x) => x.url === href)?.network;
+  const linkRow = links.length > 0 && (
+    <nav
+      className={cx("flex flex-wrap items-center gap-x-4 gap-y-1 text-[14px]", start || columns ? "justify-start" : "justify-center")}
+      data-testid="footer-links"
+    >
+      {links.map((l) => {
+        const net = l.kind === "social" ? iconFor(l.href) : undefined;
+        const label =
+          settings.socialStyle === "icons" && net ? (
+            <svg viewBox="0 0 24 24" aria-label={l.label} role="img" className="block size-5" style={{ fill: "currentColor" }}>
+              <path d={socialPath(net)} />
+            </svg>
+          ) : (
+            l.label
+          );
+        return ctx.live ? (
+          <a
+            key={l.href}
+            href={l.href}
+            rel={l.download ? undefined : "me noopener"}
+            target={l.download ? undefined : "_blank"}
+            style={{ color: settings.textColor ?? "var(--site-text)" }}
+          >
+            {label}
+          </a>
+        ) : (
+          <span key={l.href} style={{ color: settings.textColor ?? "var(--site-text)" }}>
+            {label}
+          </span>
+        );
+      })}
+    </nav>
+  );
+  const textPart =
+    editable && (settings.text || selected) ? (
+      <InlineText
+        as="p"
+        value={settings.text}
+        multiline
+        placeholder={ctx.typeHere ?? "Type here"}
+        className="m-0 text-[14px]"
+        style={{ color: settings.textColor ?? "var(--site-text)" }}
+        onChange={(v) => ctx.onSiteText!("footer", v)}
+      />
+    ) : (
+      settings.text && (
+        <p className="m-0 text-[14px]" style={{ color: settings.textColor ?? "var(--site-text)", whiteSpace: "pre-line" }}>
+          {settings.text}
+        </p>
+      )
+    );
+  const title = settings.showTitle && (
+    <span style={{ ...heading(22), color: settings.textColor ?? "var(--site-text)" }}>{site.title}</span>
+  );
+  const email = settings.email && (
+    <a
+      href={ctx.live ? `mailto:${settings.email}` : undefined}
+      dir="ltr"
+      className="text-[15px] font-semibold underline underline-offset-4"
+      style={{ color: settings.textColor ?? "var(--site-text)" }}
+    >
+      {settings.email}
+    </a>
+  );
+  const toTop = settings.backToTop && (
+    <a
+      href={ctx.live ? "#" : undefined}
+      aria-label="↑"
+      className="flex size-10 items-center justify-center rounded-full text-[18px]"
+      style={{ border: "1.5px solid currentColor", color: settings.textColor ?? "var(--site-text)" }}
+    >
+      ↑
+    </a>
+  );
   return (
     <footer
       data-site-part="footer"
       className={cx(
-        "flex flex-col gap-3 pt-8 text-[12px]",
-        start ? "items-start text-start" : "items-center text-center",
+        "flex flex-col gap-3 text-[12px]",
+        !columns && (start ? "items-start text-start" : "items-center text-center"),
         ctx.editing && "site-block",
         selected && "site-block-selected",
       )}
-      style={{ color: "var(--site-muted)" }}
+      style={{
+        color: settings.textColor ?? "var(--site-muted)",
+        paddingTop: settings.padding,
+        ...(band
+          ? {
+              background: settings.background ?? undefined,
+              borderTop: settings.border ? "1px solid var(--site-line)" : undefined,
+              margin: "0 calc(var(--site-pad) * -1) calc(var(--site-pad) * -1)",
+              padding: `${settings.padding}px var(--site-pad) var(--site-pad)`,
+            }
+          : {}),
+      }}
     >
-      {editable && (settings.text || selected) ? (
-        <InlineText
-          as="p"
-          value={settings.text}
-          multiline
-          placeholder={ctx.typeHere ?? "Type here"}
-          className="m-0 text-[14px]"
-          style={{ color: "var(--site-text)" }}
-          onChange={(v) => ctx.onSiteText!("footer", v)}
-        />
+      {columns ? (
+        <div className="grid w-full grid-cols-3 items-center gap-6 @max-2xl:grid-cols-1">
+          <div className="flex flex-col gap-1">
+            {title}
+            {textPart}
+          </div>
+          <div className="flex justify-center @max-2xl:justify-start">{linkRow}</div>
+          <div className="flex items-center justify-end gap-4 @max-2xl:justify-start">
+            {email}
+            {toTop}
+          </div>
+        </div>
       ) : (
-        settings.text && (
-          <p className="m-0 text-[14px]" style={{ color: "var(--site-text)", whiteSpace: "pre-line" }}>
-            {settings.text}
-          </p>
-        )
-      )}
-      {links.length > 0 && (
-        <nav className={cx("flex flex-wrap gap-x-4 gap-y-1 text-[14px]", start ? "justify-start" : "justify-center")} data-testid="footer-links">
-          {links.map((l) =>
-            ctx.live ? (
-              <a
-                key={l.href}
-                href={l.href}
-                rel={l.download ? undefined : "me noopener"}
-                target={l.download ? undefined : "_blank"}
-                style={{ color: "var(--site-text)" }}
-              >
-                {l.label}
-              </a>
-            ) : (
-              <span key={l.href} style={{ color: "var(--site-text)" }}>
-                {l.label}
-              </span>
-            ),
+        <>
+          {title}
+          {textPart}
+          {linkRow}
+          {(email || toTop) && (
+            <div className="flex items-center gap-4">
+              {email}
+              {toTop}
+            </div>
           )}
-        </nav>
+        </>
       )}
       {(credit || report) && (
-        <span className={cx("flex flex-wrap gap-x-4 gap-y-1", start ? "justify-start" : "justify-center")}>
+        <span className={cx("flex flex-wrap gap-x-4 gap-y-1", start || columns ? "justify-start" : "justify-center")}>
           {credit &&
             (ctx.live ? (
               <a href="https://fannan.net" style={{ color: "inherit" }}>
@@ -1089,7 +1360,12 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
   const settings = site.header ?? normalizeHeader(null);
   const selected = ctx.selectedBlockId === "__header";
   // On the canvas the header is clicked like a section; its settings open beside it.
-  const band = settings.background !== "none" || (settings.sticky && ctx.live && theme.nav !== "sidebar");
+  const band =
+    settings.background !== "none" ||
+    settings.border ||
+    settings.shadow ||
+    settings.padding > 0 ||
+    (settings.sticky && ctx.live && theme.nav !== "sidebar");
   const bandColor =
     settings.background === "surface"
       ? "var(--site-surface)"
@@ -1101,18 +1377,43 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
     style: band
       ? ({
           background: bandColor,
-          color: settings.background.startsWith("#") ? readableOn(settings.background) : undefined,
+          color: settings.textColor ?? (settings.background.startsWith("#") ? readableOn(settings.background) : undefined),
           margin: "calc(var(--site-pad) * -1) calc(var(--site-pad) * -1) 0",
-          padding: "20px var(--site-pad)",
+          padding: `${20 + settings.padding}px var(--site-pad)`,
+          borderBottom: settings.border ? "1px solid var(--site-line)" : undefined,
+          boxShadow: settings.shadow ? "0 6px 20px rgba(0,0,0,.08)" : undefined,
           ...(settings.sticky && ctx.live && theme.nav !== "sidebar" ? { position: "sticky", top: 0, zIndex: 30 } : {}),
+          ...(settings.width === "inset" ? { paddingInline: "max(var(--site-pad), calc((100% - 1100px) / 2))" } : {}),
         } as CSSProperties)
-      : undefined,
+      : settings.textColor
+        ? { color: settings.textColor }
+        : undefined,
   };
+  const linkColor = settings.textColor ?? "var(--site-muted)";
+  const socialIcons =
+    settings.social && (ctx.social?.length || !ctx.live) ? (
+      <span className="flex items-center" style={{ gap: Math.max(10, settings.linkGap * 0.7) }} data-testid="header-social">
+        {(ctx.social?.length ? ctx.social : [{ network: "instagram", url: "#" }, { network: "behance", url: "#" }]).map((l, i) => {
+          const icon = (
+            <svg viewBox="0 0 24 24" aria-hidden className="block size-[18px]" style={{ fill: "currentColor" }}>
+              <path d={socialPath(l.network)} />
+            </svg>
+          );
+          return ctx.live ? (
+            <a key={i} href={l.url} target="_blank" rel="me noopener" aria-label={l.network} style={{ color: "inherit" }}>
+              {icon}
+            </a>
+          ) : (
+            <span key={i}>{icon}</span>
+          );
+        })}
+      </span>
+    ) : null;
   const partClass = cx(ctx.editing && "site-block", selected && "site-block-selected");
   const logo = theme.logoMediaId ? ctx.media[theme.logoMediaId] : null;
   const links = site.pages.filter((p) => p.showInNav);
   const brandInner = logo ? (
-    <span className="block h-10 w-36">
+    <span className="block" style={{ height: settings.logoSize, width: settings.logoSize * 3.6 }}>
       <Picture
         m={logo}
         base={ctx.base}
@@ -1128,11 +1429,11 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
         <InlineText
           value={site.title}
           placeholder={ctx.typeHere ?? "Type here"}
-          style={heading(theme.nav === "minimal" ? 20 : 26)}
+          style={heading(theme.nav === "minimal" ? Math.round(settings.titleSize * 0.77) : settings.titleSize)}
           onChange={(v) => ctx.onSiteText!("title", v)}
         />
       ) : (
-        <span style={heading(theme.nav === "minimal" ? 20 : 26)}>{site.title}</span>
+        <span style={heading(theme.nav === "minimal" ? Math.round(settings.titleSize * 0.77) : settings.titleSize)}>{site.title}</span>
       )}
       {settings.tagline &&
         theme.nav !== "minimal" &&
@@ -1161,9 +1462,18 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
     brandInner
   );
   const linkList = (
-    <span className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[15px]" style={{ color: "var(--site-muted)" }}>
+    <span
+      className="flex flex-wrap items-center gap-y-1 text-[15px]"
+      style={{
+        color: linkColor,
+        columnGap: settings.linkGap,
+        textTransform: settings.upperLinks ? "uppercase" : undefined,
+        letterSpacing: settings.upperLinks ? "0.04em" : undefined,
+      }}
+    >
       {links.map((p) => {
-        const style = p.id === page.id ? { color: "var(--site-text)", fontWeight: 600 } : undefined;
+        const style =
+          p.id === page.id ? { color: settings.textColor ?? "var(--site-text)", fontWeight: 600 } : undefined;
         if (!ctx.live) {
           return (
             <span key={p.id} style={style}>
@@ -1186,7 +1496,10 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
       })}
     </span>
   );
-  const hireStyle = { background: "var(--site-accent)", color: "var(--site-on-accent)", textDecoration: "none" };
+  const hireStyle =
+    settings.hire.style === "outline"
+      ? { background: "transparent", color: "inherit", border: "1.5px solid currentColor", textDecoration: "none" }
+      : { background: "var(--site-accent)", color: "var(--site-on-accent)", textDecoration: "none" };
   // The Hire me button: shown when "available for work" is on, unless the header settings say otherwise.
   const hireOn = settings.hire.on ?? !!ctx.available?.on;
   const hireLabel = settings.hire.label || ctx.available?.hire || "Hire me";
@@ -1208,6 +1521,7 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
       <header {...part} className={cx("flex flex-col items-center gap-3 text-center", partClass)}>
         {brand}
         {linkList}
+        {socialIcons}
         {hire}
       </header>
     );
@@ -1217,6 +1531,7 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
       <header {...part} className={cx("flex items-center justify-between gap-4", partClass)}>
         {brand}
         <span className="flex items-center gap-4 text-[15px] font-semibold">
+          {socialIcons}
           {hire}
           <span>☰</span>
         </span>
@@ -1232,11 +1547,15 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
       {theme.nav === "split" ? (
         <>
           <span className="@max-2xl:hidden">{linkList}</span>
-          {hire ?? <span />}
+          <span className="flex items-center gap-4">
+            {socialIcons}
+            {hire}
+          </span>
         </>
       ) : (
         <span className="flex flex-wrap items-center gap-5">
           {linkList}
+          {socialIcons}
           {hire}
         </span>
       )}
@@ -1267,6 +1586,7 @@ export function SiteRender({
   renderFree,
   bare = false,
   contactFallback,
+  social,
 }: SiteRenderProps) {
   const page = site.pages.find((p) => p.id === pageId) ?? site.pages[0];
   const { theme } = site;
@@ -1287,6 +1607,7 @@ export function SiteRender({
     renderFree,
     contactFallback,
     language: site.language,
+    social,
   };
   const arabic = site.language === "ar";
   const h = headingFonts[theme.fonts.heading];

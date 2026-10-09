@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useTranslations } from "next-intl";
-import { FreeItemContent, freeItemStyle, freeOrder, type SiteMedia } from "@/components/site/SiteRender";
+import { FreeItemContent, freeItemStyle, freeOrder, type FreeExtras, type SiteMedia } from "@/components/site/SiteRender";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { cx } from "@/lib/cx";
 import { FREE_COLS, freeBottom } from "@/lib/site/free";
@@ -27,6 +27,10 @@ export interface FreeEditorProps {
   /** One change to the section. `key` merges a run of changes into one undo step. */
   onChange: (fn: (b: Free) => Free, key?: string) => void;
   typeHere: string;
+  /** The pencil in the item's toolbar: opens its full settings. */
+  onEditItem: (id: string) => void;
+  /** Social links and projects, for social link and project items. */
+  extras?: FreeExtras;
 }
 
 export const KIND_ICONS: Record<FreeKind, IconName> = {
@@ -37,7 +41,18 @@ export const KIND_ICONS: Record<FreeKind, IconName> = {
   shape: "shape",
   line: "line",
   video: "video-4k",
+  social: "social-links",
+  quote: "quote",
+  list: "list",
+  map: "map",
+  audio: "audio",
+  project: "projects",
 };
+
+/** Items whose words are typed in place (double-click). */
+const TYPED: FreeKind[] = ["text", "heading", "button", "quote"];
+/** Items that can link somewhere. */
+const LINKABLE: FreeKind[] = ["image", "button", "shape", "text", "heading"];
 
 const HANDLES: Handle[] = ["nw", "n", "ne", "e", "se", "s", "sw", "w"];
 
@@ -79,8 +94,13 @@ export function FreeEditor({
   onSelectItem,
   onChange,
   typeHere,
+  onEditItem,
+  extras,
 }: FreeEditorProps) {
   const t = useTranslations("editor.free");
+  // Squarespace-style layers list: drag to restack, hover to hide.
+  const [layersOpen, setLayersOpen] = useState(false);
+  const [linkFor, setLinkFor] = useState<string | null>(null);
   const grid = useRef<HTMLDivElement>(null);
   // While a pointer is moving something, its place is kept here and saved once on release.
   const [live, setLive] = useState<{ id: string; place: FreePlace; rotate: number } | null>(null);
@@ -255,7 +275,44 @@ export function FreeEditor({
       return { ...s, items: [...s.items, copy], rows: Math.max(s.rows, copy.place.y + copy.place.h) };
     });
 
-  const tool = "flex size-8 items-center justify-center rounded-[8px] text-white hover:bg-white/15";
+  const tool = "flex size-8 items-center justify-center rounded-full text-[#45483D] hover:bg-[#1A1C16]/8";
+
+  /** Layers, front to back. Dragging a row restacks; the eye hides an item. */
+  const layers = [...b.items].sort((a, c) => c.z - a.z);
+  const restack = (ids: string[]) =>
+    onChange((s) => {
+      const z = new Map(ids.map((id, n) => [id, ids.length - n]));
+      return { ...s, items: s.items.map((i) => ({ ...i, z: z.get(i.id) ?? i.z })) };
+    });
+  function dragLayer(e: React.PointerEvent, id: string) {
+    const list = (e.currentTarget as HTMLElement).closest("[data-layers]");
+    if (!list) return;
+    e.preventDefault();
+    const rows = () => [...list.querySelectorAll<HTMLElement>("[data-layer]")];
+    let target = layers.findIndex((l) => l.id === id);
+    let moved = false;
+    const move = (ev: PointerEvent) => {
+      moved = true;
+      const r = rows();
+      let n = r.findIndex((el) => ev.clientY < el.getBoundingClientRect().top + el.offsetHeight / 2);
+      if (n < 0) n = r.length - 1;
+      target = n;
+      r.forEach((el, i) => (el.style.boxShadow = i === n ? "inset 0 2px 0 #4C6700" : ""));
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      rows().forEach((el) => (el.style.boxShadow = ""));
+      if (!moved) return onSelectItem(id);
+      const ids = layers.map((l) => l.id).filter((x) => x !== id);
+      ids.splice(target, 0, id);
+      restack(ids);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }
+  const layerName = (it: FreeItem) =>
+    (TYPED.includes(it.kind) || it.kind === "map" ? it.text.split("\n")[0].slice(0, 28) : "") || t(`kinds.${it.kind}`);
 
   return (
     <div className="site-free-band fannan-free-edit relative" style={{ background: b.background ?? undefined }}>
@@ -274,7 +331,7 @@ export function FreeEditor({
         >
           {b.items.map((orig) => {
             const it = live?.id === orig.id ? { ...orig, place: live.place, rotate: live.rotate } : orig;
-            const textual = it.kind === "text" || it.kind === "heading" || it.kind === "button";
+            const textual = TYPED.includes(it.kind);
             return (
               <div
                 key={it.id}
@@ -283,9 +340,11 @@ export function FreeEditor({
                 data-kind={it.kind}
                 className={cx("site-free-item", `site-free-${it.kind}`, "fannan-free-item")}
                 data-phone-hidden={it.hideOnPhone || undefined}
+                data-hidden={it.hidden || undefined}
                 style={{
                   ...freeItemStyle(it, order.get(it.id) ?? 0),
-                  opacity: undefined,
+                  opacity: it.hidden ? 0.22 : undefined,
+                  pointerEvents: it.hidden ? "none" : undefined,
                   cursor: editing === it.id ? "text" : "move",
                 }}
                 onPointerDown={(e) => {
@@ -301,6 +360,7 @@ export function FreeEditor({
                     media={media}
                     base="/api/media/"
                     live={false}
+                    extras={extras}
                     text={
                       textual && editing === it.id ? (
                         <InlineText
@@ -322,7 +382,7 @@ export function FreeEditor({
             const sel = active && selectedItem ? b.items.find((i) => i.id === selectedItem) : null;
             if (!sel) return null;
             const it = live?.id === sel.id ? { ...sel, place: live.place, rotate: live.rotate } : sel;
-            const textual = it.kind === "text" || it.kind === "heading" || it.kind === "button";
+            const textual = TYPED.includes(it.kind);
             // The selection sits above every item, so handles stay reachable where items overlap,
             // while the items keep their real stacking order.
             return (
@@ -354,10 +414,20 @@ export function FreeEditor({
                     role="toolbar"
                     aria-label={t("item")}
                     data-testid="free-toolbar"
-                    className="bg-ink shadow-float pointer-events-auto absolute start-0 -top-[52px] z-[1000] flex items-center gap-0.5 rounded-[10px] p-1"
+                    className="border-line shadow-float pointer-events-auto absolute start-0 -top-[52px] z-[1000] flex items-center gap-0.5 rounded-pill border bg-white p-1"
                     onPointerDown={(e) => e.stopPropagation()}
                     style={{ transform: it.rotate ? `rotate(${-it.rotate}deg)` : undefined, transformOrigin: "0 100%" }}
                   >
+                    <button
+                      type="button"
+                      className={tool}
+                      aria-label={t("edit")}
+                      title={t("edit")}
+                      data-testid="item-edit"
+                      onClick={() => onEditItem(it.id)}
+                    >
+                      <Icon name="site-editor" size={18} />
+                    </button>
                     {textual && (
                       <button
                         type="button"
@@ -369,6 +439,19 @@ export function FreeEditor({
                         <span className="text-[13px] font-semibold">Aa</span>
                       </button>
                     )}
+                    {LINKABLE.includes(it.kind) && (
+                      <button
+                        type="button"
+                        className={cx(tool, (linkFor === it.id || it.link) && "text-primary")}
+                        aria-label={t("link")}
+                        title={t("link")}
+                        aria-expanded={linkFor === it.id}
+                        onClick={() => setLinkFor(linkFor === it.id ? null : it.id)}
+                      >
+                        <Icon name="link" size={18} />
+                      </button>
+                    )}
+                    <span className="bg-line mx-0.5 h-5 w-px" />
                     <button
                       type="button"
                       className={tool}
@@ -408,6 +491,26 @@ export function FreeEditor({
                     >
                       <Icon name="delete" size={18} />
                     </button>
+                    {linkFor === it.id && (
+                      <form
+                        className="border-line shadow-float absolute start-0 top-[46px] flex w-[260px] gap-1.5 rounded-[14px] border bg-white p-2"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          setLinkFor(null);
+                        }}
+                      >
+                        <input
+                          autoFocus
+                          dir="ltr"
+                          aria-label={t("link")}
+                          placeholder={t("linkPlaceholder")}
+                          defaultValue={it.link}
+                          className="border-line focus:border-primary h-9 min-w-0 flex-1 rounded-[10px] border px-2.5 text-[13px] text-[#1A1C16] outline-none"
+                          onChange={(e) => update(it.id, { link: e.target.value }, `free-link-${it.id}`)}
+                          onKeyDown={(e) => e.key === "Escape" && setLinkFor(null)}
+                        />
+                      </form>
+                    )}
                   </div>
                 </>
               </div>
@@ -416,6 +519,67 @@ export function FreeEditor({
         </div>
       </div>
 
+      {active && (
+        // Under the section's bottom start corner, beside "Add item" (the canvas leaves room for it).
+        <div
+          className="absolute start-0 top-[calc(100%+10px)] z-[1001]"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            aria-label={t("layers")}
+            title={t("layers")}
+            aria-expanded={layersOpen}
+            data-testid="layers-button"
+            onClick={() => setLayersOpen(!layersOpen)}
+            className="border-line shadow-float flex size-9 items-center justify-center rounded-full border bg-white text-[#1A1C16] hover:bg-[#F0F1E7]"
+          >
+            <Icon name="layers" size={20} />
+          </button>
+          {layersOpen && (
+            <div
+              role="list"
+              aria-label={t("layers")}
+              data-layers
+              data-testid="layers-panel"
+              ref={(el) => el?.scrollIntoView({ block: "nearest" })}
+              className="border-line shadow-float absolute start-0 bottom-[calc(100%+8px)] flex max-h-[320px] w-[230px] flex-col gap-0.5 overflow-y-auto rounded-[16px] border bg-white p-2 text-[#1A1C16]"
+            >
+              <span className="px-2 pt-1 pb-2 text-[12px] font-semibold">{t("layers")}</span>
+              {layers.map((it) => (
+                <div
+                  key={it.id}
+                  role="listitem"
+                  data-layer={it.id}
+                  className={cx(
+                    "group flex h-9 cursor-grab touch-none items-center gap-2 rounded-[10px] px-2 text-[13px] select-none hover:bg-[#F0F1E7]",
+                    selectedItem === it.id && "bg-[#DEE6C8]",
+                    it.hidden && "text-[#76786C]",
+                  )}
+                  onPointerDown={(e) => !(e.target as HTMLElement).closest("button") && dragLayer(e, it.id)}
+                >
+                  <Icon name={KIND_ICONS[it.kind]} size={16} />
+                  <span className="min-w-0 flex-1 truncate">{layerName(it)}</span>
+                  <button
+                    type="button"
+                    aria-label={it.hidden ? t("show") : t("hide")}
+                    title={it.hidden ? t("show") : t("hide")}
+                    aria-pressed={it.hidden}
+                    className={cx(
+                      "flex size-7 items-center justify-center rounded-full hover:bg-white",
+                      it.hidden ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus:opacity-100",
+                    )}
+                    onClick={() => update(it.id, { hidden: !it.hidden })}
+                  >
+                    <Icon name={it.hidden ? "hidden" : "preview"} size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
       {active && (
         <>
           {/* Section height. */}

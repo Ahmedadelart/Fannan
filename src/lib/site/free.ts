@@ -5,11 +5,54 @@ import { sampleTone } from "./samples";
 import type { Block, FreeItem, FreeKind, FreePlace } from "./types";
 
 export const FREE_COLS = 24;
-export const FREE_KINDS: FreeKind[] = ["text", "heading", "image", "button", "shape", "line", "video"];
+export const FREE_KINDS: FreeKind[] = [
+  "text",
+  "heading",
+  "image",
+  "button",
+  "shape",
+  "line",
+  "video",
+  "social",
+  "quote",
+  "list",
+  "map",
+  "audio",
+  "project",
+];
+
+/** The add-item menu, grouped like Squarespace's. */
+export const ITEM_GROUPS: Array<{ group: "essentials" | "display" | "links"; kinds: FreeKind[] }> = [
+  { group: "essentials", kinds: ["text", "heading", "image", "button", "video", "shape", "line"] },
+  { group: "display", kinds: ["quote", "list", "audio", "map"] },
+  { group: "links", kinds: ["social", "project"] },
+];
 
 const words = {
-  en: { text: "Write something here. Click to edit.", heading: "A big heading", button: "Get in touch" },
-  ar: { text: "اكتب شيئًا هنا. اضغط للتعديل.", heading: "عنوان كبير", button: "تواصل معي" },
+  en: {
+    text: "Write something here. Click to edit.",
+    heading: "A big heading",
+    button: "Get in touch",
+    quote: "Working with them was a joy. Every detail was considered.",
+    author: "Name, Studio",
+    map: "Cairo, Egypt",
+    entries: [
+      { title: "What do you work on?", body: "Animation, characters and stories for film, TV and games." },
+      { title: "Are you available?", body: "Yes, for freelance and full-time projects." },
+    ],
+  },
+  ar: {
+    text: "اكتب شيئًا هنا. اضغط للتعديل.",
+    heading: "عنوان كبير",
+    button: "تواصل معي",
+    quote: "العمل معه كان متعة. كل تفصيلة مدروسة.",
+    author: "الاسم، الاستوديو",
+    map: "القاهرة، مصر",
+    entries: [
+      { title: "ما الذي تعمل عليه؟", body: "رسوم متحركة وشخصيات وقصص للأفلام والتلفزيون والألعاب." },
+      { title: "هل أنت متاح؟", body: "نعم، للمشاريع الحرة والدوام الكامل." },
+    ],
+  },
 };
 
 const SIZES: Record<FreeKind, Pick<FreePlace, "w" | "h">> = {
@@ -20,6 +63,12 @@ const SIZES: Record<FreeKind, Pick<FreePlace, "w" | "h">> = {
   shape: { w: 4, h: 4 },
   line: { w: 8, h: 1 },
   video: { w: 12, h: 7 },
+  social: { w: 8, h: 2 },
+  quote: { w: 14, h: 4 },
+  list: { w: 12, h: 6 },
+  map: { w: 12, h: 8 },
+  audio: { w: 12, h: 4 },
+  project: { w: 8, h: 9 },
 };
 
 export function freeItem(kind: FreeKind, language: Locale, place?: Partial<FreePlace>, extra: Partial<FreeItem> = {}): FreeItem {
@@ -33,8 +82,19 @@ export function freeItem(kind: FreeKind, language: Locale, place?: Partial<FreeP
     rotate: 0,
     opacity: 100,
     hideOnPhone: false,
-    text: kind === "text" ? w.text : kind === "heading" ? w.heading : kind === "button" ? w.button : "",
-    size: kind === "heading" ? 56 : kind === "button" ? 16 : kind === "line" ? 16 : 18,
+    text:
+      kind === "text"
+        ? w.text
+        : kind === "heading"
+          ? w.heading
+          : kind === "button"
+            ? w.button
+            : kind === "quote"
+              ? w.quote
+              : kind === "map"
+                ? w.map
+                : "",
+    size: kind === "heading" ? 56 : kind === "quote" ? 32 : kind === "social" ? 28 : kind === "button" ? 16 : kind === "line" ? 16 : 18,
     align: "start",
     color: null,
     fill: null,
@@ -45,6 +105,20 @@ export function freeItem(kind: FreeKind, language: Locale, place?: Partial<FreeP
     link: "",
     url: "",
     tone: sampleTone(0),
+    hidden: false,
+    font: kind === "heading" || kind === "quote" ? "heading" : "body",
+    weight: kind === "heading" ? 700 : kind === "button" ? 600 : 400,
+    lineHeight: kind === "heading" ? 105 : kind === "quote" ? 120 : 155,
+    tracking: 0,
+    upper: false,
+    italic: false,
+    borderWidth: 0,
+    borderColor: null,
+    shadow: false,
+    variant: "filled",
+    caption: kind === "quote" ? w.author : "",
+    entries: kind === "list" ? w.entries.map((e) => ({ ...e })) : [],
+    projectId: null,
     ...extra,
   };
 }

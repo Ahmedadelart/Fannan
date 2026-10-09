@@ -15,7 +15,7 @@ import { setPath } from "@/lib/site/fields";
 import { normalizeFooter } from "@/lib/site/normalize";
 import { moveTo, startSortDrag } from "@/components/editor/sortDrag";
 import type { Block, BlockOf, FreeKind, SiteDraft } from "@/lib/site/types";
-import { addFreeItem, FREE_KINDS } from "@/lib/site/free";
+import { addFreeItem, ITEM_GROUPS } from "@/lib/site/free";
 import { FreeEditor, KIND_ICONS } from "@/components/editor/FreeEditor";
 import { LanguageButton, LogoutButton } from "../(dash)/DashClient";
 import { editorTipsSeen, publishSite, savePagePassword, saveSiteDraft } from "./actions";
@@ -102,6 +102,7 @@ function Canvas({
   const t = useTranslations("editor.section");
   const tf = useTranslations("editor.free");
   const [elementMenu, setElementMenu] = useState(false);
+  const [itemQuery, setItemQuery] = useState("");
   const outer = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
@@ -341,7 +342,11 @@ function Canvas({
 
         {/* Under the selected section: add an element inside it (free-form) or a new section below. */}
         {box && !reorder && !dragging && selectedId !== "__footer" && (
-          <div className="absolute z-20 flex items-start gap-1.5" style={{ top: box.top + box.height + 10, ...startAnchor(box) }}>
+          <div
+            className="absolute z-20 flex items-start gap-1.5"
+            // In a free-form section the Layers button sits first in this row (drawn by the section itself).
+            style={{ top: box.top + box.height + 10, ...startAnchor(box), ...(onAddElement ? { marginInlineStart: 44 } : {}) }}
+          >
             {onAddElement && (
               <div className="relative">
                 <button
@@ -356,23 +361,49 @@ function Canvas({
                 {elementMenu && (
                   <div
                     role="menu"
-                    className="bg-paper text-ink shadow-float border-line absolute start-0 top-11 grid w-[280px] grid-cols-2 gap-1 rounded-[12px] border p-2"
+                    aria-label={tf("addBlock")}
+                    className="bg-paper text-ink shadow-float border-line absolute start-0 top-11 flex max-h-[420px] w-[300px] flex-col gap-1 overflow-y-auto rounded-[16px] border p-2"
                   >
-                    {FREE_KINDS.map((k) => (
-                      <button
-                        key={k}
-                        type="button"
-                        role="menuitem"
-                        className="hover:bg-mist flex h-10 items-center gap-2 rounded-[8px] px-2.5 text-start text-[13px] font-semibold"
-                        onClick={() => {
-                          setElementMenu(false);
-                          onAddElement(k);
-                        }}
-                      >
-                        <Icon name={KIND_ICONS[k]} size={18} />
-                        {tf(`kinds.${k}`)}
-                      </button>
-                    ))}
+                    <label className="border-line text-muted mb-1 flex h-9 items-center gap-2 rounded-[10px] border px-2.5">
+                      <Icon name="search" size={16} />
+                      <input
+                        autoFocus
+                        className="text-ink min-w-0 flex-1 bg-transparent text-[13px] outline-none"
+                        placeholder={tf("searchItems")}
+                        aria-label={tf("searchItems")}
+                        value={itemQuery}
+                        onChange={(e) => setItemQuery(e.target.value)}
+                      />
+                    </label>
+                    {ITEM_GROUPS.map(({ group, kinds }) => {
+                      const shown = kinds.filter((k) => tf(`kinds.${k}`).toLowerCase().includes(itemQuery.toLowerCase()));
+                      if (!shown.length) return null;
+                      return (
+                        <div key={group} className="flex flex-col">
+                          <span className="text-muted px-2 pt-2 pb-1 text-[11px] font-semibold tracking-[0.06em] uppercase">
+                            {tf(`groups.${group}`)}
+                          </span>
+                          <div className="grid grid-cols-2 gap-0.5">
+                            {shown.map((k) => (
+                              <button
+                                key={k}
+                                type="button"
+                                role="menuitem"
+                                className="hover:bg-mist flex h-10 items-center gap-2 rounded-[10px] px-2.5 text-start text-[13px] font-medium"
+                                onClick={() => {
+                                  setElementMenu(false);
+                                  setItemQuery("");
+                                  onAddElement(k);
+                                }}
+                              >
+                                <Icon name={KIND_ICONS[k]} size={18} />
+                                {tf(`kinds.${k}`)}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -790,6 +821,12 @@ export function Editor({
         setFreeItem(id);
       }}
       onChange={(fn, key) => changeFree(b.id, fn, key)}
+      onEditItem={(id) => {
+        setSelected(b.id);
+        setFreeItem(id);
+        setSettingsOpen(true);
+      }}
+      extras={{ social: siteSettings.social, projects }}
       typeHere={t("typeHere")}
     />
   );
@@ -839,6 +876,7 @@ export function Editor({
     categoryLabel: (id: string) => categories[id] ?? id,
     credit: credit ? (draft.language === "ar" ? "صُنع بواسطة فنان" : "Made with Fannan") : null,
     contactFallback: siteSettings.contact,
+    social: siteSettings.social,
     footerLinks: [
       ...siteSettings.social.map((l) => ({ href: l.url, label: networkName(l.network, l.url), kind: "social" as const })),
       ...(siteSettings.cvMediaId && media[siteSettings.cvMediaId]
@@ -886,6 +924,7 @@ export function Editor({
   const partSettings =
     selected === "__header" || selected === "__footer" ? (
       <SitePartSettings
+        key={selected}
         part={selected === "__header" ? "header" : "footer"}
         draft={draft}
         setDraft={setDraft}
@@ -910,6 +949,7 @@ export function Editor({
       }
       contactFallback={siteSettings.contact}
       language={draft.language}
+      projects={projects}
     />
   ) : null);
 
@@ -1303,7 +1343,7 @@ export function Editor({
           actions={sectionActions}
           version={page.blocks}
           settings={blockSettings}
-          settingsOpen={settingsOpen || !!freeItem}
+          settingsOpen={settingsOpen}
           onAddElement={
             block?.type === "free"
               ? (kind) => {

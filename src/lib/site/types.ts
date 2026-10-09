@@ -73,7 +73,21 @@ export type Block =
 /* ---------- free-form sections (phase 8C) ---------- */
 
 /** What a free-form block shows. Every item carries every field, so editing and checking stay simple. */
-export type FreeKind = "text" | "heading" | "image" | "button" | "shape" | "line" | "video";
+export type FreeKind =
+  | "text"
+  | "heading"
+  | "image"
+  | "button"
+  | "shape"
+  | "line"
+  | "video"
+  // Round 5 (Squarespace-style items):
+  | "social"
+  | "quote"
+  | "list"
+  | "map"
+  | "audio"
+  | "project";
 
 /**
  * Where an item sits on the section's grid: 24 columns on desktop, square cells, counted from the
@@ -110,13 +124,36 @@ export interface FreeItem {
   fit: "cover" | "contain";
   /** Corner radius in px. */
   radius: number;
-  shape: "rect" | "circle";
+  shape: "rect" | "circle" | "pill" | "triangle" | "arch";
   /** Where an image or button goes (https://…, mailto:…, or a page address like /about). */
   link: string;
   /** YouTube or Vimeo address for video items. */
   url: string;
   /** Shown when sample art stands in for a missing picture. */
   tone: string;
+  /** Hidden from the layers list: not on the live site, faint in the editor. */
+  hidden: boolean;
+  /** Typography (text, heading, button, quote, list). */
+  font: "body" | "heading";
+  weight: number;
+  /** Line height in percent. */
+  lineHeight: number;
+  /** Letter spacing in hundredths of an em (Latin only; Arabic letters join). */
+  tracking: number;
+  upper: boolean;
+  italic: boolean;
+  /** Frame: images, shapes, buttons, video, project cards. */
+  borderWidth: number;
+  borderColor: string | null;
+  shadow: boolean;
+  /** Buttons: filled, outlined or plain text. */
+  variant: "filled" | "outline" | "text";
+  /** Image caption, quote author. */
+  caption: string;
+  /** List (FAQ / accordion) rows. */
+  entries: Array<{ title: string; body: string }>;
+  /** Project card: which project. */
+  projectId: string | null;
 }
 
 export interface FreeSection {
@@ -169,7 +206,21 @@ export interface HeaderSettings {
   background: string;
   tagline: boolean;
   /** The Hire me button. `on` null follows the "available for work" switch. */
-  hire: { on: boolean | null; label: string; link: string };
+  hire: { on: boolean | null; label: string; link: string; style: "filled" | "outline" };
+  /** Round 5 (Squarespace-style header settings). */
+  linkGap: number;
+  /** Extra space above and below, px. */
+  padding: number;
+  width: "full" | "inset";
+  border: boolean;
+  shadow: boolean;
+  /** Text and link colour; null follows the theme. */
+  textColor: string | null;
+  /** Social link icons in the header. */
+  social: boolean;
+  logoSize: number;
+  titleSize: number;
+  upperLinks: boolean;
 }
 
 /** The site footer, edited by clicking it on the canvas (round 4). */
@@ -178,6 +229,16 @@ export interface FooterSettings {
   align: "center" | "start";
   social: boolean;
   cv: boolean;
+  /** Round 5: one column, or name / links / email in three columns. */
+  layout: "stack" | "columns";
+  background: string | null;
+  textColor: string | null;
+  showTitle: boolean;
+  email: string;
+  backToTop: boolean;
+  socialStyle: "icons" | "text";
+  border: boolean;
+  padding: number;
 }
 
 export interface SiteDraft {

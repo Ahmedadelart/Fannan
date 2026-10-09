@@ -19,6 +19,7 @@ import { kindByKey, kindOf, LIBRARY, networkName, newId, SOCIAL_NETWORKS, type B
 import { CONTACT_WORDS, contactFormOf, type LegacyContactFields } from "@/lib/site/contact";
 import { normalizeFooter, normalizeHeader } from "@/lib/site/normalize";
 import { toneBase } from "@/lib/site/samples";
+import { socialPath } from "@/components/site/socialIcons";
 import { presetIds, themes } from "@/lib/site/starter";
 import { freeBottom } from "@/lib/site/free";
 import type {
@@ -1072,77 +1073,199 @@ export function SitePartSettings({
     if (!r.ok) toast(t("notSaved"), "close");
   }
 
+  const [tab, setTab] = useState<"layout" | "style" | "items">("layout");
+  const tabs = (
+    <div role="tablist" className="border-line -mt-1 grid grid-cols-3 border-b">
+      {(["layout", "style", "items"] as const).map((x) => (
+        <button
+          key={x}
+          type="button"
+          role="tab"
+          aria-selected={tab === x}
+          onClick={() => setTab(x)}
+          className={cx(
+            "h-9 border-b-2 text-[13px]",
+            tab === x ? "border-primary text-ink font-semibold" : "text-muted border-transparent font-medium",
+          )}
+        >
+          {t(`tabs.${part}.${x}`)}
+        </button>
+      ))}
+    </div>
+  );
+
+  // Social links: icon, address, remove; saved straight away (they're site settings).
+  const socialEditor = (
+    <div className="flex flex-col gap-2">
+      {social.map((l, i) => (
+        <div key={i} className="flex items-center gap-1.5">
+          <span className="bg-mist text-ink flex size-9 flex-none items-center justify-center rounded-[10px]">
+            <svg viewBox="0 0 24 24" aria-hidden className="size-[18px]" style={{ fill: "currentColor" }}>
+              <path d={socialPath(l.network)} />
+            </svg>
+          </span>
+          <select
+            aria-label={t("network")}
+            className={cx(inputCls, "w-[38%] flex-none px-2")}
+            value={l.network}
+            onChange={(e) => {
+              const next = social.map((x, j) => (j === i ? { ...x, network: e.target.value } : x));
+              setSocial(next);
+              void saveSettings({ social: next });
+            }}
+          >
+            {SOCIAL_NETWORKS.map((n) => (
+              <option key={n} value={n}>
+                {networkName(n, "https://" + n)}
+              </option>
+            ))}
+          </select>
+          <input
+            aria-label={t("linkUrl")}
+            className={inputCls}
+            dir="ltr"
+            placeholder="https://"
+            value={l.url}
+            onChange={(e) => setSocial(social.map((x, j) => (j === i ? { ...x, url: e.target.value } : x)))}
+            onBlur={() => void saveSettings({ social })}
+          />
+          <button
+            type="button"
+            aria-label={t("removeLink")}
+            className="text-muted hover:text-ink flex size-8 flex-none items-center justify-center"
+            onClick={() => {
+              const next = social.filter((_, j) => j !== i);
+              setSocial(next);
+              void saveSettings({ social: next });
+            }}
+          >
+            <Icon name="close" size={16} />
+          </button>
+        </div>
+      ))}
+      {social.length < 12 && (
+        <Button size="sm" variant="outline" icon="add" onClick={() => setSocial([...social, { network: "instagram", url: "" }])}>
+          {t("addLink")}
+        </Button>
+      )}
+      <p className="text-muted text-[12px]">{t("rightAway")}</p>
+    </div>
+  );
+
   if (part === "header") {
     const bg = header.background;
     return (
       <div className="flex flex-col gap-5" data-testid="header-settings">
         <h3 className="text-[15px] font-semibold">{t("header")}</h3>
-        <StyleTab section="nav" draft={draft} media={media} setDraft={setDraft} openPicker={openPicker} />
-        <StyleTab section="logo" draft={draft} media={media} setDraft={setDraft} openPicker={openPicker} />
-        <Switch title={t("showTagline")} checked={header.tagline} onChange={(v) => setHeader({ tagline: v })} />
-        <div className="border-line flex flex-col gap-3 border-t pt-4">
-          <span className="text-[13px] font-semibold">{t("menu")}</span>
-          {draft.pages.map((pg) => (
-            <Switch
-              key={pg.id}
-              title={pg.title || "—"}
-              checked={pg.showInNav}
-              onChange={(v) =>
-                setDraft((d) => ({ ...d, pages: d.pages.map((x) => (x.id === pg.id ? { ...x, showInNav: v } : x)) }))
-              }
+        {tabs}
+        {tab === "layout" && (
+          <>
+            <StyleTab section="nav" draft={draft} media={media} setDraft={setDraft} openPicker={openPicker} />
+            <Choice
+              title={t("width")}
+              value={header.width}
+              options={[
+                ["full", t("widthFull")],
+                ["inset", t("widthInset")],
+              ]}
+              onChange={(v) => setHeader({ width: v })}
             />
-          ))}
-          <p className="text-muted text-[12px]">{t("menuHint")}</p>
-        </div>
-        <div className="border-line flex flex-col gap-3 border-t pt-4">
-          <span className="text-[13px] font-semibold">{t("hire")}</span>
-          <Choice
-            title={t("hireShow")}
-            value={header.hire.on === null ? "auto" : header.hire.on ? "on" : "off"}
-            options={[
-              ["auto", t("hireAuto")],
-              ["on", t("hireOn")],
-              ["off", t("hireOff")],
-            ]}
-            onChange={(v) => setHeader({ hire: { ...header.hire, on: v === "auto" ? null : v === "on" } })}
-          />
-          <Text
-            title={t("hireLabel")}
-            value={header.hire.label}
-            placeholder={draft.language === "ar" ? "وظّفني" : "Hire me"}
-            onChange={(v) => setHeader({ hire: { ...header.hire, label: v } }, "hire-label")}
-          />
-          <Text
-            title={t("hireLink")}
-            value={header.hire.link}
-            dir="ltr"
-            placeholder="/contact"
-            onChange={(v) => setHeader({ hire: { ...header.hire, link: v } }, "hire-link")}
-          />
-        </div>
-        <div className="border-line flex flex-col gap-3 border-t pt-4">
-          <Choice
-            title={t("background")}
-            value={bg === "none" || bg === "surface" ? bg : "colour"}
-            options={[
-              ["none", t("bgNone")],
-              ["surface", t("bgSoft")],
-              ["colour", t("bgColour")],
-            ]}
-            onChange={(v) => setHeader({ background: v === "colour" ? (bg.startsWith("#") ? bg : "#F4F4F2") : v })}
-          />
-          {bg.startsWith("#") && (
-            <input
-              type="color"
-              aria-label={t("bgColour")}
-              value={bg}
-              onChange={(e) => setHeader({ background: e.target.value.toUpperCase() }, "header-bg")}
-              className="border-line h-9 w-full cursor-pointer rounded-[8px] border bg-white p-1"
+            <Range title={t("linkGap")} value={header.linkGap} min={4} max={64} unit="px" onChange={(v) => setHeader({ linkGap: v }, "h-gap")} />
+            <Range title={t("height")} value={header.padding} min={0} max={80} unit="px" onChange={(v) => setHeader({ padding: v }, "h-pad")} />
+            <Switch title={t("sticky")} checked={header.sticky} onChange={(v) => setHeader({ sticky: v })} />
+            <p className="text-muted -mt-3 text-[12px]">{t("stickyHint")}</p>
+            <div className="border-line flex flex-col gap-3 border-t pt-4">
+              <span className="text-[13px] font-semibold">{t("menu")}</span>
+              {draft.pages.map((pg) => (
+                <Switch
+                  key={pg.id}
+                  title={pg.title || "—"}
+                  checked={pg.showInNav}
+                  onChange={(v) =>
+                    setDraft((d) => ({ ...d, pages: d.pages.map((x) => (x.id === pg.id ? { ...x, showInNav: v } : x)) }))
+                  }
+                />
+              ))}
+              <p className="text-muted text-[12px]">{t("menuHint")}</p>
+            </div>
+          </>
+        )}
+        {tab === "style" && (
+          <>
+            <StyleTab section="logo" draft={draft} media={media} setDraft={setDraft} openPicker={openPicker} />
+            <Range title={t("logoSize")} value={header.logoSize} min={20} max={140} unit="px" onChange={(v) => setHeader({ logoSize: v }, "h-logo")} />
+            <Range title={t("titleSize")} value={header.titleSize} min={14} max={72} unit="px" onChange={(v) => setHeader({ titleSize: v }, "h-title")} />
+            <Switch title={t("upperLinks")} checked={header.upperLinks} onChange={(v) => setHeader({ upperLinks: v })} />
+            <Choice
+              title={t("background")}
+              value={bg === "none" || bg === "surface" ? bg : "colour"}
+              options={[
+                ["none", t("bgNone")],
+                ["surface", t("bgSoft")],
+                ["colour", t("bgColour")],
+              ]}
+              onChange={(v) => setHeader({ background: v === "colour" ? (bg.startsWith("#") ? bg : "#F4F4F2") : v })}
             />
-          )}
-          <Switch title={t("sticky")} checked={header.sticky} onChange={(v) => setHeader({ sticky: v })} />
-          <p className="text-muted text-[12px]">{t("stickyHint")}</p>
-        </div>
+            {bg.startsWith("#") && (
+              <input
+                type="color"
+                aria-label={t("bgColour")}
+                value={bg}
+                onChange={(e) => setHeader({ background: e.target.value.toUpperCase() }, "header-bg")}
+                className="border-line h-9 w-full cursor-pointer rounded-[8px] border bg-white p-1"
+              />
+            )}
+            <ColorField title={t("textColor")} value={header.textColor} themeLabel={t("theme")} onChange={(v) => setHeader({ textColor: v }, "h-text")} />
+            <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+              <Switch title={t("border")} checked={header.border} onChange={(v) => setHeader({ border: v })} />
+              <Switch title={t("shadow")} checked={header.shadow} onChange={(v) => setHeader({ shadow: v })} />
+            </div>
+          </>
+        )}
+        {tab === "items" && (
+          <>
+            <Switch title={t("showTagline")} checked={header.tagline} onChange={(v) => setHeader({ tagline: v })} />
+            <div className="border-line flex flex-col gap-3 border-t pt-4">
+              <Switch title={t("socialInHeader")} checked={header.social} onChange={(v) => setHeader({ social: v })} />
+              {header.social && socialEditor}
+            </div>
+            <div className="border-line flex flex-col gap-3 border-t pt-4">
+              <span className="text-[13px] font-semibold">{t("hire")}</span>
+              <Choice
+                title={t("hireShow")}
+                value={header.hire.on === null ? "auto" : header.hire.on ? "on" : "off"}
+                options={[
+                  ["auto", t("hireAuto")],
+                  ["on", t("hireOn")],
+                  ["off", t("hireOff")],
+                ]}
+                onChange={(v) => setHeader({ hire: { ...header.hire, on: v === "auto" ? null : v === "on" } })}
+              />
+              <Text
+                title={t("hireLabel")}
+                value={header.hire.label}
+                placeholder={draft.language === "ar" ? "وظّفني" : "Hire me"}
+                onChange={(v) => setHeader({ hire: { ...header.hire, label: v } }, "hire-label")}
+              />
+              <Text
+                title={t("hireLink")}
+                value={header.hire.link}
+                dir="ltr"
+                placeholder="/contact"
+                onChange={(v) => setHeader({ hire: { ...header.hire, link: v } }, "hire-link")}
+              />
+              <Choice
+                title={t("hireStyle")}
+                value={header.hire.style}
+                options={[
+                  ["filled", t("filled")],
+                  ["outline", t("outline")],
+                ]}
+                onChange={(v) => setHeader({ hire: { ...header.hire, style: v } })}
+              />
+            </div>
+          </>
+        )}
       </div>
     );
   }
@@ -1150,78 +1273,72 @@ export function SitePartSettings({
   return (
     <div className="flex flex-col gap-5" data-testid="footer-settings">
       <h3 className="text-[15px] font-semibold">{t("footer")}</h3>
-      <Area title={t("footerText")} value={footer.text} onChange={(v) => setFooter({ text: v }, "footer-text")} hint={t("footerTextHint")} />
-      <Choice
-        title={t("align")}
-        value={footer.align}
-        options={[
-          ["center", t("alignCenter")],
-          ["start", t("alignStart")],
-        ]}
-        onChange={(v) => setFooter({ align: v })}
-      />
-      <div className="border-line flex flex-col gap-3 border-t pt-4">
-        <Switch title={t("showSocial")} checked={footer.social} onChange={(v) => setFooter({ social: v })} />
-        {social.map((l, i) => (
-          <div key={i} className="flex items-center gap-1.5">
-            <select
-              aria-label={t("network")}
-              className={cx(inputCls, "w-[42%] flex-none px-2")}
-              value={l.network}
-              onChange={(e) => {
-                const next = social.map((x, j) => (j === i ? { ...x, network: e.target.value } : x));
-                setSocial(next);
-                void saveSettings({ social: next });
-              }}
-            >
-              {SOCIAL_NETWORKS.map((n) => (
-                <option key={n} value={n}>
-                  {networkName(n, "https://" + n)}
-                </option>
-              ))}
-            </select>
-            <input
-              aria-label={t("linkUrl")}
-              className={inputCls}
-              dir="ltr"
-              placeholder="https://"
-              value={l.url}
-              onChange={(e) => setSocial(social.map((x, j) => (j === i ? { ...x, url: e.target.value } : x)))}
-              onBlur={() => void saveSettings({ social })}
+      {tabs}
+      {tab === "layout" && (
+        <>
+          <Choice
+            title={t("footerLayout")}
+            value={footer.layout}
+            options={[
+              ["stack", t("stack")],
+              ["columns", t("columns")],
+            ]}
+            onChange={(v) => setFooter({ layout: v })}
+          />
+          {footer.layout === "stack" && (
+            <Choice
+              title={t("align")}
+              value={footer.align}
+              options={[
+                ["center", t("alignCenter")],
+                ["start", t("alignStart")],
+              ]}
+              onChange={(v) => setFooter({ align: v })}
             />
-            <button
-              type="button"
-              aria-label={t("removeLink")}
-              className="text-muted hover:text-ink flex size-9 flex-none items-center justify-center"
-              onClick={() => {
-                const next = social.filter((_, j) => j !== i);
-                setSocial(next);
-                void saveSettings({ social: next });
-              }}
-            >
-              <Icon name="close" size={16} />
-            </button>
+          )}
+          <Range title={t("spacing")} value={footer.padding} min={0} max={120} unit="px" onChange={(v) => setFooter({ padding: v }, "f-pad")} />
+          <Area title={t("footerText")} value={footer.text} onChange={(v) => setFooter({ text: v }, "footer-text")} hint={t("footerTextHint")} />
+        </>
+      )}
+      {tab === "style" && (
+        <>
+          <ColorField title={t("background")} value={footer.background} themeLabel={t("theme")} onChange={(v) => setFooter({ background: v }, "f-bg")} />
+          <ColorField title={t("textColor")} value={footer.textColor} themeLabel={t("theme")} onChange={(v) => setFooter({ textColor: v }, "f-text")} />
+          <Choice
+            title={t("socialStyle")}
+            value={footer.socialStyle}
+            options={[
+              ["text", t("socialText")],
+              ["icons", t("socialIcons")],
+            ]}
+            onChange={(v) => setFooter({ socialStyle: v })}
+          />
+          <Switch title={t("borderTop")} checked={footer.border} onChange={(v) => setFooter({ border: v })} />
+          {credit && <p className="text-muted text-[12px]">{st("footerCredit")}</p>}
+        </>
+      )}
+      {tab === "items" && (
+        <>
+          <Switch title={t("showTitle")} checked={footer.showTitle} onChange={(v) => setFooter({ showTitle: v })} />
+          <Text title={t("email")} value={footer.email} dir="ltr" placeholder="you@email.com" onChange={(v) => setFooter({ email: v }, "f-email")} />
+          <Switch title={t("backToTop")} checked={footer.backToTop} onChange={(v) => setFooter({ backToTop: v })} />
+          <div className="border-line flex flex-col gap-3 border-t pt-4">
+            <Switch title={t("showSocial")} checked={footer.social} onChange={(v) => setFooter({ social: v })} />
+            {socialEditor}
           </div>
-        ))}
-        {social.length < 12 && (
-          <Button size="sm" variant="outline" icon="add" onClick={() => setSocial([...social, { network: "instagram", url: "" }])}>
-            {t("addLink")}
-          </Button>
-        )}
-      </div>
-      <div className="border-line flex flex-col gap-3 border-t pt-4">
-        <Switch title={t("showCv")} checked={footer.cv} onChange={(v) => setFooter({ cv: v })} />
-        <MediaField
-          title={t("cv")}
-          id={siteSettings.cvMediaId}
-          kind="pdf"
-          media={media}
-          onChange={(id) => void saveSettings({ cvMediaId: id })}
-          openPicker={openPicker}
-        />
-        <p className="text-muted text-[12px]">{t("rightAway")}</p>
-      </div>
-      {credit && <p className="text-muted text-[12px]">{st("footerCredit")}</p>}
+          <div className="border-line flex flex-col gap-3 border-t pt-4">
+            <Switch title={t("showCv")} checked={footer.cv} onChange={(v) => setFooter({ cv: v })} />
+            <MediaField
+              title={t("cv")}
+              id={siteSettings.cvMediaId}
+              kind="pdf"
+              media={media}
+              onChange={(id) => void saveSettings({ cvMediaId: id })}
+              openPicker={openPicker}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -1236,7 +1353,10 @@ export function BlockSettings({
   onFreeItem,
   contactFallback,
   language,
+  projects = [],
 }: {
+  /** Projects, for project card items. */
+  projects?: GalleryProject[];
   /** Site-wide contact settings from before contact sections had their own. */
   contactFallback?: LegacyContactFields;
   /** The site's language: default field names on the contact form follow it. */
@@ -1698,145 +1818,18 @@ export function BlockSettings({
         );
         break;
       }
-      const setItem = (patch: Partial<FreeItem>, key?: string) =>
-        set<BlockOf<"free">>({ items: block.items.map((i) => (i.id === it.id ? { ...i, ...patch } : i)) }, key);
-      const ik = (name: string) => `${it.id}-${name}`;
-      const textual = it.kind === "text" || it.kind === "heading" || it.kind === "button";
-      const pictureLike = it.kind === "image" || it.kind === "button" || it.kind === "shape" || it.kind === "video";
-      const linkable = it.kind === "image" || it.kind === "button" || it.kind === "shape";
       body = (
-        <>
-          <button
-            type="button"
-            onClick={() => onFreeItem?.(null)}
-            className="text-ink-soft hover:text-ink self-start text-[12px] font-semibold"
-          >
-            {fr("backToSection")}
-          </button>
-          <div className="text-[14px] font-semibold">{fr(`kinds.${it.kind}`)}</div>
-          {textual &&
-            (it.kind === "button" ? (
-              <Text title={fr("label")} value={it.text} onChange={(v) => setItem({ text: v }, ik("t"))} />
-            ) : (
-              <Area title={fr("text")} value={it.text} onChange={(v) => setItem({ text: v }, ik("t"))} />
-            ))}
-          {textual && (
-            <Range
-              title={fr("size")}
-              value={it.size}
-              min={8}
-              max={160}
-              unit="px"
-              onChange={(v) => setItem({ size: v }, ik("size"))}
-            />
-          )}
-          {textual && (
-            <Choice
-              title={f("align")}
-              value={it.align}
-              options={[
-                ["start", f("alignStart")],
-                ["center", f("alignCenter")],
-                ["end", fr("alignEnd")],
-              ]}
-              onChange={(v) => setItem({ align: v })}
-            />
-          )}
-          {textual && (
-            <ColorField
-              title={fr("textColor")}
-              value={it.color}
-              themeLabel={fr("theme")}
-              onChange={(v) => setItem({ color: v }, ik("color"))}
-            />
-          )}
-          {it.kind === "image" && mediaField(f("image"), it.mediaId, "image", (id) => setItem({ mediaId: id }))}
-          {it.kind === "image" && (
-            <Choice
-              title={fr("fit")}
-              value={it.fit}
-              options={[
-                ["cover", fr("fill")],
-                ["contain", fr("fitWhole")],
-              ]}
-              onChange={(v) => setItem({ fit: v })}
-            />
-          )}
-          {it.kind === "shape" && (
-            <Choice
-              title={fr("shape")}
-              value={it.shape}
-              options={[
-                ["rect", fr("rect")],
-                ["circle", fr("circle")],
-              ]}
-              onChange={(v) => setItem({ shape: v })}
-            />
-          )}
-          {(it.kind === "button" || it.kind === "shape" || it.kind === "line") && (
-            <ColorField
-              title={fr("color")}
-              value={it.fill}
-              themeLabel={fr("theme")}
-              onChange={(v) => setItem({ fill: v }, ik("fill"))}
-            />
-          )}
-          {it.kind === "line" && (
-            <Range
-              title={fr("thickness")}
-              value={it.size}
-              min={8}
-              max={160}
-              onChange={(v) => setItem({ size: v }, ik("size"))}
-            />
-          )}
-          {pictureLike && (
-            <Range
-              title={fr("corners")}
-              value={Math.min(it.radius, 200)}
-              min={0}
-              max={200}
-              unit="px"
-              onChange={(v) => setItem({ radius: v }, ik("radius"))}
-            />
-          )}
-          {linkable && (
-            <Text
-              title={fr("link")}
-              dir="ltr"
-              placeholder={fr("linkPlaceholder")}
-              value={it.link}
-              onChange={(v) => setItem({ link: v }, ik("link"))}
-            />
-          )}
-          {it.kind === "video" && (
-            <Text
-              title={fr("videoLink")}
-              dir="ltr"
-              placeholder="https://youtu.be/"
-              value={it.url}
-              onChange={(v) => setItem({ url: v }, ik("url"))}
-            />
-          )}
-          <Range
-            title={fr("rotate")}
-            value={it.rotate}
-            min={-180}
-            max={180}
-            unit="°"
-            onChange={(v) => setItem({ rotate: v }, ik("rot"))}
-          />
-          <Range
-            title={fr("opacity")}
-            value={it.opacity}
-            min={0}
-            max={100}
-            unit="%"
-            onChange={(v) => setItem({ opacity: v }, ik("op"))}
-          />
-          <Switch title={fr("hideOnPhone")} checked={it.hideOnPhone} onChange={(v) => setItem({ hideOnPhone: v })} />
-          <p className="text-muted text-[12px]">{fr("itemHint")}</p>
-        </>
+        <FreeItemSettings
+          key={it.id}
+          it={it}
+          projects={projects}
+          language={language}
+          mediaField={mediaField}
+          onBack={() => onFreeItem?.(null)}
+          setItem={(patch, key) =>
+            set<BlockOf<"free">>({ items: block.items.map((i) => (i.id === it.id ? { ...i, ...patch } : i)) }, key)
+          }
+        />
       );
       break;
     }
@@ -1855,6 +1848,265 @@ export function BlockSettings({
       </div>
       {body}
     </div>
+  );
+}
+
+/* ---------- a free-form item's settings: Content | Design ---------- */
+
+function FreeItemSettings({
+  it,
+  projects,
+  language,
+  setItem,
+  onBack,
+  mediaField,
+}: {
+  it: FreeItem;
+  projects: GalleryProject[];
+  language: Locale;
+  setItem: (patch: Partial<FreeItem>, key?: string) => void;
+  onBack: () => void;
+  mediaField: (title: string, id: string | null, kind: MediaKind, apply: (id: string | null) => void) => ReactNode;
+}) {
+  const f = useTranslations("editor.fields");
+  const fr = useTranslations("editor.free");
+  const [tab, setTab] = useState<"content" | "design">("content");
+  const ik = (name: string) => `${it.id}-${name}`;
+  const typed = ["text", "heading", "button", "quote", "list", "project"].includes(it.kind);
+  const framed = ["image", "shape", "button", "video", "map", "project"].includes(it.kind);
+  const linkable = ["image", "button", "shape", "text", "heading"].includes(it.kind);
+  const cornered = ["image", "button", "shape", "video", "map", "audio", "project"].includes(it.kind);
+
+  const content = (
+    <>
+      {(it.kind === "text" || it.kind === "heading" || it.kind === "quote") && (
+        <Area title={fr("text")} value={it.text} onChange={(v) => setItem({ text: v }, ik("t"))} />
+      )}
+      {it.kind === "button" && <Text title={fr("label")} value={it.text} onChange={(v) => setItem({ text: v }, ik("t"))} />}
+      {it.kind === "quote" && <Text title={fr("author")} value={it.caption} onChange={(v) => setItem({ caption: v }, ik("cap"))} />}
+      {it.kind === "image" && mediaField(f("image"), it.mediaId, "image", (id) => setItem({ mediaId: id }))}
+      {it.kind === "image" && <Text title={fr("caption")} value={it.caption} onChange={(v) => setItem({ caption: v }, ik("cap"))} />}
+      {it.kind === "image" && (
+        <Choice
+          title={fr("fit")}
+          value={it.fit}
+          options={[
+            ["cover", fr("fill")],
+            ["contain", fr("fitWhole")],
+          ]}
+          onChange={(v) => setItem({ fit: v })}
+        />
+      )}
+      {it.kind === "video" && (
+        <Text title={fr("videoLink")} dir="ltr" placeholder="https://youtu.be/" value={it.url} onChange={(v) => setItem({ url: v }, ik("url"))} />
+      )}
+      {it.kind === "audio" && (
+        <Text
+          title={fr("audioLink")}
+          dir="ltr"
+          placeholder="https://soundcloud.com/…"
+          value={it.url}
+          onChange={(v) => setItem({ url: v }, ik("url"))}
+        />
+      )}
+      {it.kind === "map" && <Text title={fr("address")} value={it.text} onChange={(v) => setItem({ text: v }, ik("t"))} />}
+      {it.kind === "social" && <p className="text-muted text-[12px]">{fr("socialHint")}</p>}
+      {it.kind === "project" && (
+        <Label title={fr("project")}>
+          <select
+            className={inputCls}
+            value={it.projectId ?? ""}
+            onChange={(e) => setItem({ projectId: e.target.value || null })}
+          >
+            <option value="">{fr("projectFirst")}</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.title}
+              </option>
+            ))}
+          </select>
+        </Label>
+      )}
+      {it.kind === "list" && (
+        <div className="flex flex-col gap-3">
+          {it.entries.map((e, n) => (
+            <div key={n} className="border-line flex flex-col gap-2 rounded-[12px] border p-2.5">
+              <Text
+                title={fr("question")}
+                value={e.title}
+                onChange={(v) => setItem({ entries: it.entries.map((x, j) => (j === n ? { ...x, title: v } : x)) }, ik(`q${n}`))}
+              />
+              <Area
+                title={fr("answer")}
+                value={e.body}
+                onChange={(v) => setItem({ entries: it.entries.map((x, j) => (j === n ? { ...x, body: v } : x)) }, ik(`a${n}`))}
+              />
+              <Button size="sm" variant="ghost" icon="delete" onClick={() => setItem({ entries: it.entries.filter((_, j) => j !== n) })}>
+                {fr("removeRow")}
+              </Button>
+            </div>
+          ))}
+          {it.entries.length < 20 && (
+            <Button size="sm" variant="outline" icon="add" onClick={() => setItem({ entries: [...it.entries, { title: "", body: "" }] })}>
+              {fr("addRow")}
+            </Button>
+          )}
+        </div>
+      )}
+      {linkable && (
+        <Text title={fr("link")} dir="ltr" placeholder={fr("linkPlaceholder")} value={it.link} onChange={(v) => setItem({ link: v }, ik("link"))} />
+      )}
+      <Switch title={fr("hideOnPhone")} checked={it.hideOnPhone} onChange={(v) => setItem({ hideOnPhone: v })} />
+      <Switch title={fr("hideEverywhere")} checked={it.hidden} onChange={(v) => setItem({ hidden: v })} />
+    </>
+  );
+
+  const design = (
+    <>
+      {it.kind === "button" && (
+        <Choice
+          title={fr("style")}
+          value={it.variant}
+          options={[
+            ["filled", fr("filled")],
+            ["outline", fr("outline")],
+            ["text", fr("plain")],
+          ]}
+          onChange={(v) => setItem({ variant: v })}
+        />
+      )}
+      {it.kind === "shape" && (
+        <div className="flex flex-col gap-1.5 text-[12px] font-semibold">
+          {fr("shape")}
+          <div className="grid grid-cols-5 gap-1.5" role="radiogroup" aria-label={fr("shape")}>
+            {(["rect", "circle", "pill", "triangle", "arch"] as const).map((sh) => (
+              <button
+                key={sh}
+                type="button"
+                role="radio"
+                aria-checked={it.shape === sh}
+                aria-label={fr(`shapes.${sh}`)}
+                title={fr(`shapes.${sh}`)}
+                onClick={() => setItem({ shape: sh })}
+                className={cx(
+                  "flex h-10 items-center justify-center rounded-[10px] border",
+                  it.shape === sh ? "border-primary bg-secondary-container" : "border-line hover:bg-mist",
+                )}
+              >
+                <span
+                  className="bg-ink block"
+                  style={{
+                    width: sh === "pill" ? 22 : 16,
+                    height: sh === "pill" ? 11 : 16,
+                    borderRadius: sh === "circle" ? "50%" : sh === "pill" ? 999 : sh === "arch" ? "999px 999px 0 0" : 2,
+                    clipPath: sh === "triangle" ? "polygon(50% 0, 100% 100%, 0 100%)" : undefined,
+                  }}
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {(typed || it.kind === "social") && (
+        <Range
+          title={it.kind === "social" ? fr("iconSize") : fr("size")}
+          value={it.size}
+          min={8}
+          max={it.kind === "social" ? 96 : 200}
+          unit="px"
+          onChange={(v) => setItem({ size: v }, ik("size"))}
+        />
+      )}
+      {typed && (
+        <>
+          <Choice
+            title={fr("font")}
+            value={it.font}
+            options={[
+              ["heading", fr("fontHeading")],
+              ["body", fr("fontBody")],
+            ]}
+            onChange={(v) => setItem({ font: v })}
+          />
+          <Range title={fr("weight")} value={it.weight} min={300} max={900} onChange={(v) => setItem({ weight: Math.round(v / 100) * 100 }, ik("w"))} />
+          <Range title={fr("lineHeight")} value={it.lineHeight} min={80} max={240} unit="%" onChange={(v) => setItem({ lineHeight: v }, ik("lh"))} />
+          {language !== "ar" && (
+            <Range title={fr("tracking")} value={it.tracking} min={-10} max={50} onChange={(v) => setItem({ tracking: v }, ik("tr"))} />
+          )}
+          <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+            <Switch title={fr("upper")} checked={it.upper} onChange={(v) => setItem({ upper: v })} />
+            <Switch title={fr("italic")} checked={it.italic} onChange={(v) => setItem({ italic: v })} />
+          </div>
+        </>
+      )}
+      {(typed || it.kind === "social") && (
+        <Choice
+          title={f("align")}
+          value={it.align}
+          options={[
+            ["start", f("alignStart")],
+            ["center", f("alignCenter")],
+            ["end", fr("alignEnd")],
+          ]}
+          onChange={(v) => setItem({ align: v })}
+        />
+      )}
+      {(typed || it.kind === "social") && (
+        <ColorField title={fr("textColor")} value={it.color} themeLabel={fr("theme")} onChange={(v) => setItem({ color: v }, ik("color"))} />
+      )}
+      {(it.kind === "button" || it.kind === "shape" || it.kind === "line") && (
+        <ColorField title={fr("color")} value={it.fill} themeLabel={fr("theme")} onChange={(v) => setItem({ fill: v }, ik("fill"))} />
+      )}
+      {it.kind === "line" && (
+        <Range title={fr("thickness")} value={it.size} min={8} max={160} onChange={(v) => setItem({ size: v }, ik("size"))} />
+      )}
+      {cornered && it.shape !== "circle" && (
+        <Range title={fr("corners")} value={Math.min(it.radius, 200)} min={0} max={200} unit="px" onChange={(v) => setItem({ radius: v }, ik("radius"))} />
+      )}
+      {framed && (
+        <>
+          <Range title={fr("border")} value={it.borderWidth} min={0} max={24} unit="px" onChange={(v) => setItem({ borderWidth: v }, ik("bw"))} />
+          {it.borderWidth > 0 && (
+            <ColorField
+              title={fr("borderColor")}
+              value={it.borderColor}
+              themeLabel={fr("theme")}
+              onChange={(v) => setItem({ borderColor: v }, ik("bc"))}
+            />
+          )}
+          <Switch title={fr("shadow")} checked={it.shadow} onChange={(v) => setItem({ shadow: v })} />
+        </>
+      )}
+      <Range title={fr("rotate")} value={it.rotate} min={-180} max={180} unit="°" onChange={(v) => setItem({ rotate: v }, ik("rot"))} />
+      <Range title={fr("opacity")} value={it.opacity} min={0} max={100} unit="%" onChange={(v) => setItem({ opacity: v }, ik("op"))} />
+    </>
+  );
+
+  return (
+    <>
+      <button type="button" onClick={onBack} className="text-ink-soft hover:text-ink self-start text-[12px] font-semibold">
+        {fr("backToSection")}
+      </button>
+      <div className="flex items-center gap-2 text-[14px] font-semibold">{fr(`kinds.${it.kind}`)}</div>
+      <div role="tablist" className="border-line -mt-1 grid grid-cols-2 border-b">
+        {(["content", "design"] as const).map((x) => (
+          <button
+            key={x}
+            type="button"
+            role="tab"
+            aria-selected={tab === x}
+            onClick={() => setTab(x)}
+            className={cx(
+              "h-9 border-b-2 text-[13px]",
+              tab === x ? "border-primary text-ink font-semibold" : "text-muted border-transparent font-medium",
+            )}
+          >
+            {fr(`tabs.${x}`)}
+          </button>
+        ))}
+      </div>
+      {tab === "content" ? content : design}
+    </>
   );
 }
 

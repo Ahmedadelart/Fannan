@@ -287,10 +287,24 @@ function normalizeFreeItem(raw: Any): FreeItem {
     mediaId: idOrNull(raw.mediaId),
     fit: pick(raw.fit, ["cover", "contain"], "cover"),
     radius: num(raw.radius, 0, 400, 0),
-    shape: pick(raw.shape, ["rect", "circle"], "rect"),
+    shape: pick(raw.shape, ["rect", "circle", "pill", "triangle", "arch"], "rect"),
     link: safeLink(raw.link),
     url: str(raw.url, 500),
     tone: tone(raw.tone, "#5B3A2E"),
+    hidden: bool(raw.hidden),
+    font: pick(raw.font, ["body", "heading"], raw.kind === "heading" || raw.kind === "quote" ? "heading" : "body"),
+    weight: Math.round(num(raw.weight, 300, 900, raw.kind === "heading" ? 700 : raw.kind === "button" ? 600 : 400) / 100) * 100,
+    lineHeight: num(raw.lineHeight, 80, 240, raw.kind === "heading" ? 105 : 155),
+    tracking: num(raw.tracking, -10, 50, 0),
+    upper: bool(raw.upper),
+    italic: bool(raw.italic),
+    borderWidth: num(raw.borderWidth, 0, 24, 0),
+    borderColor: raw.borderColor === null || raw.borderColor === undefined ? null : color(raw.borderColor, "#141414"),
+    shadow: bool(raw.shadow),
+    variant: pick(raw.variant, ["filled", "outline", "text"], "filled"),
+    caption: str(raw.caption, 300),
+    entries: list(raw.entries, 20, (e: Any) => ({ title: str(e?.title, 200), body: str(e?.body, 2000) })),
+    projectId: idOrNull(raw.projectId),
   };
 }
 
@@ -356,7 +370,18 @@ export function normalizeHeader(raw: unknown): HeaderSettings {
       on: typeof hire.on === "boolean" ? hire.on : null,
       label: str(hire.label, 40),
       link: safeLink(hire.link),
+      style: hire.style === "outline" ? "outline" : "filled",
     },
+    linkGap: num(h.linkGap, 4, 64, 20),
+    padding: num(h.padding, 0, 80, 0),
+    width: h.width === "inset" ? "inset" : "full",
+    border: bool(h.border),
+    shadow: bool(h.shadow),
+    textColor: HEX.test(String(h.textColor)) ? String(h.textColor).toUpperCase() : null,
+    social: bool(h.social),
+    logoSize: num(h.logoSize, 20, 140, 40),
+    titleSize: num(h.titleSize, 14, 72, 26),
+    upperLinks: bool(h.upperLinks),
   };
 }
 
@@ -367,6 +392,15 @@ export function normalizeFooter(raw: unknown): FooterSettings {
     align: f.align === "start" ? "start" : "center",
     social: f.social !== false,
     cv: f.cv !== false,
+    layout: f.layout === "columns" ? "columns" : "stack",
+    background: HEX.test(String(f.background)) ? String(f.background).toUpperCase() : null,
+    textColor: HEX.test(String(f.textColor)) ? String(f.textColor).toUpperCase() : null,
+    showTitle: bool(f.showTitle),
+    email: str(f.email, 120),
+    backToTop: bool(f.backToTop),
+    socialStyle: f.socialStyle === "icons" ? "icons" : "text",
+    border: bool(f.border),
+    padding: num(f.padding, 0, 120, 32),
   };
 }
 

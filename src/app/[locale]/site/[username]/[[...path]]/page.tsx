@@ -506,6 +506,7 @@ export default async function ArtistSite({ params }: { params: Promise<Params> }
         contactHref={contactHref}
         available={{ on: site.available.on, label: ts("available"), hire: ts("hireMe") }}
         contactFallback={site.settings.contact}
+        social={site.settings.social}
         renderContact={(b) => (
           <ContactForm button={b.button} turnstileKey={TURNSTILE_SITE_KEY} form={contactFormOf(b, site.settings.contact)} />
         )}

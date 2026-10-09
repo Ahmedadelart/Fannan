@@ -71,7 +71,8 @@ test("a free-form section: place, resize, turn, layer, type, publish", async ({ 
   const box = (await first.boundingBox())!;
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
   await expect(page.getByTestId("free-toolbar")).toBeVisible();
-  await expect(page.getByText("Turn")).toBeVisible(); // the side panel shows the block's settings
+  // Selecting shows the quick toolbar only; the pencil opens the full settings.
+  await expect(page.getByTestId("block-settings")).toBeHidden();
 
   // Move it: one cell is 1/24 of the grid's width.
   const before = await vars(page, 0);
@@ -92,7 +93,9 @@ test("a free-form section: place, resize, turn, layer, type, publish", async ({ 
   await page.mouse.up();
   await expect.poll(async () => (await vars(page, 0)).w).toBe(before.w + 2);
 
-  // Turn it with the round handle (snaps to 15° steps), and from the panel.
+  // Turn it from its settings (pencil → Design).
+  await page.getByTestId("item-edit").click();
+  await page.getByTestId("block-settings").getByRole("tab", { name: "Design" }).click();
   await page.getByRole("slider", { name: "Turn" }).fill("30");
   await expect.poll(async () => (await vars(page, 0)).rotate).toBe("rotate(30deg)");
 
@@ -101,8 +104,8 @@ test("a free-form section: place, resize, turn, layer, type, publish", async ({ 
   await expect.poll(async () => (await vars(page, 0)).z).toBe(4);
 
   // Add a text block and type in it.
-  await page.getByRole("button", { name: "Add element" }).click();
-  await page.getByRole("menuitem", { name: "Text" }).click();
+  await page.getByRole("button", { name: "Add item" }).click();
+  await page.getByRole("menuitem", { name: "Text", exact: true }).click();
   await expect(page.getByTestId("free-item")).toHaveCount(5);
   const text = page.getByTestId("free-item").last();
   await text.dblclick();
