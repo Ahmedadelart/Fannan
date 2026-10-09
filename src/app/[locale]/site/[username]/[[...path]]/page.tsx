@@ -32,7 +32,7 @@ type Params = { locale: Locale; username: string; path?: string[] };
 function resolve(site: LiveSite, path: string[] | undefined) {
   if (path && path.length > 1) return null;
   const slug = path?.[0] ?? "";
-  const page = site.pages.find((p) => p.slug === slug && p.type !== "link");
+  const page = site.pages.find((p) => p.slug === slug && p.type !== "link" && p.type !== "folder");
   if (page) return { kind: "page" as const, page, scope: page.id, hash: page.passwordHash };
   const project = slug ? site.projects.find((p) => p.slug === slug) : undefined;
   if (project)

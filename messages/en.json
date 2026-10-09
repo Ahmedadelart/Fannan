@@ -724,13 +724,15 @@
         "gallery": "Gallery page",
         "custom": "Custom page",
         "about": "About / CV",
-        "link": "External link"
+        "link": "External link",
+        "folder": "Dropdown"
       },
       "newTitles": {
         "gallery": "Work",
         "custom": "New page",
         "about": "About",
-        "link": "Link"
+        "link": "Link",
+        "folder": "Artwork"
       },
       "name": "Page name",
       "slug": "Address",
@@ -743,7 +745,13 @@
       "savePassword": "Save password",
       "removePassword": "Remove password",
       "proOnly": "Page passwords are part of Pro.",
-      "drag": "Drag to move {page} (or use the arrow keys)"
+      "drag": "Drag to move {page} (or use the arrow keys)",
+      "inside": "Show in a dropdown",
+      "topLevel": "No, in the menu itself",
+      "insideHint": "Puts this page in another menu item's dropdown, like Artwork → Sketches.",
+      "hasPages": "Other pages are in this one's dropdown.",
+      "folderHint": "A dropdown is a menu item that opens a list. Put pages in it from their own settings.",
+      "folderCanvas": "This is a dropdown in your menu, not a page. Open a page's settings and choose this dropdown under “Show in a dropdown”."
     },
     "fields": {
       "heading": "Heading",
@@ -1096,6 +1104,27 @@
       "goPro": "Go Pro",
       "addTime": "Add Pro time",
       "admin": "Admin"
+    },
+    "copied": "Copied",
+    "cut": "Cut",
+    "pasted": "Pasted",
+    "shortcuts": {
+      "title": "Keyboard shortcuts",
+      "undo": "Undo",
+      "redo": "Redo",
+      "copy": "Copy (section or items)",
+      "cut": "Cut",
+      "paste": "Paste",
+      "duplicate": "Duplicate",
+      "delete": "Delete",
+      "selectAll": "Pick every item in a section",
+      "pick": "Add an item to the picked ones",
+      "nudge": "Move items one step",
+      "nudgeFar": "Move items four steps",
+      "letGo": "Let go",
+      "save": "Save now",
+      "help": "Show this list",
+      "mac": "On a Mac, use Cmd instead of Ctrl."
     }
   },
   "inbox": {

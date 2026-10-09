@@ -324,7 +324,7 @@ function normalizeFree(id: string, b: Any): Block {
 
 export function normalizePage(raw: unknown, i: number): PageDraft {
   const p = (raw ?? {}) as Any;
-  const type: PageType = pick(p.type, ["gallery", "custom", "about", "link"], "custom");
+  const type: PageType = pick(p.type, ["gallery", "custom", "about", "link", "folder"], "custom");
   return {
     id: typeof p.id === "string" && p.id ? p.id.slice(0, 40) : newId(),
     slug:
@@ -337,6 +337,7 @@ export function normalizePage(raw: unknown, i: number): PageDraft {
     type,
     ...(type === "link" ? { url: str(p.url, 300) } : {}),
     showInNav: bool(p.showInNav, true),
+    parentId: i > 0 && typeof p.parentId === "string" && p.parentId ? p.parentId.slice(0, 40) : null,
     hasPassword: bool(p.hasPassword),
     blocks: Array.isArray(p.blocks) ? (p.blocks.slice(0, 60).map(normalizeBlock).filter(Boolean) as Block[]) : [],
   };
@@ -404,8 +405,17 @@ export function normalizeFooter(raw: unknown): FooterSettings {
   };
 }
 
+/** Dropdowns go one level deep: a page sits inside a top-level page (not the home page, not itself). */
+function tidyParents(pages: PageDraft[]): PageDraft[] {
+  const top = new Set(pages.slice(1).filter((p) => !p.parentId).map((p) => p.id));
+  return pages.map((p, i) => ({
+    ...p,
+    parentId: i > 0 && p.parentId && p.parentId !== p.id && top.has(p.parentId) ? p.parentId : null,
+  }));
+}
+
 export function normalizeDraft(raw: Any & { pages?: unknown[] }): SiteDraft {
-  const pages = (raw.pages ?? []).slice(0, 30).map(normalizePage);
+  const pages = tidyParents((raw.pages ?? []).slice(0, 30).map(normalizePage));
   return {
     language: raw.language === "ar" ? "ar" : "en",
     title: str(raw.title, 80),

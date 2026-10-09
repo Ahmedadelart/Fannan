@@ -315,3 +315,82 @@ test("the pencil opens and closes settings; a box picks several items to move to
   await page.getByTestId("group-toolbar").getByRole("button", { name: "Delete" }).click();
   await expect(items).toHaveCount(0);
 });
+
+test("keyboard shortcuts: undo, redo, copy, paste, duplicate, delete, select all, help", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop");
+  test.setTimeout(150_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signUp(page);
+  await openEditor(page);
+  const sections = canvas(page).locator("[data-block-id]");
+  const n = await sections.count();
+
+  // Sections: copy and paste, undo, redo, duplicate, delete.
+  await sections.first().click({ position: { x: 10, y: 10 } });
+  await page.keyboard.press("Control+c");
+  await page.keyboard.press("Control+v");
+  await expect(sections).toHaveCount(n + 1);
+  await page.keyboard.press("Control+z");
+  await expect(sections).toHaveCount(n);
+  await page.keyboard.press("Control+y");
+  await expect(sections).toHaveCount(n + 1);
+  await page.keyboard.press("Control+d");
+  await expect(sections).toHaveCount(n + 2);
+  await page.keyboard.press("Delete");
+  await expect(sections).toHaveCount(n + 1);
+  await page.keyboard.press("Control+z");
+  await expect(sections).toHaveCount(n + 2);
+  await page.keyboard.press("Control+Shift+z");
+  await expect(sections).toHaveCount(n + 1);
+
+  // Items: copy, paste, select all.
+  await page.getByTestId("add-free-blank").click();
+  const items = page.getByTestId("free-item");
+  await items.first().click();
+  await page.keyboard.press("Control+c");
+  await page.keyboard.press("Control+v");
+  await expect(items).toHaveCount(3);
+  await page.keyboard.press("Control+a");
+  await expect(page.getByTestId("group-toolbar")).toContainText("3 items picked");
+  await page.keyboard.press("Escape");
+
+  // ? shows the list of shortcuts.
+  await page.keyboard.press("Shift+?");
+  await expect(page.getByTestId("shortcuts")).toBeVisible();
+});
+
+test("dropdown menus: pages inside a menu item open from the header", async ({ page, browser }, info) => {
+  test.skip(info.project.name !== "desktop");
+  test.setTimeout(150_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const { username } = await signUp(page);
+  await openEditor(page);
+
+  // A dropdown called Artwork, and a Sketches page inside it.
+  await page.getByTestId("page-switcher").click();
+  await page.getByRole("button", { name: "Dropdown", exact: true }).click();
+  await page.getByRole("tab", { name: "Page settings" }).click();
+  await page.getByRole("textbox", { name: "Page name" }).fill("Artwork");
+  await page.getByTestId("page-switcher").click();
+  await page.getByRole("button", { name: "Gallery page", exact: true }).click();
+  await page.getByRole("tab", { name: "Page settings" }).click();
+  await page.getByRole("textbox", { name: "Page name" }).fill("Sketches");
+  await page.getByTestId("page-parent").selectOption({ label: "Artwork" });
+
+  const dd = canvas(page).getByTestId("nav-dropdown");
+  await expect(dd).toContainText("Artwork");
+  await dd.hover();
+  await expect(canvas(page).getByTestId("nav-dropdown-menu")).toContainText("Sketches");
+
+  await page.getByRole("button", { name: "Publish" }).click();
+  await expect(page.getByTestId("editor-status")).toHaveText("Live site is up to date", { timeout: 20_000 });
+  const visitor = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
+  await visitor.goto(at(username));
+  await expect(visitor.getByRole("link", { name: "Sketches" })).toBeHidden();
+  await visitor.getByRole("button", { name: /Artwork/ }).hover();
+  await expect(visitor.getByRole("link", { name: "Sketches" })).toBeVisible();
+  await visitor.getByRole("link", { name: "Sketches" }).click();
+  // A new page keeps its first web address (work-N) after it is renamed.
+  await expect(visitor).toHaveURL(/\/(work|sketches)[a-z0-9-]*$/);
+  await visitor.screenshot({ path: `test-results/r7-dropdown-${info.project.name}.png` });
+});

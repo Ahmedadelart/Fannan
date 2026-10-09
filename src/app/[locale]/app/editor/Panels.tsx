@@ -913,10 +913,18 @@ export function PagesTab({
                 aria-current={p.id === page.id}
                 className={cx(
                   "flex h-[42px] min-w-0 flex-1 items-center justify-between rounded-[10px] px-2.5 text-start",
+                  p.parentId && "ms-5",
                   p.id === page.id ? "bg-mist font-semibold" : "hover:bg-mist/60",
                 )}
               >
-                <span className="truncate">{p.title}</span>
+                <span className="flex min-w-0 items-center gap-1.5 truncate">
+                  {p.parentId && (
+                    <span aria-hidden className="text-muted">
+                      ↳
+                    </span>
+                  )}
+                  {p.title}
+                </span>
                 <span className="text-muted text-[12px]">
                   {i === 0 ? t("home") : p.hasPassword ? "🔒" : t(`types.${p.type}`)}
                 </span>
@@ -936,7 +944,7 @@ export function PagesTab({
       {part !== "list" && (
         <div className="border-line flex flex-col gap-3 rounded-md border p-3">
           <Text title={t("name")} value={page.title} onChange={(v) => setPage({ title: v }, `page-title-${page.id}`)} />
-          {index > 0 && page.type !== "link" && (
+          {index > 0 && page.type !== "link" && page.type !== "folder" && (
             <Text
               title={t("slug")}
               dir="ltr"
@@ -954,6 +962,35 @@ export function PagesTab({
             />
           )}
           <Switch title={t("inNav")} checked={page.showInNav} onChange={(v) => setPage({ showInNav: v })} />
+          {index > 0 && (
+            <Label
+              title={t("inside")}
+              hint={
+                draft.pages.some((x) => x.parentId === page.id)
+                  ? t("hasPages")
+                  : page.type === "folder"
+                    ? t("folderHint")
+                    : t("insideHint")
+              }
+            >
+              <select
+                className={inputCls}
+                value={page.parentId ?? ""}
+                disabled={draft.pages.some((x) => x.parentId === page.id) || page.type === "folder"}
+                onChange={(e) => setPage({ parentId: e.target.value || null })}
+                data-testid="page-parent"
+              >
+                <option value="">{t("topLevel")}</option>
+                {draft.pages.slice(1)
+                  .filter((x) => x.id !== page.id && !x.parentId)
+                  .map((x) => (
+                    <option key={x.id} value={x.id}>
+                      {x.title}
+                    </option>
+                  ))}
+              </select>
+            </Label>
+          )}
           <div className="flex flex-wrap gap-1.5">
             <Button
               size="sm"
@@ -961,14 +998,19 @@ export function PagesTab({
               icon="delete"
               disabled={draft.pages.length <= 1 || index === 0}
               onClick={() => {
-                setDraft((d) => ({ ...d, pages: d.pages.filter((p) => p.id !== page.id) }));
+                setDraft((d) => ({
+                  ...d,
+                  pages: d.pages
+                    .filter((p) => p.id !== page.id)
+                    .map((p) => (p.parentId === page.id ? { ...p, parentId: null } : p)),
+                }));
                 setPageId(draft.pages[0].id);
               }}
             >
               {t("delete")}
             </Button>
           </div>
-          {page.type !== "link" && (
+          {page.type !== "link" && page.type !== "folder" && (
             <div className="border-line flex flex-col gap-1.5 border-t pt-3">
               {canPassword ? (
                 <form
@@ -1012,7 +1054,7 @@ export function PagesTab({
         <>
           <div className="text-muted text-[11px] font-semibold tracking-[0.08em] uppercase">{t("add")}</div>
           <div className="grid grid-cols-2 gap-2">
-            {(["gallery", "custom", "about", "link"] as PageType[]).map((type) => (
+            {(["gallery", "custom", "about", "link", "folder"] as PageType[]).map((type) => (
               <Button key={type} size="sm" variant="outline" onClick={() => add(type)}>
                 {t(`types.${type}`)}
               </Button>
@@ -1179,7 +1221,7 @@ export function SitePartSettings({
               {draft.pages.map((pg) => (
                 <Switch
                   key={pg.id}
-                  title={pg.title || "—"}
+                  title={(pg.parentId ? "↳ " : "") + (pg.title || "—")}
                   checked={pg.showInNav}
                   onChange={(v) =>
                     setDraft((d) => ({ ...d, pages: d.pages.map((x) => (x.id === pg.id ? { ...x, showInNav: v } : x)) }))

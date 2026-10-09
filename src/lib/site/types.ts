@@ -169,7 +169,8 @@ export interface FreeSection {
 export type BlockType = Block["type"];
 export type BlockOf<T extends BlockType> = Extract<Block, { type: T }>;
 
-export type PageType = "gallery" | "custom" | "about" | "link";
+/** "folder" is a menu item that only opens a dropdown of the pages inside it. */
+export type PageType = "gallery" | "custom" | "about" | "link" | "folder";
 
 export interface PageDraft {
   id: string;
@@ -179,6 +180,8 @@ export interface PageDraft {
   /** External link pages only. */
   url?: string;
   showInNav: boolean;
+  /** Shown in this top-level page's dropdown in the menu, instead of in the menu itself. */
+  parentId?: string | null;
   /** Set on the server; the password itself never reaches the browser. */
   hasPassword?: boolean;
   blocks: Block[];

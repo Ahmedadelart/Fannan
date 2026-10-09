@@ -1412,6 +1412,29 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
   const partClass = cx(ctx.editing && "site-block", selected && "site-block-selected");
   const logo = theme.logoMediaId ? ctx.media[theme.logoMediaId] : null;
   const links = site.pages.filter((p) => p.showInNav);
+  // Pages inside another page show in its dropdown, not in the menu itself.
+  const top = links.filter((p) => !p.parentId || !links.some((x) => x.id === p.parentId));
+  const navLink = (p: PageDraft, style?: CSSProperties) => {
+    if (!ctx.live || p.type === "folder") {
+      return (
+        <span key={p.id} style={style}>
+          {p.title}
+        </span>
+      );
+    }
+    const href = p.type === "link" ? p.url || "#" : `/${p.slug}`;
+    return (
+      <a
+        key={p.id}
+        href={href}
+        style={{ color: "inherit", textDecoration: "none", ...style }}
+        aria-current={p.id === page.id ? "page" : undefined}
+        {...(p.type === "link" ? { target: "_blank", rel: "noopener" } : {})}
+      >
+        {p.title}
+      </a>
+    );
+  };
   const brandInner = logo ? (
     <span className="block" style={{ height: settings.logoSize, width: settings.logoSize * 3.6 }}>
       <Picture
@@ -1471,27 +1494,59 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
         letterSpacing: settings.upperLinks ? "0.04em" : undefined,
       }}
     >
-      {links.map((p) => {
-        const style =
-          p.id === page.id ? { color: settings.textColor ?? "var(--site-text)", fontWeight: 600 } : undefined;
-        if (!ctx.live) {
-          return (
-            <span key={p.id} style={style}>
-              {p.title}
-            </span>
-          );
-        }
-        const href = p.type === "link" ? p.url || "#" : `/${p.slug}`;
+      {top.map((p) => {
+        const kids = links.filter((c) => c.parentId === p.id);
+        const current = p.id === page.id || kids.some((c) => c.id === page.id);
+        const style = current ? { color: settings.textColor ?? "var(--site-text)", fontWeight: 600 } : undefined;
+        if (!kids.length) return navLink(p, style);
+        // A dropdown: hover or focus shows the pages inside (no script needed on the live site).
         return (
-          <a
-            key={p.id}
-            href={href}
-            style={{ color: "inherit", textDecoration: "none", ...style }}
-            aria-current={p.id === page.id ? "page" : undefined}
-            {...(p.type === "link" ? { target: "_blank", rel: "noopener" } : {})}
-          >
-            {p.title}
-          </a>
+          <span key={p.id} className="group/dd relative inline-flex items-center" data-testid="nav-dropdown">
+            {p.type === "folder" || !ctx.live ? (
+              <button
+                type="button"
+                className="inline-flex items-center gap-1"
+                style={{ ...style, color: style?.color ?? "inherit", font: "inherit", background: "none", border: 0, padding: 0, cursor: "pointer" }}
+                aria-haspopup="true"
+              >
+                {p.title}
+                <span aria-hidden className="text-[0.7em]">▾</span>
+              </button>
+            ) : (
+              <span className="inline-flex items-center gap-1">
+                {navLink(p, style)}
+                <span aria-hidden className="text-[0.7em]">▾</span>
+              </span>
+            )}
+            <span
+              className={cx(
+                "z-40 flex-col gap-0.5 py-2",
+                theme.nav === "sidebar"
+                  ? "flex ps-3 pt-1"
+                  : "absolute start-0 top-full hidden min-w-[180px] group-focus-within/dd:flex group-hover/dd:flex",
+              )}
+              style={
+                theme.nav === "sidebar"
+                  ? undefined
+                  : {
+                      background: "var(--site-bg)",
+                      border: "1px solid var(--site-line)",
+                      borderRadius: "calc(var(--site-radius) + 4px)",
+                      boxShadow: "0 12px 30px rgba(0,0,0,.12)",
+                      padding: 8,
+                      textTransform: "none",
+                      letterSpacing: "normal",
+                    }
+              }
+              data-testid="nav-dropdown-menu"
+            >
+              {kids.map((c) => (
+                <span key={c.id} className="block rounded-[6px] px-3 py-1.5 whitespace-nowrap">
+                  {navLink(c, c.id === page.id ? { color: "var(--site-text)", fontWeight: 600 } : { color: "var(--site-text)" })}
+                </span>
+              ))}
+            </span>
+          </span>
         );
       })}
     </span>
@@ -1652,7 +1707,7 @@ export function SiteRender({
     <div
       dir={dirFor(site.language)}
       lang={site.language}
-      className={cx("site-root @container min-h-full", siteFontVars)}
+      className={cx("site-root @container min-h-full", live && "min-h-dvh", siteFontVars)}
       style={{
         ...vars,
         background: "var(--site-bg)",

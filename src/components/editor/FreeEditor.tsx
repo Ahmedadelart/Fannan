@@ -13,6 +13,7 @@ import { Icon, type IconName } from "@/components/ui/Icon";
 import { cx } from "@/lib/cx";
 import { FREE_COLS, freeBottom } from "@/lib/site/free";
 import type { BlockOf, FreeItem, FreeKind, FreePlace } from "@/lib/site/types";
+import { getClip, mod, setClip, typing } from "./clipboard";
 import { InlineText } from "./InlineText";
 
 // A free-form section on the editor canvas (Squarespace-style): click an item to select it, drag it
@@ -357,7 +358,7 @@ export function FreeEditor({
     window.addEventListener("pointerup", up);
   }
 
-  // Keyboard for picked items: arrows move them all, Delete removes them, Esc lets go.
+  // Keyboard for picked items: arrows move them all (Shift: four steps), Delete removes them, Esc lets go.
   useEffect(() => {
     if (!grouped) return;
     const onKey = (e: KeyboardEvent) => {
@@ -366,8 +367,9 @@ export function FreeEditor({
         e.key
       ] as [number, number] | undefined;
       const picked = b.items.filter((i) => group.includes(i.id));
-      if (by) {
+      if (by && !mod(e)) {
         e.preventDefault();
+        if (e.shiftKey) by.forEach((v, n) => (by[n] = v * 4));
         const minX = Math.min(...picked.map((i) => i.place.x));
         const maxX = Math.max(...picked.map((i) => i.place.x + i.place.w));
         const minY = Math.min(...picked.map((i) => i.place.y));
@@ -394,8 +396,9 @@ export function FreeEditor({
       const by = { ArrowLeft: [rtl ? 1 : -1, 0], ArrowRight: [rtl ? -1 : 1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[
         e.key
       ] as [number, number] | undefined;
-      if (by) {
+      if (by && !mod(e)) {
         e.preventDefault();
+        if (e.shiftKey) by.forEach((v, n) => (by[n] = v * 4));
         update(
           it.id,
           {
@@ -407,7 +410,7 @@ export function FreeEditor({
           },
           `nudge-${it.id}`,
         );
-      } else if (e.key === "Delete" || e.key === "Backspace") {
+      } else if ((e.key === "Delete" || e.key === "Backspace") && !mod(e)) {
         e.preventDefault();
         onChange((s) => ({ ...s, items: s.items.filter((i) => i.id !== it.id) }));
         onSelectItem(null);
@@ -438,6 +441,61 @@ export function FreeEditor({
       };
       return { ...s, items: [...s.items, copy], rows: Math.max(s.rows, copy.place.y + copy.place.h) };
     });
+
+  // Copy, cut, paste, duplicate and select all, for the items of this section.
+  useEffect(() => {
+    if (!active || editing) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (typing(e) || !mod(e)) return;
+      const k = e.key.toLowerCase();
+      const picked = grouped
+        ? b.items.filter((i) => group.includes(i.id))
+        : b.items.filter((i) => i.id === selectedItem);
+      if (k === "a") {
+        e.preventDefault();
+        const all = b.items.filter((i) => !i.hidden).map((i) => i.id);
+        if (all.length > 1) {
+          setGroup(all);
+          onSelectItem(null);
+        } else onSelectItem(all[0] ?? null);
+      } else if ((k === "c" || k === "x") && picked.length) {
+        e.preventDefault();
+        setClip({ kind: "items", items: picked });
+        if (k === "x") {
+          const ids = new Set(picked.map((i) => i.id));
+          onChange((s) => ({ ...s, items: s.items.filter((i) => !ids.has(i.id)) }));
+          setGroup([]);
+          onSelectItem(null);
+        }
+      } else if (k === "v" && getClip()?.kind === "items") {
+        e.preventDefault();
+        const clip = getClip() as { kind: "items"; items: FreeItem[] };
+        const taken = new Set(b.items.map((i) => `${i.place.x},${i.place.y}`));
+        // Pasted on top of where they were copied from, they shift one cell so they show.
+        const shift = clip.items.some((i) => taken.has(`${i.place.x},${i.place.y}`)) ? 1 : 0;
+        let z = Math.max(0, ...b.items.map((i) => i.z));
+        const pasted = clip.items.map((i) => ({
+          ...structuredClone(i),
+          id: Math.random().toString(36).slice(2, 10),
+          z: ++z,
+          place: { ...i.place, x: Math.min(FREE_COLS - i.place.w, i.place.x + shift), y: i.place.y + shift },
+        }));
+        onChange((s) => {
+          const items = [...s.items, ...pasted];
+          return { ...s, items, rows: Math.max(s.rows, freeBottom(items)) };
+        });
+        if (pasted.length > 1) {
+          setGroup(pasted.map((i) => i.id));
+          onSelectItem(null);
+        } else onSelectItem(pasted[0]?.id ?? null);
+      } else if (k === "d" && picked.length) {
+        e.preventDefault();
+        picked.forEach((i) => duplicate(i));
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   const tool = "flex size-8 items-center justify-center rounded-full text-[#45483D] hover:bg-[#1A1C16]/8";
 

@@ -14,6 +14,7 @@ import { blockKinds, networkName, newId, type BlockKind } from "@/lib/site/block
 import { setPath } from "@/lib/site/fields";
 import { normalizeFooter } from "@/lib/site/normalize";
 import { moveTo, startSortDrag } from "@/components/editor/sortDrag";
+import { getClip, mod, setClip, typing } from "@/components/editor/clipboard";
 import type { Block, BlockOf, FreeKind, SiteDraft } from "@/lib/site/types";
 import { addFreeItem, ITEM_GROUPS } from "@/lib/site/free";
 import { FreeEditor, KIND_ICONS } from "@/components/editor/FreeEditor";
@@ -729,11 +730,17 @@ export function Editor({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const typing = (e.target as HTMLElement).closest("input, textarea, select, [contenteditable]");
-      if (typing || !(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "z") return;
-      e.preventDefault();
-      if (e.shiftKey) redo();
-      else undo();
+      if (typing(e) || !mod(e)) return;
+      const k = e.key.toLowerCase();
+      // Undo: Ctrl+Z. Redo: Ctrl+Shift+Z or Ctrl+Y.
+      if (k === "z") {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+      } else if (k === "y") {
+        e.preventDefault();
+        redo();
+      }
     };
     const warn = (e: BeforeUnloadEvent) => {
       if (saveTimer.current || saving.current) e.preventDefault();
@@ -746,6 +753,16 @@ export function Editor({
     };
     // undo/redo read refs only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* ---------- keyboard shortcuts for sections, saving and help ---------- */
+
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const sectionKeys = useRef<(e: KeyboardEvent) => void>(() => {});
+  useEffect(() => {
+    const on = (e: KeyboardEvent) => sectionKeys.current(e);
+    window.addEventListener("keydown", on);
+    return () => window.removeEventListener("keydown", on);
   }, []);
 
   /* ---------- blocks ---------- */
@@ -789,6 +806,58 @@ export function Editor({
     setBlocks((blocks) => blocks.filter((b) => b.id !== block.id));
     setSelected(null);
   }
+
+  sectionKeys.current = (e: KeyboardEvent) => {
+    if (typing(e)) return;
+    const k = e.key.toLowerCase();
+    if (mod(e) && k === "s") {
+      // Ctrl+S: save now (the editor also saves by itself).
+      e.preventDefault();
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+      void persist().then(() => toast(t("saved"), "check"));
+      return;
+    }
+    if (e.key === "?" && !mod(e)) {
+      setShortcutsOpen(true);
+      return;
+    }
+    // Items inside a free-form section have their own shortcuts (FreeEditor).
+    if (freeItem || document.querySelector('[data-testid="free-group"]')) return;
+    if (e.key === "Escape" && selected) {
+      setSelected(null);
+      setSettingsOpen(false);
+      return;
+    }
+    const clip = getClip();
+    if (mod(e) && k === "v" && clip?.kind === "section") {
+      e.preventDefault();
+      const copy = { ...structuredClone(clip.block), id: newId() } as Block;
+      if (copy.type === "free") copy.items = copy.items.map((i) => ({ ...i, id: newId() }));
+      setBlocks((blocks) => {
+        const i = selected ? blocks.findIndex((x) => x.id === selected) + 1 : blocks.length;
+        const next = [...blocks];
+        next.splice(i <= 0 ? blocks.length : i, 0, copy);
+        return next;
+      });
+      setSelected(copy.id);
+      toast(t("pasted"), "check");
+      return;
+    }
+    if (!block || reorder) return;
+    if (mod(e) && (k === "c" || k === "x")) {
+      e.preventDefault();
+      setClip({ kind: "section", block });
+      if (k === "x") removeBlock();
+      toast(k === "x" ? t("cut") : t("copied"), "duplicate");
+    } else if (mod(e) && k === "d") {
+      e.preventDefault();
+      duplicateBlock();
+    } else if ((e.key === "Delete" || e.key === "Backspace") && !mod(e)) {
+      e.preventDefault();
+      removeBlock();
+    }
+  };
 
   const sectionActions = {
     move: (id: string, index: number) => setBlocks((blocks) => moveTo(blocks, id, index)),
@@ -1027,6 +1096,18 @@ export function Editor({
               >
                 <Icon name="publish" size={18} />
                 {account.pro ? t("account.addTime") : t("account.goPro")}
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                className="hover:bg-mist flex h-10 items-center gap-2.5 rounded-[10px] px-2.5 text-start text-[14px] font-semibold"
+                onClick={() => {
+                  setAccountOpen(false);
+                  setShortcutsOpen(true);
+                }}
+              >
+                <Icon name="help" size={18} />
+                {t("shortcuts.title")}
               </button>
               {account.admin && (
                 <a
@@ -1362,6 +1443,10 @@ export function Editor({
             <div className="text-muted flex h-[400px] items-center justify-center p-10 text-center" dir="ltr">
               ↗ {page.url || "https://"}
             </div>
+          ) : page.type === "folder" ? (
+            <div className="text-muted flex h-[400px] items-center justify-center p-10 text-center" data-testid="folder-note">
+              {t("pages.folderCanvas")}
+            </div>
           ) : (
             <SiteRender
               {...renderProps}
@@ -1375,6 +1460,41 @@ export function Editor({
           )}
         </Canvas>
       </div>
+
+      {shortcutsOpen && (
+        <Modal open onClose={() => setShortcutsOpen(false)} title={t("shortcuts.title")} closeLabel={t("closePreview")}>
+          <dl className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-2.5 text-[14px]" data-testid="shortcuts">
+            {(
+              [
+                ["undo", "Ctrl Z"],
+                ["redo", "Ctrl Shift Z · Ctrl Y"],
+                ["copy", "Ctrl C"],
+                ["cut", "Ctrl X"],
+                ["paste", "Ctrl V"],
+                ["duplicate", "Ctrl D"],
+                ["delete", "Delete"],
+                ["selectAll", "Ctrl A"],
+                ["pick", "Shift + click"],
+                ["nudge", "← ↑ → ↓"],
+                ["nudgeFar", "Shift + ← ↑ → ↓"],
+                ["letGo", "Esc"],
+                ["save", "Ctrl S"],
+                ["help", "?"],
+              ] as const
+            ).map(([key, keys]) => (
+              <div key={key} className="contents">
+                <dt className="text-ink-soft">{t(`shortcuts.${key}`)}</dt>
+                <dd className="m-0 text-end">
+                  <kbd dir="ltr" className="bg-mist border-line rounded-[6px] border px-2 py-0.5 font-mono text-[12px]">
+                    {keys}
+                  </kbd>
+                </dd>
+              </div>
+            ))}
+          </dl>
+          <p className="text-muted mt-4 text-[12px]">{t("shortcuts.mac")}</p>
+        </Modal>
+      )}
 
       {upsell && (
         <Modal
