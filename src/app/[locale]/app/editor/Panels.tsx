@@ -19,6 +19,8 @@ import { kindByKey, kindOf, LIBRARY, networkName, newId, SOCIAL_NETWORKS, type B
 import { CONTACT_WORDS, contactFormOf, type LegacyContactFields } from "@/lib/site/contact";
 import { normalizeFooter, normalizeHeader } from "@/lib/site/normalize";
 import { toneBase } from "@/lib/site/samples";
+import { DECO_STYLES } from "@/lib/site/deco";
+import type { IconName } from "@/components/ui/Icon";
 import { EDGE_PATHS } from "@/components/site/edges";
 import { patternCss, PATTERN_IDS } from "@/components/site/patterns";
 import { defaultSectionStyle } from "@/lib/site/normalize";
@@ -2261,10 +2263,14 @@ function FreeItemSettings({
   const fr = useTranslations("editor.free");
   const [tab, setTab] = useState<"content" | "design">("content");
   const ik = (name: string) => `${it.id}-${name}`;
-  const typed = ["text", "heading", "button", "quote", "list", "project"].includes(it.kind);
-  const framed = ["image", "shape", "button", "video", "map", "project"].includes(it.kind);
-  const linkable = ["image", "button", "shape", "text", "heading"].includes(it.kind);
-  const cornered = ["image", "button", "shape", "video", "map", "audio", "project"].includes(it.kind);
+  const typed = ["text", "heading", "button", "quote", "list", "project", "badge"].includes(it.kind);
+  const framed = ["image", "shape", "button", "video", "map", "project", "panel"].includes(it.kind);
+  const linkable = ["image", "button", "shape", "text", "heading", "badge", "icon", "doodle"].includes(it.kind);
+  const cornered = ["image", "button", "shape", "video", "map", "audio", "project", "panel", "badge"].includes(it.kind);
+  const dc = it.deco;
+  const setDeco = (patch: Partial<FreeItem["deco"]>, key?: string) => setItem({ deco: { ...dc, ...patch } }, key);
+  const dk = useTranslations("editor.deco");
+  const drawn = ["underline", "arrow", "highlight", "doodle", "divider", "icon"].includes(it.kind);
 
   const content = (
     <>
@@ -2272,6 +2278,36 @@ function FreeItemSettings({
         <Area title={fr("text")} value={it.text} onChange={(v) => setItem({ text: v }, ik("t"))} />
       )}
       {it.kind === "button" && <Text title={fr("label")} value={it.text} onChange={(v) => setItem({ text: v }, ik("t"))} />}
+      {(it.kind === "badge" || (it.kind === "doodle" && dc.style === "burst")) && (
+        <Text title={dk("words")} value={it.text} onChange={(v) => setItem({ text: v }, ik("t"))} />
+      )}
+      {(it.kind === "text" || it.kind === "heading" || it.kind === "quote") && (
+        <p className="text-muted -mt-2 text-[12px]">{dk("accentHint")}</p>
+      )}
+      {it.kind === "icon" && (
+        <div className="flex flex-col gap-1.5 text-[12px] font-semibold">
+          {dk("icon")}
+          <div className="grid grid-cols-6 gap-1" role="radiogroup" aria-label={dk("icon")}>
+            {(DECO_STYLES.icon ?? []).map((name) => (
+              <button
+                key={name}
+                type="button"
+                role="radio"
+                aria-checked={dc.style === name}
+                aria-label={name}
+                title={name}
+                onClick={() => setDeco({ style: name })}
+                className={cx(
+                  "flex h-9 items-center justify-center rounded-[8px] border",
+                  dc.style === name ? "border-primary bg-secondary-container" : "border-line hover:bg-mist",
+                )}
+              >
+                <Icon name={name as IconName} size={18} />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {it.kind === "quote" && <Text title={fr("author")} value={it.caption} onChange={(v) => setItem({ caption: v }, ik("cap"))} />}
       {it.kind === "image" && mediaField(f("image"), it.mediaId, "image", (id) => setItem({ mediaId: id }))}
       {it.kind === "image" && <Text title={fr("caption")} value={it.caption} onChange={(v) => setItem({ caption: v }, ik("cap"))} />}
@@ -2350,9 +2386,178 @@ function FreeItemSettings({
     </>
   );
 
+  const styles = DECO_STYLES[it.kind];
+  const decoDesign = (
+    <>
+      {styles && it.kind !== "icon" && (
+        <div className="flex flex-col gap-1.5 text-[12px] font-semibold">
+          {dk("style")}
+          <div className="grid grid-cols-3 gap-1" role="radiogroup" aria-label={dk("style")}>
+            {styles.map((st) => (
+              <button
+                key={st}
+                type="button"
+                role="radio"
+                aria-checked={dc.style === st}
+                onClick={() => setDeco({ style: st })}
+                className={cx(
+                  "h-9 rounded-[8px] px-1 text-[11px] font-semibold",
+                  dc.style === st ? "bg-secondary-container text-on-secondary-container" : "border-line hover:bg-mist border",
+                )}
+              >
+                {dk(`styles.${st}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {drawn && (
+        <ColorField title={fr("color")} value={it.fill} themeLabel={fr("theme")} onChange={(v) => setItem({ fill: v }, ik("fill"))} />
+      )}
+      {(it.kind === "underline" || it.kind === "arrow" || it.kind === "divider" || it.kind === "icon" || (it.kind === "doodle" && !dc.filled)) && (
+        <Range title={fr("thickness")} value={dc.stroke} min={1} max={40} unit="px" onChange={(v) => setDeco({ stroke: v }, ik("sw"))} />
+      )}
+      {(it.kind === "underline" || (it.kind === "divider" && (dc.style === "wavy" || dc.style === "zigzag" || dc.style === "double"))) && (
+        <Range title={dk("amp")} value={dc.amp} min={0} max={100} unit="%" onChange={(v) => setDeco({ amp: v }, ik("amp"))} />
+      )}
+      {(it.kind === "underline" ||
+        (it.kind === "divider" && (dc.style === "wavy" || dc.style === "zigzag")) ||
+        (it.kind === "arrow" && dc.style === "zigzag") ||
+        (it.kind === "doodle" && ["star", "burst", "swirl"].includes(dc.style))) && (
+        <Range
+          title={it.kind === "doodle" && dc.style !== "swirl" ? dk("points") : dk("freq")}
+          value={dc.freq}
+          min={1}
+          max={24}
+          onChange={(v) => setDeco({ freq: v }, ik("freq"))}
+        />
+      )}
+      {(it.kind === "arrow" || it.kind === "highlight" || (it.kind === "doodle" && (dc.style === "star" || dc.style === "sparkle"))) && (
+        <Range
+          title={it.kind === "arrow" ? dk("curve") : it.kind === "highlight" ? dk("slant") : dk("sharp")}
+          value={dc.curve}
+          min={it.kind === "arrow" ? -100 : 0}
+          max={100}
+          onChange={(v) => setDeco({ curve: v }, ik("curve"))}
+        />
+      )}
+      {it.kind === "arrow" && (
+        <>
+          <Choice
+            title={dk("head")}
+            value={dc.head}
+            options={[
+              ["none", dk("heads.none")],
+              ["open", dk("heads.open")],
+              ["filled", dk("heads.filled")],
+              ["both", dk("heads.both")],
+            ]}
+            onChange={(v) => setDeco({ head: v })}
+          />
+          {dc.head !== "none" && (
+            <Range title={dk("headSize")} value={dc.headSize} min={8} max={120} onChange={(v) => setDeco({ headSize: v }, ik("hs"))} />
+          )}
+        </>
+      )}
+      {it.kind === "doodle" && <Switch title={dk("filled")} checked={dc.filled} onChange={(v) => setDeco({ filled: v })} />}
+      {(it.kind === "underline" || it.kind === "arrow") && (
+        <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+          <Switch title={dk("dashed")} checked={dc.dashed} onChange={(v) => setDeco({ dashed: v })} />
+          <Switch title={dk("round")} checked={dc.round} onChange={(v) => setDeco({ round: v })} />
+          <Switch title={dk("flipX")} checked={dc.flipX} onChange={(v) => setDeco({ flipX: v })} />
+          <Switch title={dk("flipY")} checked={dc.flipY} onChange={(v) => setDeco({ flipY: v })} />
+        </div>
+      )}
+      {drawn && it.kind !== "icon" && (
+        <Range title={dk("wobble")} value={dc.wobble} min={0} max={100} onChange={(v) => setDeco({ wobble: v }, ik("wob"))} />
+      )}
+      {it.kind === "icon" && (
+        <>
+          <Choice
+            title={dk("backing")}
+            value={dc.backing}
+            options={[
+              ["none", dk("backings.none")],
+              ["circle", dk("backings.circle")],
+              ["square", dk("backings.square")],
+            ]}
+            onChange={(v) => setDeco({ backing: v })}
+          />
+          {dc.backing !== "none" && (
+            <ColorField title={dk("backingColor")} value={it.fill2} themeLabel={fr("theme")} onChange={(v) => setItem({ fill2: v }, ik("f2"))} />
+          )}
+        </>
+      )}
+      {it.kind === "image" && (
+        <>
+          <Choice
+            title={dk("mask")}
+            value={dc.mask}
+            options={[
+              ["none", dk("masks.none")],
+              ["rounded", dk("masks.rounded")],
+              ["circle", dk("masks.circle")],
+              ["arch", dk("masks.arch")],
+              ["blob", dk("masks.blob")],
+            ]}
+            onChange={(v) => setDeco({ mask: v })}
+          />
+          <Choice
+            title={dk("frame")}
+            value={dc.frame}
+            options={[
+              ["none", dk("frames.none")],
+              ["sticker", dk("frames.sticker")],
+              ["polaroid", dk("frames.polaroid")],
+            ]}
+            onChange={(v) => setDeco({ frame: v })}
+          />
+          <Choice
+            title={dk("filter")}
+            value={dc.filter}
+            options={[
+              ["none", dk("filters.none")],
+              ["grayscale", dk("filters.grayscale")],
+              ["duotone", dk("filters.duotone")],
+            ]}
+            onChange={(v) => setDeco({ filter: v })}
+          />
+          {dc.filter === "duotone" && (
+            <div className="flex items-center gap-2 text-[12px] font-semibold">
+              {dk("duotone")}
+              <input type="color" aria-label={dk("dark")} value={dc.duo1} onChange={(e) => setDeco({ duo1: e.target.value.toUpperCase() }, ik("d1"))} className="border-line h-8 w-10 rounded-[8px] border p-0.5" />
+              <input type="color" aria-label={dk("light")} value={dc.duo2} onChange={(e) => setDeco({ duo2: e.target.value.toUpperCase() }, ik("d2"))} className="border-line h-8 w-10 rounded-[8px] border p-0.5" />
+            </div>
+          )}
+          <Choice
+            title={dk("backdrop")}
+            value={dc.backdrop}
+            options={[
+              ["none", dk("backdrops.none")],
+              ["circle", dk("backdrops.circle")],
+              ["blob", dk("backdrops.blob")],
+            ]}
+            onChange={(v) => setDeco({ backdrop: v })}
+          />
+          {dc.backdrop !== "none" && (
+            <ColorField title={dk("backdropColor")} value={it.fill2} themeLabel={fr("theme")} onChange={(v) => setItem({ fill2: v }, ik("f2"))} />
+          )}
+        </>
+      )}
+      {it.kind === "button" && <Switch title={dk("arrow")} checked={dc.arrow} onChange={(v) => setDeco({ arrow: v })} />}
+      {(it.kind === "button" || it.kind === "shape" || it.kind === "panel" || it.kind === "badge") && (
+        <ColorField title={dk("gradientTo")} value={it.fill2} themeLabel={dk("noGradient")} onChange={(v) => setItem({ fill2: v }, ik("f2"))} />
+      )}
+      {(it.kind === "text" || it.kind === "heading" || it.kind === "quote") && (
+        <Switch title={dk("textShadow")} checked={dc.textShadow} onChange={(v) => setDeco({ textShadow: v })} />
+      )}
+    </>
+  );
+
   const design = (
     <>
-      {it.kind === "button" && (
+      {decoDesign}
+      {(it.kind === "button" || it.kind === "badge") && (
         <Choice
           title={fr("style")}
           value={it.variant}
@@ -2443,7 +2648,7 @@ function FreeItemSettings({
       {(typed || it.kind === "social") && (
         <ColorField title={fr("textColor")} value={it.color} themeLabel={fr("theme")} onChange={(v) => setItem({ color: v }, ik("color"))} />
       )}
-      {(it.kind === "button" || it.kind === "shape" || it.kind === "line") && (
+      {(it.kind === "button" || it.kind === "shape" || it.kind === "line" || it.kind === "panel" || it.kind === "badge") && (
         <ColorField title={fr("color")} value={it.fill} themeLabel={fr("theme")} onChange={(v) => setItem({ fill: v }, ik("fill"))} />
       )}
       {it.kind === "line" && (

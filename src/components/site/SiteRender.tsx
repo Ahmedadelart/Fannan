@@ -12,6 +12,7 @@ import { arabicFonts, bodyFonts, headingFonts, siteFontVars } from "./fonts";
 import { socialPath } from "./socialIcons";
 import { EDGE_PATHS } from "./edges";
 import { patternCss } from "./patterns";
+import { DecoLabel, DecoSvg } from "./deco";
 
 // Renders an artist site from its draft (or a published snapshot). Artist sites use the artist's
 // theme, never Fannan's brand. Layout reacts to the width of its own box (container queries), so
@@ -421,6 +422,35 @@ export function freeOrder(items: FreeItem[]): Map<string, number> {
   return new Map(sorted.map((it, i) => [it.id, i]));
 }
 
+/** Words in *stars* take the accent colour; ==double equals== get a marker highlight (round 7). */
+export function accentText(text: string): ReactNode {
+  if (!/[*=]/.test(text)) return text;
+  const parts = text.split(/(\*[^*\n]+\*|==[^=\n]+==)/g);
+  return parts.map((p, i) =>
+    p.startsWith("==") && p.endsWith("==") && p.length > 4 ? (
+      <mark
+        key={i}
+        style={{
+          background: "linear-gradient(transparent 40%, color-mix(in srgb, var(--site-accent) 55%, transparent) 40%)",
+          color: "inherit",
+          padding: "0 .1em",
+        }}
+      >
+        {p.slice(2, -2)}
+      </mark>
+    ) : p.startsWith("*") && p.endsWith("*") && p.length > 2 ? (
+      <span key={i} style={{ color: "var(--site-accent)" }}>
+        {p.slice(1, -1)}
+      </span>
+    ) : (
+      p
+    ),
+  );
+}
+
+/** A colour, or a gradient from it to a second colour (shapes, panels, buttons). */
+const paint = (a: string, b: string | null) => (b ? `linear-gradient(135deg, ${a}, ${b})` : a);
+
 /** Typography shared by the text-like items (text, heading, button, quote, list). */
 function itemType(it: FreeItem): CSSProperties {
   return {
@@ -431,6 +461,7 @@ function itemType(it: FreeItem): CSSProperties {
     letterSpacing: it.tracking ? `${it.tracking / 100}em` : undefined,
     textTransform: it.upper ? "uppercase" : undefined,
     fontStyle: it.italic ? "italic" : undefined,
+    textShadow: it.deco.textShadow ? "0 2px 12px rgba(0,0,0,.35)" : undefined,
   };
 }
 
@@ -501,22 +532,67 @@ export function FreeItemContent({
           className={cx("site-free-text h-full w-full", it.kind === "heading" && "site-free-heading")}
           style={{ textAlign: align, color: it.color ?? undefined, ...itemType(it) }}
         >
-          {text ?? <span className="whitespace-pre-line">{it.text}</span>}
+          {text ?? <span className="whitespace-pre-line">{accentText(it.text)}</span>}
         </div>
       );
     case "image": {
       const m = it.mediaId ? (media[it.mediaId] ?? null) : null;
+      const dc = it.deco;
+      const maskRadius =
+        dc.mask === "circle"
+          ? "50%"
+          : dc.mask === "arch"
+            ? "9999px 9999px 0 0"
+            : dc.mask === "rounded"
+              ? "18%"
+              : dc.mask === "blob"
+                ? "46% 54% 58% 42% / 52% 44% 56% 48%"
+                : it.radius;
+
+      const filter =
+        dc.filter === "grayscale" ? "grayscale(1)" : dc.filter === "duotone" ? "grayscale(1) contrast(1.1)" : undefined;
+      const framed =
+        dc.frame === "sticker"
+          ? { border: "6px solid #FFFFFF", boxShadow: "0 8px 24px rgba(0,0,0,.18)" }
+          : dc.frame === "polaroid"
+            ? { background: "#FFFFFF", padding: "5% 5% 16%", boxShadow: "0 10px 30px rgba(0,0,0,.18)" }
+            : itemFrame(it);
       const pic = (
-        <div className="h-full w-full overflow-hidden" style={{ borderRadius: it.radius, ...itemFrame(it) }}>
-          <Picture
-            m={m}
-            base={base}
-            tone={it.tone}
-            ratio="auto"
-            want={1600}
-            className={cx("h-full w-full !rounded-none", it.fit === "contain" && "[&_img]:!object-contain")}
-            alt={m?.alt}
-          />
+        <div className="relative h-full w-full">
+          {dc.backdrop !== "none" && (
+            <div
+              aria-hidden
+              className="absolute"
+              style={{
+                inset: "-6%",
+                background: it.fill2 ?? "var(--site-accent)",
+                borderRadius: dc.backdrop === "circle" ? "50%" : "46% 54% 58% 42% / 52% 44% 56% 48%",
+              }}
+            />
+          )}
+          <div
+            className="relative h-full w-full overflow-hidden"
+            style={{ borderRadius: dc.frame === "polaroid" ? 4 : maskRadius, ...framed }}
+          >
+            <div className="relative h-full w-full overflow-hidden" style={{ borderRadius: dc.frame === "polaroid" ? 2 : undefined }}>
+              <Picture
+                m={m}
+                base={base}
+                tone={it.tone}
+                ratio="auto"
+                want={1600}
+                className={cx("h-full w-full !rounded-none", it.fit === "contain" && "[&_img]:!object-contain")}
+                alt={m?.alt}
+              />
+              {filter && <div aria-hidden className="pointer-events-none absolute inset-0" style={{ backdropFilter: filter }} />}
+              {dc.filter === "duotone" && (
+                <>
+                  <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: dc.duo2, mixBlendMode: "multiply" }} />
+                  <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: dc.duo1, mixBlendMode: "lighten" }} />
+                </>
+              )}
+            </div>
+          </div>
         </div>
       );
       if (!it.caption) return wrapLink(pic);
@@ -533,7 +609,7 @@ export function FreeItemContent({
       const inner = text ?? it.text;
       const filled = it.variant === "filled";
       const style: CSSProperties = {
-        background: filled ? (it.fill ?? "var(--site-accent)") : "transparent",
+        background: filled ? paint(it.fill ?? "var(--site-accent)", it.fill2) : "transparent",
         color:
           it.color ??
           (filled ? (it.fill ? readableOn(it.fill) : "var(--site-on-accent)") : (it.fill ?? "var(--site-text)")),
@@ -547,12 +623,14 @@ export function FreeItemContent({
       return (
         <div className="flex h-full w-full items-center" style={{ justifyContent: justify }}>
           {live && it.link ? (
-            <a href={it.link} className="site-free-button" style={style}>
+            <a href={it.link} className="site-free-button gap-[0.5em]" style={style}>
               {inner}
+              {it.deco.arrow && <span aria-hidden className="rtl:-scale-x-100">→</span>}
             </a>
           ) : (
-            <span className="site-free-button" style={style}>
+            <span className="site-free-button gap-[0.5em]" style={style}>
               {inner}
+              {it.deco.arrow && <span aria-hidden className="rtl:-scale-x-100">→</span>}
             </span>
           )}
         </div>
@@ -563,7 +641,7 @@ export function FreeItemContent({
         <div
           className="h-full w-full"
           style={{
-            background: it.fill ?? "var(--site-text)",
+            background: paint(it.fill ?? "var(--site-text)", it.fill2),
             borderRadius:
               it.shape === "circle" ? "50%" : it.shape === "pill" ? 9999 : it.shape === "arch" ? "9999px 9999px 0 0" : it.radius,
             clipPath: SHAPE_CLIP[it.shape],
@@ -615,7 +693,7 @@ export function FreeItemContent({
       return (
         <figure className="m-0 flex h-full w-full flex-col gap-3" style={{ textAlign: align, color: it.color ?? undefined }}>
           <blockquote className="site-free-text m-0" style={itemType(it)}>
-            {text ?? <span className="whitespace-pre-line">“{it.text}”</span>}
+            {text ?? <span className="whitespace-pre-line">“{accentText(it.text)}”</span>}
           </blockquote>
           {it.caption && (
             <figcaption className="site-free-text" style={{ ["--fs" as string]: Math.max(12, Math.round(it.size * 0.45)), color: "var(--site-muted)" }}>
@@ -681,6 +759,59 @@ export function FreeItemContent({
         </div>
       );
     }
+    case "underline":
+    case "arrow":
+    case "divider":
+    case "icon":
+      return <DecoSvg it={it} color={it.fill ?? (it.kind === "icon" ? "var(--site-text)" : "var(--site-accent)")} />;
+    case "highlight":
+      // A marker swash; new ones are placed behind the other items (see addFreeItem).
+      return <DecoSvg it={it} color={it.fill ?? "#F5E663"} />;
+    case "doodle":
+      return (
+        <div className="relative h-full w-full">
+          <DecoSvg it={it} color={it.fill ?? "var(--site-accent)"} />
+          <DecoLabel
+            it={it}
+            style={{
+              ...itemType(it),
+              fontSize: `calc(${it.size} * 100cqi / 1200)`,
+              color: it.color ?? (it.fill ? readableOn(it.fill) : "var(--site-on-accent)"),
+            }}
+          />
+        </div>
+      );
+    case "badge": {
+      const outline = it.variant === "outline";
+      return (
+        <div className="flex h-full w-full items-center" style={{ justifyContent: justify }}>
+          <span
+            className="site-free-text inline-flex items-center px-[0.9em] py-[0.35em] whitespace-nowrap"
+            style={{
+              ...itemType(it),
+              background: outline ? "transparent" : paint(it.fill ?? "var(--site-accent)", it.fill2),
+              color: it.color ?? (outline ? (it.fill ?? "var(--site-text)") : it.fill ? readableOn(it.fill) : "var(--site-on-accent)"),
+              border: outline ? `1.5px solid ${it.fill ?? "var(--site-text)"}` : undefined,
+              borderRadius: it.radius,
+            }}
+          >
+            {it.text}
+          </span>
+        </div>
+      );
+    }
+    case "panel":
+      return (
+        <div
+          className="h-full w-full"
+          style={{
+            background: paint(it.fill ?? "var(--site-surface)", it.fill2),
+            borderRadius: it.radius,
+            ...itemFrame(it),
+            boxShadow: it.shadow ? "0 18px 50px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06)" : undefined,
+          }}
+        />
+      );
     case "project": {
       const pr = extras.projects?.find((x) => x.id === it.projectId) ?? (live ? null : extras.projects?.[0]);
       const m = pr?.coverId ? (media[pr.coverId] ?? null) : null;
@@ -1186,7 +1317,7 @@ function T({
   if (!value) return null;
   return (
     <Tag className={className} style={style}>
-      {value}
+      {accentText(value)}
     </Tag>
   );
 }

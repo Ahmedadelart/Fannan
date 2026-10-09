@@ -20,11 +20,11 @@ Fannan's interface icons, **direction C · Swiss**. They're quiet and tool-like,
 Mirror icons that show direction: undo/redo, arrows, chevrons, the "publish" plane. Don't mirror objects (image, reel, lock, globe).
 
 ## The set
-66 icons in `icons/*.svg` (they use `currentColor`):
+76 icons in `icons/*.svg` (they use `currentColor`):
 - **Layout:** fullscreen cover, text, columns, hero headline, shape, line, button
 - **Galleries:** grid, masonry, slider, lightbox, video gallery, fullscreen grid
 - **Media:** image, video 4K, video background, loop/GIF, before/after, audio, PDF, embed
 - **Get hired:** reel, credits, logo wall, about/CV, contact form, hire-me badge, social links, quote
-- **App:** dashboard, site editor, design (palette), help, projects, stats, settings, messages, notifications, upload, publish, preview, hidden, password, desktop, tablet, mobile, undo, redo, back arrow, layers, list, map, search, add, drag, duplicate, reorder, bring front, send back, delete, crop, cover, link, language, email, chat alert
+- **App:** dashboard, site editor, design (palette), help, projects, stats, settings, messages, notifications, upload, publish, preview, hidden, password, desktop, tablet, mobile, undo, redo, back arrow, layers, list, map, search, add, brush, pen, camera, film, book, clock, heart, star, download, sparkle, drag, duplicate, reorder, bring front, send back, delete, crop, cover, link, language, email, chat alert
 
 Every new editor block needs an icon from this set, or a new one drawn to these rules, before it ships.

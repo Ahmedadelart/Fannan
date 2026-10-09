@@ -130,7 +130,52 @@ export type FreeKind =
   | "list"
   | "map"
   | "audio"
-  | "project";
+  | "project"
+  // Round 7 decorations:
+  | "underline"
+  | "arrow"
+  | "highlight"
+  | "doodle"
+  | "badge"
+  | "icon"
+  | "divider"
+  | "panel";
+
+/** Options for decorations, and extra looks for pictures, buttons and text (round 7). */
+export interface FreeDeco {
+  /** Which drawing: wave / curved / sparkle / an icon name... (per kind). */
+  style: string;
+  /** Wave height, 0–100. */
+  amp: number;
+  /** Waves, zigzags, star points. */
+  freq: number;
+  /** Arrow curve (-100–100), star sharpness, highlight slant. */
+  curve: number;
+  /** Line thickness in px on a 1200px page. */
+  stroke: number;
+  head: "none" | "open" | "filled" | "both";
+  headSize: number;
+  dashed: boolean;
+  /** Hand-drawn jitter, 0 (clean) – 100. */
+  wobble: number;
+  flipX: boolean;
+  flipY: boolean;
+  round: boolean;
+  filled: boolean;
+  /** Icons: a circle or rounded square behind. */
+  backing: "none" | "circle" | "square";
+  /** Pictures. */
+  mask: "none" | "circle" | "arch" | "blob" | "rounded";
+  frame: "none" | "sticker" | "polaroid";
+  filter: "none" | "grayscale" | "duotone";
+  duo1: string;
+  duo2: string;
+  backdrop: "none" | "circle" | "blob";
+  /** Buttons: an arrow after the words. */
+  arrow: boolean;
+  /** Text: a soft shadow. */
+  textShadow: boolean;
+}
 
 /**
  * Where an item sits on the section's grid: 24 columns on desktop, square cells, counted from the
@@ -197,6 +242,10 @@ export interface FreeItem {
   entries: Array<{ title: string; body: string }>;
   /** Project card: which project. */
   projectId: string | null;
+  /** Round 7: decoration options and extra looks. */
+  deco: FreeDeco;
+  /** Second colour: gradient for shapes, panels and buttons; backing or backdrop colour. */
+  fill2: string | null;
 }
 
 export interface FreeSection {

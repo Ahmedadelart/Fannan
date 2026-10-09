@@ -16,7 +16,8 @@ import { normalizeFooter } from "@/lib/site/normalize";
 import { moveTo, startSortDrag } from "@/components/editor/sortDrag";
 import { getClip, mod, setClip, typing } from "@/components/editor/clipboard";
 import type { Block, BlockOf, FreeKind, SiteDraft } from "@/lib/site/types";
-import { addFreeItem, ITEM_GROUPS } from "@/lib/site/free";
+import { addFreeItem, freeItem, ITEM_GROUPS } from "@/lib/site/free";
+import { DecoSvg } from "@/components/site/deco";
 import { FreeEditor, KIND_ICONS } from "@/components/editor/FreeEditor";
 import { LanguageButton, LogoutButton } from "../(dash)/DashClient";
 import { SiteEnhancer } from "@/components/site/live/SiteEnhancer";
@@ -404,23 +405,43 @@ function Canvas({
                           <span className="text-muted px-2 pt-2 pb-1 text-[11px] font-semibold tracking-[0.06em] uppercase">
                             {tf(`groups.${group}`)}
                           </span>
-                          <div className="grid grid-cols-2 gap-0.5">
-                            {shown.map((k) => (
-                              <button
-                                key={k}
-                                type="button"
-                                role="menuitem"
-                                className="hover:bg-mist flex h-10 items-center gap-2 rounded-[10px] px-2.5 text-start text-[13px] font-medium"
-                                onClick={() => {
-                                  setElementMenu(false);
-                                  setItemQuery("");
-                                  onAddElement(k);
-                                }}
-                              >
-                                <Icon name={KIND_ICONS[k]} size={18} />
-                                {tf(`kinds.${k}`)}
-                              </button>
-                            ))}
+                          <div className={cx("grid gap-0.5", group === "decorations" ? "grid-cols-4" : "grid-cols-2")}>
+                            {shown.map((k) =>
+                              group === "decorations" ? (
+                                // Decorations show as little pictures of themselves.
+                                <button
+                                  key={k}
+                                  type="button"
+                                  role="menuitem"
+                                  aria-label={tf(`kinds.${k}`)}
+                                  title={tf(`kinds.${k}`)}
+                                  className="hover:bg-mist flex flex-col items-center gap-1 rounded-[10px] p-1.5 text-[10px] font-medium"
+                                  onClick={() => {
+                                    setElementMenu(false);
+                                    setItemQuery("");
+                                    onAddElement(k);
+                                  }}
+                                >
+                                  <DecoTile kind={k} />
+                                  <span className="w-full truncate text-center">{tf(`kinds.${k}`)}</span>
+                                </button>
+                              ) : (
+                                <button
+                                  key={k}
+                                  type="button"
+                                  role="menuitem"
+                                  className="hover:bg-mist flex h-10 items-center gap-2 rounded-[10px] px-2.5 text-start text-[13px] font-medium"
+                                  onClick={() => {
+                                    setElementMenu(false);
+                                    setItemQuery("");
+                                    onAddElement(k);
+                                  }}
+                                >
+                                  <Icon name={KIND_ICONS[k]} size={18} />
+                                  {tf(`kinds.${k}`)}
+                                </button>
+                              ),
+                            )}
                           </div>
                         </div>
                       );
@@ -481,6 +502,26 @@ function Canvas({
         )}
       </div>
     </div>
+  );
+}
+
+/** A small picture of a decoration, for the add-item menu. */
+function DecoTile({ kind }: { kind: FreeKind }) {
+  const sample = { ...freeItem(kind, "en", { x: 0, y: 0, w: 3, h: 2 }), id: `tile-${kind}` };
+  return (
+    <span className="text-primary flex h-9 w-14 items-center justify-center">
+      {kind === "badge" ? (
+        <span className="bg-lime text-on-lime rounded-pill px-2 py-0.5 text-[9px] font-bold">NEW</span>
+      ) : kind === "panel" ? (
+        <span className="bg-secondary-container block h-7 w-11 rounded-[8px] shadow-sm" />
+      ) : kind === "highlight" ? (
+        <span className="block h-4 w-11 -skew-x-6 rounded-[2px] bg-[#F5E663]" />
+      ) : (
+        <span className="block h-full w-full">
+          <DecoSvg it={sample} color="currentColor" />
+        </span>
+      )}
+    </span>
   );
 }
 

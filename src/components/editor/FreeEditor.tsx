@@ -56,10 +56,18 @@ export const KIND_ICONS: Record<FreeKind, IconName> = {
   map: "map",
   audio: "audio",
   project: "projects",
+  underline: "brush",
+  arrow: "publish",
+  highlight: "pen",
+  doodle: "sparkle",
+  badge: "hire-me-badge",
+  icon: "star",
+  divider: "line",
+  panel: "shape",
 };
 
 /** Items whose words are typed in place (double-click). */
-const TYPED: FreeKind[] = ["text", "heading", "button", "quote"];
+const TYPED: FreeKind[] = ["text", "heading", "button", "quote", "badge"];
 /** Items that can link somewhere. */
 const LINKABLE: FreeKind[] = ["image", "button", "shape", "text", "heading"];
 

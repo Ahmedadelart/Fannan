@@ -2,6 +2,7 @@
 // blocks and theme fields; anything unknown is dropped rather than breaking the editor.
 
 import { isSampleTone, upgradeTone } from "./samples";
+import { defaultDeco } from "./deco";
 import { blockKinds, newId, sampleArt } from "./blocks";
 import { FREE_COLS, FREE_KINDS } from "./free";
 import { themes } from "./starter";
@@ -18,6 +19,7 @@ import type {
   Theme,
   ThemePreset,
   SectionStyle,
+  FreeDeco,
 } from "./types";
 
 type Any = Record<string, unknown>;
@@ -400,6 +402,37 @@ function normalizeFreeItem(raw: Any): FreeItem {
     caption: str(raw.caption, 300),
     entries: list(raw.entries, 20, (e: Any) => ({ title: str(e?.title, 200), body: str(e?.body, 2000) })),
     projectId: idOrNull(raw.projectId),
+    deco: normalizeDeco(raw.deco),
+    fill2: raw.fill2 === null || raw.fill2 === undefined ? null : color(raw.fill2, "#FFFFFF"),
+  };
+}
+
+function normalizeDeco(raw: unknown): FreeDeco {
+  const d = defaultDeco();
+  const x = (raw && typeof raw === "object" ? raw : {}) as Any;
+  return {
+    style: typeof x.style === "string" ? x.style.replace(/[^a-z0-9-]/g, "").slice(0, 30) : d.style,
+    amp: num(x.amp, 0, 100, d.amp),
+    freq: num(x.freq, 1, 24, d.freq),
+    curve: num(x.curve, -100, 100, d.curve),
+    stroke: num(x.stroke, 1, 40, d.stroke),
+    head: pick(x.head, ["none", "open", "filled", "both"], d.head),
+    headSize: num(x.headSize, 8, 120, d.headSize),
+    dashed: bool(x.dashed),
+    wobble: num(x.wobble, 0, 100, 0),
+    flipX: bool(x.flipX),
+    flipY: bool(x.flipY),
+    round: bool(x.round, true),
+    filled: bool(x.filled),
+    backing: pick(x.backing, ["none", "circle", "square"], "none"),
+    mask: pick(x.mask, ["none", "circle", "arch", "blob", "rounded"], "none"),
+    frame: pick(x.frame, ["none", "sticker", "polaroid"], "none"),
+    filter: pick(x.filter, ["none", "grayscale", "duotone"], "none"),
+    duo1: color(x.duo1, d.duo1),
+    duo2: color(x.duo2, d.duo2),
+    backdrop: pick(x.backdrop, ["none", "circle", "blob"], "none"),
+    arrow: bool(x.arrow),
+    textShadow: bool(x.textShadow),
   };
 }
 

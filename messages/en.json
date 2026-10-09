@@ -879,7 +879,15 @@
         "list": "List / FAQ",
         "map": "Map",
         "audio": "Audio",
-        "project": "Project card"
+        "project": "Project card",
+        "underline": "Underline",
+        "arrow": "Arrow",
+        "highlight": "Highlight",
+        "doodle": "Doodle",
+        "badge": "Badge",
+        "icon": "Icon",
+        "divider": "Divider",
+        "panel": "Panel"
       },
       "sectionHint": "A free-form section: put items anywhere. Use + Add item under the section, drag items to move them, drag the corners to resize and the round handle to turn them. Layers (top corner) restacks and hides items.",
       "background": "Background",
@@ -916,7 +924,8 @@
       "groups": {
         "essentials": "Essentials",
         "display": "Display",
-        "links": "Links"
+        "links": "Links",
+        "decorations": "Decorations"
       },
       "tabs": {
         "content": "Content",
@@ -1203,6 +1212,95 @@
       },
       "animPro": "Animations play on your live site with Pro.",
       "reset": "Reset the design"
+    },
+    "deco": {
+      "words": "Words",
+      "accentHint": "Tip: wrap words in *stars* for the accent colour, or ==equals== for a marker highlight.",
+      "icon": "Icon",
+      "style": "Style",
+      "styles": {
+        "wave": "Wave",
+        "zigzag": "Zigzag",
+        "scribble": "Scribble",
+        "straight": "Straight",
+        "double": "Double",
+        "loop": "Loops",
+        "curved": "Curved",
+        "bent": "Bent",
+        "sparkle": "Sparkle",
+        "star": "Star",
+        "burst": "Burst",
+        "heart": "Heart",
+        "circle": "Circle",
+        "swirl": "Swirl",
+        "emphasis": "Look here",
+        "pencil": "Pencil",
+        "solid": "Solid",
+        "dashed": "Dashed",
+        "dotted": "Dotted",
+        "wavy": "Wavy"
+      },
+      "amp": "Wave height",
+      "freq": "Waves",
+      "points": "Points",
+      "curve": "Curve",
+      "slant": "Slant",
+      "sharp": "Sharpness",
+      "head": "Arrow head",
+      "heads": {
+        "none": "None",
+        "open": "Open",
+        "filled": "Solid",
+        "both": "Both ends"
+      },
+      "headSize": "Head size",
+      "filled": "Filled",
+      "dashed": "Dashed",
+      "round": "Round ends",
+      "flipX": "Flip sideways",
+      "flipY": "Flip upside down",
+      "wobble": "Hand-drawn",
+      "backing": "Behind the icon",
+      "backings": {
+        "none": "Nothing",
+        "circle": "Circle",
+        "square": "Square"
+      },
+      "backingColor": "Behind colour",
+      "mask": "Shape",
+      "masks": {
+        "none": "Box",
+        "rounded": "Rounded",
+        "circle": "Circle",
+        "arch": "Arch",
+        "blob": "Blob"
+      },
+      "frame": "Frame",
+      "frames": {
+        "none": "None",
+        "sticker": "Sticker",
+        "polaroid": "Polaroid"
+      },
+      "filter": "Filter",
+      "filters": {
+        "none": "None",
+        "grayscale": "Black & white",
+        "duotone": "Two colours"
+      },
+      "duotone": "Two colours",
+      "dark": "Dark colour",
+      "light": "Light colour",
+      "backdrop": "Behind the picture",
+      "backdrops": {
+        "none": "Nothing",
+        "circle": "Circle",
+        "blob": "Blob"
+      },
+      "backdropColor": "Behind colour",
+      "arrow": "Arrow after the words",
+      "gradientTo": "Fade to",
+      "noGradient": "None",
+      "textShadow": "Text shadow"
     }
   },
   "inbox": {

@@ -2,6 +2,7 @@
 import type { Locale } from "@/i18n/locales";
 import { newId } from "./ids";
 import { sampleTone } from "./samples";
+import { DECO_KINDS, decoDefaults, defaultDeco } from "./deco";
 import type { Block, FreeItem, FreeKind, FreePlace } from "./types";
 
 export const FREE_COLS = 24;
@@ -19,10 +20,12 @@ export const FREE_KINDS: FreeKind[] = [
   "map",
   "audio",
   "project",
+  ...DECO_KINDS,
 ];
 
 /** The add-item menu, grouped like Squarespace's. */
-export const ITEM_GROUPS: Array<{ group: "essentials" | "display" | "links"; kinds: FreeKind[] }> = [
+export const ITEM_GROUPS: Array<{ group: "essentials" | "decorations" | "display" | "links"; kinds: FreeKind[] }> = [
+  { group: "decorations", kinds: DECO_KINDS },
   { group: "essentials", kinds: ["text", "heading", "image", "button", "video", "shape", "line"] },
   { group: "display", kinds: ["quote", "list", "audio", "map"] },
   { group: "links", kinds: ["social", "project"] },
@@ -69,6 +72,14 @@ const SIZES: Record<FreeKind, Pick<FreePlace, "w" | "h">> = {
   map: { w: 12, h: 8 },
   audio: { w: 12, h: 4 },
   project: { w: 8, h: 9 },
+  underline: { w: 8, h: 1 },
+  arrow: { w: 5, h: 3 },
+  highlight: { w: 8, h: 2 },
+  doodle: { w: 2, h: 2 },
+  badge: { w: 4, h: 1 },
+  icon: { w: 2, h: 2 },
+  divider: { w: 12, h: 1 },
+  panel: { w: 12, h: 8 },
 };
 
 export function freeItem(kind: FreeKind, language: Locale, place?: Partial<FreePlace>, extra: Partial<FreeItem> = {}): FreeItem {
@@ -119,6 +130,13 @@ export function freeItem(kind: FreeKind, language: Locale, place?: Partial<FreeP
     caption: kind === "quote" ? w.author : "",
     entries: kind === "list" ? w.entries.map((e) => ({ ...e })) : [],
     projectId: null,
+    deco: { ...defaultDeco(), ...decoDefaults(kind) },
+    fill2: null,
+    // Decorations sit next to other items; on phones (one column) they'd float alone.
+    ...(["underline", "arrow", "highlight", "doodle", "panel"].includes(kind) ? { hideOnPhone: true } : {}),
+    ...(kind === "badge" ? { text: language === "ar" ? "جديد" : "NEW", size: 13, radius: 999, upper: true, weight: 700 } : {}),
+    ...(kind === "highlight" ? { fill: "#F5E663", opacity: 85 } : {}),
+    ...(kind === "panel" ? { radius: 28, fill: null, shadow: true } : {}),
     ...extra,
   };
 }
@@ -142,7 +160,9 @@ export function addFreeItem(b: Extract<Block, { type: "free" }>, kind: FreeKind,
   const { w, h } = SIZES[kind];
   const place = findSpot(b.items, w, h);
   const top = b.items.reduce((m, i) => Math.max(m, i.z), 0);
-  const item = freeItem(kind, language, place, { z: top + 1 });
+  // Highlights and panels go behind everything else; the rest on top.
+  const behind = kind === "highlight" || kind === "panel";
+  const item = freeItem(kind, language, place, { z: behind ? 0 : top + 1 });
   return { block: { ...b, items: [...b.items, item], rows: Math.max(b.rows, place.y + place.h) }, item };
 }
 

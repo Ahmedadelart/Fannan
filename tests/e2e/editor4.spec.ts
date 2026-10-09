@@ -453,3 +453,41 @@ test("section design: gradient, wave edge, pattern and card reach the live site"
   expect(overflow).toBeLessThanOrEqual(0);
   await visitor.screenshot({ path: `test-results/r7-live-${info.project.name}.png`, fullPage: true });
 });
+
+test("decorations: underline, arrow, doodle, badge, icon and their controls", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop");
+  test.setTimeout(150_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signUp(page);
+  await openEditor(page);
+  await page.getByTestId("add-free-blank").click();
+  const add = async (name: string) => {
+    await page.getByRole("button", { name: "Add item" }).click();
+    await page.getByRole("menuitem", { name, exact: true }).click();
+  };
+  for (const name of ["Underline", "Arrow", "Doodle", "Badge", "Icon", "Divider", "Highlight", "Panel"]) await add(name);
+  await expect(page.locator('[data-deco="underline"]')).toBeVisible();
+  await expect(page.locator('[data-deco="arrow"]')).toBeVisible();
+
+  // The arrow's controls change its drawing.
+  const arrow = page.locator('[data-kind="arrow"]');
+  await arrow.click();
+  await page.getByTestId("item-edit").click();
+  const card = page.getByTestId("block-settings");
+  await card.getByRole("tab", { name: "Design" }).click();
+  const before = await arrow.locator("path").first().getAttribute("d");
+  await card.getByRole("slider", { name: "Curve" }).fill("-80");
+  await expect.poll(() => arrow.locator("path").first().getAttribute("d")).not.toBe(before);
+  await card.getByRole("radio", { name: "Both ends" }).click();
+  await expect(arrow.locator("path")).toHaveCount(3);
+
+  // The underline's style and wave height.
+  const underline = page.locator('[data-kind="underline"]');
+  await underline.click({ force: true });
+  await page.getByTestId("item-edit").click();
+  await card.getByRole("tab", { name: "Design" }).click();
+  const wave = await underline.locator("path").first().getAttribute("d");
+  await card.getByRole("radio", { name: "Zigzag" }).click();
+  await expect.poll(() => underline.locator("path").first().getAttribute("d")).not.toBe(wave);
+  await page.screenshot({ path: `test-results/r7-deco-${info.project.name}.png` });
+});
