@@ -65,7 +65,6 @@ export interface SectionActions {
 function Canvas({
   width: deviceWidth,
   fluid,
-  library,
   children,
   onPick,
   onDropBlock,
@@ -82,8 +81,6 @@ function Canvas({
   width: number;
   /** Desktop: the site fills the whole width of the canvas (no grey gaps beside it). */
   fluid?: boolean;
-  /** The section library, shown by "Add section" right under the selected section. */
-  library?: (close: () => void) => React.ReactNode;
   children: React.ReactNode;
   onPick: (blockId: string | null, onFreeItem: boolean) => void;
   onDropBlock: (kindKey: string, index: number) => void;
@@ -109,7 +106,6 @@ function Canvas({
   const [scale, setScale] = useState(1);
   const [height, setHeight] = useState(600);
   const [width, setWidth] = useState(deviceWidth);
-  const [sectionMenu, setSectionMenu] = useState(false);
   // The settings card can be dragged out of the way (Squarespace-style); it keeps its place.
   const [cardShift, setCardShift] = useState({ x: 0, y: 0 });
   const [dropAt, setDropAt] = useState<{ index: number; y: number } | null>(null);
@@ -125,7 +121,7 @@ function Canvas({
   const startAnchor = (b: NonNullable<typeof box>) =>
     rtl ? { left: b.left + b.width, transform: "translateX(-100%)" } : { left: b.left };
   const popLeft = (b: NonNullable<typeof box>) => {
-    const w = 320;
+    const w = 288;
     const frameW = width * scale;
     const x = rtl ? b.left : b.left + b.width - w;
     return Math.max(0, Math.min(x, frameW - w));
@@ -135,7 +131,8 @@ function Canvas({
   if (menuFor !== selectedId) {
     setMenuFor(selectedId);
     setElementMenu(false);
-    setSectionMenu(false);
+    // The settings card opens in its usual place for each new selection.
+    setCardShift({ x: 0, y: 0 });
   }
 
   useLayoutEffect(() => {
@@ -340,12 +337,11 @@ function Canvas({
           </div>
         )}
 
-        {/* Under the selected section: add an element inside it (free-form) or a new section below. */}
-        {box && !reorder && !dragging && selectedId !== "__footer" && (
+        {/* Under a selected free-form section: Layers (drawn by the section itself), then Add item. */}
+        {box && !reorder && !dragging && onAddElement && (
           <div
             className="absolute z-20 flex items-start gap-1.5"
-            // In a free-form section the Layers button sits first in this row (drawn by the section itself).
-            style={{ top: box.top + box.height + 10, ...startAnchor(box), ...(onAddElement ? { marginInlineStart: 44 } : {}) }}
+            style={{ top: box.top + box.height + 10, ...startAnchor(box), marginInlineStart: 44 }}
           >
             {onAddElement && (
               <div className="relative">
@@ -408,29 +404,6 @@ function Canvas({
                 )}
               </div>
             )}
-            <div className="relative">
-              <button
-                type="button"
-                aria-expanded={sectionMenu}
-                className="bg-paper text-ink shadow-float border-line flex h-9 items-center gap-1.5 rounded-pill border px-3.5 text-[13px] font-semibold hover:bg-white"
-                onClick={() => (library ? setSectionMenu(!sectionMenu) : actions.add())}
-              >
-                <Icon name="add" size={16} />
-                {t("addSection")}
-              </button>
-              {sectionMenu && library && (
-                <div
-                  role="dialog"
-                  aria-label={t("addSection")}
-                  data-testid="section-picker"
-                  ref={(el) => el?.scrollIntoView({ block: "nearest" })}
-                  className="fannan-dark bg-paper text-ink shadow-float absolute start-0 top-11 z-40 max-h-[460px] w-[340px] overflow-y-auto rounded-[20px]"
-                  onKeyDown={(e) => e.key === "Escape" && setSectionMenu(false)}
-                >
-                  {library(() => setSectionMenu(false))}
-                </div>
-              )}
-            </div>
           </div>
         )}
 
@@ -442,8 +415,8 @@ function Canvas({
             data-testid="block-settings"
             className="bg-paper text-ink shadow-float border-line absolute z-30 flex max-h-[62vh] w-[288px] flex-col overflow-hidden rounded-[16px] border text-[13px]"
             style={{
-              top: Math.max(0, Math.min(toolsTop(box) + 48, height - 440)) + cardShift.y,
-              left: popLeft(box) + cardShift.x,
+              top: Math.max(0, Math.min(toolsTop(box) + 48 + cardShift.y, height - 120)),
+              left: Math.max(0, Math.min(popLeft(box) + cardShift.x, width * scale - 288)),
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -1326,18 +1299,6 @@ export function Editor({
         <Canvas
           width={WIDTHS[device]}
           fluid={device === "desktop"}
-          library={(close) => (
-            <BlocksTab
-              compact
-              onAdd={(k) => {
-                close();
-                addBlock(k);
-              }}
-              draft={draft}
-              media={media}
-              projects={projects}
-            />
-          )}
           selectedId={selected}
           reorder={reorder}
           actions={sectionActions}

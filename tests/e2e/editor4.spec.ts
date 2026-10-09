@@ -146,7 +146,7 @@ test("the editor is the app: home, projects, messages, stats and settings open i
   await expect(page).toHaveURL(/\/editor/);
 });
 
-test("full-width canvas, a settings card you can move, and Add section right on the page", async ({ page }, info) => {
+test("full-width canvas and a settings card you can move", async ({ page }, info) => {
   test.skip(info.project.name !== "desktop");
   test.setTimeout(120_000);
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -158,15 +158,10 @@ test("full-width canvas, a settings card you can move, and Add section right on 
   const siteBox = (await canvas(page).boundingBox())!;
   expect(Math.abs(siteBox.width - canvasBox.width)).toBeLessThan(24);
 
-  // Add section opens the library under the section and adds below it.
+  // No "Add section" under sections (it lives in the side panel).
   const first = canvas(page).locator("[data-block-id]").first();
   await first.click({ position: { x: 10, y: 10 } });
-  const before = await canvas(page).locator("[data-block-id]").count();
-  await page.getByRole("button", { name: "Add section" }).click();
-  await expect(page.getByTestId("section-picker")).toBeVisible();
-  await page.getByTestId("pick-quote").click();
-  await expect(canvas(page).locator("[data-block-id]")).toHaveCount(before + 1);
-  await page.screenshot({ path: `test-results/r4d-picker-${info.project.name}.png` });
+  await expect(page.getByRole("button", { name: "Add section" })).toHaveCount(0);
 
   // The settings card moves by its top bar.
   await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
@@ -180,6 +175,11 @@ test("full-width canvas, a settings card you can move, and Add section right on 
   const b = (await card.boundingBox())!;
   expect(a.x - b.x).toBeGreaterThan(150);
   expect(b.y - a.y).toBeGreaterThan(80);
+  // A new selection puts the card back in its usual place.
+  await canvas(page).locator("[data-block-id]").nth(1).click({ position: { x: 10, y: 10 } });
+  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  const c = (await card.boundingBox())!;
+  expect(Math.abs(c.x - a.x)).toBeLessThan(40);
   await page.screenshot({ path: `test-results/r4d-card-${info.project.name}.png` });
 });
 

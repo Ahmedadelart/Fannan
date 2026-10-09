@@ -2,7 +2,13 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useTranslations } from "next-intl";
-import { FreeItemContent, freeItemStyle, freeOrder, type FreeExtras, type SiteMedia } from "@/components/site/SiteRender";
+import {
+  FreeItemContent,
+  freeItemStyle,
+  freeOrder,
+  type FreeExtras,
+  type SiteMedia,
+} from "@/components/site/SiteRender";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { cx } from "@/lib/cx";
 import { FREE_COLS, freeBottom } from "@/lib/site/free";
@@ -414,7 +420,7 @@ export function FreeEditor({
                     role="toolbar"
                     aria-label={t("item")}
                     data-testid="free-toolbar"
-                    className="border-line shadow-float pointer-events-auto absolute start-0 -top-[52px] z-[1000] flex items-center gap-0.5 rounded-pill border bg-white p-1"
+                    className="border-line shadow-float rounded-pill pointer-events-auto absolute start-0 -top-[52px] z-[1000] flex items-center gap-0.5 border bg-white p-1"
                     onPointerDown={(e) => e.stopPropagation()}
                     style={{ transform: it.rotate ? `rotate(${-it.rotate}deg)` : undefined, transformOrigin: "0 100%" }}
                   >
@@ -517,69 +523,69 @@ export function FreeEditor({
             );
           })()}
         </div>
+        {active && (
+          // Under the section's bottom start corner, beside "Add item" (the canvas leaves room for it).
+          <div
+            className="absolute start-0 top-[calc(100%+10px)] z-[1001]"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              aria-label={t("layers")}
+              title={t("layers")}
+              aria-expanded={layersOpen}
+              data-testid="layers-button"
+              onClick={() => setLayersOpen(!layersOpen)}
+              className="border-line shadow-float flex size-9 items-center justify-center rounded-full border bg-white text-[#1A1C16] hover:bg-[#F0F1E7]"
+            >
+              <Icon name="layers" size={20} />
+            </button>
+            {layersOpen && (
+              <div
+                role="list"
+                aria-label={t("layers")}
+                data-layers
+                data-testid="layers-panel"
+                ref={(el) => el?.scrollIntoView({ block: "nearest" })}
+                className="border-line shadow-float absolute start-0 bottom-[calc(100%+8px)] flex max-h-[320px] w-[230px] flex-col gap-0.5 overflow-y-auto rounded-[16px] border bg-white p-2 text-[#1A1C16]"
+              >
+                <span className="px-2 pt-1 pb-2 text-[12px] font-semibold">{t("layers")}</span>
+                {layers.map((it) => (
+                  <div
+                    key={it.id}
+                    role="listitem"
+                    data-layer={it.id}
+                    className={cx(
+                      "group flex h-9 cursor-grab touch-none items-center gap-2 rounded-[10px] px-2 text-[13px] select-none hover:bg-[#F0F1E7]",
+                      selectedItem === it.id && "bg-[#DEE6C8]",
+                      it.hidden && "text-[#76786C]",
+                    )}
+                    onPointerDown={(e) => !(e.target as HTMLElement).closest("button") && dragLayer(e, it.id)}
+                  >
+                    <Icon name={KIND_ICONS[it.kind]} size={16} />
+                    <span className="min-w-0 flex-1 truncate">{layerName(it)}</span>
+                    <button
+                      type="button"
+                      aria-label={it.hidden ? t("show") : t("hide")}
+                      title={it.hidden ? t("show") : t("hide")}
+                      aria-pressed={it.hidden}
+                      className={cx(
+                        "flex size-7 items-center justify-center rounded-full hover:bg-white",
+                        it.hidden ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus:opacity-100",
+                      )}
+                      onClick={() => update(it.id, { hidden: !it.hidden })}
+                    >
+                      <Icon name={it.hidden ? "hidden" : "preview"} size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {active && (
-        // Under the section's bottom start corner, beside "Add item" (the canvas leaves room for it).
-        <div
-          className="absolute start-0 top-[calc(100%+10px)] z-[1001]"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            type="button"
-            aria-label={t("layers")}
-            title={t("layers")}
-            aria-expanded={layersOpen}
-            data-testid="layers-button"
-            onClick={() => setLayersOpen(!layersOpen)}
-            className="border-line shadow-float flex size-9 items-center justify-center rounded-full border bg-white text-[#1A1C16] hover:bg-[#F0F1E7]"
-          >
-            <Icon name="layers" size={20} />
-          </button>
-          {layersOpen && (
-            <div
-              role="list"
-              aria-label={t("layers")}
-              data-layers
-              data-testid="layers-panel"
-              ref={(el) => el?.scrollIntoView({ block: "nearest" })}
-              className="border-line shadow-float absolute start-0 bottom-[calc(100%+8px)] flex max-h-[320px] w-[230px] flex-col gap-0.5 overflow-y-auto rounded-[16px] border bg-white p-2 text-[#1A1C16]"
-            >
-              <span className="px-2 pt-1 pb-2 text-[12px] font-semibold">{t("layers")}</span>
-              {layers.map((it) => (
-                <div
-                  key={it.id}
-                  role="listitem"
-                  data-layer={it.id}
-                  className={cx(
-                    "group flex h-9 cursor-grab touch-none items-center gap-2 rounded-[10px] px-2 text-[13px] select-none hover:bg-[#F0F1E7]",
-                    selectedItem === it.id && "bg-[#DEE6C8]",
-                    it.hidden && "text-[#76786C]",
-                  )}
-                  onPointerDown={(e) => !(e.target as HTMLElement).closest("button") && dragLayer(e, it.id)}
-                >
-                  <Icon name={KIND_ICONS[it.kind]} size={16} />
-                  <span className="min-w-0 flex-1 truncate">{layerName(it)}</span>
-                  <button
-                    type="button"
-                    aria-label={it.hidden ? t("show") : t("hide")}
-                    title={it.hidden ? t("show") : t("hide")}
-                    aria-pressed={it.hidden}
-                    className={cx(
-                      "flex size-7 items-center justify-center rounded-full hover:bg-white",
-                      it.hidden ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus:opacity-100",
-                    )}
-                    onClick={() => update(it.id, { hidden: !it.hidden })}
-                  >
-                    <Icon name={it.hidden ? "hidden" : "preview"} size={16} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
       {active && (
         <>
           {/* Section height. */}
