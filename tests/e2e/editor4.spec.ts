@@ -87,7 +87,7 @@ test("header, footer and contact form are edited on the page and reach the live 
   const visitor = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
   await visitor.goto(at(username));
   await expect(visitor.getByRole("link", { name: "Work with me" })).toBeVisible();
-  await expect(visitor.getByText("Characters with heart")).toBeVisible();
+  await expect(visitor.getByText("Characters with heart", { exact: true }).first()).toBeVisible();
   await expect(visitor.getByText("© Nour Adel. Cairo.")).toBeVisible();
   await expect(visitor.getByRole("textbox", { name: "Budget" })).toBeVisible();
   await expect(visitor.getByRole("textbox", { name: "How did you find me?" })).toBeVisible();
@@ -224,6 +224,12 @@ test("items: layers restack and hide, new kinds, quick toolbar first", async ({ 
   await expect(page.getByTestId("free-toolbar")).toBeVisible();
   await page.getByTestId("item-edit").click();
   await expect(page.getByTestId("block-settings").getByRole("tab", { name: "Design" })).toBeVisible();
+  // The item's card opens right beside the item.
+  const itemBox = (await items.first().boundingBox())!;
+  const cardBox = (await page.getByTestId("block-settings").boundingBox())!;
+  const besideAfter = Math.abs(cardBox.x - (itemBox.x + itemBox.width)) < 40;
+  const besideBefore = Math.abs(cardBox.x + cardBox.width - itemBox.x) < 40;
+  expect(besideAfter || besideBefore).toBe(true);
   await page.screenshot({ path: `test-results/r5-item-${info.project.name}.png` });
 });
 

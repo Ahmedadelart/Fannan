@@ -77,7 +77,10 @@ function Canvas({
   settingsOpen,
   onCloseSettings,
   onAddElement,
+  itemId,
 }: {
+  /** The free-form item whose settings are open: the card opens beside it. */
+  itemId?: string | null;
   width: number;
   /** Desktop: the site fills the whole width of the canvas (no grey gaps beside it). */
   fluid?: boolean;
@@ -112,6 +115,7 @@ function Canvas({
   const [mark, setMark] = useState<{ y: number } | null>(null);
   const [dragging, setDragging] = useState<string | null>(null);
   const [box, setBox] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
+  const [itemBox, setItemBox] = useState<typeof box>(null);
   const rtl = typeof document !== "undefined" && document.documentElement.dir === "rtl";
   // Squarespace-style: the section's tools sit just above its top end corner (inside it when
   // there's no room above), and "Add section" just under its bottom start corner.
@@ -120,6 +124,16 @@ function Canvas({
     rtl ? { left: b.left } : { left: b.left + b.width, transform: "translateX(-100%)" };
   const startAnchor = (b: NonNullable<typeof box>) =>
     rtl ? { left: b.left + b.width, transform: "translateX(-100%)" } : { left: b.left };
+  /** An item's settings open right beside it: after it in reading order, or before it when there's no room. */
+  const besideItem = (b: NonNullable<typeof box>) => {
+    const w = 288;
+    const gap = 16;
+    const frameW = width * scale;
+    const after = rtl ? b.left - gap - w : b.left + b.width + gap;
+    const before = rtl ? b.left + b.width + gap : b.left - gap - w;
+    const fits = (x: number) => x >= 0 && x + w <= frameW;
+    return fits(after) ? after : fits(before) ? before : after;
+  };
   const popLeft = (b: NonNullable<typeof box>) => {
     const w = 288;
     const frameW = width * scale;
@@ -132,6 +146,11 @@ function Canvas({
     setMenuFor(selectedId);
     setElementMenu(false);
     // The settings card opens in its usual place for each new selection.
+    setCardShift({ x: 0, y: 0 });
+  }
+  const [cardFor, setCardFor] = useState(itemId);
+  if (cardFor !== itemId) {
+    setCardFor(itemId);
     setCardShift({ x: 0, y: 0 });
   }
 
@@ -165,13 +184,16 @@ function Canvas({
       if (!el || !f) return setBox(null);
       const r = el.getBoundingClientRect();
       setBox({ top: r.top - f.top, left: r.left - f.left, width: r.width, height: r.height });
+      const item = itemId ? el.querySelector<HTMLElement>(`[data-testid="free-item"][data-free-item="${itemId}"]`) : null;
+      const ir = item?.getBoundingClientRect();
+      setItemBox(ir ? { top: ir.top - f.top, left: ir.left - f.left, width: ir.width, height: ir.height } : null);
     };
     measure();
     const i = inner.current;
     const ro = i ? new ResizeObserver(measure) : null;
     if (i) ro!.observe(i);
     return () => ro?.disconnect();
-  }, [selectedId, scale, version, reorder]);
+  }, [selectedId, scale, version, reorder, itemId]);
 
   const sections = () =>
     [...(inner.current?.querySelectorAll<HTMLElement>("[data-block-id]") ?? [])].map((el) => ({
@@ -415,8 +437,8 @@ function Canvas({
             data-testid="block-settings"
             className="bg-paper text-ink shadow-float border-line absolute z-30 flex max-h-[62vh] w-[288px] flex-col overflow-hidden rounded-[16px] border text-[13px]"
             style={{
-              top: Math.max(0, Math.min(toolsTop(box) + 48 + cardShift.y, height - 120)),
-              left: Math.max(0, Math.min(popLeft(box) + cardShift.x, width * scale - 288)),
+              top: Math.max(0, Math.min((itemBox ? itemBox.top : toolsTop(box) + 48) + cardShift.y, height - 120)),
+              left: Math.max(0, Math.min((itemBox ? besideItem(itemBox) : popLeft(box)) + cardShift.x, width * scale - 288)),
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -1305,6 +1327,7 @@ export function Editor({
           version={page.blocks}
           settings={blockSettings}
           settingsOpen={settingsOpen}
+          itemId={block?.type === "free" && settingsOpen ? freeItem : null}
           onAddElement={
             block?.type === "free"
               ? (kind) => {
