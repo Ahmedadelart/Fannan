@@ -57,17 +57,25 @@ function rand(seed: number) {
  */
 export function strokePath(s: DrawStroke, jitter = 0, seed = 1): string {
   const spec = brushOf(s.brush);
-  const r = rand(seed * 7919 + s.points.length);
+  // Boiling moves the whole line through a smooth, wavy field (not each point on its own), so the
+  // line shifts and bends a little between frames but never breaks up, however much it wiggles.
+  const r = rand(seed * 7919 + 13);
+  const ph = [r(), r(), r(), r()].map((x) => x * Math.PI * 2);
+  const amp = jitter ? (jitter / 100) * (3 + s.size * 0.25) : 0;
+  const f = 0.018;
   const pts: number[][] = [];
-  const amp = (jitter / 100) * Math.max(2, s.size * 0.35);
   for (let i = 0; i + 2 < s.points.length; i += 3) {
-    const dx = jitter ? (r() - 0.5) * 2 * amp : 0;
-    const dy = jitter ? (r() - 0.5) * 2 * amp : 0;
-    pts.push([s.points[i] + dx, s.points[i + 1] + dy, s.points[i + 2] / 100]);
+    const x = s.points[i];
+    const y = s.points[i + 1];
+    const dx = amp ? amp * (Math.sin(y * f + ph[0]) + 0.6 * Math.sin(x * f * 1.7 + ph[1])) : 0;
+    const dy = amp ? amp * (Math.sin(x * f + ph[2]) + 0.6 * Math.sin(y * f * 1.3 + ph[3])) : 0;
+    pts.push([x + dx, y + dy, s.points[i + 2] / 100]);
   }
   if (!pts.length) return "";
+  // The line's weight breathes a little too.
+  const width = s.size * spec.scale * (amp ? 1 + (r() - 0.5) * 0.12 * (jitter / 100) : 1);
   const outline = getStroke(pts, {
-    size: s.size * spec.scale,
+    size: width,
     thinning: spec.thinning,
     smoothing: 0.5 + (s.smoothing / 100) * 0.45,
     streamline: 0.3 + (s.smoothing / 100) * 0.6,

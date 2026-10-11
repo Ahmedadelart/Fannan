@@ -1031,7 +1031,8 @@
       "home": "Home",
       "messages": "Messages",
       "upgrade": "Fannan Pro",
-      "pages": "Pages"
+      "pages": "Pages",
+      "doodle": "Doodle"
     },
     "currentlyEditing": "Currently editing",
     "panelTabs": {
@@ -1507,7 +1508,12 @@
       "clearConfirm": "Clear the whole drawing?",
       "discard": "Leave without saving this drawing?",
       "keys": "Ctrl+Z undo · Ctrl+Shift+Z redo · E eraser · [ ] size. Pens with pressure (Apple Pencil, S Pen, Wacom) draw thicker when you press harder.",
-      "points": "{used} / {max} points"
+      "points": "{used} / {max} points",
+      "start": "Draw on this section",
+      "startHint": "Pick a free-form section on your page, then draw right on it. When you're done, the drawing becomes an item you can move.",
+      "pickHint": "Drawing works on free-form sections (most designs in the library are). Click one on your page, or add a blank one.",
+      "addSection": "Add a blank section to draw on",
+      "drawingHere": "Drawing on this section"
     }
   },
   "inbox": {

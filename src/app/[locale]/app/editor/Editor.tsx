@@ -16,11 +16,10 @@ import { hasOwnPage } from "@/lib/site/pages";
 import { normalizeFooter } from "@/lib/site/normalize";
 import { moveTo, startSortDrag } from "@/components/editor/sortDrag";
 import { getClip, mod, setClip, typing } from "@/components/editor/clipboard";
-import type { Block, BlockOf, FreeKind, SiteDraft } from "@/lib/site/types";
+import type { Block, BlockOf, DrawStroke, FreeKind, SiteDraft } from "@/lib/site/types";
 import { addFreeItem, freeItem, ITEM_GROUPS } from "@/lib/site/free";
 import { DecoSvg } from "@/components/site/deco";
-import { DoodleStudio } from "@/components/editor/DoodleStudio";
-import { emptyDrawing } from "@/lib/site/drawing";
+import { DoodlePanel, defaultTools, finishSession, startSession, type DoodleSession, type DoodleTools } from "@/components/editor/doodle";
 import { FreeEditor, KIND_ICONS } from "@/components/editor/FreeEditor";
 import { LanguageButton, LogoutButton } from "../(dash)/DashClient";
 import { SiteEnhancer } from "@/components/site/live/SiteEnhancer";
@@ -42,8 +41,8 @@ import {
 type Device = "desktop" | "tablet" | "phone";
 
 /** The left rail. Native panels: blocks, design, projects (list). The rest open app pages in a wide panel. */
-type Rail = "home" | "blocks" | "projects" | "design" | "messages" | "stats" | "settings" | "upgrade";
-const RAILS: Rail[] = ["home", "blocks", "projects", "design", "messages", "stats", "settings", "upgrade"];
+type Rail = "home" | "blocks" | "projects" | "design" | "doodle" | "messages" | "stats" | "settings" | "upgrade";
+const RAILS: Rail[] = ["home", "blocks", "projects", "design", "doodle", "messages", "stats", "settings", "upgrade"];
 function embedPath(rail: Rail, projectId: string | null): string | null {
   if (rail === "projects") return projectId ? `/projects/${projectId}` : null;
   return { home: "/home", messages: "/messages", stats: "/stats", settings: "/settings", upgrade: "/upgrade" }[
@@ -984,11 +983,32 @@ export function Editor({
     remove: removeBlock,
   };
 
-  /** Round 11: the doodle studio, open for one drawing item. */
-  const [doodle, setDoodle] = useState<{ blockId: string; itemId: string } | null>(null);
-  const doodleItem = doodle
-    ? (page.blocks.find((x) => x.id === doodle.blockId && x.type === "free") as BlockOf<"free"> | undefined)?.items.find((i) => i.id === doodle.itemId)
-    : undefined;
+  /** Round 11: drawing right on a free-form section (tools in the Doodle panel, board over the section). */
+  const [doodleSession, setDoodleSession] = useState<DoodleSession | null>(null);
+  const [doodleTools, setDoodleTools] = useState<DoodleTools>(() => defaultTools(initialDraft.theme.colors.text));
+  const [doodleLive, setDoodleLive] = useState<DrawStroke | null>(null);
+  const rtl = draft.language === "ar";
+  const setSession = useCallback((fn: (s: DoodleSession) => DoodleSession) => setDoodleSession((s) => (s ? fn(s) : s)), []);
+  const beginDoodle = (blockId: string, itemId: string | null) => {
+    const b = page.blocks.find((x) => x.id === blockId);
+    if (!b || b.type !== "free") return;
+    setDoodleSession(startSession(b, itemId, rtl));
+    setSelected(blockId);
+    setFreeItem(null);
+    setSettingsOpen(false);
+    setRail("doodle");
+    setPanelOpen(true);
+  };
+  const finishDoodle = () => {
+    const s = doodleSession;
+    if (!s) return;
+    changeFree(s.blockId, (b) => finishSession(b, s, rtl, draft.language));
+    setDoodleSession(null);
+  };
+  const cancelDoodle = () => {
+    if (doodleSession?.past.length && !window.confirm(t("doodle.discard"))) return;
+    setDoodleSession(null);
+  };
 
   /** Free-form sections are drawn with handles by FreeEditor. */
   const changeFree = (id: string, fn: (b: BlockOf<"free">) => BlockOf<"free">, key?: string) =>
@@ -1006,7 +1026,12 @@ export function Editor({
         setFreeItem(id);
       }}
       onChange={(fn, key) => changeFree(b.id, fn, key)}
-      onDrawItem={(id) => setDoodle({ blockId: b.id, itemId: id })}
+      onDrawItem={(id) => beginDoodle(b.id, id)}
+      doodle={
+        doodleSession && doodleSession.blockId === b.id
+          ? { session: doodleSession, setSession, tools: doodleTools, live: doodleLive, setLive: setDoodleLive, onDone: finishDoodle, onCancel: cancelDoodle }
+          : null
+      }
       onEditItem={(id) => {
         // The pencil opens the item's settings, and closes them again.
         const open = settingsOpen && selected === b.id && freeItem === id;
@@ -1122,6 +1147,7 @@ export function Editor({
     { id: "blocks", icon: "site-editor", label: t("rail.blocks"), short: t("rail.pages") },
     { id: "projects", icon: "projects", label: t("rail.projects"), short: t("rail.projects") },
     { id: "design", icon: "palette", label: t("rail.design"), short: t("rail.design") },
+    { id: "doodle", icon: "pen", label: t("rail.doodle"), short: t("rail.doodle") },
     { id: "messages", icon: "messages", label: t("rail.messages"), short: t("rail.messages") },
     { id: "stats", icon: "stats", label: t("rail.stats"), short: t("rail.stats") },
     { id: "settings", icon: "settings", label: t("rail.settings"), short: t("rail.settings") },
@@ -1176,7 +1202,7 @@ export function Editor({
       shortBase={account.shortBase}
       pages={draft.pages}
       page={page}
-      onDrawItem={(itemId) => setDoodle({ blockId: block.id, itemId })}
+      onDrawItem={(itemId) => beginDoodle(block.id, itemId)}
     />
   ) : null);
 
@@ -1428,6 +1454,25 @@ export function Editor({
             </>
           )}
 
+          {rail === "doodle" && (
+            <DoodlePanel
+              session={doodleSession}
+              tools={doodleTools}
+              setTools={setDoodleTools}
+              setSession={setSession}
+              isPro={isPro}
+              ink={draft.theme.colors.text}
+              canDraw={block?.type === "free"}
+              onStart={() => block && beginDoodle(block.id, null)}
+              onAddSection={() => {
+                const kind = blockKinds.find((k) => k.key === "free-blank");
+                if (kind) addBlock(kind);
+              }}
+              onDone={finishDoodle}
+              onCancel={cancelDoodle}
+            />
+          )}
+
           {rail === "design" && (
             <div className="flex flex-col">
               <h2 className="text-muted px-4 pt-4 pb-2 text-[11px] font-semibold tracking-[0.1em] uppercase">{t("rail.design")}</h2>
@@ -1589,11 +1634,11 @@ export function Editor({
           onAddElement={
             block?.type === "free"
               ? (kind) => {
+                  // "Draw" opens the board over this section; the drawing becomes an item when done.
+                  if (kind === "drawing") return beginDoodle(block.id, null);
                   const r = addFreeItem(block, kind, draft.language);
                   changeFree(block.id, () => r.block);
                   setFreeItem(r.item.id);
-                  // A new doodle opens the drawing board straight away.
-                  if (kind === "drawing") setDoodle({ blockId: block.id, itemId: r.item.id });
                 }
               : undefined
           }
@@ -1638,20 +1683,6 @@ export function Editor({
           )}
         </Canvas>
       </div>
-
-      {doodle && doodleItem && (
-        <DoodleStudio
-          initial={doodleItem.drawing ?? emptyDrawing(1000, Math.round((1000 * doodleItem.place.h) / doodleItem.place.w))}
-          isPro={isPro}
-          paper={draft.theme.colors.background}
-          ink={draft.theme.colors.text}
-          onCancel={() => setDoodle(null)}
-          onDone={(d) => {
-            changeFree(doodle.blockId, (s) => ({ ...s, items: s.items.map((i) => (i.id === doodle.itemId ? { ...i, drawing: d } : i)) }));
-            setDoodle(null);
-          }}
-        />
-      )}
 
       {shortcutsOpen && (
         <Modal open onClose={() => setShortcutsOpen(false)} title={t("shortcuts.title")} closeLabel={t("closePreview")}>

@@ -42,15 +42,17 @@ test("draw a doodle with brushes, erase, undo, boil, and see it on the live site
   await page.getByRole("button", { name: "Add item" }).click();
   await page.getByRole("menuitem", { name: "Draw", exact: true }).click();
 
-  // The board opens straight away.
-  const studio = page.getByTestId("doodle-studio");
-  await expect(studio).toBeVisible();
+  // The board lies over the section, and the tools open in the Doodle panel.
+  const board = page.getByTestId("draw-board-wrap");
+  const panel = page.getByTestId("doodle-panel");
+  await expect(board).toBeVisible();
+  await expect(panel).toBeVisible();
   await scribble(page, [0.1, 0.3], [0.9, 0.3]);
-  await studio.getByTestId("brush-marker").click();
+  await panel.getByTestId("brush-marker").click();
   await scribble(page, [0.1, 0.6], [0.9, 0.7]);
-  await studio.getByTestId("brush-neon").click();
+  await panel.getByTestId("brush-neon").click();
   await scribble(page, [0.2, 0.85], [0.8, 0.5]);
-  const paths = studio.locator('[data-testid="drawing"]').last().locator("path");
+  const paths = board.locator('[data-testid="drawing"]').locator("path");
   await expect(paths).toHaveCount(3);
 
   // Undo, redo, then the eraser takes the first line away.
@@ -58,17 +60,26 @@ test("draw a doodle with brushes, erase, undo, boil, and see it on the live site
   await expect(paths).toHaveCount(2);
   await page.keyboard.press("Control+Shift+z");
   await expect(paths).toHaveCount(3);
-  await studio.getByTestId("doodle-eraser").click();
+  await panel.getByTestId("doodle-eraser").click();
   await scribble(page, [0.5, 0.25], [0.5, 0.35]);
   await expect(paths).toHaveCount(2);
 
-  // Boiling lines: three frames.
-  await studio.getByTestId("doodle-boil").getByRole("switch").click();
-  await expect(studio.locator('[data-testid="drawing"]').last().locator(".dw-frame")).toHaveCount(3);
-  await page.screenshot({ path: "test-results/r11-doodle-studio.png" });
-  await studio.getByTestId("doodle-done").click();
-  await expect(studio).toBeHidden();
-  await expect(page.getByTestId("canvas").locator('[data-testid="drawing"]')).toBeVisible();
+  // Boiling lines: three frames, each a whole line (no breaks).
+  await panel.getByTestId("doodle-boil").getByRole("switch").click();
+  await expect(board.locator(".dw-frame")).toHaveCount(3);
+  await page.screenshot({ path: "test-results/r11-doodle-board.png" });
+  await page.getByTestId("board-done").click();
+  await expect(board).toBeHidden();
+  const item = page.getByTestId("canvas").locator('[data-kind="drawing"]');
+  await expect(item).toBeVisible();
+  await expect(item.locator(".dw-frame")).toHaveCount(3);
+
+  // The panel stays open, ready for another drawing; the Doodle button in the rail closes and opens it.
+  await expect(panel.getByTestId("doodle-start")).toBeVisible();
+  await page.getByRole("button", { name: "Doodle" }).click();
+  await expect(panel).toBeHidden();
+  await page.getByRole("button", { name: "Doodle" }).click();
+  await expect(panel.getByTestId("doodle-start")).toBeVisible();
 
   await page.getByRole("button", { name: "Publish" }).click();
   await expect(page.getByTestId("editor-status")).toHaveText("Live site is up to date", { timeout: 20_000 });

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useTranslations } from "next-intl";
+import { DrawBoard, type DoodleSession, type DoodleTools } from "./doodle";
 import {
   FreeItemContent,
   freeItemStyle,
@@ -12,7 +13,7 @@ import {
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { cx } from "@/lib/cx";
 import { FREE_COLS, freeBottom } from "@/lib/site/free";
-import type { BlockOf, FreeItem, FreeKind, FreePlace } from "@/lib/site/types";
+import type { BlockOf, DrawStroke, FreeItem, FreeKind, FreePlace } from "@/lib/site/types";
 import { getClip, mod, setClip, typing } from "./clipboard";
 import { InlineText } from "./InlineText";
 
@@ -36,8 +37,18 @@ export interface FreeEditorProps {
   typeHere: string;
   /** The pencil in the item's toolbar: opens (or closes) its full settings. */
   onEditItem: (id: string) => void;
-  /** Round 11: open the doodle studio for a drawing item. */
+  /** Round 11: open the doodle board for a drawing item. */
   onDrawItem?: (id: string) => void;
+  /** Round 11: drawing on this section right now (the board lies over the grid). */
+  doodle?: {
+    session: DoodleSession;
+    setSession: (fn: (s: DoodleSession) => DoodleSession) => void;
+    tools: DoodleTools;
+    live: DrawStroke | null;
+    setLive: (s: DrawStroke | null) => void;
+    onDone: () => void;
+    onCancel: () => void;
+  } | null;
   /** The item whose settings card is open, if any (the pencil shows pressed). */
   settingsFor?: string | null;
   /** Social links and projects, for social link and project items. */
@@ -116,6 +127,7 @@ export function FreeEditor({
   typeHere,
   onEditItem,
   onDrawItem,
+  doodle,
   settingsFor = null,
   extras,
 }: FreeEditorProps) {
@@ -562,7 +574,19 @@ export function FreeEditor({
           }}
           data-testid="free-grid"
         >
-          {b.items.map((orig) => {
+          {doodle && doodle.session.blockId === b.id && (
+            <DrawBoard
+              session={doodle.session}
+              setSession={doodle.setSession}
+              tools={doodle.tools}
+              rows={rows}
+              live={doodle.live}
+              setLive={doodle.setLive}
+              onDone={doodle.onDone}
+              onCancel={doodle.onCancel}
+            />
+          )}
+          {b.items.filter((x) => !(doodle && x.id === doodle.session.itemId)).map((orig) => {
             const shifted =
               groupLive && group.includes(orig.id)
                 ? { ...orig, place: { ...orig.place, x: orig.place.x + groupLive.dx, y: orig.place.y + groupLive.dy } }
