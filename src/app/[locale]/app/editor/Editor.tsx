@@ -347,10 +347,12 @@ function Canvas({
               aria-label={t("settings")}
               title={t("settings")}
               aria-expanded={settingsOpen}
-              className={cx(tool, settingsOpen && "bg-lime text-on-lime hover:bg-lime")}
+              className={cx(tool, "w-auto gap-1.5 px-3 text-[13px] font-semibold", settingsOpen && "bg-lime text-on-lime hover:bg-lime")}
               onClick={actions.settings}
             >
+              {/* Round 13: the main action says what it does (Carbonmade's "Customize block"). */}
               <Icon name="settings" size={18} />
+              {t("customize")}
             </button>
             {!isPart(selectedId) && (
               <>

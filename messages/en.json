@@ -694,7 +694,15 @@
       "c-press": "Press & books",
       "c-films": "Films",
       "c-offers": "Offers & prices",
-      "links": "Link page"
+      "links": "Link page",
+      "d-split-left": "50/50 · picture left",
+      "d-split-right": "50/50 · picture right",
+      "d-portrait-bio": "Portrait + bio",
+      "d-fullbleed": "Full-width picture",
+      "d-three-up": "Three pictures",
+      "d-big-small": "Big + two small",
+      "d-title-over": "Title over a picture",
+      "d-project-intro": "Project intro"
     },
     "addHint": "Click to add below the selected section, or drag onto the page.",
     "dropHere": "Drop the section here",
@@ -900,7 +908,8 @@
       "reorderHint": "Drag sections to change their order, then press Done.",
       "close": "Close",
       "addSection": "Add section",
-      "moveCard": "Drag to move · double-click to put it back"
+      "moveCard": "Drag to move · double-click to put it back",
+      "customize": "Customize"
     },
     "free": {
       "item": "Item",
@@ -1564,6 +1573,16 @@
         "l": "Bigger"
       },
       "upper": "Headings in CAPITALS"
+    },
+    "layout": {
+      "align": "Text alignment",
+      "aligns": {
+        "start": "Left",
+        "center": "Centre",
+        "end": "Right"
+      },
+      "full": "Full width",
+      "mirror": "Flip layout ⇄"
     }
   },
   "inbox": {

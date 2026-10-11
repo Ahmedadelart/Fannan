@@ -308,6 +308,14 @@ const DESIGN_ICONS: Record<DesignKey, IconName> = {
   "d-about": "about-cv",
   "d-contact-me": "contact-form",
   "d-logo-wall": "logo-wall",
+  "d-split-left": "columns",
+  "d-split-right": "columns",
+  "d-portrait-bio": "about-cv",
+  "d-fullbleed": "fullscreen-cover",
+  "d-three-up": "grid",
+  "d-big-small": "masonry",
+  "d-title-over": "cover",
+  "d-project-intro": "hero-headline",
 };
 
 export const designKinds: BlockKind[] = (Object.keys(DESIGN_ICONS) as DesignKey[]).map((key) => ({
@@ -348,11 +356,15 @@ export type LibraryGroup = "intro" | "work" | "images" | "text" | "about" | "med
 
 /** What the library shows, in this order. Older block kinds still work on existing pages. */
 export const LIBRARY: Array<{ group: LibraryGroup; keys: string[] }> = [
-  { group: "intro", keys: ["d-hero-split", "d-hero-photo", "d-cover", "d-title", "d-statement", "c-nav"] },
-  { group: "work", keys: ["grid", "masonry", "slider", "c-mosaic", "c-films"] },
+  // Round 13: pictures first in every group ("show, not tell").
+  { group: "intro", keys: ["d-title-over", "d-hero-photo", "d-hero-split", "d-cover", "d-title", "d-statement", "c-nav"] },
+  { group: "work", keys: ["grid", "masonry", "d-project-intro", "d-split-left", "d-split-right", "slider", "c-mosaic", "c-films"] },
   {
     group: "images",
     keys: [
+      "d-fullbleed",
+      "d-three-up",
+      "d-big-small",
       "d-image-caption",
       "d-grid-4",
       "d-two-images",
@@ -368,6 +380,7 @@ export const LIBRARY: Array<{ group: LibraryGroup; keys: string[] }> = [
   {
     group: "about",
     keys: [
+      "d-portrait-bio",
       "d-about-circle",
       "d-about",
       "c-cards",

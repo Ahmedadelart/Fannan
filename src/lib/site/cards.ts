@@ -269,7 +269,7 @@ export function cardsBlock(key: CardKey, language: Locale): Extract<Block, { typ
     heading,
     intro: "",
     columns,
-    align: variant === "icons" || variant === "stats" ? "center" : "start",
+    align: "start",
     button,
     link: "",
     mediaId: null,

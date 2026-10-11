@@ -33,7 +33,16 @@ export type DesignKey =
   | "d-hero-photo"
   | "d-about-circle"
   | "d-cta-banner"
-  | "d-before-after";
+  | "d-before-after"
+  // Round 13: image-first layouts ("show, not tell").
+  | "d-split-left"
+  | "d-split-right"
+  | "d-portrait-bio"
+  | "d-fullbleed"
+  | "d-three-up"
+  | "d-big-small"
+  | "d-title-over"
+  | "d-project-intro";
 
 const W = {
   en: {
@@ -97,6 +106,12 @@ const W = {
     ],
     imageTitle: "Project title",
     contactMore: "Based in Cairo · open to remote work",
+    layoutTitle: "Half and half",
+    layoutText: "A strong picture beside a few lines about it. People who hire look at the picture first.",
+    projectButton: "See the project",
+    portrait: "A portrait",
+    titleOver: "PORTFOLIO",
+    titleOverSub: "Selected work 2020 – 2026",
   },
   ar: {
     cover: "تصميم جرافيك",
@@ -156,6 +171,12 @@ const W = {
     ],
     imageTitle: "اسم المشروع",
     contactMore: "مقيم في القاهرة · متاح للعمل عن بُعد",
+    layoutTitle: "نصف ونصف",
+    layoutText: "صورة قوية بجانب سطور قليلة عنها. من يوظّفون ينظرون إلى الصورة أولًا.",
+    projectButton: "شاهد المشروع",
+    portrait: "بورتريه",
+    titleOver: "معرض أعمال",
+    titleOverSub: "أعمال مختارة ٢٠٢٠ – ٢٠٢٦",
   },
 };
 
@@ -201,18 +222,18 @@ export function designBlock(key: DesignKey, language: Locale): Extract<Block, { 
       break;
     case "d-title":
       items = [
-        eyebrow(P(6, 2, 12, 1), w.eyebrowWork, { align: "center" }),
-        heading(P(1, 3, 22, 4), w.title, 120, { align: "center", lineHeight: 95 }),
-        dec("underline", P(9, 7, 6, 1), { style: "wave", amp: 55, freq: 5, stroke: 5 }, { hideOnPhone: true }),
-        text(P(6, 8, 12, 2), w.intro, 20, { align: "center", opacity: 80 }),
+        eyebrow(P(1, 2, 12, 1), w.eyebrowWork),
+        heading(P(1, 3, 22, 4), w.title, 120, { lineHeight: 95 }),
+        dec("underline", P(1, 7, 6, 1), { style: "wave", amp: 55, freq: 5, stroke: 5 }, { hideOnPhone: true }),
+        text(P(1, 8, 12, 2), w.intro, 20, { opacity: 80 }),
       ];
       rows = 11;
       break;
     case "d-statement":
       items = [
-        eyebrow(P(6, 2, 12, 1), w.eyebrowAbout, { align: "center" }),
-        heading(P(1, 3, 22, 6), w.statement, 112, { align: "center", lineHeight: 95 }),
-        dec("underline", P(8, 9, 8, 1), { style: "scribble", amp: 60, freq: 4, stroke: 6 }),
+        eyebrow(P(1, 2, 12, 1), w.eyebrowAbout),
+        heading(P(1, 3, 20, 6), w.statement, 112, { lineHeight: 95 }),
+        dec("underline", P(1, 9, 8, 1), { style: "scribble", amp: 60, freq: 4, stroke: 6 }),
       ];
       rows = 11;
       style = sectionStyle({ bg: { kind: "gradient", color: "#FFF4D6", color2: "#FFFFFF" }, padTop: 40, padBottom: 40 });
@@ -408,6 +429,74 @@ export function designBlock(key: DesignKey, language: Locale): Extract<Block, { 
         padTop: 64,
         padBottom: 64,
       });
+      break;
+    // Round 13: pictures lead, text supports, aligned to the reading start.
+    case "d-split-left":
+    case "d-split-right": {
+      const right = key === "d-split-right";
+      const px = (x: number, wd: number) => (right ? 24 - x - wd : x);
+      items = [
+        img(P(px(0, 12), 0, 12, 16), 6),
+        eyebrow(P(px(14, 9), 4, 9, 1), w.eyebrowProject),
+        heading(P(px(14, 10), 5, 10, 3), w.layoutTitle, 56, { lineHeight: 100 }),
+        text(P(px(14, 9), 8, 9, 3), w.layoutText, 19, { lineHeight: 165, opacity: 85 }),
+        el("button", P(px(14, 5), 12, 5, 2), { text: w.projectButton, link: "/", deco: { ...defaultDeco(), arrow: true } }),
+      ];
+      rows = 16;
+      break;
+    }
+    case "d-portrait-bio":
+      items = [
+        img(P(0, 0, 9, 16), 13),
+        eyebrow(P(11, 3, 10, 1), w.eyebrowAbout),
+        heading(P(11, 4, 12, 2), w.portrait, 64),
+        text(P(11, 7, 11, 5), w.aboutText, 20, { lineHeight: 170 }),
+        el("button", P(11, 12, 5, 2), { text: w.more, link: "/about", variant: "outline" }),
+      ];
+      rows = 16;
+      break;
+    case "d-fullbleed":
+      items = [img(P(0, 0, 24, 15), 3), heading(P(1, 16, 12, 1), w.imageTitle, 22), text(P(1, 17, 14, 1), w.caption, 16, { opacity: 75 })];
+      rows = 19;
+      style = sectionStyle({ width: "full", padTop: 0, padBottom: 24 });
+      break;
+    case "d-three-up":
+      // Three pictures with a one-square gap between them (7 + 8 + 7 squares).
+      items = ([[0, 7], [8, 8], [17, 7]] as const).flatMap(([x, wd], n) => [
+        img(P(x, 0, wd, 11), n + 3),
+        heading(P(x, 12, wd, 1), w.imageTitle, 20),
+        text(P(x, 13, wd, 1), w.description, 15, { opacity: 75 }),
+      ]);
+      rows = 15;
+      break;
+    case "d-big-small":
+      items = [
+        img(P(0, 0, 15, 16), 1),
+        img(P(16, 0, 8, 8), 4),
+        img(P(16, 8, 8, 8), 5),
+        heading(P(0, 17, 12, 1), w.imageTitle, 22),
+      ];
+      rows = 19;
+      break;
+    case "d-title-over":
+      background = "#141414";
+      items = [
+        img(P(0, 0, 24, 16), 7, { deco: { ...defaultDeco(), filter: "grayscale" }, opacity: 80 }),
+        heading(P(0, 6, 24, 4), w.titleOver, 180, { align: "center", color: "#FFFFFF", tracking: 10, lineHeight: 90 }),
+        text(P(6, 10, 12, 1), w.titleOverSub, 18, { align: "center", color: "#FFFFFF", opacity: 85 }),
+      ];
+      rows = 16;
+      style = sectionStyle({ width: "full", padTop: 0, padBottom: 0 });
+      break;
+    case "d-project-intro":
+      items = [
+        eyebrow(P(1, 2, 10, 1), w.eyebrowProject),
+        heading(P(1, 3, 10, 3), w.projectTitle, 64, { lineHeight: 95 }),
+        ...w.meta.flatMap(([label, value], i) => [eyebrow(P(1, 7 + i * 2, 4, 1), label), text(P(5, 7 + i * 2, 6, 1), value, 17, { weight: 600 })]),
+        text(P(1, 13, 10, 3), w.metaText, 17, { lineHeight: 165, opacity: 85 }),
+        img(P(12, 0, 12, 17), 2),
+      ];
+      rows = 17;
       break;
     case "d-before-after":
       items = [

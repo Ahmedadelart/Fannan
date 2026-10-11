@@ -80,6 +80,8 @@ export interface SectionStyle {
   anchor: string;
   /** Pro: how the section comes in as visitors scroll. */
   animate: "none" | "fade" | "slide" | "zoom";
+  /** Round 13: where the section's text sits (not set: the section's own default). */
+  align?: "start" | "center" | "end";
 }
 
 type B<T extends string, P> = { id: string; type: T; style?: SectionStyle } & P;

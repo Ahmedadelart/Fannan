@@ -148,6 +148,7 @@ export function normalizeSectionStyle(raw: unknown): SectionStyle {
       padding: num(card.padding, 0, 120, 40),
     },
     text: s.text ? color(s.text, "#141414") : null,
+    ...(s.align === "start" || s.align === "center" || s.align === "end" ? { align: s.align } : {}),
     anchor: str(s.anchor, 40)
       .toLowerCase()
       .replace(/[^a-z0-9-]/g, ""),

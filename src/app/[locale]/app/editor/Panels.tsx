@@ -26,7 +26,7 @@ import { patternCss, PATTERN_IDS } from "@/components/site/patterns";
 import { defaultSectionStyle } from "@/lib/site/normalize";
 import { socialPath } from "@/components/site/socialIcons";
 import { presetIds, themes } from "@/lib/site/starter";
-import { freeBottom } from "@/lib/site/free";
+import { FREE_COLS, freeBottom } from "@/lib/site/free";
 import { hasOwnPage } from "@/lib/site/pages";
 import { linksBlock } from "@/lib/site/links";
 import { LinksSettings } from "./LinksSettings";
@@ -2182,6 +2182,8 @@ export function BlockSettings({
       {itemOpen ? (
         body
       ) : (
+        <>
+        <QuickLayout block={block} update={update} />
         <SectionTabs
           content={body}
           design={
@@ -2194,6 +2196,71 @@ export function BlockSettings({
             />
           }
         />
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Round 13 (Carbonmade-style): alignment dots and full width at the top of every section's
+ * settings; free-form sections can also flip their layout (picture left ↔ right).
+ */
+function QuickLayout({ block, update }: { block: Block; update: (patch: Partial<Block>, key?: string) => void }) {
+  const t = useTranslations("editor.layout");
+  const st = block.style ?? defaultSectionStyle();
+  const align = st.align ?? "start";
+  const setAlign = (a: "start" | "center" | "end") => {
+    const style = { ...st, align: a };
+    if (block.type === "free") {
+      // Every text item follows (pictures keep their places).
+      const items = block.items.map((i) => (["text", "heading", "button", "quote", "badge"].includes(i.kind) ? { ...i, align: a } : i));
+      update({ style, items } as Partial<Block>);
+    } else update({ style } as Partial<Block>);
+  };
+  const lines = (a: "start" | "center" | "end") => (
+    <svg viewBox="0 0 20 16" className="h-4 w-5" aria-hidden>
+      {[3, 8, 13].map((y, i) => {
+        const w = i === 1 ? 10 : 16;
+        const x = a === "start" ? 2 : a === "center" ? 10 - w / 2 : 18 - w;
+        return <rect key={y} x={x} y={y - 1} width={w} height={2} rx={1} fill="currentColor" />;
+      })}
+    </svg>
+  );
+  return (
+    <div className="border-line flex flex-wrap items-center gap-3 border-b pb-3" data-testid="quick-layout">
+      <div role="radiogroup" aria-label={t("align")} className="bg-mist flex rounded-[10px] p-0.5">
+        {(["start", "center", "end"] as const).map((a) => (
+          <button
+            key={a}
+            type="button"
+            role="radio"
+            aria-checked={align === a}
+            aria-label={t(`aligns.${a}`)}
+            title={t(`aligns.${a}`)}
+            onClick={() => setAlign(a)}
+            className={cx("flex h-8 w-9 items-center justify-center rounded-[8px]", align === a ? "bg-paper shadow-sm" : "text-muted hover:text-ink")}
+            data-testid={`align-${a}`}
+          >
+            {lines(a)}
+          </button>
+        ))}
+      </div>
+      <label className="flex items-center gap-2 text-[12px] font-semibold">
+        <Toggle label={t("full")} hideLabel checked={st.width === "full"} onChange={(v) => update({ style: { ...st, width: v ? "full" : "normal" } } as Partial<Block>)} />
+        {t("full")}
+      </label>
+      {block.type === "free" && (
+        <button
+          type="button"
+          className="border-line hover:bg-mist ms-auto rounded-[8px] border px-2.5 py-1.5 text-[12px] font-semibold"
+          onClick={() =>
+            update({ items: block.items.map((i) => ({ ...i, place: { ...i.place, x: FREE_COLS - i.place.x - i.place.w } })) } as Partial<Block>)
+          }
+          data-testid="mirror-layout"
+        >
+          {t("mirror")}
+        </button>
       )}
     </div>
   );

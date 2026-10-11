@@ -1081,7 +1081,7 @@ function CardIcon({ name, size = 40 }: { name: string; size?: number }) {
 
 function CardsView({ b, ctx }: { b: BlockOf<"cards">; ctx: Ctx }) {
   const m = (id: string | null) => (id ? (ctx.media[id] ?? null) : null);
-  const center = b.align === "center";
+  const center = ctx.align ? ctx.align === "center" : b.align === "center";
   const cols = Math.max(1, Math.min(6, b.columns));
   const grid = { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` };
   const tx = (n: number, field: "title" | "text" | "meta" | "button" | "price", props: Partial<Parameters<typeof T>[0]> = {}) => (
@@ -1440,8 +1440,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
           style={{
             fontSize: b.size === "large" ? 22 : 18,
             lineHeight: 1.6,
-            textAlign: b.align === "center" ? "center" : undefined,
-            marginInline: b.align === "center" ? "auto" : undefined,
+            ...((a) => (a === "center" ? { textAlign: "center" as const, marginInline: "auto" } : a === "end" ? { textAlign: "end" as const, marginInlineStart: "auto" } : {}))(ctx.align ?? b.align),
           }}
         >
           {ctx.onText ? (
@@ -1459,8 +1458,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
           style={{
             ...heading(56),
             maxWidth: 900,
-            textAlign: b.align === "center" ? "center" : undefined,
-            marginInline: b.align === "center" ? "auto" : undefined,
+            ...((a) => (a === "center" ? { textAlign: "center" as const, marginInline: "auto" } : a === "end" ? { textAlign: "end" as const, marginInlineStart: "auto" } : {}))(ctx.align ?? b.align),
           }}
           className="@max-2xl:!text-[36px]"
         >
@@ -1635,7 +1633,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       return (
         <div className="flex flex-col gap-5">
           <T ctx={ctx} path="heading" value={b.heading} as="h2" style={{ ...heading(20), color: "var(--site-muted)" }} />
-          <div className="flex flex-wrap items-center gap-x-10 gap-y-5">
+          <div className={cx("flex flex-wrap items-center gap-x-10 gap-y-5", alignRow(ctx.align))}>
             {b.items.map((l, i) => {
               const logo = m(l.mediaId);
               return logo ? (
@@ -1740,7 +1738,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       if (!ctx.available?.on && !ctx.editing) return null;
       return (
         <div
-          className="flex flex-wrap items-center justify-between gap-4 p-8"
+          className={cx("flex flex-wrap items-center gap-4 p-8", ctx.align ? alignRow(ctx.align) : "justify-between")}
           title={!ctx.available?.on ? `${ctx.available?.label ?? "Available for work"} · off` : undefined}
           style={{
             background: "var(--site-accent)",
@@ -1763,7 +1761,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       );
     case "social":
       return (
-        <div className="flex flex-wrap gap-3">
+        <div className={cx("flex flex-wrap gap-3", alignRow(ctx.align))}>
           {b.links
             .filter((l) => l.url || ctx.editing)
             .map((l, i) => (
@@ -1784,7 +1782,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       return ctx.renderFree ? ctx.renderFree(b) : <FreeSectionView b={b} ctx={ctx} />;
     case "quote":
       return (
-        <blockquote className="m-0 mx-auto flex max-w-[900px] flex-col items-center gap-5 py-6 text-center">
+        <blockquote className={cx("m-0 flex max-w-[900px] flex-col gap-5 py-6", alignCol(ctx.align))}>
           <span aria-hidden style={{ ...heading(120), lineHeight: 0.6, color: "var(--site-accent)" }}>“</span>
           <p style={{ ...heading(44), lineHeight: 1.2 }} className="m-0 @max-2xl:!text-[28px]">
             {ctx.onText ? <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path="text" value={b.text} /> : b.text}
@@ -1816,7 +1814,13 @@ interface Ctx {
   contactFallback?: LegacyContactFields | null;
   language: Locale;
   social?: Array<{ network: string; url: string }>;
+  /** Round 13: the section's alignment (Settings → left / centre / right). */
+  align?: "start" | "center" | "end";
 }
+
+/** Classes for a column that follows the section's alignment. */
+const alignCol = (a: Ctx["align"]) => (a === "center" ? "items-center text-center mx-auto" : a === "end" ? "items-end text-end ms-auto" : "items-start");
+const alignRow = (a: Ctx["align"]) => (a === "center" ? "justify-center" : a === "end" ? "justify-end" : "justify-start");
 
 /**
  * A piece of text. On the editor canvas it's typed in place (empty fields only show on the selected
@@ -2614,7 +2618,7 @@ export function SiteRender({
           prevBanded={isBanded(page.blocks[i - 1])}
           nextBanded={isBanded(page.blocks[i + 1])}
         >
-          <BlockView b={b} ctx={{ ...ctx, index: i, blockId: b.id }} />
+          <BlockView b={b} ctx={{ ...ctx, index: i, blockId: b.id, align: b.style?.align }} />
         </SectionBand>
       ))}
       {editing && page.blocks.length === 0 && <Empty show>+</Empty>}
