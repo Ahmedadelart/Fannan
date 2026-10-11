@@ -1533,7 +1533,13 @@
     },
     "reachedOut": "Who reached out",
     "reachedOutSub": "Messages from your contact form and “Hire me” button in this period",
-    "openMessages": "Open messages"
+    "openMessages": "Open messages",
+    "linkClicks": "Link page clicks",
+    "linkClicksPro": "See how many people click each button on your link page.",
+    "clicksCount": "{count, plural, one {# click} other {# clicks}}",
+    "shortLinks": "Short links",
+    "shortLinksSub": "Visits since each link was made",
+    "visitsCount": "{count, plural, one {# visit} other {# visits}}"
   },
   "settings": {
     "title": "Site settings",
@@ -2556,7 +2562,8 @@
       "addFolder": "Add a dropdown menu",
       "newPage": "New page",
       "suggestions": "Pages people like you often add",
-      "tip": "Drop a page right under a dropdown to put it inside."
+      "tip": "Drop a page right under a dropdown to put it inside.",
+      "linksTag": "Link page · not in menu"
     },
     "projects": {
       "short": "Projects",
@@ -2678,7 +2685,12 @@
           "title": "Number, e.g. 120+",
           "text": "What it counts"
         }
-      }
+      },
+      "linksHint": "A page with all your links, to share by its address, a QR code or a short link. More options (styles, video, Pro animations) are in the editor.",
+      "linksBio": "A few words about you",
+      "linksButtons": "Your buttons",
+      "linkWords": "Words on the button",
+      "linksLater": "After building, open this page in the editor for its QR code and short links."
     },
     "build": {
       "short": "Build",

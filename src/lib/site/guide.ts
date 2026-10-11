@@ -6,6 +6,7 @@ import { slugify } from "@/config/usernames";
 import type { Locale } from "@/i18n/locales";
 import { kindByKey, newId } from "./blocks";
 import { designWords } from "./designBlocks";
+import { linkItem, linksBlock } from "./links";
 import { normalizeFooter, normalizeHeader } from "./normalize";
 import { disciplineText, themes } from "./starter";
 import type {
@@ -22,7 +23,7 @@ import type {
 
 /* ---------- the answers ---------- */
 
-export type GuidePageKind = "home" | "work" | "about" | "contact" | "page" | "folder";
+export type GuidePageKind = "home" | "work" | "about" | "contact" | "page" | "folder" | "links";
 
 /** Sections people can tick on a page; each asks only for what it needs. */
 export type ExtraKey = "about" | "contact" | "social" | "logos" | "testimonials" | "cv" | "offers" | "faq" | "stats" | "cta";
@@ -56,6 +57,9 @@ export interface GuidePage {
   /** Which projects show here (empty: all of them). */
   projectIds: string[];
   extras: Partial<Record<ExtraKey, GuideExtra>>;
+  /** Link page (round 9): its short bio and buttons. Its photo is the first picture. */
+  bio?: string;
+  links?: Array<{ title: string; url: string }>;
 }
 
 export interface GuideProject {
@@ -100,6 +104,7 @@ const WORDS = {
     projects: "Projects",
     suggestions: {
       work: "Work",
+      links: "Links",
       showreel: "Showreel",
       sketchbook: "Sketchbook",
       films: "Films",
@@ -122,6 +127,7 @@ const WORDS = {
     projects: "المشاريع",
     suggestions: {
       work: "أعمالي",
+      links: "روابطي",
       showreel: "الشوريل",
       sketchbook: "اسكتشات",
       films: "أفلام",
@@ -160,7 +166,7 @@ export function pageSuggestions(discipline: string): SuggestionKey[] {
   };
   const all: SuggestionKey[] = ["work", "sketchbook", "showreel", "films", "shop", "services", "press", "cv", "teaching", "personal", "photos", "writing"];
   const first = lead[kind] ?? ["sketchbook", "services"];
-  return [...new Set<SuggestionKey>(["work", ...first, ...all])];
+  return [...new Set<SuggestionKey>(["work", "links", ...first, ...all])];
 }
 
 export function suggestionTitle(key: SuggestionKey, l: Locale) {
@@ -173,7 +179,8 @@ export function newGuidePage(title: string, kind: GuidePageKind): GuidePage {
     title,
     kind,
     parentId: null,
-    inMenu: true,
+    // A link page is usually shared by its address or QR code, not opened from the menu.
+    inMenu: kind !== "links",
     template: kind === "folder" ? null : (TEMPLATES[kind][0] ?? null),
     mediaIds: [],
     showProjects: kind === "home" || kind === "work",
@@ -223,6 +230,7 @@ export const TEMPLATES: Record<Exclude<GuidePageKind, "folder">, string[]> = {
   about: ["d-about-circle", "d-about", "d-resume"],
   contact: ["d-contact-me", "d-cta-banner", "d-title"],
   page: ["d-title", "d-image-caption", "d-grid-4", "d-two-images"],
+  links: [],
 };
 
 export interface ExtraSpec {
@@ -277,6 +285,7 @@ const pageType: Record<GuidePageKind, PageType> = {
   contact: "custom",
   page: "custom",
   folder: "folder",
+  links: "links",
 };
 
 /** Put uploaded pictures into a section's empty picture places, in order. Returns how many it used. */
@@ -387,7 +396,22 @@ function extraBlock(key: ExtraKey, e: GuideExtra, l: Locale, id: string): Block 
   return b;
 }
 
+/** A link page: photo, name, bio and the buttons people typed (ids from the page, so the preview is steady). */
+function linkPageBlock(p: GuidePage, l: Locale, name: string): Block {
+  const b = linksBlock(l, name);
+  b.id = `${p.id}-l`.slice(0, 40);
+  if (p.bio !== undefined) b.bio = p.bio;
+  b.photoId = p.mediaIds[0] ?? null;
+  const typed = (p.links ?? []).filter((x) => x.title.trim() || x.url.trim());
+  b.items = (typed.length ? typed.map((x) => linkItem({ title: x.title, url: x.url })) : b.items).map((it, n) => ({
+    ...it,
+    id: `${p.id}-i${n}`.slice(0, 40),
+  }));
+  return b;
+}
+
 function pageBlocks(p: GuidePage, a: GuideAnswers, l: Locale, name: string, what: string): Block[] {
+  if (p.kind === "links") return [linkPageBlock(p, l, name)];
   const blocks: Block[] = [];
   let pics = p.mediaIds;
   if (p.template) {

@@ -115,4 +115,11 @@ test("a link page with buttons, a QR code and short links; Pro extras", async ({
   await canvas.locator("[data-block-id]").first().click({ position: { x: 20, y: 300 } });
   await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
   await expect(settings.getByText("1 click")).toBeVisible({ timeout: 15_000 });
+
+  // The Stats page shows the clicks per button and the short links' visits.
+  await page.goto(at("app", "/stats"));
+  await expect(page.getByTestId("link-clicks")).toContainText("My shop");
+  await expect(page.getByTestId("link-clicks")).toContainText("1 click");
+  await expect(page.getByTestId("short-link-visits")).toContainText(word);
+  await page.screenshot({ path: "test-results/r9-stats.png", fullPage: true });
 });

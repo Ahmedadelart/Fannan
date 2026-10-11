@@ -107,6 +107,10 @@ export function GuidePageByPage({
         ))}
       </div>
 
+      {page.kind === "links" ? (
+        <LinkPageFields page={page} set={set} answers={answers} setAnswers={setAnswers} media={media} upload={upload} />
+      ) : (
+      <>
       {/* How the page starts */}
       <div className="flex flex-col gap-2">
         <h2 className="m-0 text-[18px] font-semibold">{t("start")}</h2>
@@ -250,7 +254,91 @@ export function GuidePageByPage({
           })}
         </ul>
       </div>
+      </>
+      )}
+      {problem && page.kind === "links" && <Problem>{problem}</Problem>}
     </section>
+  );
+}
+
+/** A link page (round 9): photo, a few words, the buttons, and the social links. */
+function LinkPageFields({
+  page,
+  set,
+  answers,
+  setAnswers,
+  media,
+  upload,
+}: {
+  page: GuidePage;
+  set: (patch: Partial<GuidePage>) => void;
+  answers: GuideAnswers;
+  setAnswers: SetAnswers;
+  media: Record<string, SiteMedia>;
+  upload: (files: File[], done: (m: Uploaded) => void) => Promise<void>;
+}) {
+  const t = useTranslations("guide.page");
+  const links = page.links?.length ? page.links : [{ title: "", url: "" }];
+  const setLinks = (next: Array<{ title: string; url: string }>) => set({ links: next });
+  return (
+    <div className="flex flex-col gap-4" data-testid="guide-linkpage">
+      <p className="text-muted m-0 text-[15px]">{t("linksHint")}</p>
+      <PictureField
+        label={t("photo")}
+        id={page.mediaIds[0] ?? null}
+        media={media}
+        onFiles={(f) => upload(f.slice(0, 1), (m) => set({ mediaIds: [m.id] }))}
+      />
+      <label className="flex flex-col gap-1.5 text-[13px] font-semibold">
+        {t("linksBio")}
+        <textarea className={areaCls} value={page.bio ?? ""} maxLength={300} onChange={(e) => set({ bio: e.target.value })} />
+      </label>
+      <div className="flex flex-col gap-2">
+        <h2 className="m-0 text-[18px] font-semibold">{t("linksButtons")}</h2>
+        {links.map((l, i) => (
+          <div key={i} className="grid grid-cols-[1fr_1.3fr_auto] gap-1.5">
+            <input
+              className={fieldCls}
+              aria-label={t("linkWords")}
+              placeholder={t("linkWords")}
+              value={l.title}
+              maxLength={120}
+              onChange={(e) => setLinks(links.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))}
+            />
+            <input
+              className={fieldCls}
+              dir="ltr"
+              aria-label={t("link")}
+              placeholder="https://"
+              value={l.url}
+              onChange={(e) => setLinks(links.map((x, j) => (j === i ? { ...x, url: e.target.value } : x)))}
+            />
+            <button type="button" aria-label={t("removeRow")} className="text-muted flex size-11 items-center justify-center" onClick={() => setLinks(links.filter((_, j) => j !== i))}>
+              <Icon name="close" size={16} />
+            </button>
+          </div>
+        ))}
+        {links.length < 20 && (
+          <button type="button" className={cx(outlineButton, "self-start")} onClick={() => setLinks([...links, { title: "", url: "" }])} data-testid="guide-linkpage-add">
+            <Icon name="add" size={16} />
+            {t("addRow")}
+          </button>
+        )}
+      </div>
+      <div className="border-line bg-paper flex flex-col gap-2.5 rounded-[16px] border p-3.5">
+        <span className="text-[15px] font-semibold">{t("x.social")}</span>
+        <ExtraFields
+          spec={EXTRAS.find((e) => e.key === "social")!}
+          extra={blankExtra()}
+          set={() => {}}
+          answers={answers}
+          setAnswers={setAnswers}
+          media={media}
+          upload={upload}
+        />
+      </div>
+      <p className="text-muted m-0 text-[13px]">{t("linksLater")}</p>
+    </div>
   );
 }
 

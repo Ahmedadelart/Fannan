@@ -9,6 +9,9 @@ import { imageSources } from "@/lib/media";
 import { listProjects } from "@/lib/server/projects";
 import { messagesInPeriod } from "@/lib/server/settings";
 import { statsReport } from "@/lib/server/stats";
+import { ownerOf } from "@/lib/server/projects";
+import { listShortLinks } from "@/lib/server/shortlinks";
+import { DISPLAY_DOMAIN } from "@/lib/server/urls";
 import { loadDashboard } from "../load";
 
 // Stats.dc.html: date range, four numbers with change vs the previous period, a daily bar chart
@@ -39,17 +42,28 @@ export default async function StatsPage({ params, searchParams }: PageProps<"/[l
   setRequestLocale(locale);
   const t = await getTranslations("stats");
   const format = await getFormatter();
-  const { site, limits, siteUrl } = await loadDashboard();
+  const { site, limits, siteUrl, draft, session } = await loadDashboard();
   const pro = limits.statsDays >= 90;
 
   const asked = Number((await searchParams).range);
   const range = RANGES.includes(asked as 7) && asked <= limits.statsDays ? asked : 30;
 
-  const [report, projects, { current: msgs, previous: prevMsgs }] = await Promise.all([
+  const [report, projects, { current: msgs, previous: prevMsgs }, shorts] = await Promise.all([
     statsReport(site.id, range, site.publishDays ?? []),
     listProjects(site.id),
     messagesInPeriod(site.id, range),
+    ownerOf(session.uid)
+      .then((o) => listShortLinks(o))
+      .catch(() => []),
   ]);
+  // Link page buttons (round 9): their words come from the draft; clicks from the stats.
+  const linkButtons = draft.pages
+    .filter((p) => p.type === "links")
+    .flatMap((p) => p.blocks.flatMap((b) => (b.type === "links" ? b.items.filter((it) => it.kind !== "header").map((it) => ({ ...it, page: p.title })) : [])));
+  const clickRows = linkButtons
+    .map((it) => ({ id: it.id, name: it.title || it.url || "…", page: it.page, clicks: report.clicks[it.id] ?? 0 }))
+    .sort((a, b) => b.clicks - a.clicks);
+  const maxClicks = Math.max(1, ...clickRows.map((r) => r.clicks));
   const { totals, previous } = report;
 
   const n = (v: number) => format.number(v, v >= 10_000 ? { notation: "compact", maximumFractionDigits: 1 } : {});
@@ -274,6 +288,57 @@ export default async function StatsPage({ params, searchParams }: PageProps<"/[l
           note={t("gaNote")}
         />
       </div>
+
+      {(linkButtons.length > 0 || shorts.length > 0) && (
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-4">
+          {linkButtons.length > 0 && (
+            <Card>
+              <div className="flex items-center justify-between gap-2">
+                <H>{t("linkClicks")}</H>
+                {!limits.linkStats && <Badge variant="pro">Pro</Badge>}
+              </div>
+              {!limits.linkStats ? (
+                <div className="bg-mist flex flex-1 flex-col items-start gap-2 rounded-md p-3.5 text-[13px]">
+                  <span className="text-ink-soft">{t("linkClicksPro")}</span>
+                  <a href="/upgrade" className={buttonClasses("lime", "sm")}>
+                    {t("upgrade")}
+                  </a>
+                </div>
+              ) : (
+                <ul className="flex flex-col gap-2.5 text-[13px]" data-testid="link-clicks">
+                  {clickRows.slice(0, 12).map((r) => (
+                    <li key={r.id} className="flex flex-col gap-1">
+                      <span className="flex justify-between gap-2">
+                        <span className="truncate font-semibold">{r.name}</span>
+                        <span className="text-muted flex-none">{t("clicksCount", { count: r.clicks })}</span>
+                      </span>
+                      <span className="bg-mist h-1.5 rounded-[3px]">
+                        <span className="bg-ink block h-1.5 rounded-[3px]" style={{ width: `${Math.round((r.clicks / maxClicks) * 100)}%` }} />
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          )}
+          {shorts.length > 0 && (
+            <Card>
+              <H>{t("shortLinks")}</H>
+              <span className="text-muted text-[12px]">{t("shortLinksSub")}</span>
+              <ul className="flex flex-col gap-2 text-[13px]" data-testid="short-link-visits">
+                {shorts.map((l) => (
+                  <li key={l.code} className="flex justify-between gap-2">
+                    <span className="truncate font-semibold" dir="ltr">
+                      {DISPLAY_DOMAIN}/l/{l.code}
+                    </span>
+                    <span className="text-muted flex-none">{t("visitsCount", { count: l.clicks })}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+        </div>
+      )}
 
       <Card className="flex-row flex-wrap items-center justify-between">
         <span className="flex flex-col">

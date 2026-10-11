@@ -127,6 +127,8 @@ export interface StatsReport {
   byProject: Record<string, number>;
   referrers: Record<string, number>;
   countries: Record<string, number>;
+  /** Link page clicks per button (round 9). */
+  clicks: Record<string, number>;
 }
 
 type Doc = {
@@ -179,6 +181,7 @@ export async function statsReport(siteId: string, range: number, publishDays: st
     byProject: merge(cur, "byProject"),
     referrers: merge(cur, "referrers"),
     countries: merge(cur, "countries"),
+    clicks: merge(cur, "clicks"),
   };
 }
 
