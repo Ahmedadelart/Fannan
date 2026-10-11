@@ -1575,7 +1575,10 @@ export function BlockSettings({
   shortBase = "",
   pages = [],
   page,
+  onDrawItem,
 }: {
+  /** Round 11: open the doodle studio for a drawing item. */
+  onDrawItem?: (itemId: string) => void;
   /** Link pages (round 9): the site's address, the short-link address, and the pages a short link can open. */
   siteUrl?: string;
   shortBase?: string;
@@ -2186,6 +2189,7 @@ export function BlockSettings({
           projects={projects}
           language={language}
           mediaField={mediaField}
+          onDraw={onDrawItem ? () => onDrawItem(it.id) : undefined}
           onBack={() => onFreeItem?.(null)}
           setItem={(patch, key) =>
             set<BlockOf<"free">>({ items: block.items.map((i) => (i.id === it.id ? { ...i, ...patch } : i)) }, key)
@@ -2561,7 +2565,10 @@ function FreeItemSettings({
   setItem,
   onBack,
   mediaField,
+  onDraw,
 }: {
+  /** Round 11: opens the doodle studio (drawing items). */
+  onDraw?: () => void;
   it: FreeItem;
   projects: GalleryProject[];
   language: Locale;
@@ -2584,6 +2591,30 @@ function FreeItemSettings({
 
   const content = (
     <>
+      {it.kind === "drawing" && (
+        <div className="flex flex-col gap-3" data-testid="drawing-settings">
+          {onDraw && (
+            <Button size="sm" variant="outline" icon="pen" onClick={onDraw} data-testid="drawing-open">
+              {it.drawing?.strokes.length ? fr("drawEdit") : fr("drawStart")}
+            </Button>
+          )}
+          {it.drawing && (
+            <>
+              <Switch
+                title={fr("boil")}
+                checked={it.drawing.boil.on}
+                onChange={(v) => setItem({ drawing: { ...it.drawing!, boil: { ...it.drawing!.boil, on: v } } })}
+              />
+              {it.drawing.boil.on && (
+                <>
+                  <Range title={fr("boilAmount")} value={it.drawing.boil.amount} min={5} max={100} onChange={(v) => setItem({ drawing: { ...it.drawing!, boil: { ...it.drawing!.boil, amount: v } } }, ik("ba"))} />
+                  <Range title={fr("boilSpeed")} value={it.drawing.boil.speed} min={0} max={100} onChange={(v) => setItem({ drawing: { ...it.drawing!, boil: { ...it.drawing!.boil, speed: v } } }, ik("bs"))} />
+                </>
+              )}
+            </>
+          )}
+        </div>
+      )}
       {(it.kind === "text" || it.kind === "heading" || it.kind === "quote") && (
         <Area title={fr("text")} value={it.text} onChange={(v) => setItem({ text: v }, ik("t"))} />
       )}

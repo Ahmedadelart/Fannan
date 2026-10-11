@@ -237,7 +237,35 @@ export type FreeKind =
   | "badge"
   | "icon"
   | "divider"
-  | "panel";
+  | "panel"
+  // Round 11: a doodle drawn by hand in the editor.
+  | "drawing";
+
+/** Doodle brushes (round 11). Neon, chalk, watercolour and glitch are Pro. */
+export type BrushId = "pen" | "marker" | "pencil" | "crayon" | "neon" | "chalk" | "watercolor" | "glitch";
+
+export interface DrawStroke {
+  brush: BrushId;
+  color: string;
+  /** Width in drawing units. */
+  size: number;
+  opacity: number;
+  /** Stabilisation, 0–100: smooths shaky lines. */
+  smoothing: number;
+  /** Drawn with a pressure pen (false: width follows speed, for mice and fingers). */
+  pressure: boolean;
+  /** x, y, pressure (0–100) for each point, in drawing units. */
+  points: number[];
+}
+
+export interface Drawing {
+  /** The drawing's own size (its strokes are in these units). */
+  w: number;
+  h: number;
+  strokes: DrawStroke[];
+  /** "Boiling" lines: redrawn slightly differently a few times a second, like hand-drawn animation. */
+  boil: { on: boolean; amount: number; speed: number };
+}
 
 /** Options for decorations, and extra looks for pictures, buttons and text (round 7). */
 export interface FreeDeco {
@@ -344,6 +372,8 @@ export interface FreeItem {
   deco: FreeDeco;
   /** Second colour: gradient for shapes, panels and buttons; backing or backdrop colour. */
   fill2: string | null;
+  /** Round 11: the doodle (drawing items only). */
+  drawing?: Drawing;
 }
 
 export interface FreeSection {

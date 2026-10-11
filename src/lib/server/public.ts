@@ -3,6 +3,7 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { adminDb } from "@/lib/firebase/admin";
 import { limitsFor } from "@/config/plans";
+import { isProBrush } from "@/lib/site/drawing";
 import { isProBlock } from "@/lib/site/blocks";
 import { userPlan, type SiteDoc, type UserDoc } from "./data";
 import { settingsFrom, type SiteSettings } from "./settings";
@@ -48,6 +49,17 @@ export function applyPlan(snap: PublishedSite, plan: "free" | "pro"): PublishedS
       blocks: p.blocks
         .filter((b) => !isProBlock(b))
         .map((b) => (b.style && b.style.animate !== "none" ? { ...b, style: { ...b.style, animate: "none" as const } } : b))
+        // Doodles: the Pro brushes draw as a plain pen on Free (round 11).
+        .map((b) =>
+          b.type === "free" && b.items.some((it) => it.drawing?.strokes.some((s) => isProBrush(s.brush)))
+            ? {
+                ...b,
+                items: b.items.map((it) =>
+                  it.drawing ? { ...it, drawing: { ...it.drawing, strokes: it.drawing.strokes.map((s) => (isProBrush(s.brush) ? { ...s, brush: "pen" as const } : s)) } } : it,
+                ),
+              }
+            : b,
+        )
         // Link page: scheduled dates and eye-catching animations are Pro (round 9).
         .map((b) =>
           b.type === "links" ? { ...b, items: b.items.map((it) => ({ ...it, highlight: "none" as const, from: "", until: "" })) } : b,

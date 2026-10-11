@@ -57,7 +57,7 @@ Non-negotiables:
 - **System:** Material 3 (Google), seeded from Fannan lime. Decided by Ahmed on 9 Oct 2026 ("full Google look"). Colour roles, shapes and type are in `design/tokens.json`.
 - **Colours:**
   - lime `#C6F432` is the primary container and only sits **behind** dark text (`on-lime` `#141F00`), never as text or thin lines;
-  - primary `#4C6700` (olive) for filled buttons, links and selected controls;
+  - primary `#1A1C16` (near-black, white text) for filled buttons, links and selected controls (changed from olive on 11 Oct 2026; olive `#4C6700` survives only as `lime-ink`);
   - ink `#1A1C16` (on-surface) for text and icons;
   - surfaces are soft tinted tones: surface `#FAFAF2`, mist `#F0F1E7`, white cards;
   - the editor's panels use the M3 dark scheme from the same seed.

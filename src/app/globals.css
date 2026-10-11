@@ -639,3 +639,14 @@ html[data-embed] .dash-main {
 @media (prefers-reduced-motion: reduce) {
   .mq, .ft-progress { animation: none; }
 }
+
+/* Doodles (round 11): "boiling" lines, three copies shown in turn. */
+@keyframes dw-boil {
+  0% { visibility: visible; }
+  33.34%, 100% { visibility: hidden; }
+}
+.dw-frame { animation: dw-boil calc(var(--dw-step) * 3) step-end infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .dw-frame { animation: none; }
+  .dw-frame + .dw-frame { display: none; }
+}

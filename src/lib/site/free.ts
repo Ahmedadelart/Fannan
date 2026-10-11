@@ -2,6 +2,7 @@
 import type { Locale } from "@/i18n/locales";
 import { newId } from "./ids";
 import { sampleTone } from "./samples";
+import { emptyDrawing } from "./drawing";
 import { DECO_KINDS, decoDefaults, defaultDeco } from "./deco";
 import type { Block, FreeItem, FreeKind, FreePlace } from "./types";
 
@@ -21,11 +22,12 @@ export const FREE_KINDS: FreeKind[] = [
   "audio",
   "project",
   ...DECO_KINDS,
+  "drawing",
 ];
 
 /** The add-item menu, grouped like Squarespace's. */
 export const ITEM_GROUPS: Array<{ group: "essentials" | "decorations" | "display" | "links"; kinds: FreeKind[] }> = [
-  { group: "decorations", kinds: DECO_KINDS },
+  { group: "decorations", kinds: ["drawing", ...DECO_KINDS] },
   { group: "essentials", kinds: ["text", "heading", "image", "button", "video", "shape", "line"] },
   { group: "display", kinds: ["quote", "list", "audio", "map"] },
   { group: "links", kinds: ["social", "project"] },
@@ -80,6 +82,7 @@ const SIZES: Record<FreeKind, Pick<FreePlace, "w" | "h">> = {
   icon: { w: 2, h: 2 },
   divider: { w: 12, h: 1 },
   panel: { w: 12, h: 8 },
+  drawing: { w: 8, h: 6 },
 };
 
 export function freeItem(kind: FreeKind, language: Locale, place?: Partial<FreePlace>, extra: Partial<FreeItem> = {}): FreeItem {
@@ -137,6 +140,8 @@ export function freeItem(kind: FreeKind, language: Locale, place?: Partial<FreeP
     ...(kind === "badge" ? { text: language === "ar" ? "جديد" : "NEW", size: 13, radius: 999, upper: true, weight: 700 } : {}),
     ...(kind === "highlight" ? { fill: "#F5E663", opacity: 85 } : {}),
     ...(kind === "panel" ? { radius: 28, fill: null, shadow: true } : {}),
+    // A doodle's own size follows its box (8×6 squares): 1000 × 750 drawing units.
+    ...(kind === "drawing" ? { drawing: emptyDrawing(1000, Math.round((1000 * size.h) / size.w)) } : {}),
     ...extra,
   };
 }

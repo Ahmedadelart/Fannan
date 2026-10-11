@@ -3,6 +3,7 @@
 
 import { isSampleTone, upgradeTone } from "./samples";
 import { defaultDeco } from "./deco";
+import { normalizeDrawing } from "./drawing";
 import { defaultSectionStyle } from "./style";
 
 export { defaultSectionStyle };
@@ -458,6 +459,7 @@ function normalizeFreeItem(raw: Any): FreeItem {
     projectId: idOrNull(raw.projectId),
     deco: normalizeDeco(raw.deco),
     fill2: raw.fill2 === null || raw.fill2 === undefined ? null : color(raw.fill2, "#FFFFFF"),
+    ...(raw.kind === "drawing" ? { drawing: normalizeDrawing(raw.drawing) } : {}),
   };
 }
 

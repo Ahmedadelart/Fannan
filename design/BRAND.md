@@ -10,7 +10,7 @@ One accent on white: a lime highlighter stroke that says *you're the one who got
 > **Update, 9 Oct 2026: the Material 3 look.** Ahmed chose a "full Google look" for the Fannan interface.
 > - **Unchanged:** the logo, the lime stroke, "no blue", and "lime only behind dark text".
 > - **Changed:**
->   - colour roles now follow Material 3 (primary olive `#4C6700`, lime as primary container, soft tinted surfaces);
+>   - colour roles now follow Material 3 (primary near-black `#1A1C16` (was olive `#4C6700` until 11 Oct 2026), lime as primary container, soft tinted surfaces);
 >   - interface type is Google Sans Flex;
 >   - shapes follow the M3 scale (round buttons, 28px cards);
 >   - selected states use the soft secondary container.

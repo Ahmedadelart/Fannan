@@ -36,6 +36,8 @@ export interface FreeEditorProps {
   typeHere: string;
   /** The pencil in the item's toolbar: opens (or closes) its full settings. */
   onEditItem: (id: string) => void;
+  /** Round 11: open the doodle studio for a drawing item. */
+  onDrawItem?: (id: string) => void;
   /** The item whose settings card is open, if any (the pencil shows pressed). */
   settingsFor?: string | null;
   /** Social links and projects, for social link and project items. */
@@ -43,6 +45,7 @@ export interface FreeEditorProps {
 }
 
 export const KIND_ICONS: Record<FreeKind, IconName> = {
+  drawing: "pen",
   text: "text",
   heading: "hero-headline",
   image: "image",
@@ -112,6 +115,7 @@ export function FreeEditor({
   onChange,
   typeHere,
   onEditItem,
+  onDrawItem,
   settingsFor = null,
   extras,
 }: FreeEditorProps) {
@@ -591,7 +595,7 @@ export function FreeEditor({
                   onSelectItem(it.id);
                   startMove(e, it);
                 }}
-                onDoubleClick={() => textual && setEditing(it.id)}
+                onDoubleClick={() => (it.kind === "drawing" ? onDrawItem?.(it.id) : textual && setEditing(it.id))}
               >
                 <div className="h-full w-full" style={{ opacity: it.opacity / 100 }}>
                   <FreeItemContent
@@ -739,6 +743,11 @@ export function FreeEditor({
                     >
                       <Icon name="site-editor" size={18} />
                     </button>
+                    {it.kind === "drawing" && onDrawItem && (
+                      <button type="button" className={tool} aria-label={t("draw")} title={t("draw")} onClick={() => onDrawItem(it.id)} data-testid="item-draw">
+                        <Icon name="pen" size={18} />
+                      </button>
+                    )}
                     {textual && (
                       <button
                         type="button"

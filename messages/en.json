@@ -932,7 +932,8 @@
         "badge": "Badge",
         "icon": "Icon",
         "divider": "Divider",
-        "panel": "Panel"
+        "panel": "Panel",
+        "drawing": "Draw"
       },
       "sectionHint": "A free-form section: put items anywhere. Use + Add item under the section, drag items to move them, drag the corners to resize and the round handle to turn them. Layers (top corner) restacks and hides items.",
       "background": "Background",
@@ -1011,7 +1012,13 @@
       "border": "Border",
       "borderColor": "Border colour",
       "shadow": "Shadow",
-      "picked": "{count, plural, one {# item} other {# items}} picked"
+      "picked": "{count, plural, one {# item} other {# items}} picked",
+      "drawStart": "Start drawing",
+      "drawEdit": "Edit the drawing",
+      "boil": "Boiling lines",
+      "boilAmount": "Wiggle",
+      "boilSpeed": "Speed",
+      "draw": "Draw"
     },
     "rail": {
       "label": "Editor",
@@ -1465,6 +1472,42 @@
       "shortTaken": "That one is taken. Try other words.",
       "shortBad": "Use 3–30 letters, numbers or hyphens, starting with a letter.",
       "downloadQr": "Download the QR code"
+    },
+    "doodle": {
+      "title": "Doodle",
+      "cancel": "Cancel",
+      "done": "Done",
+      "undo": "Undo",
+      "redo": "Redo",
+      "fullscreen": "Bigger board",
+      "brushes": "Brushes",
+      "brush": {
+        "pen": "Pen",
+        "marker": "Marker",
+        "pencil": "Pencil",
+        "crayon": "Crayon",
+        "neon": "Neon",
+        "chalk": "Chalk",
+        "watercolor": "Watercolour",
+        "glitch": "Glitch"
+      },
+      "proBrush": "Pro brush: try it here; it shows on your live site with Pro (otherwise as a pen).",
+      "proLive": "Some lines use Pro brushes; on Free they show as a pen.",
+      "eraser": "Eraser",
+      "color": "Colour",
+      "pick": "Pick a colour",
+      "size": "Size",
+      "opacity": "Opacity",
+      "smoothing": "Steady hand",
+      "boil": "Boiling lines",
+      "boilHint": "Lines wiggle like hand-drawn animation",
+      "boilAmount": "Wiggle",
+      "boilSpeed": "Speed",
+      "clear": "Clear everything",
+      "clearConfirm": "Clear the whole drawing?",
+      "discard": "Leave without saving this drawing?",
+      "keys": "Ctrl+Z undo · Ctrl+Shift+Z redo · E eraser · [ ] size. Pens with pressure (Apple Pencil, S Pen, Wacom) draw thicker when you press harder.",
+      "points": "{used} / {max} points"
     }
   },
   "inbox": {

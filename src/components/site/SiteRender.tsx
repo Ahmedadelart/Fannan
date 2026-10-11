@@ -26,6 +26,7 @@ import { embedSrc, linkShowsOn, networkOf, todayKey } from "@/lib/site/links";
 import { EDGE_PATHS } from "./edges";
 import { patternCss } from "./patterns";
 import { DecoLabel, DecoSvg } from "./deco";
+import { DrawingSvg } from "./DrawingSvg";
 import { iconBodies, type IconName } from "@/components/ui/icons.generated";
 
 // Renders an artist site from its draft (or a published snapshot). Artist sites use the artist's
@@ -839,6 +840,15 @@ export function FreeItemContent({
         </div>
       );
     }
+    case "drawing":
+      // A doodle (round 11). An empty one shows a dashed box in the editor.
+      return it.drawing && it.drawing.strokes.length ? (
+        wrapLink(<DrawingSvg drawing={it.drawing} id={`dw-${it.id}`} className="block h-full w-full" />)
+      ) : live ? null : (
+        <div className="flex h-full w-full items-center justify-center rounded-[12px] border-2 border-dashed text-[13px]" style={{ borderColor: "var(--site-line)", color: "var(--site-muted)" }}>
+          ✎
+        </div>
+      );
     case "panel":
       return (
         <div

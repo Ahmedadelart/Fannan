@@ -19,6 +19,8 @@ import { getClip, mod, setClip, typing } from "@/components/editor/clipboard";
 import type { Block, BlockOf, FreeKind, SiteDraft } from "@/lib/site/types";
 import { addFreeItem, freeItem, ITEM_GROUPS } from "@/lib/site/free";
 import { DecoSvg } from "@/components/site/deco";
+import { DoodleStudio } from "@/components/editor/DoodleStudio";
+import { emptyDrawing } from "@/lib/site/drawing";
 import { FreeEditor, KIND_ICONS } from "@/components/editor/FreeEditor";
 import { LanguageButton, LogoutButton } from "../(dash)/DashClient";
 import { SiteEnhancer } from "@/components/site/live/SiteEnhancer";
@@ -511,7 +513,12 @@ function DecoTile({ kind }: { kind: FreeKind }) {
   const sample = { ...freeItem(kind, "en", { x: 0, y: 0, w: 3, h: 2 }), id: `tile-${kind}` };
   return (
     <span className="text-primary flex h-9 w-14 items-center justify-center">
-      {kind === "badge" ? (
+      {kind === "drawing" ? (
+        // The doodle tool: a pen and a scribble.
+        <svg viewBox="0 0 56 36" className="h-9 w-14" aria-hidden>
+          <path d="M6 26c6-12 12-14 16-6s10 8 14-4 10-10 14-2" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+        </svg>
+      ) : kind === "badge" ? (
         <span className="bg-lime text-on-lime rounded-pill px-2 py-0.5 text-[9px] font-bold">NEW</span>
       ) : kind === "panel" ? (
         <span className="bg-secondary-container block h-7 w-11 rounded-[8px] shadow-sm" />
@@ -977,6 +984,12 @@ export function Editor({
     remove: removeBlock,
   };
 
+  /** Round 11: the doodle studio, open for one drawing item. */
+  const [doodle, setDoodle] = useState<{ blockId: string; itemId: string } | null>(null);
+  const doodleItem = doodle
+    ? (page.blocks.find((x) => x.id === doodle.blockId && x.type === "free") as BlockOf<"free"> | undefined)?.items.find((i) => i.id === doodle.itemId)
+    : undefined;
+
   /** Free-form sections are drawn with handles by FreeEditor. */
   const changeFree = (id: string, fn: (b: BlockOf<"free">) => BlockOf<"free">, key?: string) =>
     setBlocks((blocks) => blocks.map((x) => (x.id === id && x.type === "free" ? fn(x) : x)), key);
@@ -993,6 +1006,7 @@ export function Editor({
         setFreeItem(id);
       }}
       onChange={(fn, key) => changeFree(b.id, fn, key)}
+      onDrawItem={(id) => setDoodle({ blockId: b.id, itemId: id })}
       onEditItem={(id) => {
         // The pencil opens the item's settings, and closes them again.
         const open = settingsOpen && selected === b.id && freeItem === id;
@@ -1162,6 +1176,7 @@ export function Editor({
       shortBase={account.shortBase}
       pages={draft.pages}
       page={page}
+      onDrawItem={(itemId) => setDoodle({ blockId: block.id, itemId })}
     />
   ) : null);
 
@@ -1577,6 +1592,8 @@ export function Editor({
                   const r = addFreeItem(block, kind, draft.language);
                   changeFree(block.id, () => r.block);
                   setFreeItem(r.item.id);
+                  // A new doodle opens the drawing board straight away.
+                  if (kind === "drawing") setDoodle({ blockId: block.id, itemId: r.item.id });
                 }
               : undefined
           }
@@ -1621,6 +1638,20 @@ export function Editor({
           )}
         </Canvas>
       </div>
+
+      {doodle && doodleItem && (
+        <DoodleStudio
+          initial={doodleItem.drawing ?? emptyDrawing(1000, Math.round((1000 * doodleItem.place.h) / doodleItem.place.w))}
+          isPro={isPro}
+          paper={draft.theme.colors.background}
+          ink={draft.theme.colors.text}
+          onCancel={() => setDoodle(null)}
+          onDone={(d) => {
+            changeFree(doodle.blockId, (s) => ({ ...s, items: s.items.map((i) => (i.id === doodle.itemId ? { ...i, drawing: d } : i)) }));
+            setDoodle(null);
+          }}
+        />
+      )}
 
       {shortcutsOpen && (
         <Modal open onClose={() => setShortcutsOpen(false)} title={t("shortcuts.title")} closeLabel={t("closePreview")}>
