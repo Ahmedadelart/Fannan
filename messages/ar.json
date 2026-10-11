@@ -1654,6 +1654,22 @@
       "showCaption": "إظهار التعليق",
       "background": "الخلفية",
       "bgNone": "بدون"
+    },
+    "textbar": {
+      "label": "تنسيق النص",
+      "bold": "عريض",
+      "italic": "مائل",
+      "underline": "تسطير",
+      "link": "رابط",
+      "apply": "أضف الرابط",
+      "unlink": "احذف الرابط",
+      "color": "اللون",
+      "font": "الخط",
+      "searchFonts": "ابحث في الخطوط",
+      "clear": "امسح التنسيق",
+      "size": "الحجم",
+      "lineHeight": "ارتفاع السطر",
+      "tracking": "تباعد الحروف"
     }
   },
   "inbox": {

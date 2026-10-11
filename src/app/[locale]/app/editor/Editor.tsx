@@ -23,6 +23,7 @@ import { DecoSvg } from "@/components/site/deco";
 import { DoodlePanel, defaultTools, finishSession, startSession, type DoodleSession, type DoodleTools } from "@/components/editor/doodle";
 import { FreeEditor, KIND_ICONS } from "@/components/editor/FreeEditor";
 import { PicTools, type PicTarget } from "@/components/editor/PicTools";
+import { TextToolbar } from "@/components/editor/TextToolbar";
 import { LanguageButton, LogoutButton } from "../(dash)/DashClient";
 import { SiteEnhancer } from "@/components/site/live/SiteEnhancer";
 import { CONTACT_WORDS, contactFormOf, type LegacyContactFields } from "@/lib/site/contact";
@@ -1710,6 +1711,17 @@ export function Editor({
           onLoose={looseMedia}
           cropOf={picInfo}
           onCrop={setCrop}
+        />
+        <TextToolbar
+          item={(() => {
+            const fb = page.blocks.find((x) => x.id === selected && x.type === "free") as BlockOf<"free"> | undefined;
+            const it = fb?.items.find((i) => i.id === freeItem);
+            return it && ["text", "heading", "quote"].includes(it.kind) ? { size: it.size, lineHeight: it.lineHeight, tracking: it.tracking } : null;
+          })()}
+          onItem={(patch) => {
+            if (!selected || !freeItem) return;
+            changeFree(selected, (b) => ({ ...b, items: b.items.map((i) => (i.id === freeItem ? { ...i, ...patch } : i)) }), `textbar-${freeItem}`);
+          }}
         />
         <div ref={canvasWrap} className="contents">
         <Canvas

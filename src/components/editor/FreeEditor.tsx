@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
+import { plainText } from "@/lib/site/richtext";
 import { DrawBoard, type DoodleSession, type DoodleTools } from "./doodle";
 import {
   FreeItemContent,
@@ -567,7 +568,7 @@ export function FreeEditor({
     window.addEventListener("pointerup", up);
   }
   const layerName = (it: FreeItem) =>
-    (TYPED.includes(it.kind) || it.kind === "map" ? it.text.split("\n")[0].slice(0, 28) : "") || t(`kinds.${it.kind}`);
+    (TYPED.includes(it.kind) || it.kind === "map" ? plainText(it.text).split("\n")[0].slice(0, 28) : "") || t(`kinds.${it.kind}`);
 
   return (
     <div className="site-free-band fannan-free-edit relative" style={{ background: b.background ?? undefined }}>
@@ -643,6 +644,7 @@ export function FreeEditor({
                         <InlineText
                           value={it.text}
                           multiline={it.kind !== "button"}
+                          rich={it.kind === "text" || it.kind === "heading" || it.kind === "quote"}
                           placeholder={typeHere}
                           className="block min-h-full"
                           onChange={(v) => update(it.id, { text: v }, `free-text-${it.id}`)}

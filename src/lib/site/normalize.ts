@@ -5,6 +5,7 @@ import { isSampleTone, upgradeTone } from "./samples";
 import { defaultDeco } from "./deco";
 import { isFont } from "@/components/site/fonts";
 import { normalizeDrawing } from "./drawing";
+import { sanitizeRich } from "./richtext";
 import { defaultSectionStyle } from "./style";
 
 export { defaultSectionStyle };
@@ -100,8 +101,19 @@ const list = <T>(v: unknown, max: number, f: (x: Any) => T): T[] =>
   Array.isArray(v) ? v.slice(0, max).map((x) => f((x ?? {}) as Any)) : [];
 
 /** Every section may carry a style (round 7); free-form sections' older background moves into it. */
+/** Round 13: any text in a section may carry per-word formatting; only the allowlist survives. */
+function cleanStrings<T>(v: T, depth = 0): T {
+  if (typeof v === "string") return (v.includes("<") ? sanitizeRich(v) : v) as T;
+  if (depth > 6 || !v || typeof v !== "object") return v;
+  if (Array.isArray(v)) return v.map((x) => cleanStrings(x, depth + 1)) as T;
+  const out: Record<string, unknown> = {};
+  for (const [k, x] of Object.entries(v as Record<string, unknown>)) out[k] = k === "drawing" ? x : cleanStrings(x, depth + 1);
+  return out as T;
+}
+
 export function normalizeBlock(raw: unknown): Block | null {
-  const block = normalizeBlockBody(raw);
+  const body = normalizeBlockBody(raw);
+  const block = body ? cleanStrings(body) : null;
   if (!block) return null;
   const b = (raw ?? {}) as Any;
   let style = b.style && typeof b.style === "object" ? normalizeSectionStyle(b.style) : undefined;

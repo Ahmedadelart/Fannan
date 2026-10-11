@@ -461,6 +461,11 @@ _Last updated: 10 Oct 2026, phase 8 (Editor 2.0) under way; round 8 (guided setu
 - **On hover:** fade a little (as before), zoom in, show the title over the cover, or lift up. "Show captions" is now "Show project title".
 - **Tests:** `projects-clone.spec.ts`; older tests click Save in the new window.
 
+### Round 13, step 4: text toolbar with per-word formatting
+- **Select words in any text on the canvas** (free-form text, headings and quotes, and section text fields) and a dark toolbar appears under them: **B / I / U**, **link** (with a box; "example.com" becomes https://example.com), **colour** (the theme's accent, a few neutrals, or any colour), **Aa font** (search across the 60 fonts), and **clear formatting**. On free-form text items it also has sliders for size, line height and letter spacing. Ctrl+B / I / U work as usual; Ctrl+K opens the link box.
+- **Safe by construction:** a text field holds plain text or a small HTML piece from an allowlist (`<b> <i> <u> <br> <a href> <span style="color / font-family">`). `src/lib/site/richtext.ts` rebuilds it from scratch when a draft is saved and again when a page is drawn, so scripts, event handlers, other tags, `javascript:` / `data:` links and unknown fonts never survive. Pasted or dragged-in text arrives as plain words. Live links get `rel="noopener noreferrer"` and open in a new tab. Fields without formatting stay plain text, and `*accent*` / `==highlight==` still work.
+- **Tests:** `richtext.spec.ts` (the cleaner: allowed tags, 15 attack strings, fonts, broken tags, Arabic) and `textbar.spec.ts` (bold + link on the canvas reach the live site; injected code is stripped).
+
 ## Not done yet from the phase 6 "done when"
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).
 

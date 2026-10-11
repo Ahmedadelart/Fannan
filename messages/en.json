@@ -1654,6 +1654,22 @@
       "showCaption": "Show caption",
       "background": "Background",
       "bgNone": "None"
+    },
+    "textbar": {
+      "label": "Text formatting",
+      "bold": "Bold",
+      "italic": "Italic",
+      "underline": "Underline",
+      "link": "Link",
+      "apply": "Add link",
+      "unlink": "Remove link",
+      "color": "Colour",
+      "font": "Font",
+      "searchFonts": "Search fonts",
+      "clear": "Clear formatting",
+      "size": "Size",
+      "lineHeight": "Line height",
+      "tracking": "Letter spacing"
     }
   },
   "inbox": {

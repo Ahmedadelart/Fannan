@@ -18,6 +18,7 @@ import { parseVideoLink, videoPoster } from "@/lib/video";
 import { InlineText } from "@/components/editor/InlineText";
 import { CONTACT_WORDS, contactFormOf, type LegacyContactFields } from "@/lib/site/contact";
 import { normalizeFooter, normalizeHeader } from "@/lib/site/normalize";
+import { isRich, richHtml } from "@/lib/site/richtext";
 import { isSampleTone, toneFill } from "@/lib/site/samples";
 import { FONTS, fontOf, fontStack, siteFontVars } from "./fonts";
 import { SOCIAL_PATHS, socialPath } from "./socialIcons";
@@ -602,6 +603,15 @@ export function freeOrder(items: FreeItem[]): Map<string, number> {
 }
 
 /** Words in *stars* take the accent colour; ==double equals== get a marker highlight (round 7). */
+/** Round 13: text that may carry per-word formatting (cleaned again here, whatever was saved). */
+function RichSpan({ value, className }: { value: string; className?: string }) {
+  return isRich(value) ? (
+    <span className={className} dangerouslySetInnerHTML={{ __html: richHtml(value) }} />
+  ) : (
+    <span className={className}>{accentText(value)}</span>
+  );
+}
+
 export function accentText(text: string): ReactNode {
   if (!/[*=]/.test(text)) return text;
   const parts = text.split(/(\*[^*\n]+\*|==[^=\n]+==)/g);
@@ -712,7 +722,7 @@ export function FreeItemContent({
           className={cx("site-free-text h-full w-full", it.kind === "heading" && "site-free-heading")}
           style={{ textAlign: align, color: it.color ?? undefined, ...itemType(it) }}
         >
-          {text ?? <span className="whitespace-pre-line">{accentText(it.text)}</span>}
+          {text ?? <RichSpan value={it.text} className="whitespace-pre-line" />}
         </div>
       );
     case "image": {
@@ -874,7 +884,11 @@ export function FreeItemContent({
       return (
         <figure className="m-0 flex h-full w-full flex-col gap-3" style={{ textAlign: align, color: it.color ?? undefined }}>
           <blockquote className="site-free-text m-0" style={itemType(it)}>
-            {text ?? <span className="whitespace-pre-line">“{accentText(it.text)}”</span>}
+            {text ?? (
+              <span className="whitespace-pre-line">
+                “<RichSpan value={it.text} />”
+              </span>
+            )}
           </blockquote>
           {it.caption && (
             <figcaption className="site-free-text" style={{ ["--fs" as string]: Math.max(12, Math.round(it.size * 0.45)), color: "var(--site-muted)" }}>
@@ -1984,6 +1998,7 @@ function T({
         as={Tag}
         value={value}
         multiline={multiline}
+        rich
         placeholder={ctx.typeHere ?? "Type here"}
         className={className}
         style={style}
@@ -1992,6 +2007,7 @@ function T({
     );
   }
   if (!value) return null;
+  if (isRich(value)) return <Tag className={className} style={style} dangerouslySetInnerHTML={{ __html: richHtml(value) }} />;
   return (
     <Tag className={className} style={style}>
       {accentText(value)}
