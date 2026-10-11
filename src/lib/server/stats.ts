@@ -87,6 +87,14 @@ export async function recordView(input: {
   });
 }
 
+/** A click on a link page button (round 9). */
+export async function recordClick(siteId: string, linkId: string) {
+  await adminDb()
+    .collection("stats")
+    .doc(docId(siteId, dayKey()))
+    .set({ siteId, day: dayKey(), clicks: { [key(linkId)]: FieldValue.increment(1) } }, { merge: true });
+}
+
 export async function recordTime(siteId: string, seconds: number) {
   const s = Math.round(Math.min(MAX_SECONDS, Math.max(0, seconds)));
   if (!s) return;
@@ -129,6 +137,7 @@ type Doc = {
   byProject?: Record<string, number>;
   referrers?: Record<string, number>;
   countries?: Record<string, number>;
+  clicks?: Record<string, number>;
 };
 
 function sum(docs: Doc[]): Totals {
@@ -145,7 +154,7 @@ function sum(docs: Doc[]): Totals {
   return { visitors: t.visitors, views: t.views, projectViews: t.projectViews, avgSeconds: t.timed ? Math.round(t.time / t.timed) : 0 };
 }
 
-function merge(docs: Doc[], field: "byProject" | "referrers" | "countries") {
+function merge(docs: Doc[], field: "byProject" | "referrers" | "countries" | "clicks") {
   const out: Record<string, number> = {};
   for (const d of docs) for (const [k, v] of Object.entries(d[field] ?? {})) out[k] = (out[k] ?? 0) + v;
   return out;
@@ -171,4 +180,13 @@ export async function statsReport(siteId: string, range: number, publishDays: st
     referrers: merge(cur, "referrers"),
     countries: merge(cur, "countries"),
   };
+}
+
+/** Clicks per link-page button over the last `range` days (round 9, Pro). */
+export async function linkClicks(siteId: string, range = 30): Promise<Record<string, number>> {
+  const today = Date.now();
+  const col = adminDb().collection("stats");
+  const days = Array.from({ length: range }, (_, i) => dayKey(new Date(today - i * 86_400_000)));
+  const snaps = await adminDb().getAll(...days.map((d) => col.doc(docId(siteId, d))));
+  return merge(snaps.filter((s) => s.exists).map((s) => s.data() as Doc), "clicks");
 }

@@ -4,6 +4,7 @@ import type { Locale } from "@/i18n/locales";
 import { isAdminEmail } from "@/config/admins";
 import { countUnread, settingsFrom } from "@/lib/server/settings";
 import { loadDashboard } from "../(dash)/load";
+import { DISPLAY_DOMAIN, surfaceUrls } from "@/lib/server/urls";
 import { Editor } from "./Editor";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/app/editor">): Promise<Metadata> {
@@ -27,6 +28,8 @@ export default async function EditorPage({ params }: PageProps<"/[locale]/app/ed
   const publishedAt = (site as { publishedAt?: { toMillis(): number } }).publishedAt?.toMillis() ?? 0;
 
   const settings = settingsFrom(site as Parameters<typeof settingsFrom>[0]);
+  // Short links live on the main domain: fannan.net/l/{code} (round 9).
+  const shortBase = (await surfaceUrls()).marketing("/l/").replace(/^\/__surface.*$/, `https://${DISPLAY_DOMAIN}/l/`);
 
   return (
     <Editor
@@ -37,6 +40,7 @@ export default async function EditorPage({ params }: PageProps<"/[locale]/app/ed
         unread,
         deletionPending: !!(user as { deletion?: unknown }).deletion,
         siteUrl,
+        shortBase,
       }}
       initialSettings={{ social: settings.social, cvMediaId: settings.cvMediaId, contact: settings.contact }}
       initialDraft={draft}

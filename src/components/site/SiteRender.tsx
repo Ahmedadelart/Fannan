@@ -8,6 +8,7 @@ import type {
   BlockOf,
   FreeItem,
   HeadingFont,
+  LinkItem,
   PageDraft,
   ProjectCard,
   SectionStyle,
@@ -20,7 +21,8 @@ import { CONTACT_WORDS, contactFormOf, type LegacyContactFields } from "@/lib/si
 import { normalizeFooter, normalizeHeader } from "@/lib/site/normalize";
 import { isSampleTone, toneFill } from "@/lib/site/samples";
 import { arabicFonts, bodyFonts, headingFonts, siteFontVars } from "./fonts";
-import { socialPath } from "./socialIcons";
+import { SOCIAL_PATHS, socialPath } from "./socialIcons";
+import { embedSrc, linkShowsOn, networkOf, todayKey } from "@/lib/site/links";
 import { EDGE_PATHS } from "./edges";
 import { patternCss } from "./patterns";
 import { DecoLabel, DecoSvg } from "./deco";
@@ -875,6 +877,165 @@ export function FreeItemContent({
 
 /* ---------- card sections (round 7) ---------- */
 
+
+/* ---------- the link page (round 9, like Linktree) ---------- */
+
+const LINK_RADIUS = { square: 4, rounded: 14, pill: 999 } as const;
+
+function LinksView({ b, ctx }: { b: BlockOf<"links">; ctx: Ctx }) {
+  const m = b.photoId ? ctx.media[b.photoId] : null;
+  const today = todayKey();
+  const items = b.items.filter((it) => !it.hidden && (!ctx.live || linkShowsOn(it, today)) && (it.kind === "header" || it.title || it.url || ctx.editing));
+  // Buttons follow the page's own background (its band), so they read on it: dark on light, light on dark.
+  const bg = b.style?.bg;
+  const bandText = bg && bg.kind !== "none" ? (b.style?.text ?? readableOn(bg.kind === "image" ? bg.overlay : bg.color)) : null;
+  const fill = b.button.color ?? bandText ?? "var(--site-text)";
+  const ink = b.button.textColor ?? (b.button.color ? readableOn(b.button.color) : bandText ? readableOn(bandText) : "var(--site-bg)");
+  const radius = LINK_RADIUS[b.button.shape];
+  const buttonStyle: CSSProperties =
+    b.button.style === "outline"
+      ? { border: `2px solid ${fill}`, color: b.button.color ?? "var(--site-text)", background: "transparent" }
+      : b.button.style === "soft"
+        ? { background: `color-mix(in srgb, ${fill} 12%, transparent)`, color: b.button.color ?? "var(--site-text)" }
+        : b.button.style === "shadow"
+          ? { background: ink, color: fill, border: `2px solid ${fill}`, boxShadow: `4px 4px 0 ${fill}` }
+          : { background: fill, color: ink };
+  const social = b.social ? (ctx.social?.length ? ctx.social : ctx.live ? [] : [{ network: "instagram", url: "#" }, { network: "behance", url: "#" }, { network: "youtube", url: "#" }]) : [];
+
+  const thumb = (it: LinkItem) => {
+    const pic = it.mediaId ? ctx.media[it.mediaId] : null;
+    if (pic)
+      return (
+        <span className="absolute start-1.5 top-1/2 size-11 -translate-y-1/2 overflow-hidden" style={{ borderRadius: Math.min(radius, 12) }}>
+          <Picture m={pic} base={ctx.base} want={400} ratio="1 / 1" alt="" className="h-full" />
+        </span>
+      );
+    const icon = it.icon || (it.url ? networkOf(it.url) : "");
+    if (!icon) return null;
+    return (
+      <span className="absolute start-4 top-1/2 -translate-y-1/2" aria-hidden>
+        {icon in SOCIAL_PATHS ? (
+          <svg viewBox="0 0 24 24" className="block size-5" style={{ fill: "currentColor" }}>
+            <path d={socialPath(icon)} />
+          </svg>
+        ) : (
+          <CardIcon name={icon} size={20} />
+        )}
+      </span>
+    );
+  };
+
+  return (
+    <div
+      className="mx-auto flex w-full max-w-[580px] flex-col items-center gap-4 px-5 text-center"
+      style={{ minHeight: ctx.live ? "calc(100dvh - 112px)" : 760 }}
+      data-testid="link-page"
+    >
+      {b.share && (
+        <span className="flex w-full justify-end">
+          {ctx.live ? (
+            <button
+              type="button"
+              data-share
+              aria-label="Share"
+              className="flex size-10 items-center justify-center rounded-full"
+              style={{ background: "color-mix(in srgb, var(--site-text) 10%, transparent)", color: "inherit", border: 0, cursor: "pointer" }}
+            >
+              <CardIcon name="publish" size={18} />
+            </button>
+          ) : (
+            <span className="flex size-10 items-center justify-center rounded-full" style={{ background: "color-mix(in srgb, var(--site-text) 10%, transparent)" }}>
+              <CardIcon name="publish" size={18} />
+            </span>
+          )}
+        </span>
+      )}
+      {(m || ctx.editing) && (
+        <span className="block size-24 overflow-hidden rounded-full" style={{ background: "var(--site-surface)" }}>
+          {m ? <Picture m={m} base={ctx.base} want={400} ratio="1 / 1" alt={b.name} className="h-full" eager /> : <span className="block h-full w-full" style={{ background: toneFill("sample:11") }} />}
+        </span>
+      )}
+      <T ctx={ctx} path="name" value={b.name} as="h1" style={{ ...heading(26), lineHeight: 1.15 }} />
+      <T ctx={ctx} path="bio" value={b.bio} as="p" multiline className="m-0 max-w-[440px] text-[16px] whitespace-pre-line" style={{ color: "var(--site-muted)" }} />
+      {social.length > 0 && (
+        <span className="flex flex-wrap justify-center gap-4" data-testid="link-social">
+          {social.map((l, i) => {
+            const icon = (
+              <svg viewBox="0 0 24 24" aria-hidden className="block size-6" style={{ fill: "currentColor" }}>
+                <path d={socialPath(l.network)} />
+              </svg>
+            );
+            return ctx.live ? (
+              <a key={i} href={l.url} target="_blank" rel="me noopener" aria-label={l.network} style={{ color: "inherit" }}>
+                {icon}
+              </a>
+            ) : (
+              <span key={i}>{icon}</span>
+            );
+          })}
+        </span>
+      )}
+      <div className="mt-2 flex w-full flex-col gap-3">
+        {items.map((it) => {
+          if (it.kind === "header")
+            return (
+              <h2 key={it.id} className="m-0 pt-3 text-[15px] font-semibold tracking-[0.06em] uppercase" style={{ color: "var(--site-muted)" }}>
+                {it.title}
+              </h2>
+            );
+          const cls = cx("site-link relative flex min-h-[58px] w-full items-center justify-center px-16 py-3 text-[16px] font-semibold no-underline", it.highlight !== "none" && `site-link-${it.highlight}`);
+          const label = <span className="line-clamp-2">{it.title || it.url || "…"}</span>;
+          if (it.kind === "embed") {
+            const e = embedSrc(it.url);
+            // A button that opens the player under it; no script needed.
+            return (
+              <details key={it.id} className="w-full" data-link-id={it.id}>
+                <summary className={cx(cls, "cursor-pointer list-none")} style={{ ...buttonStyle, borderRadius: radius }}>
+                  {thumb({ ...it, icon: it.icon || "film" })}
+                  {label}
+                </summary>
+                {e && ctx.live && (
+                  <iframe
+                    src={e.src}
+                    title={it.title || "Player"}
+                    loading="lazy"
+                    allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                    allowFullScreen
+                    className="mt-2 block w-full border-0"
+                    style={{ height: e.height || undefined, aspectRatio: e.height ? undefined : "16 / 9", borderRadius: Math.min(radius, 16) }}
+                  />
+                )}
+              </details>
+            );
+          }
+          const inner = (
+            <>
+              {thumb(it)}
+              {label}
+            </>
+          );
+          return ctx.live && it.url ? (
+            <a
+              key={it.id}
+              href={it.url}
+              data-link-id={it.id}
+              className={cls}
+              style={{ ...buttonStyle, borderRadius: radius }}
+              {...(/^https?:/i.test(it.url) ? { target: "_blank", rel: "noopener" } : {})}
+            >
+              {inner}
+            </a>
+          ) : (
+            <span key={it.id} className={cls} style={{ ...buttonStyle, borderRadius: radius }}>
+              {inner}
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function CardIcon({ name, size = 40 }: { name: string; size?: number }) {
   const body = iconBodies[(name in iconBodies ? name : "sparkle") as IconName];
   return (
@@ -1213,6 +1374,8 @@ function FreeSectionView({ b, ctx }: { b: BlockOf<"free">; ctx: Ctx }) {
 function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
   const m = (id: string | null) => (id ? (ctx.media[id] ?? null) : null);
   switch (b.type) {
+    case "links":
+      return <LinksView b={b} ctx={ctx} />;
     case "cards":
       return <CardsView b={b} ctx={ctx} />;
     case "cover": {
@@ -2437,11 +2600,28 @@ export function SiteRender({
         lineHeight: 1.5,
       }}
     >
-      <div className={cx("flex flex-col gap-12 p-[var(--site-pad)]", theme.nav === "sidebar" && "site-with-sidebar")}>
-        {!bare && <Nav site={site} page={page} ctx={ctx} />}
-        {body}
-        {!bare && <Footer site={site} ctx={ctx} links={footerLinks} credit={credit} report={report} />}
-      </div>
+      {page.type === "links" && !content ? (
+        // A link page (round 9): no menu or footer, one band from top to bottom.
+        <div className="flex min-h-full flex-col" style={{ ["--site-pad" as string]: "0px" }}>
+          {body}
+          {(credit || report) && (
+            <span className="flex justify-center gap-4 py-4 text-[12px]" style={{ color: "var(--site-muted)" }}>
+              {credit && (ctx.live ? <a href="https://fannan.net" style={{ color: "inherit" }}>{credit}</a> : credit)}
+              {report && (
+                <a href={report.href} rel="nofollow" style={{ color: "inherit" }}>
+                  {report.label}
+                </a>
+              )}
+            </span>
+          )}
+        </div>
+      ) : (
+        <div className={cx("flex flex-col gap-12 p-[var(--site-pad)]", theme.nav === "sidebar" && "site-with-sidebar")}>
+          {!bare && <Nav site={site} page={page} ctx={ctx} />}
+          {body}
+          {!bare && <Footer site={site} ctx={ctx} links={footerLinks} credit={credit} report={report} />}
+        </div>
+      )}
     </div>
   );
 }

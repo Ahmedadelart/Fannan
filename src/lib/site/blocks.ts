@@ -4,6 +4,7 @@ import type { Locale } from "@/i18n/locales";
 import { plansConfig } from "@/config/plans";
 import { designBlock, type DesignKey } from "./designBlocks";
 import { freeTemplate } from "./free";
+import { linksBlock } from "./links";
 import type { Block, BlockType, SampleArt } from "./types";
 
 export type BlockGroup = "freeform" | "layout" | "galleries" | "media" | "hire";
@@ -261,6 +262,14 @@ export const blockKinds: BlockKind[] = [
     group: "hire",
     icon: "social-links",
     make: () => ({ id: newId(), type: "social", links: [{ network: "instagram", url: "" }] }),
+  },
+  {
+    // Round 9: the link page's own section (made with the page, not from the library).
+    key: "links",
+    type: "links",
+    group: "hire",
+    icon: "link",
+    make: (l) => linksBlock(l),
   },
   {
     key: "quote",

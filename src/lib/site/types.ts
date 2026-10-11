@@ -116,7 +116,50 @@ export type Block =
   | B<"social", { links: Array<{ network: string; url: string }> }>
   | B<"quote", { text: string; author: string }>
   | B<"free", FreeSection>
-  | B<"cards", CardsSection>;
+  | B<"cards", CardsSection>
+  | B<"links", LinksSection>;
+
+/* ---------- link page (round 9, like Linktree) ---------- */
+
+export type LinkKind = "link" | "header" | "embed";
+export type LinkHighlight = "none" | "wiggle" | "pulse" | "glow" | "shine";
+
+export interface LinkItem {
+  id: string;
+  kind: LinkKind;
+  title: string;
+  /** Web address (links and embeds). */
+  url: string;
+  /** A small picture on the button. */
+  mediaId: string | null;
+  /** Or an icon: a social network's or one of ours. */
+  icon: string;
+  hidden: boolean;
+  /** Pro: makes the link stand out. */
+  highlight: LinkHighlight;
+  /** Pro: shown only between these dates (YYYY-MM-DD, inclusive). */
+  from: string;
+  until: string;
+}
+
+export interface LinksSection {
+  photoId: string | null;
+  name: string;
+  bio: string;
+  /** The site's social links as a row of icons. */
+  social: boolean;
+  items: LinkItem[];
+  button: {
+    style: "fill" | "outline" | "soft" | "shadow";
+    shape: "square" | "rounded" | "pill";
+    /** null: the theme's text colour. */
+    color: string | null;
+    /** null: readable on the button colour. */
+    textColor: string | null;
+  };
+  /** A share button (copy link, or the phone's share sheet). */
+  share: boolean;
+}
 
 /* ---------- card sections (round 7) ---------- */
 
@@ -317,7 +360,7 @@ export type BlockType = Block["type"];
 export type BlockOf<T extends BlockType> = Extract<Block, { type: T }>;
 
 /** "folder" is a menu item that only opens a dropdown of the pages inside it. */
-export type PageType = "gallery" | "custom" | "about" | "link" | "folder" | "project";
+export type PageType = "gallery" | "custom" | "about" | "link" | "folder" | "project" | "links";
 
 /** A project card's size in a gallery that follows each project's own size (round 8). */
 export type CardSize = "m" | "l" | "wide";

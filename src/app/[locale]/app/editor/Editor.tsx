@@ -660,7 +660,7 @@ export function Editor({
   account,
 }: {
   /** The account menu and the Messages dot. */
-  account: { name: string; admin: boolean; pro: boolean; unread: number; deletionPending: boolean; siteUrl: string };
+  account: { name: string; admin: boolean; pro: boolean; unread: number; deletionPending: boolean; siteUrl: string; shortBase: string };
   /** Social links, CV and older contact settings, edited from the footer and contact sections. */
   initialSettings: EditorSiteSettings;
   /** Pro sites can publish the showpiece blocks. */
@@ -1158,6 +1158,10 @@ export function Editor({
       projects={projects}
       theme={draft.theme}
       isPro={isPro}
+      siteUrl={account.siteUrl}
+      shortBase={account.shortBase}
+      pages={draft.pages}
+      page={page}
     />
   ) : null);
 

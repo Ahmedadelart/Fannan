@@ -47,7 +47,11 @@ export function applyPlan(snap: PublishedSite, plan: "free" | "pro"): PublishedS
       ...p,
       blocks: p.blocks
         .filter((b) => !isProBlock(b))
-        .map((b) => (b.style && b.style.animate !== "none" ? { ...b, style: { ...b.style, animate: "none" as const } } : b)),
+        .map((b) => (b.style && b.style.animate !== "none" ? { ...b, style: { ...b.style, animate: "none" as const } } : b))
+        // Link page: scheduled dates and eye-catching animations are Pro (round 9).
+        .map((b) =>
+          b.type === "links" ? { ...b, items: b.items.map((it) => ({ ...it, highlight: "none" as const, from: "", until: "" })) } : b,
+        ),
     }));
   return { ...snap, plan, projects, pages };
 }

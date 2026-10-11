@@ -13,7 +13,12 @@
         "statsDays": 30,
         "customDomain": false,
         "passwordProtection": false,
-        "footerCredit": true
+        "footerCredit": true,
+        "shortLinks": 3,
+        "customShortLinks": false,
+        "linkStats": false,
+        "scheduledLinks": false,
+        "linkAnimations": false
       }
     },
     "pro": {
@@ -43,7 +48,12 @@
         "statsDays": 90,
         "customDomain": true,
         "passwordProtection": true,
-        "footerCredit": false
+        "footerCredit": false,
+        "shortLinks": null,
+        "customShortLinks": true,
+        "linkStats": true,
+        "scheduledLinks": true,
+        "linkAnimations": true
       }
     }
   },

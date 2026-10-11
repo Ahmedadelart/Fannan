@@ -28,6 +28,8 @@ import { socialPath } from "@/components/site/socialIcons";
 import { presetIds, themes } from "@/lib/site/starter";
 import { freeBottom } from "@/lib/site/free";
 import { hasOwnPage } from "@/lib/site/pages";
+import { linksBlock } from "@/lib/site/links";
+import { LinksSettings } from "./LinksSettings";
 import type {
   Block,
   BlockOf,
@@ -49,7 +51,7 @@ import { saveSiteSettings } from "../(dash)/settings/actions";
 
 /* ---------- small form pieces (Editor.dc.html right panel) ---------- */
 
-const inputCls =
+export const inputCls =
   "h-10 w-full rounded-[10px] border border-line bg-paper px-3 text-[14px] font-normal text-ink outline-none focus:border-primary";
 const areaCls =
   "min-h-[96px] w-full resize-y rounded-[10px] border border-line bg-paper px-3 py-2.5 text-[14px] font-normal text-ink outline-none focus:border-primary";
@@ -64,7 +66,7 @@ export function Label({ title, children, hint }: { title: string; children: Reac
   );
 }
 
-function Text({
+export function Text({
   title,
   value,
   onChange,
@@ -90,7 +92,7 @@ function Text({
   );
 }
 
-function Area({
+export function Area({
   title,
   value,
   onChange,
@@ -108,7 +110,7 @@ function Area({
   );
 }
 
-function Choice<T extends string>({
+export function Choice<T extends string>({
   title,
   value,
   options,
@@ -185,7 +187,7 @@ function Range({
   );
 }
 
-function Switch({ title, checked, onChange }: { title: string; checked: boolean; onChange: (v: boolean) => void }) {
+export function Switch({ title, checked, onChange }: { title: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
     <div className="flex items-center justify-between gap-3 text-[13px]">
       <span>{title}</span>
@@ -194,7 +196,7 @@ function Switch({ title, checked, onChange }: { title: string; checked: boolean;
   );
 }
 
-function ColorField({
+export function ColorField({
   title,
   value,
   themeLabel,
@@ -381,7 +383,7 @@ export function MediaPicker({
   );
 }
 
-function MediaField({
+export function MediaField({
   title,
   id,
   kind,
@@ -910,6 +912,8 @@ export function PagesTab({
           blocks: [],
           ...(type === "link" ? { url: "" } : {}),
           ...(project ? { projectId: project.id } : {}),
+          // A link page starts with its own section, in the site's language.
+          ...(type === "links" ? { blocks: [linksBlock(d.language, d.title)] } : {}),
         },
       ],
     }));
@@ -1113,7 +1117,7 @@ export function PagesTab({
         <>
           <div className="text-muted text-[11px] font-semibold tracking-[0.08em] uppercase">{t("add")}</div>
           <div className="grid grid-cols-2 gap-2">
-            {(["gallery", "custom", "about", "link", "folder", "project"] as PageType[])
+            {(["gallery", "custom", "about", "links", "link", "folder", "project"] as PageType[])
               .filter((type) => type !== "project" || projects.length > 0)
               .map((type) => (
               <Button key={type} size="sm" variant="outline" onClick={() => add(type)}>
@@ -1567,7 +1571,16 @@ export function BlockSettings({
   projects = [],
   theme,
   isPro = false,
+  siteUrl = "",
+  shortBase = "",
+  pages = [],
+  page,
 }: {
+  /** Link pages (round 9): the site's address, the short-link address, and the pages a short link can open. */
+  siteUrl?: string;
+  shortBase?: string;
+  pages?: PageDraft[];
+  page?: PageDraft;
   /** The site's colours, for quick background and gradient choices. */
   theme?: Theme;
   /** Pro sites get scroll animations on the live site. */
@@ -1641,6 +1654,20 @@ export function BlockSettings({
 
   let body: ReactNode = null;
   switch (block.type) {
+    case "links":
+      body = (
+        <LinksSettings
+          block={block}
+          set={(patch, key) => set(patch, key)}
+          mediaField={mediaField}
+          isPro={isPro}
+          siteUrl={siteUrl}
+          shortBase={shortBase}
+          pages={pages}
+          page={page ?? pages[0]}
+        />
+      );
+      break;
     case "cards": {
       const v = block.variant;
       const cf = (name: string) => t(`cardsForm.${name}`);

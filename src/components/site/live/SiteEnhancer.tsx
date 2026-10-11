@@ -210,6 +210,25 @@ export function SiteEnhancer({ protectImages, closeLabel }: { protectImages: boo
     document.addEventListener("visibilitychange", leave);
     cleanups.push(() => document.removeEventListener("visibilitychange", leave));
 
+    // Link page (round 9): count clicks per link, and the share button.
+    const click = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const link = target.closest<HTMLElement>("[data-link-id]");
+      if (link && (link.tagName === "A" || target.closest("summary"))) beacon({ t: "click", id: link.dataset.linkId });
+      const share = target.closest<HTMLElement>("[data-share]");
+      if (share) {
+        const url = location.href.split("#")[0];
+        if (navigator.share) void navigator.share({ title: document.title, url }).catch(() => {});
+        else
+          void navigator.clipboard?.writeText(url).then(() => {
+            share.dataset.copied = "1";
+            setTimeout(() => delete share.dataset.copied, 1500);
+          });
+      }
+    };
+    document.addEventListener("click", click);
+    cleanups.push(() => document.removeEventListener("click", click));
+
     if (protectImages) {
       const stop = (e: Event) => {
         if ((e.target as HTMLElement).closest("img, picture, video")) e.preventDefault();

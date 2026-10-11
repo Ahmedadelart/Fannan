@@ -10,6 +10,7 @@ import { blockKinds, newId, sampleArt } from "./blocks";
 import { FREE_COLS, FREE_KINDS } from "./free";
 import { themes } from "./starter";
 import type {
+  LinkItem,
   Block,
   ContactForm,
   FooterSettings,
@@ -353,9 +354,50 @@ function normalizeBlockBody(raw: unknown): Block | null {
       return { id, type: "quote", text: str(b.text, 600), author: str(b.author, 120) };
     case "free":
       return normalizeFree(id, b);
+    case "links":
+      return normalizeLinks(id, b);
     default:
       return null;
   }
+}
+
+/* ---------- link page (round 9) ---------- */
+
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+export function normalizeLinkItem(x: Any): LinkItem {
+  return {
+    id: typeof x.id === "string" && /^[\w-]{1,40}$/.test(x.id) ? x.id : newId(),
+    kind: pick(x.kind, ["link", "header", "embed"], "link"),
+    title: str(x.title, 120),
+    url: x.kind === "embed" ? str(x.url, 500).trim() : safeLink(x.url),
+    mediaId: idOrNull(x.mediaId),
+    icon: str(x.icon, 30),
+    hidden: bool(x.hidden),
+    highlight: pick(x.highlight, ["none", "wiggle", "pulse", "glow", "shine"], "none"),
+    from: typeof x.from === "string" && DAY.test(x.from) ? x.from : "",
+    until: typeof x.until === "string" && DAY.test(x.until) ? x.until : "",
+  };
+}
+
+function normalizeLinks(id: string, b: Any): Block {
+  const btn = (b.button && typeof b.button === "object" ? b.button : {}) as Any;
+  return {
+    id,
+    type: "links",
+    photoId: idOrNull(b.photoId),
+    name: str(b.name, 80),
+    bio: str(b.bio, 300),
+    social: bool(b.social, true),
+    items: list(b.items, 60, normalizeLinkItem),
+    button: {
+      style: pick(btn.style, ["fill", "outline", "soft", "shadow"], "fill"),
+      shape: pick(btn.shape, ["square", "rounded", "pill"], "pill"),
+      color: typeof btn.color === "string" && /^#[0-9a-f]{6}$/i.test(btn.color) ? btn.color.toUpperCase() : null,
+      textColor: typeof btn.textColor === "string" && /^#[0-9a-f]{6}$/i.test(btn.textColor) ? btn.textColor.toUpperCase() : null,
+    },
+    share: bool(b.share, true),
+  };
 }
 
 /* ---------- free-form sections ---------- */
@@ -464,7 +506,7 @@ function normalizeFree(id: string, b: Any): Block {
 
 export function normalizePage(raw: unknown, i: number): PageDraft {
   const p = (raw ?? {}) as Any;
-  const type: PageType = pick(p.type, ["gallery", "custom", "about", "link", "folder", "project"], "custom");
+  const type: PageType = pick(p.type, ["gallery", "custom", "about", "link", "folder", "project", "links"], "custom");
   return {
     id: typeof p.id === "string" && p.id ? p.id.slice(0, 40) : newId(),
     slug:

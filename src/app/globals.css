@@ -140,6 +140,46 @@
 .site-root .site-grid {
   grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
 }
+/* Round 9: link page buttons, and the Pro ways to make one stand out. */
+.site-root .site-link {
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+.site-root a.site-link:hover,
+.site-root summary.site-link:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+@keyframes site-wiggle {
+  0%, 84%, 100% { transform: rotate(0); }
+  88% { transform: rotate(-2deg); }
+  92% { transform: rotate(2deg); }
+  96% { transform: rotate(-1deg); }
+}
+@keyframes site-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.035); }
+}
+@keyframes site-glow {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--site-accent) 60%, transparent); }
+  50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--site-accent) 0%, transparent); }
+}
+@keyframes site-shine {
+  from { background-position: -160% 0; }
+  to { background-position: 260% 0; }
+}
+.site-root .site-link-wiggle { animation: site-wiggle 3s ease-in-out infinite; }
+.site-root .site-link-pulse { animation: site-pulse 1.8s ease-in-out infinite; }
+.site-root .site-link-glow { animation: site-glow 2s ease-out infinite; }
+.site-root .site-link-shine {
+  background-image: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.45) 50%, transparent 65%) !important;
+  background-size: 60% 100% !important;
+  background-repeat: no-repeat !important;
+  animation: site-shine 2.6s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-root [class*="site-link-"] { animation: none !important; }
+}
+
 /* Round 8: project cards with their own size (big: two columns and two rows; wide: two columns). */
 .site-root .site-grid > .site-span-l {
   grid-column: span min(2, var(--cols, 3));

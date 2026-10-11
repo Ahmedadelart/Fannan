@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { artistFromRequest } from "@/lib/server/host";
 import { liveSite } from "@/lib/server/public";
 import { rateLimit } from "@/lib/server/rate-limit";
-import { BOT_RE, recordTime, recordView, referrerName } from "@/lib/server/stats";
+import { BOT_RE, recordClick, recordTime, recordView, referrerName } from "@/lib/server/stats";
 
 // Page-view beacon from artist sites (navigator.sendBeacon). No cookies; see src/lib/server/stats.ts.
 export async function POST(req: NextRequest) {
@@ -16,10 +16,14 @@ export async function POST(req: NextRequest) {
   if (!rateLimit(`hit:${ip}`, 120, 60_000)) return ok;
 
   const body = (await req.text().catch(() => "")).slice(0, 2000);
-  let data: { t?: string; p?: string; r?: string; d?: number } = {};
+  let data: { t?: string; p?: string; r?: string; d?: number; id?: string } = {};
   try {
     data = JSON.parse(body);
   } catch {
+    return ok;
+  }
+  if (data.t === "click") {
+    if (typeof data.id === "string" && /^[\w-]{1,40}$/.test(data.id)) await recordClick(site.siteId, data.id).catch(() => {});
     return ok;
   }
   if (data.t === "leave") {

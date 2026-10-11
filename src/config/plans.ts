@@ -13,6 +13,12 @@ export interface PlanLimits {
   customDomain: boolean;
   passwordProtection: boolean;
   footerCredit: boolean;
+  /** Link page (round 9): short links (null = unlimited), choosing their words, click stats, dates, animations. */
+  shortLinks: number | null;
+  customShortLinks: boolean;
+  linkStats: boolean;
+  scheduledLinks: boolean;
+  linkAnimations: boolean;
 }
 
 export interface ProDuration {
