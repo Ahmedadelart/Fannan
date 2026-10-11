@@ -1,7 +1,7 @@
 import "server-only";
 
 import { randomBytes } from "node:crypto";
-import { FieldValue, Timestamp, type Transaction } from "firebase-admin/firestore";
+import { FieldValue, Timestamp, type DocumentReference, type Transaction } from "firebase-admin/firestore";
 import { checkUsername, normalizeUsername, type UsernameProblem } from "@/config/usernames";
 import type { Locale } from "@/i18n/locales";
 import { adminAuth, adminDb } from "@/lib/firebase/admin";
@@ -162,9 +162,20 @@ export async function holdUsername(input: string, uid: string): Promise<Availabi
   });
 }
 
-async function releaseOtherNames(tx: Transaction, uid: string, keep: string) {
-  const mine = await tx.get(usernames().where("uid", "==", uid));
-  for (const d of mine.docs) if (d.id !== keep) tx.delete(d.ref);
+/**
+ * The names a user holds, for use inside a transaction. The query runs outside it, because the
+ * Firestore emulator locks a query's whole range and concurrent sign-ups then time out on each
+ * other. Inside the transaction each doc is re-read by ref and kept only if it still belongs
+ * to the user, so the claim stays atomic for those docs.
+ */
+async function namesHeldBy(uid: string) {
+  return (await usernames().where("uid", "==", uid).get()).docs.map((d) => d.ref);
+}
+
+async function readNamesHeldBy(tx: Transaction, refs: DocumentReference[], uid: string) {
+  if (!refs.length) return [];
+  const snaps = await tx.getAll(...refs);
+  return snaps.filter((s) => (s.data() as UsernameDoc | undefined)?.uid === uid);
 }
 
 /**
@@ -185,11 +196,14 @@ export async function claimUsernameAndCreateSite(
   const nameRef = usernames().doc(name);
   const userRef = users().doc(uid);
 
+  const heldRefs = await namesHeldBy(uid);
+
   return db().runTransaction(async (tx) => {
     const nameDoc = (await tx.get(nameRef)).data() as UsernameDoc | undefined;
     if (!freeFor(nameDoc, uid)) return { ok: false, reason: "taken" } as const;
     const user = (await tx.get(userRef)).data() as UserDoc | undefined;
-    await releaseOtherNames(tx, uid, name);
+    // Let go of any other names this person was holding.
+    for (const d of await readNamesHeldBy(tx, heldRefs, uid)) if (d.id !== name) tx.delete(d.ref);
 
     const siteRef = user?.siteId ? sites().doc(user.siteId) : sites().doc();
     const site: SiteDoc = {
@@ -303,21 +317,22 @@ export async function finishClaim(token: string | null, uid: string, email: stri
   }
 
   const anonUid = claim.anonUid;
+  const anonNameRefs = await namesHeldBy(anonUid);
   const result = await db().runTransaction(async (tx) => {
     const [anonUser, newUser] = await Promise.all([
       tx.get(users().doc(anonUid)).then((s) => s.data() as UserDoc | undefined),
       tx.get(users().doc(uid)).then((s) => s.data() as UserDoc | undefined),
     ]);
-    const anonNames = await tx.get(usernames().where("uid", "==", anonUid));
+    const anonNames = await readNamesHeldBy(tx, anonNameRefs, anonUid);
     tx.update(claimRef, { used: true });
 
     if (!anonUser?.siteId || newUser?.siteId) {
       // Nothing to move, or they already have a site: drop the anonymous draft's name holds.
-      anonNames.docs.forEach((d) => tx.delete(d.ref));
+      anonNames.forEach((d) => tx.delete(d.ref));
       return { moved: false, dropSite: anonUser?.siteId };
     }
     tx.update(sites().doc(anonUser.siteId), { ownerUid: uid });
-    anonNames.docs.forEach((d) => tx.update(d.ref, { uid, status: "claimed", expiresAt: null }));
+    anonNames.forEach((d) => tx.update(d.ref, { uid, status: "claimed", expiresAt: null }));
     tx.set(
       users().doc(uid),
       {
