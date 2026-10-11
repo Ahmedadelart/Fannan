@@ -64,7 +64,8 @@ test("a free-form section: place, resize, turn, layer, type, publish", async ({ 
   const grid = page.getByTestId("free-grid");
   await expect(grid).toBeVisible();
   await grid.scrollIntoViewIfNeeded();
-  await expect(page.getByTestId("free-item")).toHaveCount(4);
+  // Round 12: the collage has a small label over its heading too.
+  await expect(page.getByTestId("free-item")).toHaveCount(5);
 
   // Select the first picture: handles and its toolbar appear.
   const first = page.getByTestId("free-item").first();
@@ -101,12 +102,12 @@ test("a free-form section: place, resize, turn, layer, type, publish", async ({ 
 
   // Bring to front.
   await page.getByTestId("free-toolbar").getByRole("button", { name: "Bring to front" }).click();
-  await expect.poll(async () => (await vars(page, 0)).z).toBe(4);
+  await expect.poll(async () => (await vars(page, 0)).z).toBe(5);
 
   // Add a text block and type in it.
   await page.getByRole("button", { name: "Add item" }).click();
   await page.getByRole("menuitem", { name: "Text", exact: true }).click();
-  await expect(page.getByTestId("free-item")).toHaveCount(5);
+  await expect(page.getByTestId("free-item")).toHaveCount(6);
   const text = page.getByTestId("free-item").last();
   await text.dblclick();
   const editable = text.locator("[data-inline-text]");
@@ -125,7 +126,7 @@ test("a free-form section: place, resize, turn, layer, type, publish", async ({ 
   await visitor.goto(at(username));
   await expect(visitor.getByText("Free-form works")).toBeVisible();
   const items = visitor.locator(".site-free-item");
-  await expect(items).toHaveCount(5);
+  await expect(items).toHaveCount(6);
   expect(await items.first().evaluate((el) => (el as HTMLElement).style.transform)).toBe("rotate(30deg)");
   expect(await visitor.locator(".site-free-grid").first().evaluate((el) => getComputedStyle(el).display)).toBe("grid");
   await visitor.screenshot({ path: `test-results/free-live-${info.project.name}.png`, fullPage: true });

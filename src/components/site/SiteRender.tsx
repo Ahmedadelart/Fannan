@@ -21,6 +21,7 @@ import { isSampleTone, toneFill } from "@/lib/site/samples";
 import { FONTS, fontOf, fontStack, siteFontVars } from "./fonts";
 import { SOCIAL_PATHS, socialPath } from "./socialIcons";
 import { embedSrc, linkShowsOn, networkOf, todayKey } from "@/lib/site/links";
+import { networkName } from "@/lib/site/blocks";
 import { EDGE_PATHS } from "./edges";
 import { patternCss } from "./patterns";
 import { DecoLabel, DecoSvg } from "./deco";
@@ -185,6 +186,19 @@ function Empty({ show, children }: { show: boolean; children: ReactNode }) {
       style={{ borderColor: "var(--site-line)", color: "var(--site-muted)", borderRadius: "var(--site-radius)" }}
     >
       {children}
+    </div>
+  );
+}
+
+/** Round 12: empty media sections in the editor show sample art and what goes there, not a grey box. */
+function SampleMedia({ show, tone, label, ratio = "16 / 9", play }: { show: boolean; tone: string; label: string; ratio?: string; play?: boolean }) {
+  if (!show) return null;
+  return (
+    <div className="relative overflow-hidden" style={{ aspectRatio: ratio, background: toneFill(tone), borderRadius: "var(--site-radius)" }}>
+      {play && <PlayMark />}
+      <span className="absolute start-4 bottom-4 rounded-full px-3 py-1 text-[13px] font-semibold" style={{ background: "rgba(20,20,20,.65)", color: "#FFFFFF" }}>
+        {label}
+      </span>
     </div>
   );
 }
@@ -418,7 +432,7 @@ function VideoView({
     );
   }
   const v = url ? parseVideoLink(url) : null;
-  if (!v) return <Empty show={ctx.editing}>▶ YouTube / Vimeo</Empty>;
+  if (!v) return <SampleMedia show={ctx.editing} tone={tone ?? "sample:15"} label="YouTube / Vimeo" play />;
   const poster = videoPoster(v);
   return (
     <figure className="m-0 flex flex-col gap-2">
@@ -1086,8 +1100,8 @@ function CardsView({ b, ctx }: { b: BlockOf<"cards">; ctx: Ctx }) {
   const head =
     b.heading || b.intro || ctx.onText ? (
       <div className={cx("flex flex-col gap-3", center && "items-center text-center")}>
-        <T ctx={ctx} path="heading" value={b.heading} as="h2" style={heading(36)} />
-        <T ctx={ctx} path="intro" value={b.intro} as="p" className="m-0 max-w-[640px]" style={{ color: "var(--site-muted)" }} multiline />
+        <T ctx={ctx} path="heading" value={b.heading} as="h2" style={heading(52)} />
+        <T ctx={ctx} path="intro" value={b.intro} as="p" className="m-0 max-w-[640px] text-[18px]" style={{ color: "var(--site-muted)" }} multiline />
       </div>
     ) : null;
   const card = { background: "var(--site-surface)", borderRadius: "calc(var(--site-radius) * 2)" };
@@ -1100,10 +1114,10 @@ function CardsView({ b, ctx }: { b: BlockOf<"cards">; ctx: Ctx }) {
           {b.items.map((it, n) => (
             <div key={n} className={cx("flex flex-col gap-3", center && "items-center text-center")}>
               <span style={{ color: "var(--site-accent)" }}>
-                <CardIcon name={it.icon} size={44} />
+                <CardIcon name={it.icon} size={52} />
               </span>
-              {tx(n, "title", { as: "h3", style: heading(20) })}
-              {tx(n, "text", { as: "p", className: "m-0 text-[15px]", style: { color: "var(--site-muted)" }, multiline: true })}
+              {tx(n, "title", { as: "h3", style: heading(26) })}
+              {tx(n, "text", { as: "p", className: "m-0 text-[17px] leading-[1.6]", style: { color: "var(--site-muted)" }, multiline: true })}
             </div>
           ))}
         </div>
@@ -1116,8 +1130,8 @@ function CardsView({ b, ctx }: { b: BlockOf<"cards">; ctx: Ctx }) {
             <div key={n} className="flex flex-col overflow-hidden" style={card}>
               <Picture m={m(it.mediaId)} base={ctx.base} tone={it.tone} ratio="4 / 3" className="!rounded-none" />
               <div className="flex flex-1 flex-col items-start gap-2 p-6">
-                {tx(n, "title", { as: "h3", style: heading(22) })}
-                {tx(n, "text", { as: "p", className: "m-0 text-[15px]", style: { color: "var(--site-muted)" }, multiline: true })}
+                {tx(n, "title", { as: "h3", style: heading(26) })}
+                {tx(n, "text", { as: "p", className: "m-0 text-[16px] leading-[1.6]", style: { color: "var(--site-muted)" }, multiline: true })}
                 {(it.button || ctx.onText) && link(it.link, tx(n, "button"), "site-button mt-auto text-[14px]")}
               </div>
             </div>
@@ -1507,7 +1521,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       return <VideoView url={b.url} caption={b.caption} ctx={ctx} />;
     case "loop": {
       const loop = m(b.mediaId);
-      if (!loop) return <Empty show={ctx.editing}>GIF / MP4</Empty>;
+      if (!loop) return <SampleMedia show={ctx.editing} tone="sample:02" label="GIF / MP4" />;
       if (loop.type === "loop") return <VideoView url="" mediaId={b.mediaId} caption={b.caption} ctx={ctx} />;
       return (
         <figure className="m-0 flex flex-col gap-2">
@@ -1552,7 +1566,15 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
     }
     case "pdf": {
       const doc = m(b.mediaId);
-      if (!doc) return <Empty show={ctx.editing}>PDF</Empty>;
+      if (!doc)
+        return ctx.editing ? (
+          <div className="flex flex-wrap items-center gap-6">
+            <div className="w-[200px] flex-none">
+              <SampleMedia show tone="sample:07" label="PDF" ratio="3 / 4" />
+            </div>
+            <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path="label" value={b.label} className="site-button self-center" />
+          </div>
+        ) : null;
       return (
         <div className="flex flex-wrap items-center gap-5">
           <div
@@ -1574,14 +1596,14 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
     case "credits":
       return (
         <div className="flex flex-col gap-4">
-          <T ctx={ctx} path="heading" value={b.heading} as="h2" style={heading(28)} />
-          <ul className="m-0 flex list-none flex-col p-0">
+          <T ctx={ctx} path="heading" value={b.heading} as="h2" style={heading(48)} />
+          <ul className="m-0 flex list-none flex-col p-0 text-[18px]">
             {b.items
               .filter((c) => c.title || ctx.editing)
               .map((c, i) => (
                 <li
                   key={i}
-                  className="grid grid-cols-[72px_1fr] gap-4 py-3 @max-xl:grid-cols-[56px_1fr]"
+                  className="grid grid-cols-[96px_1fr] gap-6 py-5 @max-xl:grid-cols-[64px_1fr]"
                   style={{ borderTop: "1px solid var(--site-line)" }}
                 >
                   {ctx.onText ? (
@@ -1646,7 +1668,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       return (
         <div className="site-about grid gap-8">
           <div className="flex flex-col gap-4">
-            <T ctx={ctx} path="heading" value={b.heading} as="h2" style={heading(32)} />
+            <T ctx={ctx} path="heading" value={b.heading} as="h2" style={heading(48)} />
             {photo && <Picture m={photo} base={ctx.base} ratio="4 / 5" want={800} className="max-w-[280px]" />}
           </div>
           <div className="flex flex-col gap-4 text-[18px] leading-[1.6]">
@@ -1662,7 +1684,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       const split = form.layout === "split";
       const intro = ctx.live ? (
         <div className="flex flex-col items-start gap-3">
-          <h2 style={heading(32)}>{b.heading}</h2>
+          <h2 style={heading(48)}>{b.heading}</h2>
           {b.text && (
             <p className="m-0" style={{ color: "var(--site-muted)" }}>
               {b.text}
@@ -1671,8 +1693,8 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
         </div>
       ) : (
         <div className="flex flex-col items-start gap-3">
-          <T ctx={ctx} path="heading" value={b.heading} as="h2" style={heading(32)} />
-          <T ctx={ctx} path="text" value={b.text} as="p" className="m-0" style={{ color: "var(--site-muted)" }} multiline />
+          <T ctx={ctx} path="heading" value={b.heading} as="h2" style={heading(48)} />
+          <T ctx={ctx} path="text" value={b.text} as="p" className="m-0 text-[18px]" style={{ color: "var(--site-muted)" }} multiline />
         </div>
       );
       const boxStyle = {
@@ -1715,19 +1737,19 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       );
     }
     case "hire":
-      if (!ctx.available?.on) {
-        return <Empty show={ctx.editing}>{ctx.available?.label ?? "Available for work"} · off</Empty>;
-      }
+      if (!ctx.available?.on && !ctx.editing) return null;
       return (
         <div
-          className="flex flex-wrap items-center justify-between gap-4 p-6"
+          className="flex flex-wrap items-center justify-between gap-4 p-8"
+          title={!ctx.available?.on ? `${ctx.available?.label ?? "Available for work"} · off` : undefined}
           style={{
             background: "var(--site-accent)",
             color: "var(--site-on-accent)",
             borderRadius: "calc(var(--site-radius) * 2)",
+            opacity: ctx.available?.on ? 1 : 0.45,
           }}
         >
-          <span className="flex items-center gap-3 text-[18px] font-semibold">
+          <span className="flex items-center gap-3" style={heading(32)}>
             <span className="size-2.5 rounded-full" style={{ background: "currentColor" }} />
             {ctx.onText ? <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path="text" value={b.text} /> : b.text}
           </span>
@@ -1735,7 +1757,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
             className="rounded-full px-5 py-2.5 font-semibold"
             style={{ background: "var(--site-on-accent)", color: "var(--site-accent)" }}
           >
-            {ctx.available.hire}
+            {ctx.available?.hire ?? "Hire me"}
           </span>
         </div>
       );
@@ -1747,10 +1769,13 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
             .map((l, i) => (
               <span
                 key={i}
-                className="rounded-full px-4 py-2 text-[14px] font-semibold capitalize"
-                style={{ border: "1px solid var(--site-line)" }}
+                className="inline-flex items-center gap-2.5 rounded-full px-5 py-3 text-[16px] font-semibold"
+                style={{ border: "1.5px solid var(--site-line)" }}
               >
-                {l.network}
+                <svg viewBox="0 0 24 24" aria-hidden className="block size-5" style={{ fill: "currentColor" }}>
+                  <path d={socialPath(l.network)} />
+                </svg>
+                {networkName(l.network, l.url)}
               </span>
             ))}
         </div>
@@ -1759,9 +1784,10 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       return ctx.renderFree ? ctx.renderFree(b) : <FreeSectionView b={b} ctx={ctx} />;
     case "quote":
       return (
-        <blockquote className="m-0 flex max-w-[820px] flex-col gap-3">
-          <p style={heading(30)} className="m-0 @max-2xl:!text-[24px]">
-            “{ctx.onText ? <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path="text" value={b.text} /> : b.text}”
+        <blockquote className="m-0 mx-auto flex max-w-[900px] flex-col items-center gap-5 py-6 text-center">
+          <span aria-hidden style={{ ...heading(120), lineHeight: 0.6, color: "var(--site-accent)" }}>“</span>
+          <p style={{ ...heading(44), lineHeight: 1.2 }} className="m-0 @max-2xl:!text-[28px]">
+            {ctx.onText ? <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path="text" value={b.text} /> : b.text}
           </p>
           <T ctx={ctx} path="author" value={b.author} as="cite" className="not-italic" style={{ color: "var(--site-muted)" }} />
         </blockquote>
