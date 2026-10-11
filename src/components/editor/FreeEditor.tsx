@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { DrawBoard, type DoodleSession, type DoodleTools } from "./doodle";
 import {
@@ -146,6 +147,14 @@ export function FreeEditor({
     if (!active) setGroup([]);
   }
   const grid = useRef<HTMLDivElement>(null);
+  // The canvas keeps a spot for the Layers button in its row under the selected section, so Layers
+  // and "Add item" always line up, whatever the section's padding or edges.
+  const [layersSlot, setLayersSlot] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    if (!active) return;
+    const id = requestAnimationFrame(() => setLayersSlot(document.querySelector<HTMLElement>("[data-layers-slot]")));
+    return () => cancelAnimationFrame(id);
+  }, [active, b.style?.padBottom, b.rows]);
   // While a pointer is moving something, its place is kept here and saved once on release.
   const [live, setLive] = useState<{ id: string; place: FreePlace; rotate: number } | null>(null);
   const [liveRows, setLiveRows] = useState<number | null>(null);
@@ -861,10 +870,10 @@ export function FreeEditor({
             );
           })()}
         </div>
-        {active && (
-          // Under the section's bottom start corner, beside "Add item" (the canvas leaves room for it).
+        {/* Layers sit in the canvas's row under the section, beside "Add item" (see layersSlot). */}
+        {active && layersSlot && createPortal(
           <div
-            className="absolute start-0 top-[calc(100%+10px)] z-[1001]"
+            className="relative z-[1001]"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >
@@ -921,6 +930,8 @@ export function FreeEditor({
               </div>
             )}
           </div>
+          ,
+          layersSlot,
         )}
       </div>
 

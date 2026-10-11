@@ -40,7 +40,7 @@ test("draw a doodle with brushes, erase, undo, boil, and see it on the live site
   await openEditor(page);
   await page.getByTestId("add-free-blank").click();
   await page.getByRole("button", { name: "Add item" }).click();
-  await page.getByRole("menuitem", { name: "Draw", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Doodle", exact: true }).click();
 
   // The board lies over the section, and the tools open in the Doodle panel.
   const board = page.getByTestId("draw-board-wrap");
@@ -91,4 +91,29 @@ test("draw a doodle with brushes, erase, undo, boil, and see it on the live site
   // Free site: the Pro neon brush draws as a pen (no glow filter).
   await expect(live.locator("filter[id$='-neon']")).toHaveCount(0);
   await visitor.screenshot({ path: "test-results/r11-doodle-live.png" });
+});
+
+test("Layers and Add item sit side by side under any free-form section, and a doodle is called Doodle", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop");
+  test.setTimeout(150_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signUp(page);
+  await openEditor(page);
+  // A designed section with its own padding and background.
+  await page.getByTestId("add-d-statement").click();
+  const layers = page.getByTestId("layers-button");
+  const add = page.getByRole("button", { name: "Add item" });
+  await expect(layers).toBeVisible();
+  const a = (await layers.boundingBox())!;
+  const b = (await add.boundingBox())!;
+  expect(Math.abs(a.y + a.height / 2 - (b.y + b.height / 2))).toBeLessThan(4);
+  expect(a.x + a.width).toBeLessThanOrEqual(b.x + 1);
+
+  // Draw something; in the layers list it's a "Doodle".
+  await add.click();
+  await page.getByRole("menuitem", { name: "Doodle", exact: true }).click();
+  await scribble(page, [0.2, 0.5], [0.8, 0.5]);
+  await page.getByTestId("board-done").click();
+  await layers.click();
+  await expect(page.getByTestId("layers-panel")).toContainText("Doodle");
 });

@@ -928,12 +928,12 @@
         "underline": "Underline",
         "arrow": "Arrow",
         "highlight": "Highlight",
-        "doodle": "Doodle",
+        "doodle": "Sticker",
         "badge": "Badge",
         "icon": "Icon",
         "divider": "Divider",
         "panel": "Panel",
-        "drawing": "Draw"
+        "drawing": "Doodle"
       },
       "sectionHint": "A free-form section: put items anywhere. Use + Add item under the section, drag items to move them, drag the corners to resize and the round handle to turn them. Layers (top corner) restacks and hides items.",
       "background": "Background",

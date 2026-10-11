@@ -465,7 +465,7 @@ test("decorations: underline, arrow, doodle, badge, icon and their controls", as
     await page.getByRole("button", { name: "Add item" }).click();
     await page.getByRole("menuitem", { name, exact: true }).click();
   };
-  for (const name of ["Underline", "Arrow", "Doodle", "Badge", "Icon", "Divider", "Highlight", "Panel"]) await add(name);
+  for (const name of ["Underline", "Arrow", "Sticker", "Badge", "Icon", "Divider", "Highlight", "Panel"]) await add(name);
   await expect(canvas(page).locator('[data-deco="underline"]').first()).toBeVisible();
   await expect(canvas(page).locator('[data-deco="arrow"]').first()).toBeVisible();
 
