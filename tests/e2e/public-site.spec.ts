@@ -57,6 +57,7 @@ async function publish(page: Page) {
 async function newProjectWithPhoto(page: Page, title: string) {
   await page.goto(at("app", "/projects"));
   await page.getByRole("button", { name: "New project" }).click();
+  await page.getByTestId("new-project-save").click();
   await expect(page).toHaveURL(/\/projects\/[\w-]+$/);
   await page.waitForLoadState("networkidle");
   // Pick the file again if the page wasn't interactive yet the first time.

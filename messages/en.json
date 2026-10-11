@@ -884,14 +884,31 @@
       "original": "Original",
       "options": "Options",
       "lightbox": "Open in lightbox",
-      "captions": "Show captions",
+      "captions": "Show project title",
       "credits": "Show credits (client · role)",
       "hoverPlay": "Play loop on hover",
       "filter": "Category filter",
       "samples": "Sample art shows until you add projects.",
       "cardSizes": "Each project's own card size",
       "picks": "Which projects",
-      "picksHint": "Tick the ones to show here. None ticked: all of them."
+      "picksHint": "Tick the ones to show here. None ticked: all of them.",
+      "looks": {
+        "square": "Square",
+        "rectangle": "Rectangle",
+        "alternate": "Alternate",
+        "masonry": "Masonry",
+        "featured": "Featured",
+        "rows": "Rows",
+        "slider": "Slider",
+        "fullscreen": "Edge to edge"
+      },
+      "hover": "On hover",
+      "hovers": {
+        "none": "Fade a little",
+        "zoom": "Zoom in",
+        "title": "Show the title",
+        "lift": "Lift up"
+      }
     },
     "picker": {
       "title": "Choose media",

@@ -136,6 +136,7 @@ test("buying Pro, an own domain, reminders, the move to Free and back", async ({
   for (let i = 0; i < 9; i++) {
     await page.goto(at("app", "/projects"));
     await page.getByRole("button", { name: "New project" }).first().click();
+    await page.getByTestId("new-project-save").click();
     await expect(page).toHaveURL(/\/projects\/[\w-]+$/);
   }
   await publish(page);

@@ -91,6 +91,7 @@ test("onboarding emails, Report this site, moderation and Examples", async ({ pa
   // A project, published: "your site is live".
   await page.goto(at("app", "/projects"));
   await page.getByRole("button", { name: "New project" }).first().click();
+  await page.getByTestId("new-project-save").click();
   await expect(page).toHaveURL(/\/projects\/[\w-]+$/);
   await page.waitForLoadState("networkidle");
   await page.getByRole("textbox", { name: "Project title" }).fill("Night Market");

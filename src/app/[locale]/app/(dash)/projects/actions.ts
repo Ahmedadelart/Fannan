@@ -9,6 +9,7 @@ import {
   cropMedia,
   deleteMedia,
   deleteProject,
+  duplicateProject,
   finishUpload,
   ownerOf,
   ProjectError,
@@ -42,6 +43,10 @@ async function attempt<T extends object>(fn: () => Promise<T>): Promise<Result<T
 // skip the host-based routing in src/proxy.ts and land on an internal path.
 export async function newProject(title: string): Promise<Result<{ id: string }>> {
   return attempt(async () => ({ id: await createProject(await owner(), String(title ?? "")) }));
+}
+
+export async function cloneProject(projectId: string, suffix: string): Promise<Result<{ id: string }>> {
+  return attempt(async () => ({ id: await duplicateProject(await owner(), String(projectId ?? ""), String(suffix ?? "")) }));
 }
 
 export async function saveProject(projectId: string, patch: ProjectPatch) {

@@ -69,6 +69,11 @@ export interface MediaDoc {
   text?: string;
   /** Text items with a headline start a new part of the project (round 8). */
   title?: string;
+  /**
+   * Round 13: a cloned project's media share the original's stored files instead of copying them.
+   * This names the media id whose storage folders hold the files. Files are only deleted when nothing uses them.
+   */
+  filesOf?: string;
   createdAt?: Timestamp;
 }
 
@@ -219,6 +224,63 @@ export async function createProject(o: Owner, title: string): Promise<string> {
   };
   await ref.set({ ...project, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
   return ref.id;
+}
+
+/**
+ * Round 13: clone a project. The copy starts as a draft ("… (copy)"); its media are new documents
+ * pointing at the same stored files, so cloning uses no extra storage.
+ */
+export async function duplicateProject(o: Owner, projectId: string, suffix: string): Promise<string> {
+  const limit = limitsFor(o.plan).projects;
+  if (limit !== null) {
+    const count = (await projectsCol(o.siteId).count().get()).data().count;
+    if (count >= limit) throw new ProjectError("limit");
+  }
+  const { project } = await getProjectRef(o, projectId);
+  const ref = projectsCol(o.siteId).doc();
+  const title = `${project.title} ${text(suffix, 30) ?? ""}`.trim().slice(0, 120);
+  const docs = project.media.length ? await db().getAll(...project.media.map((id) => mediaCol(o.siteId).doc(id))) : [];
+  const batch = db().batch();
+  const ids = new Map<string, string>();
+  for (const d of docs) {
+    const m = d.data() as MediaDoc | undefined;
+    if (!d.exists || !m || m.status !== "ready") continue;
+    const copy = mediaCol(o.siteId).doc();
+    ids.set(d.id, copy.id);
+    const hasFiles = !!(m.original || m.variants || m.loop);
+    batch.set(copy, {
+      ...m,
+      projectId: ref.id,
+      sizeBytes: 0,
+      ...(hasFiles ? { filesOf: m.filesOf ?? d.id } : {}),
+      createdAt: FieldValue.serverTimestamp(),
+    });
+  }
+  const next: ProjectDoc = {
+    ...project,
+    title,
+    slug: await uniqueSlug(o.siteId, slugify(title) || "project", ref.id),
+    media: project.media.map((id) => ids.get(id)).filter((x): x is string => !!x),
+    coverMediaId: project.coverMediaId ? (ids.get(project.coverMediaId) ?? null) : null,
+    publishedAt: null,
+  };
+  delete next.createdAt;
+  delete next.updatedAt;
+  batch.set(ref, { ...next, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+  await batch.commit();
+  return ref.id;
+}
+
+/** Other media documents that use the same stored files as this one (clones, or the original). */
+async function sharers(o: Owner, mediaId: string, media: MediaDoc): Promise<DocumentReference[]> {
+  const key = media.filesOf ?? mediaId;
+  const snaps = await mediaCol(o.siteId).where("filesOf", "==", key).get();
+  const others = snaps.docs.filter((d) => d.id !== mediaId).map((d) => d.ref);
+  if (key !== mediaId) {
+    const owner = await mediaCol(o.siteId).doc(key).get();
+    if (owner.exists) others.push(owner.ref);
+  }
+  return others;
 }
 
 // Page addresses a project can't take.
@@ -469,9 +531,12 @@ export async function finishUpload(o: Owner, mediaId: string): Promise<MediaDoc 
   });
   if (result.error) return fail(result.error === "too-long" ? "too-long" : "unreadable");
 
-  const oldOriginal = media.original ?? null;
-  const oldGen = media.original ? media.gen : null;
-  const oldSize = media.original ? media.sizeBytes : 0;
+  const shared = media.original ? await sharers(o, mediaId, media) : [];
+  // Shared files stay for the clones; whoever still uses them carries their size.
+  if (shared.length && media.sizeBytes) await shared[0].update({ sizeBytes: FieldValue.increment(media.sizeBytes) });
+  const oldOriginal = media.original && !shared.length ? media.original : null;
+  const oldGen = media.original && !shared.length ? media.gen : null;
+  const oldSize = media.original && !shared.length ? media.sizeBytes : 0;
   const done: Partial<MediaDoc> & Record<string, unknown> = {
     status: "ready",
     error: null,
@@ -491,6 +556,8 @@ export async function finishUpload(o: Owner, mediaId: string): Promise<MediaDoc 
     pendingGen: null,
     pendingSize: null,
   };
+  // A clone that gets its own file stops sharing.
+  if (media.filesOf) done.filesOf = FieldValue.delete() as unknown as string;
   await ref.update(done);
   await siteRef(o.siteId).update({ storageUsed: FieldValue.increment(size - oldSize) });
   if (oldOriginal) await deleteObject(oldOriginal);
@@ -519,7 +586,7 @@ export async function cropMedia(
   if (result.error) throw new ProjectError("unreadable");
   // The original keeps its first name; only the web versions move to the new generation.
   await ref.update({ gen, crop, width: result.width, height: result.height, variants: result.variants ?? null });
-  await deletePrefix(`variants/${o.siteId}/${mediaId}/${media.gen}`);
+  if (!(await sharers(o, mediaId, media)).length) await deletePrefix(`variants/${o.siteId}/${mediaId}/${media.gen}`);
   const fresh = (await ref.get()).data() as MediaDoc;
   delete fresh.createdAt;
   return { id: mediaId, ...fresh };
@@ -639,8 +706,22 @@ async function deleteMediaFiles(o: Owner, mediaId: string) {
   const ref = mediaCol(o.siteId).doc(mediaId);
   const media = (await ref.get()).data() as MediaDoc | undefined;
   if (!media) return;
-  await deletePrefix(`originals/${o.siteId}/${mediaId}`);
-  await deletePrefix(`variants/${o.siteId}/${mediaId}`);
+  const others = await sharers(o, mediaId, media);
+  const key = media.filesOf ?? mediaId;
+  if (others.length) {
+    // Still used by a clone (or the original): keep the files and hand the size over.
+    if (media.sizeBytes) await others[0].update({ sizeBytes: FieldValue.increment(media.sizeBytes) });
+    // Web versions this copy made for itself (a crop) live in its own folder.
+    if (key !== mediaId) await deletePrefix(`variants/${o.siteId}/${mediaId}`);
+    await ref.delete();
+    return;
+  }
+  await deletePrefix(`originals/${o.siteId}/${key}`);
+  await deletePrefix(`variants/${o.siteId}/${key}`);
+  if (key !== mediaId) {
+    await deletePrefix(`originals/${o.siteId}/${mediaId}`);
+    await deletePrefix(`variants/${o.siteId}/${mediaId}`);
+  }
   if (media.sizeBytes) await siteRef(o.siteId).update({ storageUsed: FieldValue.increment(-media.sizeBytes) });
   await ref.delete();
 }

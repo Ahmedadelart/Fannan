@@ -60,6 +60,8 @@ export function applyPlan(snap: PublishedSite, plan: "free" | "pro"): PublishedS
               }
             : b,
         )
+        // Round 13: the featured project grid is Pro; on Free it is a plain grid.
+        .map((b) => (b.type === "gallery" && b.layout === "featured" ? { ...b, layout: "grid" as const } : b))
         // Link page: scheduled dates and eye-catching animations are Pro (round 9).
         .map((b) =>
           b.type === "links" ? { ...b, items: b.items.map((it) => ({ ...it, highlight: "none" as const, from: "", until: "" })) } : b,

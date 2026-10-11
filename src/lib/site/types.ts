@@ -104,7 +104,9 @@ export interface ImageItem {
 
 export type ImagesLayout = "grid" | "masonry" | "rows" | "slideshow";
 
-export type GalleryLayout = "grid" | "masonry" | "slider" | "fullscreen";
+// Round 13: alternate (tall and short), featured (one big, Pro) and rows (every cover keeps its shape).
+export type GalleryLayout = "grid" | "masonry" | "slider" | "fullscreen" | "alternate" | "featured" | "rows";
+export type ThumbHover = "none" | "zoom" | "title" | "lift";
 export type ThumbRatio = "16:9" | "4:3" | "1:1" | "2:3" | "original";
 
 export type Block =
@@ -125,6 +127,8 @@ export type Block =
         captions: boolean;
         credits: boolean;
         hoverPlay: boolean;
+        /** Round 13: what a cover does under the pointer. Not set: a light fade. */
+        hover?: ThumbHover;
         filter: boolean;
         /** Round 8: each project's own card size and text, instead of one size for all. */
         cardSizes?: boolean;

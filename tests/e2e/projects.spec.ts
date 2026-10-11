@@ -17,6 +17,8 @@ test("a full project: uploads, embeds, credits, order, crop and cover", async ({
   await signUp(page);
 
   await page.getByRole("button", { name: "New project" }).first().click();
+
+  await page.getByTestId("new-project-save").click();
   await expect(page).toHaveURL(/\/projects\/[\w-]+$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Untitled project");
   await page.waitForLoadState("networkidle");
@@ -128,6 +130,7 @@ test("the Free plan stops at 8 projects with a calm prompt", async ({ page }) =>
   for (let i = 0; i < 8; i++) {
     await page.goto(at("app", "/projects"));
     await page.getByRole("button", { name: "New project" }).click();
+    await page.getByTestId("new-project-save").click();
     await expect(page).toHaveURL(/\/projects\/[\w-]+$/);
   }
   await page.goto(at("app", "/projects"));
@@ -143,6 +146,7 @@ test("the project editor works in Arabic", async ({ page }) => {
   await page.getByRole("button", { name: "Switch dashboard language" }).first().click();
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   await page.getByRole("button", { name: "مشروع جديد" }).first().click();
+  await page.getByTestId("new-project-save").click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("مشروع بلا اسم");
   await page.waitForLoadState("networkidle");
   await expect(page.getByText("اسحب أعمالك إلى هنا")).toBeVisible();

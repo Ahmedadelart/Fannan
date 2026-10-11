@@ -1817,12 +1817,7 @@ export function BlockSettings({
               ))}
             </select>
           </Label>
-          <Choice
-            title={g("layout")}
-            value={b.layout}
-            options={(["grid", "masonry", "slider", "fullscreen"] as const).map((l) => [l, g(`layouts.${l}`)])}
-            onChange={(v) => set({ layout: v })}
-          />
+          <GalleryLayoutPicker b={b} set={set} isPro={isPro} />
           <Range
             title={g("columns")}
             value={b.columns}
@@ -1856,6 +1851,15 @@ export function BlockSettings({
             <legend className="mb-1 text-[12px] font-semibold">{g("options")}</legend>
             <Switch title={g("lightbox")} checked={b.lightbox} onChange={(v) => set({ lightbox: v })} />
             <Switch title={g("captions")} checked={b.captions} onChange={(v) => set({ captions: v })} />
+            <Label title={g("hover")}>
+              <select className={inputCls} value={b.hover ?? "none"} onChange={(e) => set({ hover: e.target.value as BlockOf<"gallery">["hover"] })} data-testid="gallery-hover">
+                {(["none", "zoom", "title", "lift"] as const).map((h) => (
+                  <option key={h} value={h}>
+                    {g(`hovers.${h}`)}
+                  </option>
+                ))}
+              </select>
+            </Label>
             <Switch title={g("credits")} checked={b.credits} onChange={(v) => set({ credits: v })} />
             <Switch title={g("hoverPlay")} checked={b.hoverPlay} onChange={(v) => set({ hoverPlay: v })} />
             <Switch title={g("filter")} checked={b.filter} onChange={(v) => set({ filter: v })} />
@@ -2315,6 +2319,70 @@ function QuickBackground({ block, update }: { block: Block; update: (patch: Part
           onChange={(e) => set(e.target.value.toUpperCase())}
         />
       </label>
+    </div>
+  );
+}
+
+/* ---------- round 13: project grid layouts as pictures ---------- */
+
+const GALLERY_LOOKS = [
+  { id: "square", layout: "grid", ratio: "1:1" },
+  { id: "rectangle", layout: "grid", ratio: "2:3" },
+  { id: "alternate", layout: "alternate" },
+  { id: "masonry", layout: "masonry", ratio: "original" },
+  { id: "featured", layout: "featured", ratio: "4:3", pro: true },
+  { id: "rows", layout: "rows" },
+  { id: "slider", layout: "slider" },
+  { id: "fullscreen", layout: "fullscreen" },
+] as const;
+
+function GalleryLayoutPicker({
+  b,
+  set,
+  isPro,
+}: {
+  b: BlockOf<"gallery">;
+  set: (patch: Partial<BlockOf<"gallery">>) => void;
+  isPro?: boolean;
+}) {
+  const g = useTranslations("editor.gallery");
+  const current = GALLERY_LOOKS.find((l) => l.layout === b.layout && (!("ratio" in l) || l.layout !== "grid" || l.ratio === b.ratio))?.id ?? (b.layout === "grid" ? null : b.layout);
+  const R = (x: number, y: number, w: number, h: number, k: number) => <rect key={k} x={x} y={y} width={w} height={h} rx={1.5} fill="currentColor" />;
+  const glyph: Record<(typeof GALLERY_LOOKS)[number]["id"], React.ReactNode> = {
+    square: [R(1, 2, 8, 8, 1), R(11, 2, 8, 8, 2), R(21, 2, 8, 8, 3), R(1, 12, 8, 6, 4), R(11, 12, 8, 6, 5), R(21, 12, 8, 6, 6)],
+    rectangle: [R(2, 1, 7, 11, 1), R(11.5, 1, 7, 11, 2), R(21, 1, 7, 11, 3), R(2, 14, 7, 5, 4), R(11.5, 14, 7, 5, 5), R(21, 14, 7, 5, 6)],
+    alternate: [R(1, 1, 8, 11, 1), R(11, 1, 8, 6, 2), R(21, 1, 8, 11, 3), R(1, 14, 8, 5, 4), R(11, 9, 8, 10, 5), R(21, 14, 8, 5, 6)],
+    masonry: [R(1, 1, 8, 7, 1), R(11, 1, 8, 10, 2), R(21, 1, 8, 5, 3), R(1, 10, 8, 9, 4), R(11, 13, 8, 6, 5), R(21, 8, 8, 11, 6)],
+    featured: [R(1, 1, 18, 18, 1), R(21, 1, 8, 8, 2), R(21, 11, 8, 8, 3)],
+    rows: [R(1, 1, 12, 8, 1), R(15, 1, 6, 8, 2), R(23, 1, 6, 8, 3), R(1, 11, 7, 8, 4), R(10, 11, 19, 8, 5)],
+    slider: [R(4, 3, 10, 14, 1), R(16, 3, 10, 14, 2), R(0, 3, 2, 14, 3), R(28, 3, 2, 14, 4)],
+    fullscreen: [R(0, 0, 15, 10, 1), R(15, 0, 15, 10, 2), R(0, 10, 15, 10, 3), R(15, 10, 15, 10, 4)],
+  };
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-[12px] font-semibold">{g("layout")}</span>
+      <div role="radiogroup" aria-label={g("layout")} className="grid grid-cols-4 gap-1.5">
+        {GALLERY_LOOKS.map((l) => (
+          <button
+            key={l.id}
+            type="button"
+            role="radio"
+            aria-checked={current === l.id}
+            onClick={() => set({ layout: l.layout, ...("ratio" in l ? { ratio: l.ratio } : {}) })}
+            className={cx(
+              "relative flex flex-col items-center gap-1 rounded-[10px] border p-1.5 text-[11px] font-semibold",
+              current === l.id ? "border-ink bg-mist" : "border-line hover:bg-mist",
+            )}
+            data-testid={`gallery-look-${l.id}`}
+          >
+            <svg viewBox="0 0 30 20" className="h-5 w-8" aria-hidden>
+              {glyph[l.id]}
+            </svg>
+            {g(`looks.${l.id}`)}
+            {"pro" in l && !isPro && <span className="bg-lime text-on-lime absolute -top-1.5 end-1 rounded-[6px] px-1 text-[9px] leading-[14px]">PRO</span>}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

@@ -235,7 +235,7 @@ function normalizeBlockBody(raw: unknown): Block | null {
       return {
         id,
         type: "gallery",
-        layout: pick(b.layout, ["grid", "masonry", "slider", "fullscreen"], "grid"),
+        layout: pick(b.layout, ["grid", "masonry", "slider", "fullscreen", "alternate", "featured", "rows"], "grid"),
         source: str(b.source, 40) || "all",
         columns: num(b.columns, 1, 6, 3),
         gap: num(b.gap, 0, 40, 12),
@@ -244,6 +244,7 @@ function normalizeBlockBody(raw: unknown): Block | null {
         captions: bool(b.captions, true),
         credits: bool(b.credits, true),
         hoverPlay: bool(b.hoverPlay, true),
+        ...(["zoom", "title", "lift", "none"].includes(b.hover as string) ? { hover: b.hover as "zoom" } : {}),
         filter: bool(b.filter),
         ...(b.cardSizes === true ? { cardSizes: true } : {}),
         ...(Array.isArray(b.picks) && b.picks.length

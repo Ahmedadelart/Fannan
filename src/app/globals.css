@@ -616,8 +616,57 @@ html[data-embed] .dash-main {
 .site-lightbox [hidden] {
   display: none;
 }
-.site-root a.site-tile:hover img {
+.site-root a.site-tile.site-hover-fade:hover img {
   opacity: 0.92;
+}
+/* Round 13: what a project cover does under the pointer. */
+.site-root .site-tile .site-thumb img {
+  transition: transform 0.45s ease, opacity 0.2s ease;
+}
+.site-root .site-hover-zoom:hover .site-thumb img {
+  transform: scale(1.06);
+}
+.site-root .site-hover-lift {
+  transition: transform 0.2s ease;
+}
+.site-root .site-hover-lift:hover {
+  transform: translateY(-6px);
+}
+.site-root .site-hover-lift:hover .site-thumb {
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
+}
+.site-root .site-thumb-title {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2px;
+  padding: 16px;
+  color: #fff;
+  background: linear-gradient(transparent 40%, rgba(0, 0, 0, 0.6));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.site-root .site-hover-title:hover .site-thumb-title,
+.site-root .site-hover-title:focus-visible .site-thumb-title {
+  opacity: 1;
+}
+@media (hover: none) {
+  .site-root .site-thumb-title {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-root .site-hover-zoom:hover .site-thumb img,
+  .site-root .site-hover-lift:hover {
+    transform: none;
+  }
+}
+@container (max-width: 560px) {
+  .site-root .site-alternate {
+    flex-direction: column;
+  }
 }
 
 /* fannan.net (round 10): the artists' marquee and the feature tabs' timer. */

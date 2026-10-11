@@ -454,6 +454,13 @@ _Last updated: 10 Oct 2026, phase 8 (Editor 2.0) under way; round 8 (guided setu
 - **Image section card:** a Show caption switch with a "A little description of your image" placeholder. Every section's top row gets **quick background colours** (none, four neutrals, any colour).
 - **Tests:** `pictures.spec.ts`.
 
+### Round 13, step 3: projects: new-project window, clone, grid looks
+- **"Create your new project"** window (Projects page and Home): drop or choose a thumbnail, type a title, Save. The picture becomes the cover and the project opens.
+- **Clone and delete on each project card** (on hover; always shown on phones). A clone is a draft called "… (copy)". Its media are new records that **share the original's stored files** (`filesOf`), so cloning uses no extra storage. Files are deleted only when nothing uses them any more: deleting, replacing or cropping one copy never breaks the other, and the storage meter moves the size to whichever copy remains.
+- **Project grid looks** as picture tiles: Square, Rectangle, Alternate (tall and short take turns), Masonry, Featured (one big + small, **Pro**; Free sites show a plain grid), Rows (every cover keeps its shape), Slider, Edge to edge.
+- **On hover:** fade a little (as before), zoom in, show the title over the cover, or lift up. "Show captions" is now "Show project title".
+- **Tests:** `projects-clone.spec.ts`; older tests click Save in the new window.
+
 ## Not done yet from the phase 6 "done when"
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).
 

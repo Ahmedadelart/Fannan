@@ -436,7 +436,8 @@ export const isProBlock = (b: Block) =>
 /** The catalogue entry for a block on the page (galleries map back to their layout). */
 export function kindOf(b: Block): BlockKind {
   if ((b.type === "free" || b.type === "cards") && b.design) return blockKinds.find((k) => k.key === b.design) ?? blockKinds[0];
-  if (b.type === "gallery") return blockKinds.find((k) => k.key === (b.layout === "fullscreen" ? "grid" : b.layout))!;
+  if (b.type === "gallery") return blockKinds.find((k) => k.key === (b.layout === "masonry" || b.layout === "slider" ? b.layout : "grid"))!;
+  if (b.type === "images") return blockKinds.find((k) => k.key === `img-${b.layout}`) ?? blockKinds.find((k) => k.type === "images")!;
   return blockKinds.find((k) => k.type === b.type)!;
 }
 

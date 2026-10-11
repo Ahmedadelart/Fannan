@@ -343,6 +343,7 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
     ? (b.picks.map((id) => shown.find((p) => p.id === id)).filter(Boolean) as GalleryProject[])
     : shown;
   const ownSizes = !!b.cardSizes && b.layout === "grid";
+  const hover = b.hover ?? "fade";
   const fullscreen = b.layout === "fullscreen";
   const cols = Math.max(1, Math.min(6, b.columns));
   const ratio = RATIO_CSS[b.ratio];
@@ -373,19 +374,21 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
       : [];
   if (!tiles.length) return null;
 
-  const tile = (t: (typeof tiles)[number]) => {
-    const size = ownSizes ? (t.card?.size ?? "m") : "m";
+  const tile = (t: (typeof tiles)[number], forceRatio?: string, extra?: CSSProperties) => {
+    const size = ownSizes ? (t.card?.size ?? "m") : b.layout === "featured" && tiles.indexOf(t) === 0 ? "l" : "m";
     const showTitle = ownSizes ? (t.card?.text ?? "title") !== "none" : b.captions;
     const showMeta = ownSizes ? t.card?.text === "details" : b.credits;
     // Wide cards are as tall as the others, so their picture is twice as wide.
     const tileRatio =
-      size === "wide" && ratio && ratio !== "auto"
+      forceRatio ??
+      (size === "wide" && ratio && ratio !== "auto"
         ? ratio.replace(/^(\d+(?:\.\d+)?) \/ (\d+(?:\.\d+)?)$/, (_, w, h) => `${Number(w) * 2} / ${h}`)
-        : ratio;
+        : ratio);
     const inner = (
       <>
         <div
-          className="relative"
+          className={cx("site-thumb relative overflow-hidden", (b.layout === "rows" || size === "l") && "h-full")}
+          style={{ borderRadius: "var(--site-radius)" }}
           data-hover-loop={ctx.live && b.hoverPlay && t.m?.loop ? `${ctx.base}${t.m.loop}` : undefined}
         >
           <Picture
@@ -399,6 +402,12 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
             eager={(ctx.index ?? 9) <= 1 && tiles.indexOf(t) < cols}
             still={!b.hoverPlay || !!t.m?.loop}
           />
+          {hover === "title" && t.title && (
+            <span className="site-thumb-title" aria-hidden>
+              <span className="font-semibold">{t.title}</span>
+              {t.meta && <span className="text-[14px] opacity-80">{t.meta}</span>}
+            </span>
+          )}
           {t.locked && (
             <span
               className="absolute end-2 top-2 rounded-[6px] px-2 py-0.5 text-[11px] font-semibold"
@@ -408,7 +417,7 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
             </span>
           )}
         </div>
-        {(showTitle || showMeta) && t.title && (
+        {(showTitle || showMeta) && t.title && hover !== "title" && (
           <figcaption className="flex flex-col gap-0.5" style={fullscreen ? { padding: "0 12px" } : undefined}>
             {showTitle && <span className="font-semibold">{t.title}</span>}
             {showMeta && t.meta && (
@@ -420,21 +429,23 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
         )}
       </>
     );
-    const style =
-      b.layout === "masonry" ? { breakInside: "avoid" as const, marginBottom: b.gap, display: "flex" } : undefined;
+    const style = {
+      ...(b.layout === "masonry" ? { breakInside: "avoid" as const, marginBottom: b.gap, display: "flex" } : {}),
+      ...extra,
+    };
     const span = size === "l" ? "site-span-l" : size === "wide" ? "site-span-wide" : undefined;
     return ctx.live && t.slug ? (
       <a
         key={t.key}
         href={`/${t.slug}`}
-        className={cx("site-tile m-0 flex flex-col gap-2 no-underline", span)}
+        className={cx("site-tile m-0 flex flex-col gap-2 no-underline", `site-hover-${hover}`, span)}
         style={{ color: "inherit", ...style }}
         data-card-size={ownSizes ? size : undefined}
       >
         {inner}
       </a>
     ) : (
-      <figure key={t.key} className={cx("m-0 flex flex-col gap-2", span)} style={style} data-card-size={ownSizes ? size : undefined}>
+      <figure key={t.key} className={cx("site-tile m-0 flex flex-col gap-2", `site-hover-${hover}`, span)} style={style} data-card-size={ownSizes ? size : undefined}>
         {inner}
       </figure>
     );
@@ -477,14 +488,34 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
         </div>
       ) : b.layout === "masonry" ? (
         <div className="site-masonry" style={{ columnCount: cols, columnGap: b.gap, ["--cols" as string]: cols }}>
-          {tiles.map(tile)}
+          {tiles.map((t) => tile(t))}
+        </div>
+      ) : b.layout === "alternate" ? (
+        // Tall and short covers take turns, so neighbouring columns never line up.
+        <div className="site-alternate flex" style={{ gap: b.gap }} data-layout="alternate">
+          {Array.from({ length: Math.min(cols, tiles.length) }, (_, c) => (
+            <div key={c} className="flex min-w-0 flex-1 flex-col" style={{ gap: b.gap }}>
+              {tiles
+                .filter((_, i) => i % cols === c)
+                .map((t, j) => tile(t, (c + j) % 2 === 0 ? "4 / 5" : "5 / 4"))}
+            </div>
+          ))}
+        </div>
+      ) : b.layout === "rows" ? (
+        <div className="flex flex-wrap" style={{ gap: b.gap }} data-layout="rows">
+          {tiles.map((t, i) => {
+            const ar = t.m?.width && t.m?.height ? t.m.width / t.m.height : [4 / 3, 3 / 4, 16 / 10, 1, 4 / 5][i % 5];
+            return tile(t, `${ar}`, { flex: `${ar} 1 ${Math.round((ar * 900) / cols)}px`, minWidth: 0 });
+          })}
+          <span aria-hidden style={{ flex: "10 1 0px" }} />
         </div>
       ) : (
         <div
-          className={cx("site-grid grid", ownSizes && "grid-flow-row-dense")}
+          className={cx("site-grid grid", (ownSizes || b.layout === "featured") && "grid-flow-row-dense")}
           style={{ gap: fullscreen ? 0 : b.gap, ["--cols" as string]: cols }}
+          data-layout={b.layout}
         >
-          {tiles.map(tile)}
+          {tiles.map((t) => tile(t))}
         </div>
       )}
     </div>

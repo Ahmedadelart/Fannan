@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ProjectCard } from "@/components/projects/ProjectCard";
+import { ProjectCardActions } from "@/components/projects/ProjectCardActions";
 import { buttonClasses } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/Surfaces";
 import type { Locale } from "@/i18n/locales";
@@ -69,6 +70,7 @@ export default async function ProjectsPage({ params, searchParams }: PageProps<"
             <ProjectCard
               key={p.id}
               labels={labels}
+              actions={<ProjectCardActions id={p.id} title={p.title} />}
               p={{
                 id: p.id,
                 title: p.title,
