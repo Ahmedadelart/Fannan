@@ -3,11 +3,12 @@ import { Logo } from "@/components/ui/Logo";
 import type { Locale } from "@/i18n/locales";
 
 /** Simple centred page for login and email-link screens. */
-export function AuthShell({ locale, children }: { locale: Locale; children: ReactNode }) {
+export function AuthShell({ locale, home, children }: { locale: Locale; home: string; children: ReactNode }) {
   return (
     <div className="bg-paper flex min-h-dvh flex-col">
       <header className="px-5 py-5 md:px-10">
-        <a href="/" aria-label="Fannan">
+        {/* The logo goes back to the main website (fannan.net). */}
+        <a href={home} aria-label="Fannan" data-testid="logo-home">
           <Logo lang={locale} size={24} />
         </a>
       </header>

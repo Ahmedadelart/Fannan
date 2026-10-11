@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Locale } from "@/i18n/locales";
+import { surfaceUrls } from "@/lib/server/urls";
 import { CompleteLink } from "./CompleteLink";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/app/auth/link">): Promise<Metadata> {
@@ -12,5 +13,5 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/app/auth
 export default async function AuthLinkPage({ params }: PageProps<"/[locale]/app/auth/link">) {
   const { locale } = (await params) as { locale: Locale };
   setRequestLocale(locale);
-  return <CompleteLink />;
+  return <CompleteLink home={(await surfaceUrls()).marketing(locale === "ar" ? "/ar" : "/")} />;
 }

@@ -94,11 +94,14 @@ export function SignupFlow({
   initial,
   domain,
   termsUrl,
+  homeUrl,
   policyUrl,
 }: {
   initial: SignupInitial;
   domain: string;
   termsUrl: string;
+  /** The main website (fannan.net), for the logo. */
+  homeUrl: string;
   policyUrl: string;
 }) {
   const t = useTranslations("signup");
@@ -355,7 +358,9 @@ export function SignupFlow({
   return (
     <div className="bg-paper text-ink flex min-h-dvh flex-col">
       <header className="flex flex-wrap items-center justify-between gap-4 px-5 py-5 md:px-10">
-        <Logo lang={locale} size={24} />
+        <a href={homeUrl} aria-label="Fannan" data-testid="logo-home">
+          <Logo lang={locale} size={24} />
+        </a>
         <nav
           aria-label={t("progress", { step })}
           className="order-last flex w-full items-center justify-center gap-1.5 md:order-none md:w-auto"

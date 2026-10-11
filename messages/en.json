@@ -2041,7 +2041,49 @@
     },
     "offer": "Launch offer: 12 months for the price of 6, for our first artists.",
     "closing": "Let the work find you.",
-    "closingCta": "Claim your name on Fannan"
+    "closingCta": "Claim your name on Fannan",
+    "v2": {
+      "sub": "A portfolio and a link page, made in minutes. Free to publish, in Arabic and English.",
+      "forLabel": "Made for every kind of artist",
+      "demoTitle": "Answer a few questions. Get a site.",
+      "demoSub": "The guided setup builds it with you, then you change anything you like.",
+      "steps": {
+        "what": "What you do",
+        "name": "Your name",
+        "look": "The look",
+        "pages": "Your pages",
+        "projects": "Your projects",
+        "build": "Build"
+      },
+      "ready": "Your site is ready",
+      "tabs": {
+        "links": "Link page",
+        "linksLine": "All your links on one page, with a QR code and a short link to share.",
+        "sections": "Sections",
+        "sectionsLine": "Gradients, wavy edges, hand-drawn arrows. Drag, drop, done.",
+        "projects": "Projects",
+        "projectsLine": "Every project gets its own page, and a card in the size you choose.",
+        "arabic": "عربي + English",
+        "arabicLine": "Every site works in Arabic and English, right to left.",
+        "stats": "Stats & messages",
+        "statsLine": "See who visits, what they click, and read their messages."
+      },
+      "stats": {
+        "visitors": "Visitors",
+        "clicks": "Link clicks",
+        "messages": "Messages",
+        "l1": "Showreel",
+        "l2": "Prints shop",
+        "l3": "Instagram"
+      },
+      "moreExamples": "More examples",
+      "facts": {
+        "free": "Publish free, no time limit",
+        "arabic": "Arabic and English, right to left",
+        "nocode": "No code, no developer",
+        "links": "Link page, QR code and short links"
+      }
+    }
   },
   "pricing": {
     "title": "Pricing",

@@ -325,6 +325,7 @@ function personalise(b: Block, name: string, what: string, l: Locale) {
     if (it.text === w.heroName) it.text = name;
     else if (it.text === w.by) it.text = l === "ar" ? `بقلم ${name}` : `by ${name}`;
     else if (it.text === w.heroRole && what) it.text = what;
+    else if (it.text === w.title && what) it.text = l === "ar" ? what : what.toUpperCase();
   }
 }
 

@@ -11,7 +11,7 @@ import { AuthShell } from "../../AuthShell";
 import { EMAIL_KEY } from "@/components/auth/AuthProvider";
 
 // The magic link lands here, on this device or another one.
-export function CompleteLink() {
+export function CompleteLink({ home }: { home: string }) {
   const t = useTranslations("authLink");
   const ts = useTranslations("signup");
   const locale = useLocale() as Locale;
@@ -56,7 +56,7 @@ export function CompleteLink() {
   }
 
   return (
-    <AuthShell locale={locale}>
+    <AuthShell locale={locale} home={home}>
       {state === "working" && (
         <p role="status" className="text-muted text-[17px]">
           {t("working")}

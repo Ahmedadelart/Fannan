@@ -16,7 +16,7 @@ const input =
 const primary =
   "inline-flex h-[52px] items-center justify-center rounded-pill bg-primary px-7 text-[16px] font-medium text-on-primary hover:brightness-110 disabled:opacity-40";
 
-export function LoginForm() {
+export function LoginForm({ home }: { home: string }) {
   const t = useTranslations("login");
   const ts = useTranslations("signup");
   const locale = useLocale() as Locale;
@@ -80,7 +80,7 @@ export function LoginForm() {
 
   if (restoring) {
     return (
-      <AuthShell locale={locale}>
+      <AuthShell locale={locale} home={home}>
         <p className="text-muted" role="status">
           {t("restoring")}
         </p>
@@ -90,7 +90,7 @@ export function LoginForm() {
 
   if (sentTo) {
     return (
-      <AuthShell locale={locale}>
+      <AuthShell locale={locale} home={home}>
         <span className="bg-lime flex size-16 items-center justify-center rounded-[14px]">
           <Icon name="email" size={40} />
         </span>
@@ -112,7 +112,7 @@ export function LoginForm() {
   }
 
   return (
-    <AuthShell locale={locale}>
+    <AuthShell locale={locale} home={home}>
       <h1 className="font-heading font-heading-weight text-[40px] leading-[1.05] tracking-[-0.02em] md:text-[48px]">
         {t("title")}
       </h1>

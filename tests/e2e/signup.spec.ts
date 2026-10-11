@@ -168,3 +168,11 @@ test("every kind of artist: field suggestions, Arabic search, and a starter that
   // Stills-first fields lead with the grid.
   await expect(page.getByRole("radio", { name: /The Grid/ })).toHaveAttribute("aria-checked", "true");
 });
+
+test("the logo on sign-up and sign-in goes back to the main website", async ({ page }) => {
+  for (const path of ["/signup", "/login"]) {
+    await page.goto(at("app", path));
+    await page.getByTestId("logo-home").click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your next job is looking for you.");
+  }
+});

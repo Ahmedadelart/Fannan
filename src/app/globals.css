@@ -619,3 +619,23 @@ html[data-embed] .dash-main {
 .site-root a.site-tile:hover img {
   opacity: 0.92;
 }
+
+/* fannan.net (round 10): the artists' marquee and the feature tabs' timer. */
+@keyframes mq-slide {
+  to { transform: translateX(-50%); }
+}
+@keyframes mq-slide-rtl {
+  to { transform: translateX(50%); }
+}
+.mq { animation: mq-slide 60s linear infinite; }
+[dir="rtl"] .mq { animation-name: mq-slide-rtl; }
+.mq:hover { animation-play-state: paused; }
+@keyframes ft-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.ft-progress { animation: ft-progress 6s linear forwards; }
+[dir="rtl"] .ft-progress { transform-origin: right; }
+@media (prefers-reduced-motion: reduce) {
+  .mq, .ft-progress { animation: none; }
+}
