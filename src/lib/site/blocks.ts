@@ -27,6 +27,22 @@ import { newId } from "./ids";
 import { cardsBlock, type CardKey } from "./cards";
 import { sampleTone } from "./samples";
 
+/** Round 13: an Images section with sample pictures until the artist drops in their own. */
+export function imagesBlock(layout: "grid" | "masonry" | "rows" | "slideshow"): Block {
+  const n = layout === "slideshow" ? 4 : 6;
+  return {
+    id: newId(),
+    type: "images",
+    heading: "",
+    items: Array.from({ length: n }, (_, i) => ({ id: newId(), mediaId: null, tone: sampleTone(i + 2), caption: "" })),
+    layout,
+    columns: layout === "rows" ? 3 : 3,
+    gap: 16,
+    ratio: layout === "masonry" || layout === "rows" ? "original" : "4:3",
+    captions: false,
+  };
+}
+
 export const sampleArt = (n: number, ratio: SampleArt["ratio"] = "4/3"): SampleArt[] =>
   Array.from({ length: n }, (_, i) => ({ tone: sampleTone(i), ratio }));
 
@@ -148,6 +164,11 @@ export const blockKinds: BlockKind[] = [
   { key: "grid", type: "gallery", group: "galleries", icon: "grid", make: (l) => gallery("grid", l) },
   { key: "masonry", type: "gallery", group: "galleries", icon: "masonry", make: (l) => gallery("masonry", l) },
   { key: "slider", type: "gallery", group: "galleries", icon: "slider", make: (l) => gallery("slider", l) },
+  // Round 13: galleries of the artist's own pictures (not projects).
+  { key: "img-grid", type: "images", group: "galleries", icon: "grid", make: () => imagesBlock("grid") },
+  { key: "img-masonry", type: "images", group: "galleries", icon: "masonry", make: () => imagesBlock("masonry") },
+  { key: "img-rows", type: "images", group: "galleries", icon: "columns", make: () => imagesBlock("rows") },
+  { key: "img-slideshow", type: "images", group: "galleries", icon: "slider", make: () => imagesBlock("slideshow") },
   // Media
   {
     key: "image",
@@ -362,6 +383,10 @@ export const LIBRARY: Array<{ group: LibraryGroup; keys: string[] }> = [
   {
     group: "images",
     keys: [
+      "img-grid",
+      "img-masonry",
+      "img-rows",
+      "img-slideshow",
       "d-fullbleed",
       "d-three-up",
       "d-big-small",

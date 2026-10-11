@@ -597,6 +597,17 @@
       "wide": "Wide",
       "none": "None",
       "details": "Title + details"
+    },
+    "clone": "Clone",
+    "copySuffix": "(copy)",
+    "create": {
+      "title": "Create your new project",
+      "thumb": "Add a thumbnail",
+      "thumbHint": "Drop a picture here, or click to choose",
+      "name": "Project title",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Creating…"
     }
   },
   "editor": {
@@ -702,7 +713,11 @@
       "d-three-up": "Three pictures",
       "d-big-small": "Big + two small",
       "d-title-over": "Title over a picture",
-      "d-project-intro": "Project intro"
+      "d-project-intro": "Project intro",
+      "img-grid": "Image grid",
+      "img-masonry": "Image masonry",
+      "img-rows": "Smart rows",
+      "img-slideshow": "Slideshow"
     },
     "addHint": "Click to add below the selected section, or drag onto the page.",
     "dropHere": "Drop the section here",
@@ -1583,6 +1598,45 @@
       },
       "full": "Full width",
       "mirror": "Flip layout ⇄"
+    },
+    "images": {
+      "layout": "Layout",
+      "layouts": {
+        "grid": "Grid",
+        "masonry": "Masonry",
+        "rows": "Smart rows",
+        "slideshow": "Slideshow"
+      },
+      "columns": "Columns",
+      "gap": "Space between",
+      "ratio": "Shape",
+      "captions": "Show captions",
+      "manage": "Manage images",
+      "add": "Add pictures",
+      "drop": "Drop pictures here, or click to choose",
+      "caption": "Caption",
+      "remove": "Remove",
+      "up": "Move up",
+      "down": "Move down",
+      "count": "{n} pictures",
+      "heading": "Heading (optional)"
+    },
+    "pic": {
+      "replace": "Replace picture",
+      "crop": "Crop",
+      "dropToUpload": "Drop to upload",
+      "uploading": "Uploading…",
+      "uploadFailed": "That file couldn't be uploaded.",
+      "cropTitle": "Crop the picture",
+      "zoom": "Zoom",
+      "done": "Done",
+      "reset": "Reset",
+      "cancel": "Cancel",
+      "dragHint": "Drag the picture to choose what shows.",
+      "newSection": "Dropped pictures were added as a new section.",
+      "showCaption": "Show caption",
+      "background": "Background",
+      "bgNone": "None"
     }
   },
   "inbox": {

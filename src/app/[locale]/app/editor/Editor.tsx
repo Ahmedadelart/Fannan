@@ -10,17 +10,19 @@ import { Icon } from "@/components/ui/Icon";
 import { useToast } from "@/components/ui/Toast";
 import type { Locale } from "@/i18n/locales";
 import { cx } from "@/lib/cx";
-import { blockKinds, networkName, newId, type BlockKind } from "@/lib/site/blocks";
+import { blockKinds, imagesBlock, networkName, newId, type BlockKind } from "@/lib/site/blocks";
+import { sampleTone } from "@/lib/site/samples";
 import { setPath } from "@/lib/site/fields";
 import { hasOwnPage } from "@/lib/site/pages";
 import { normalizeFooter } from "@/lib/site/normalize";
 import { moveTo, startSortDrag } from "@/components/editor/sortDrag";
 import { getClip, mod, setClip, typing } from "@/components/editor/clipboard";
-import type { Block, BlockOf, DrawStroke, FreeKind, SiteDraft } from "@/lib/site/types";
+import type { Block, BlockOf, Crop, DrawStroke, FreeKind, SiteDraft } from "@/lib/site/types";
 import { addFreeItem, freeItem, ITEM_GROUPS } from "@/lib/site/free";
 import { DecoSvg } from "@/components/site/deco";
 import { DoodlePanel, defaultTools, finishSession, startSession, type DoodleSession, type DoodleTools } from "@/components/editor/doodle";
 import { FreeEditor, KIND_ICONS } from "@/components/editor/FreeEditor";
+import { PicTools, type PicTarget } from "@/components/editor/PicTools";
 import { LanguageButton, LogoutButton } from "../(dash)/DashClient";
 import { SiteEnhancer } from "@/components/site/live/SiteEnhancer";
 import { CONTACT_WORDS, contactFormOf, type LegacyContactFields } from "@/lib/site/contact";
@@ -1052,6 +1054,75 @@ export function Editor({
     />
   );
 
+  /* ---------- round 13: pictures dropped, replaced or cropped right on the canvas ---------- */
+
+  const canvasWrap = useRef<HTMLDivElement>(null);
+  const splitTarget = (target: PicTarget) => {
+    const [blockId, path] = target.split("|");
+    return { blockId, path };
+  };
+  const cropPath = (path: string) => path.replace(/mediaId$/, "crop");
+  function placeMedia(target: PicTarget, ids: string[]) {
+    const { blockId, path } = splitTarget(target);
+    setBlocks((blocks) =>
+      blocks.map((b) => {
+        if (b.id !== blockId) return b;
+        if (path === "+" && b.type === "images") {
+          // Fill the sample tiles first, then add the rest.
+          const items = [...b.items];
+          const rest = [...ids];
+          for (let i = 0; i < items.length && rest.length; i++) if (!items[i].mediaId) items[i] = { ...items[i], mediaId: rest.shift()!, crop: undefined };
+          return { ...b, items: [...items, ...rest.map((id, n) => ({ id: newId(), mediaId: id, tone: sampleTone(items.length + n), caption: "" }))].slice(0, 60) };
+        }
+        if (path.startsWith("#") && b.type === "free") {
+          return { ...b, items: b.items.map((i) => (i.id === path.slice(1) ? { ...i, mediaId: ids[0], crop: undefined } : i)) };
+        }
+        const next = setPath(b, path, ids[0]);
+        return path.endsWith("mediaId") ? setPath(next, cropPath(path), undefined) : next;
+      }),
+    );
+  }
+  function picInfo(target: PicTarget): { mediaId: string | null; crop?: Crop } | null {
+    const { blockId, path } = splitTarget(target);
+    const b = page.blocks.find((x) => x.id === blockId);
+    if (!b) return null;
+    if (path.startsWith("#") && b.type === "free") {
+      const it = b.items.find((i) => i.id === path.slice(1));
+      return it ? { mediaId: it.mediaId, crop: it.crop } : null;
+    }
+    const get = (p: string) => p.split(".").reduce<unknown>((o, k) => (o as Record<string, unknown> | undefined)?.[k], b);
+    const id = get(path);
+    return { mediaId: typeof id === "string" ? id : null, crop: get(cropPath(path)) as Crop | undefined };
+  }
+  function setCrop(target: PicTarget, crop: Crop | undefined) {
+    const { blockId, path } = splitTarget(target);
+    setBlocks((blocks) =>
+      blocks.map((b) => {
+        if (b.id !== blockId) return b;
+        if (path.startsWith("#") && b.type === "free") return { ...b, items: b.items.map((i) => (i.id === path.slice(1) ? { ...i, crop } : i)) };
+        return setPath(b, cropPath(path), crop);
+      }),
+    );
+  }
+  /** Files dropped where no picture is: a new picture (or Images) section after the one under the pointer. */
+  function looseMedia(ids: string[], near: string | null) {
+    const b: Block =
+      ids.length === 1
+        ? { id: newId(), type: "image", mediaId: ids[0], tone: sampleTone(0), caption: "", fullWidth: false }
+        : (() => {
+            const g = imagesBlock("grid") as BlockOf<"images">;
+            return { ...g, items: ids.map((id, n) => ({ id: newId(), mediaId: id, tone: sampleTone(n), caption: "" })) };
+          })();
+    setBlocks((blocks) => {
+      const i = near ? blocks.findIndex((x) => x.id === near) + 1 : blocks.length;
+      const next = [...blocks];
+      next.splice(i <= 0 ? blocks.length : i, 0, b);
+      return next;
+    });
+    setSelected(b.id);
+    toast(t("pic.newSection"), "image");
+  }
+
   /** Text typed on the canvas. Typing in one field counts as one step to undo. */
   const onText = (blockId: string, path: string, value: string) =>
     setBlocks((blocks) => blocks.map((b) => (b.id === blockId ? setPath(b, path, value) : b)), `text-${blockId}-${path}`);
@@ -1630,6 +1701,17 @@ export function Editor({
           </div>
         </header>
 
+        <PicTools
+          root={canvasWrap}
+          media={media}
+          disabled={reorder || !!doodleSession || page.type === "link" || page.type === "folder" || page.type === "project"}
+          onUploaded={(m) => setMedia((all) => ({ ...all, [m.id]: m }))}
+          onPlace={placeMedia}
+          onLoose={looseMedia}
+          cropOf={picInfo}
+          onCrop={setCrop}
+        />
+        <div ref={canvasWrap} className="contents">
         <Canvas
           width={WIDTHS[device]}
           fluid={device === "desktop"}
@@ -1691,6 +1773,7 @@ export function Editor({
             />
           )}
         </Canvas>
+        </div>
       </div>
 
       {shortcutsOpen && (

@@ -5,6 +5,7 @@ import { imageSources, posterSources, type MediaLike } from "@/lib/media";
 import type {
   Block,
   BlockOf,
+  Crop,
   FreeItem,
   LinkItem,
   PageDraft,
@@ -131,6 +132,8 @@ function Picture({
   still,
   eager,
   sizes = "(min-width: 1200px) 1200px, 100vw",
+  crop,
+  pic,
 }: {
   m?: SiteMedia | null;
   base: string;
@@ -143,6 +146,10 @@ function Picture({
   /** Pictures near the top load straight away (and the first one first). */
   eager?: boolean;
   sizes?: string;
+  /** Round 13: what part of the picture shows, and how close. */
+  crop?: Crop;
+  /** Editor only: "blockId|path" so a dropped file or the hover tools know where the picture goes. */
+  pic?: string;
 }) {
   const src = m ? (still ? posterSources(m, want, base) : imageSources(m, want, base)) : null;
   if (!src) {
@@ -152,6 +159,7 @@ function Picture({
         aria-label={alt || undefined}
         aria-hidden={alt ? undefined : true}
         className={className}
+        data-pic={pic}
         style={{
           aspectRatio: ratio ?? "4 / 3",
           background: toneFill(tone) ?? "var(--site-surface)",
@@ -161,7 +169,7 @@ function Picture({
     );
   }
   return (
-    <picture className={cx("block overflow-hidden", className)} style={{ borderRadius: "var(--site-radius)" }}>
+    <picture className={cx("block overflow-hidden", className)} style={{ borderRadius: "var(--site-radius)" }} data-pic={pic} data-crop={pic && crop ? `${crop.x},${crop.y},${crop.zoom}` : undefined}>
       {src.avifSet && <source type="image/avif" srcSet={src.avifSet} sizes={sizes} />}
       <img
         src={src.src}
@@ -172,9 +180,95 @@ function Picture({
         fetchPriority={eager ? "high" : undefined}
         decoding="async"
         className="block h-full w-full object-cover"
-        style={{ aspectRatio: ratio ?? (m?.width && m?.height ? `${m.width} / ${m.height}` : undefined) }}
+        style={{
+          aspectRatio: ratio ?? (m?.width && m?.height ? `${m.width} / ${m.height}` : undefined),
+          ...(crop ? { objectPosition: `${crop.x}% ${crop.y}%`, transform: `scale(${crop.zoom})`, transformOrigin: `${crop.x}% ${crop.y}%` } : {}),
+        }}
       />
     </picture>
+  );
+}
+
+/* ---------- round 13: Images section (the artist's own pictures, not projects) ---------- */
+
+const SAMPLE_RATIOS = [4 / 5, 4 / 3, 1, 3 / 4, 16 / 10, 4 / 3];
+
+function ImagesView({ b, ctx }: { b: BlockOf<"images">; ctx: Ctx }) {
+  const shown = b.items.map((it, n) => ({ it, n, pic: it.mediaId ? (ctx.media[it.mediaId] ?? null) : null })).filter((x) => x.pic || ctx.editing);
+  if (!shown.length) return null;
+  const fixed = b.ratio === "original" ? null : b.ratio.replace(":", " / ");
+  const natural = (x: (typeof shown)[number]) =>
+    x.pic?.width && x.pic?.height ? x.pic.width / x.pic.height : SAMPLE_RATIOS[x.n % SAMPLE_RATIOS.length];
+  const cols = b.columns;
+  const tile = (x: (typeof shown)[number], ratio: string | undefined, style?: CSSProperties, className?: string) => (
+    <figure
+      key={x.it.id}
+      className={cx("m-0 flex min-w-0 flex-col gap-2", className)}
+      style={style}
+      data-lightbox={ctx.live && x.pic ? imageSources(x.pic, 2560, ctx.base)?.src : undefined}
+      data-lightbox-caption={ctx.live ? x.it.caption || x.pic?.alt || undefined : undefined}
+    >
+      <Picture
+        m={x.pic}
+        base={ctx.base}
+        tone={x.it.tone}
+        ratio={ratio}
+        want={b.layout === "slideshow" || cols === 1 ? 2560 : 1600}
+        sizes={b.layout === "slideshow" ? "(min-width: 1200px) 1200px, 100vw" : `(min-width: 1200px) ${Math.round(1200 / cols)}px, 50vw`}
+        crop={x.it.crop}
+        pic={ctx.editing ? `${ctx.blockId}|items.${x.n}.mediaId` : undefined}
+        className={b.layout === "rows" ? "h-full" : undefined}
+      />
+      {b.captions &&
+        (ctx.onText ? (
+          <T ctx={ctx} path={`items.${x.n}.caption`} value={x.it.caption} as="figcaption" className="text-[14px]" style={{ color: "var(--site-muted)" }} />
+        ) : x.it.caption ? (
+          <figcaption className="text-[14px]" style={{ color: "var(--site-muted)" }}>
+            {x.it.caption}
+          </figcaption>
+        ) : null)}
+    </figure>
+  );
+  let body: ReactNode;
+  if (b.layout === "masonry") {
+    body = (
+      <div className={cx(cols > 2 && "@max-2xl:!columns-2", "@max-md:!columns-1")} style={{ columns: cols, columnGap: b.gap }}>
+        {shown.map((x) => tile(x, fixed ?? `${natural(x)}`, { breakInside: "avoid", marginBottom: b.gap }))}
+      </div>
+    );
+  } else if (b.layout === "rows") {
+    // Smart rows: every picture keeps its shape; rows fill the width.
+    const h = Math.round(960 / cols);
+    body = (
+      <div className="flex flex-wrap" style={{ gap: b.gap }}>
+        {shown.map((x) => {
+          const ar = natural(x);
+          return tile(x, `${ar}`, { flex: `${ar} 1 ${Math.round(ar * h)}px` }, "@max-md:!basis-full");
+        })}
+        <span aria-hidden style={{ flex: "10 1 0px" }} />
+      </div>
+    );
+  } else if (b.layout === "slideshow") {
+    body = (
+      <div className="site-slides flex snap-x snap-mandatory overflow-x-auto" style={{ gap: b.gap, scrollbarWidth: "thin" }} data-testid="images-slideshow">
+        {shown.map((x) => tile(x, fixed ?? "16 / 10", { flex: "0 0 86%" }, "snap-center"))}
+      </div>
+    );
+  } else {
+    body = (
+      <div
+        className={cx("grid", cols > 2 && "@max-2xl:!grid-cols-2", cols > 1 && "@max-md:!grid-cols-1")}
+        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gap: b.gap }}
+      >
+        {shown.map((x) => tile(x, fixed ?? "1 / 1"))}
+      </div>
+    );
+  }
+  return (
+    <div className={cx("flex flex-col gap-6", alignCol(ctx.align))} data-pic={ctx.editing ? `${ctx.blockId}|+` : undefined} data-testid="images-section">
+      {b.heading && <T ctx={ctx} path="heading" value={b.heading} as="h2" style={heading(48)} />}
+      <div className="w-full">{body}</div>
+    </div>
   );
 }
 
@@ -636,6 +730,7 @@ export function FreeItemContent({
                 tone={it.tone}
                 ratio="auto"
                 want={1600}
+                crop={it.fit === "contain" ? undefined : it.crop}
                 className={cx("h-full w-full !rounded-none", it.fit === "contain" && "[&_img]:!object-contain")}
                 alt={m?.alt}
               />
@@ -1128,7 +1223,7 @@ function CardsView({ b, ctx }: { b: BlockOf<"cards">; ctx: Ctx }) {
         <div className="site-cards-grid grid gap-6" style={grid}>
           {b.items.map((it, n) => (
             <div key={n} className="flex flex-col overflow-hidden" style={card}>
-              <Picture m={m(it.mediaId)} base={ctx.base} tone={it.tone} ratio="4 / 3" className="!rounded-none" />
+              <Picture m={m(it.mediaId)} base={ctx.base} tone={it.tone} ratio="4 / 3" className="!rounded-none" pic={ctx.editing ? `${ctx.blockId}|items.${n}.mediaId` : undefined} />
               <div className="flex flex-1 flex-col items-start gap-2 p-6">
                 {tx(n, "title", { as: "h3", style: heading(26) })}
                 {tx(n, "text", { as: "p", className: "m-0 text-[16px] leading-[1.6]", style: { color: "var(--site-muted)" }, multiline: true })}
@@ -1173,7 +1268,7 @@ function CardsView({ b, ctx }: { b: BlockOf<"cards">; ctx: Ctx }) {
         <div className="relative">
           <div className="site-cards-grid grid" style={grid}>
             {b.items.map((it, n) => (
-              <Picture key={n} m={m(it.mediaId)} base={ctx.base} tone={it.tone} ratio="1 / 1" className="!rounded-none" />
+              <Picture key={n} m={m(it.mediaId)} base={ctx.base} tone={it.tone} ratio="1 / 1" className="!rounded-none" pic={ctx.editing ? `${ctx.blockId}|items.${n}.mediaId` : undefined} />
             ))}
           </div>
           {(b.button || ctx.onText) && (
@@ -1240,7 +1335,7 @@ function CardsView({ b, ctx }: { b: BlockOf<"cards">; ctx: Ctx }) {
               {tx(n, "text", { as: "p", className: "m-0 text-[17px]", multiline: true })}
               <figcaption className="mt-auto flex items-center gap-3">
                 <span className="block size-11 flex-none overflow-hidden rounded-full">
-                  <Picture m={m(it.mediaId)} base={ctx.base} tone={it.tone} ratio="1 / 1" className="!rounded-full" />
+                  <Picture m={m(it.mediaId)} base={ctx.base} tone={it.tone} ratio="1 / 1" className="!rounded-full" pic={ctx.editing ? `${ctx.blockId}|items.${n}.mediaId` : undefined} />
                 </span>
                 <span className="flex flex-col">
                   {tx(n, "title", { className: "font-semibold" })}
@@ -1259,7 +1354,7 @@ function CardsView({ b, ctx }: { b: BlockOf<"cards">; ctx: Ctx }) {
           {b.items.map((it, n) => (
             <div key={n} className={cx("site-timeline-row relative grid grid-cols-2 items-center gap-12", n % 2 === 1 && "site-timeline-flip")}>
               <div className={cx(n % 2 ? "order-2" : "order-1")}>
-                <Picture m={m(it.mediaId)} base={ctx.base} tone={it.tone} ratio="4 / 3" />
+                <Picture m={m(it.mediaId)} base={ctx.base} tone={it.tone} ratio="4 / 3" pic={ctx.editing ? `${ctx.blockId}|items.${n}.mediaId` : undefined} />
               </div>
               <div className={cx("flex flex-col gap-2", n % 2 ? "order-1 items-end text-end" : "order-2")}>
                 {tx(n, "meta", { className: "text-[13px] font-semibold tracking-[0.06em] uppercase", style: { color: "var(--site-accent)" } })}
@@ -1275,7 +1370,7 @@ function CardsView({ b, ctx }: { b: BlockOf<"cards">; ctx: Ctx }) {
     case "press":
       body = (
         <div className="site-cards-grid grid items-center gap-12" style={{ gridTemplateColumns: "minmax(0, 0.9fr) minmax(0, 1.1fr)" }}>
-          <Picture m={m(b.mediaId)} base={ctx.base} tone={b.tone} ratio="4 / 5" />
+          <Picture m={m(b.mediaId)} base={ctx.base} tone={b.tone} ratio="4 / 5" pic={ctx.editing ? `${ctx.blockId}|mediaId` : undefined} />
           <div className="flex flex-col">
             {b.items.map((it, n) => (
               <div key={n}>
@@ -1307,7 +1402,7 @@ function CardsView({ b, ctx }: { b: BlockOf<"cards">; ctx: Ctx }) {
               {it.url ? (
                 <VideoView url={it.url} caption="" ctx={ctx} />
               ) : (
-                <Picture m={m(it.mediaId)} base={ctx.base} tone={it.tone} ratio="16 / 9" />
+                <Picture m={m(it.mediaId)} base={ctx.base} tone={it.tone} ratio="16 / 9" pic={ctx.editing ? `${ctx.blockId}|items.${n}.mediaId` : undefined} />
               )}
               {tx(n, "title", { as: "h3", style: heading(22) })}
               {tx(n, "text", { as: "p", className: "m-0 text-[15px]", style: { color: "var(--site-muted)" }, multiline: true })}
@@ -1408,6 +1503,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       return (
         <div
           className="relative flex flex-col justify-end overflow-hidden"
+          data-pic={ctx.editing && !img ? `${ctx.blockId}|mediaId` : undefined}
           style={{
             minHeight: b.height === "full" ? "min(88vh, 900px)" : "min(60vh, 560px)",
             marginInline: "calc(var(--site-pad) * -1)",
@@ -1416,7 +1512,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
         >
           {img && (
             <div className="absolute inset-0">
-              <Picture m={img} base={ctx.base} want={2560} className="h-full w-full !rounded-none" ratio="auto" />
+              <Picture m={img} base={ctx.base} want={2560} className="h-full w-full !rounded-none" ratio="auto" crop={b.crop} pic={ctx.editing ? `${ctx.blockId}|mediaId` : undefined} />
             </div>
           )}
           <div
@@ -1504,17 +1600,23 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
             want={2560}
             eager={(ctx.index ?? 9) <= 1}
             className={b.fullWidth ? "!rounded-none" : undefined}
+            crop={b.crop}
+            pic={ctx.editing ? `${ctx.blockId}|mediaId` : undefined}
           />
-          <T
-            ctx={ctx}
-            path="caption"
-            value={b.caption}
-            as="figcaption"
-            style={{ color: "var(--site-muted)", padding: b.fullWidth ? "0 var(--site-pad)" : undefined }}
-          />
+          {b.showCaption !== false && (
+            <T
+              ctx={ctx}
+              path="caption"
+              value={b.caption}
+              as="figcaption"
+              style={{ color: "var(--site-muted)", padding: b.fullWidth ? "0 var(--site-pad)" : undefined, textAlign: ctx.align === "center" ? "center" : ctx.align === "end" ? "end" : undefined }}
+            />
+          )}
         </figure>
       );
     }
+    case "images":
+      return <ImagesView b={b} ctx={ctx} />;
     case "video":
       return <VideoView url={b.url} caption={b.caption} ctx={ctx} />;
     case "loop": {

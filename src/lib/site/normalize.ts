@@ -36,6 +36,15 @@ const num = (v: unknown, lo: number, hi: number, d: number) =>
 const color = (v: unknown, d: string) => (typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v) ? v.toUpperCase() : d);
 /** A placeholder's look: a colour or one of the sample drawings. */
 const tone = (v: unknown, d: string) => (isSampleTone(v) ? v : upgradeTone(color(v, d)));
+/** Round 13: a picture's framing; nothing when it is the default (centre, no zoom). */
+export function normalizeCrop(v: unknown): { crop?: { x: number; y: number; zoom: number } } {
+  if (!v || typeof v !== "object") return {};
+  const c = v as Record<string, unknown>;
+  const n = (x: unknown, lo: number, hi: number, d: number) => (typeof x === "number" && Number.isFinite(x) ? Math.min(hi, Math.max(lo, x)) : d);
+  const crop = { x: Math.round(n(c.x, 0, 100, 50)), y: Math.round(n(c.y, 0, 100, 50)), zoom: Math.round(n(c.zoom, 1, 3, 1) * 100) / 100 };
+  return crop.x === 50 && crop.y === 50 && crop.zoom === 1 ? {} : { crop };
+}
+
 const idOrNull = (v: unknown) => (typeof v === "string" && /^[\w-]{1,64}$/.test(v) ? v : null);
 const pick = <T extends string>(v: unknown, allowed: readonly T[], d: T): T =>
   allowed.includes(v as T) ? (v as T) : d;
@@ -203,6 +212,7 @@ function normalizeBlockBody(raw: unknown): Block | null {
         heading: str(b.heading, 200),
         subheading: str(b.subheading, 300),
         height: pick(b.height, ["full", "large"], "large"),
+        ...normalizeCrop(b.crop),
       };
     case "text":
       return {
@@ -271,6 +281,26 @@ function normalizeBlockBody(raw: unknown): Block | null {
         tone: tone(b.tone, "#5B3A2E"),
         caption: str(b.caption, 300),
         fullWidth: bool(b.fullWidth),
+        ...normalizeCrop(b.crop),
+        ...(b.showCaption === false ? { showCaption: false } : {}),
+      };
+    case "images":
+      return {
+        id,
+        type: "images",
+        heading: str(b.heading, 160),
+        items: list(b.items, 60, (x) => ({
+          id: typeof x.id === "string" && /^[\w-]{1,40}$/.test(x.id) ? x.id : newId(),
+          mediaId: idOrNull(x.mediaId),
+          tone: tone(x.tone, "#5B3A2E"),
+          caption: str(x.caption, 300),
+          ...normalizeCrop(x.crop),
+        })),
+        layout: pick(b.layout, ["grid", "masonry", "rows", "slideshow"], "grid"),
+        columns: num(b.columns, 1, 6, 3),
+        gap: num(b.gap, 0, 64, 16),
+        ratio: pick(b.ratio, ["16:9", "4:3", "1:1", "2:3", "original"], "4:3"),
+        captions: bool(b.captions),
       };
     case "hero-image":
       return {
@@ -436,6 +466,7 @@ function normalizeFreeItem(raw: Any): FreeItem {
     color: raw.color === null || raw.color === undefined ? null : color(raw.color, "#141414"),
     fill: raw.fill === null || raw.fill === undefined ? null : color(raw.fill, "#141414"),
     mediaId: idOrNull(raw.mediaId),
+    ...(raw.kind === "image" ? normalizeCrop(raw.crop) : {}),
     fit: pick(raw.fit, ["cover", "contain"], "cover"),
     radius: num(raw.radius, 0, 400, 0),
     shape: pick(raw.shape, ["rect", "circle", "pill", "triangle", "arch"], "rect"),

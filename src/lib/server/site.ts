@@ -202,6 +202,7 @@ function blockOwnMediaIds(b: Block): Array<string | null> {
     case "about":
       return [b.photoId, b.cvId];
     case "logos":
+    case "images":
       return b.items.map((i) => i.mediaId);
     case "free":
       return [b.bgMediaId, ...b.items.map((i) => i.mediaId)];

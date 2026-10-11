@@ -18,7 +18,7 @@ import { imageSources } from "@/lib/media";
 import { kindByKey, kindOf, LIBRARY, networkName, newId, SOCIAL_NETWORKS, type BlockKind, type LibraryGroup } from "@/lib/site/blocks";
 import { CONTACT_WORDS, contactFormOf, type LegacyContactFields } from "@/lib/site/contact";
 import { normalizeFooter, normalizeHeader } from "@/lib/site/normalize";
-import { toneBase } from "@/lib/site/samples";
+import { sampleTone, toneBase, toneFill } from "@/lib/site/samples";
 import { DECO_STYLES } from "@/lib/site/deco";
 import type { IconName } from "@/components/ui/Icon";
 import { EDGE_PATHS } from "@/components/site/edges";
@@ -1570,6 +1570,7 @@ export function BlockSettings({
 }) {
   const t = useTranslations("editor");
   const f = useTranslations("editor.fields");
+  const pt = useTranslations("editor.pic");
   const g = useTranslations("editor.gallery");
   const fr = useTranslations("editor.free");
   const c = useTranslations("editor.contactForm");
@@ -1892,11 +1893,17 @@ export function BlockSettings({
     case "image":
       body = (
         <>
-          {mediaField(f("image"), block.mediaId, "image", (id) => set({ mediaId: id }))}
-          <Text title={f("caption")} value={block.caption} onChange={(v) => set({ caption: v }, k("c"))} />
+          {mediaField(f("image"), block.mediaId, "image", (id) => set({ mediaId: id, crop: undefined }))}
+          <Switch title={pt("showCaption")} checked={block.showCaption !== false} onChange={(v) => set({ showCaption: v })} />
+          {block.showCaption !== false && (
+            <Text title={f("caption")} value={block.caption} placeholder={language === "ar" ? "وصف قصير لصورتك" : "A little description of your image"} onChange={(v) => set({ caption: v }, k("c"))} />
+          )}
           <Switch title={f("fullWidth")} checked={block.fullWidth} onChange={(v) => set({ fullWidth: v })} />
         </>
       );
+      break;
+    case "images":
+      body = <ImagesSettings block={block} set={set} k={k} media={media} openPicker={openPicker} />;
       break;
     case "video":
       body = (
@@ -2250,6 +2257,7 @@ function QuickLayout({ block, update }: { block: Block; update: (patch: Partial<
         <Toggle label={t("full")} hideLabel checked={st.width === "full"} onChange={(v) => update({ style: { ...st, width: v ? "full" : "normal" } } as Partial<Block>)} />
         {t("full")}
       </label>
+      <QuickBackground block={block} update={update} />
       {block.type === "free" && (
         <button
           type="button"
@@ -2263,6 +2271,200 @@ function QuickLayout({ block, update }: { block: Block; update: (patch: Partial<
         </button>
       )}
     </div>
+  );
+}
+
+/** Round 13: a few background colours one click away (the Design tab keeps the full set). */
+function QuickBackground({ block, update }: { block: Block; update: (patch: Partial<Block>, key?: string) => void }) {
+  const t = useTranslations("editor.pic");
+  const st = block.style ?? defaultSectionStyle();
+  const current = st.bg.kind === "color" ? st.bg.color.toUpperCase() : null;
+  const set = (color: string | null) =>
+    update({ style: { ...st, bg: color ? { ...st.bg, kind: "color", color } : { ...st.bg, kind: "none" } } } as Partial<Block>, "quick-bg");
+  const swatch = "size-6 rounded-full ring-1 ring-black/15";
+  return (
+    <div role="radiogroup" aria-label={t("background")} className="flex items-center gap-1.5" data-testid="quick-bg">
+      <button
+        type="button"
+        role="radio"
+        aria-checked={st.bg.kind === "none"}
+        title={t("bgNone")}
+        aria-label={t("bgNone")}
+        onClick={() => set(null)}
+        className={cx(swatch, "bg-white bg-[linear-gradient(135deg,transparent_45%,#C0392B_45%,#C0392B_55%,transparent_55%)]", st.bg.kind === "none" && "outline-ink outline-2 outline-offset-2")}
+      />
+      {["#FFFFFF", "#F4F1E6", "#E9E4D8", "#141414"].map((c) => (
+        <button
+          key={c}
+          type="button"
+          role="radio"
+          aria-checked={current === c}
+          aria-label={c}
+          title={c}
+          onClick={() => set(c)}
+          className={cx(swatch, current === c && "outline-ink outline-2 outline-offset-2")}
+          style={{ background: c }}
+        />
+      ))}
+      <label className={cx(swatch, "relative cursor-pointer overflow-hidden bg-[conic-gradient(#e66,#ec6,#6c6,#6ce,#c6e,#e66)]")} title={t("background")}>
+        <input
+          type="color"
+          className="absolute inset-0 cursor-pointer opacity-0"
+          aria-label={t("background")}
+          value={st.bg.kind === "color" ? st.bg.color : "#FFFFFF"}
+          onChange={(e) => set(e.target.value.toUpperCase())}
+        />
+      </label>
+    </div>
+  );
+}
+
+/* ---------- round 13: the Images section's settings ---------- */
+
+function ImagesSettings({
+  block,
+  set,
+  k,
+  media,
+  openPicker,
+}: {
+  block: BlockOf<"images">;
+  set: (patch: Partial<BlockOf<"images">>, key?: string) => void;
+  k: (s: string) => string;
+  media: Record<string, SiteMedia>;
+  openPicker: (kind: MediaKind, done: (id: string) => void) => void;
+}) {
+  const t = useTranslations("editor.images");
+  const items = block.items;
+  const move = (i: number, d: number) => {
+    const j = i + d;
+    if (j < 0 || j >= items.length) return;
+    const next = [...items];
+    [next[i], next[j]] = [next[j], next[i]];
+    set({ items: next });
+  };
+  const thumb = (id: string | null, tone: string) => {
+    const m = id ? media[id] : null;
+    const src = m ? imageSources(m, 400, "/api/media/")?.src : null;
+    return src ? (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={src} alt="" className="size-12 flex-none rounded-[8px] object-cover" />
+    ) : (
+      <span className="size-12 flex-none rounded-[8px]" style={{ background: toneFill(tone) }} />
+    );
+  };
+  return (
+    <>
+      <div className="flex flex-col gap-2">
+        <span className="text-[12px] font-semibold">{t("layout")}</span>
+        <div role="radiogroup" aria-label={t("layout")} className="grid grid-cols-4 gap-1.5">
+          {(["grid", "masonry", "rows", "slideshow"] as const).map((l) => (
+            <button
+              key={l}
+              type="button"
+              role="radio"
+              aria-checked={block.layout === l}
+              onClick={() => set({ layout: l, ...(l === "masonry" || l === "rows" ? { ratio: "original" as const } : block.ratio === "original" ? { ratio: "4:3" as const } : {}) })}
+              className={cx(
+                "flex flex-col items-center gap-1 rounded-[10px] border p-1.5 text-[11px] font-semibold",
+                block.layout === l ? "border-ink bg-mist" : "border-line hover:bg-mist",
+              )}
+              data-testid={`images-layout-${l}`}
+            >
+              <LayoutGlyph layout={l} />
+              {t(`layouts.${l}`)}
+            </button>
+          ))}
+        </div>
+      </div>
+      {block.layout !== "slideshow" && <Range title={t("columns")} value={block.columns} min={1} max={6} onChange={(v) => set({ columns: v })} />}
+      <Range title={t("gap")} value={block.gap} min={0} max={64} unit="px" onChange={(v) => set({ gap: v }, k("gap"))} />
+      {block.layout !== "rows" && (
+        <Choice
+          title={t("ratio")}
+          value={block.ratio}
+          options={[
+            ["original", "↕"],
+            ["1:1", "1:1"],
+            ["4:3", "4:3"],
+            ["2:3", "2:3"],
+            ["16:9", "16:9"],
+          ]}
+          onChange={(v) => set({ ratio: v })}
+        />
+      )}
+      <Switch title={t("captions")} checked={block.captions} onChange={(v) => set({ captions: v })} />
+      <Text title={t("heading")} value={block.heading} onChange={(v) => set({ heading: v }, k("h"))} />
+      <div className="border-line flex flex-col gap-2 border-t pt-3" data-testid="images-manage">
+        <span className="text-[13px] font-semibold">
+          {t("manage")} <span className="text-muted font-normal">· {t("count", { n: items.filter((i) => i.mediaId).length })}</span>
+        </span>
+        <p className="text-muted text-[12px]">{t("drop")}</p>
+        <ul className="m-0 flex list-none flex-col gap-1.5 p-0">
+          {items.map((it, i) => (
+            <li key={it.id} className="border-line flex items-center gap-2 rounded-[10px] border p-1.5" data-testid="images-row">
+              <button
+                type="button"
+                className="flex-none"
+                aria-label={t("add")}
+                onClick={() => openPicker("image", (id) => set({ items: items.map((x, j) => (j === i ? { ...x, mediaId: id, crop: undefined } : x)) }))}
+              >
+                {thumb(it.mediaId, it.tone)}
+              </button>
+              <input
+                className={cx(inputCls, "h-8 min-w-0 flex-1 text-[12px]")}
+                placeholder={t("caption")}
+                aria-label={t("caption")}
+                value={it.caption}
+                onChange={(e) => set({ items: items.map((x, j) => (j === i ? { ...x, caption: e.target.value } : x)) }, k(`cap-${i}`))}
+              />
+              <span className="flex flex-none flex-col">
+                <button type="button" className="text-muted hover:text-ink px-1 text-[11px]" aria-label={t("up")} onClick={() => move(i, -1)} disabled={i === 0}>
+                  ▲
+                </button>
+                <button type="button" className="text-muted hover:text-ink px-1 text-[11px]" aria-label={t("down")} onClick={() => move(i, 1)} disabled={i === items.length - 1}>
+                  ▼
+                </button>
+              </span>
+              <button
+                type="button"
+                className="text-muted hover:text-ink flex size-8 flex-none items-center justify-center rounded-full"
+                aria-label={t("remove")}
+                title={t("remove")}
+                onClick={() => set({ items: items.filter((_, j) => j !== i) })}
+              >
+                <Icon name="delete" size={16} />
+              </button>
+            </li>
+          ))}
+        </ul>
+        {items.length < 60 && (
+          <Button
+            size="sm"
+            variant="outline"
+            icon="add"
+            onClick={() => openPicker("image", (id) => set({ items: [...items, { id: newId(), mediaId: id, tone: sampleTone(items.length), caption: "" }] }))}
+          >
+            {t("add")}
+          </Button>
+        )}
+      </div>
+    </>
+  );
+}
+
+function LayoutGlyph({ layout }: { layout: "grid" | "masonry" | "rows" | "slideshow" }) {
+  const R = (x: number, y: number, w: number, h: number) => <rect key={`${x}-${y}`} x={x} y={y} width={w} height={h} rx={1.5} fill="currentColor" />;
+  const shapes = {
+    grid: [R(1, 1, 8, 8), R(11, 1, 8, 8), R(21, 1, 8, 8), R(1, 11, 8, 8), R(11, 11, 8, 8), R(21, 11, 8, 8)],
+    masonry: [R(1, 1, 8, 11), R(11, 1, 8, 7), R(21, 1, 8, 9), R(1, 14, 8, 5), R(11, 10, 8, 9), R(21, 12, 8, 7)],
+    rows: [R(1, 1, 12, 8), R(15, 1, 6, 8), R(23, 1, 6, 8), R(1, 11, 7, 8), R(10, 11, 19, 8)],
+    slideshow: [R(4, 2, 22, 16), R(0, 5, 2, 10), R(28, 5, 2, 10)],
+  };
+  return (
+    <svg viewBox="0 0 30 20" className="h-5 w-8" aria-hidden>
+      {shapes[layout]}
+    </svg>
   );
 }
 

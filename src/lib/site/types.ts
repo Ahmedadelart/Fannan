@@ -86,11 +86,29 @@ export interface SectionStyle {
 
 type B<T extends string, P> = { id: string; type: T; style?: SectionStyle } & P;
 
+/** Round 13: how a placed picture is framed (the file itself never changes). x/y: focus point in %, zoom: 1–3. */
+export interface Crop {
+  x: number;
+  y: number;
+  zoom: number;
+}
+
+/** Round 13: one picture in an Images section. */
+export interface ImageItem {
+  id: string;
+  mediaId: string | null;
+  tone: string;
+  caption: string;
+  crop?: Crop;
+}
+
+export type ImagesLayout = "grid" | "masonry" | "rows" | "slideshow";
+
 export type GalleryLayout = "grid" | "masonry" | "slider" | "fullscreen";
 export type ThumbRatio = "16:9" | "4:3" | "1:1" | "2:3" | "original";
 
 export type Block =
-  | B<"cover", { mediaId: string | null; tone: string; heading: string; subheading: string; height: "full" | "large" }>
+  | B<"cover", { mediaId: string | null; tone: string; heading: string; subheading: string; height: "full" | "large"; crop?: Crop }>
   | B<"text", { text: string; align: "start" | "center"; size: "body" | "large" }>
   | B<"hero", { text: string; align: "start" | "center" }>
   | B<"columns", { items: Array<{ heading: string; text: string }> }>
@@ -116,7 +134,20 @@ export type Block =
         samples: SampleArt[];
       }
     >
-  | B<"image", { mediaId: string | null; tone: string; caption: string; fullWidth: boolean }>
+  | B<"image", { mediaId: string | null; tone: string; caption: string; fullWidth: boolean; crop?: Crop; showCaption?: boolean }>
+  | B<
+      "images",
+      {
+        heading: string;
+        items: ImageItem[];
+        layout: ImagesLayout;
+        columns: number;
+        /** Space between pictures, px. */
+        gap: number;
+        ratio: ThumbRatio;
+        captions: boolean;
+      }
+    >
   | B<"video", { url: string; caption: string }>
   | B<"loop", { mediaId: string | null; caption: string }>
   | B<"before-after", { beforeId: string | null; afterId: string | null; beforeLabel: string; afterLabel: string }>
@@ -349,6 +380,8 @@ export interface FreeItem {
   /** Shape fill, button background, line colour; null follows the theme. */
   fill: string | null;
   mediaId: string | null;
+  /** Round 13: framing of the picture (image items). */
+  crop?: Crop;
   fit: "cover" | "contain";
   /** Corner radius in px. */
   radius: number;
