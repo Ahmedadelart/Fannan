@@ -244,18 +244,28 @@ export function ProjectEditor({
 
   function addFiles(files: FileList | File[], replaceId?: string) {
     setProblem(null);
+    const accepted: Array<{ f: File; type: string }> = [];
     for (const f of Array.from(files)) {
       const type = fileType(f);
       const bad = localCheck(f, type);
-      if (bad) {
-        setProblem(`${f.name}: ${errorText(bad)}`);
-        continue;
-      }
-      queue.current.push(async () => {
-        const start = await beginUpload(p.id, { name: f.name, type, size: f.size }, replaceId);
+      if (bad) setProblem(`${f.name}: ${errorText(bad)}`);
+      else accepted.push({ f, type });
+    }
+    // Register every file right away so each one shows up at once; only the transfer and the
+    // web versions wait for a free slot. Server Actions run one at a time per browser, so
+    // registering inside the queue would put file 4 behind file 1's whole processing.
+    const starts = accepted.map(({ f, type }) =>
+      beginUpload(p.id, { name: f.name, type, size: f.size }, replaceId).catch(() => ({
+        ok: false as const,
+        error: "error" as const,
+      })),
+    );
+    void (async () => {
+      for (const [i, { f }] of accepted.entries()) {
+        const start = await starts[i];
         if (!start.ok) {
           setProblem(`${f.name}: ${errorText(start.error)}`);
-          return;
+          continue;
         }
         const id = start.mediaId;
         if (replaceId) patchItem(id, { status: "uploading", progress: 0, problem: undefined });
@@ -276,28 +286,37 @@ export function ProjectEditor({
           setItems((list) => [...list, placeholder]);
           setSelectedId((s) => s ?? id);
         }
-        try {
-          await put(start.uploadUrl, f, start.contentType, (n) => patchItem(id, { progress: n }));
-        } catch {
-          patchItem(id, { status: "failed", problem: errorText("error") });
-          return;
-        }
-        patchItem(id, { status: "processing", progress: 100 });
-        const done = await completeUpload(id).catch(() => ({ ok: false as const, error: "error" as const }));
-        if (done.ok) {
-          setItems((list) => list.map((m) => (m.id === id ? (done.media as Item) : m)));
-          setP((x) => ({
-            ...x,
-            media: x.media.includes(id) ? x.media : [...x.media, id],
-            coverMediaId: x.coverMediaId ?? id,
-          }));
-        } else {
-          patchItem(id, { status: replaceId ? "ready" : "failed", problem: errorText(done.error) });
-          setProblem(`${f.name}: ${errorText(done.error)}`);
-        }
-      });
+        queue.current.push(() => transfer(f, start, replaceId));
+        pump();
+      }
+    })();
+  }
+
+  async function transfer(
+    f: File,
+    start: { mediaId: string; uploadUrl: string; contentType: string },
+    replaceId?: string,
+  ) {
+    const id = start.mediaId;
+    try {
+      await put(start.uploadUrl, f, start.contentType, (n) => patchItem(id, { progress: n }));
+    } catch {
+      patchItem(id, { status: "failed", problem: errorText("error") });
+      return;
     }
-    pump();
+    patchItem(id, { status: "processing", progress: 100 });
+    const done = await completeUpload(id).catch(() => ({ ok: false as const, error: "error" as const }));
+    if (done.ok) {
+      setItems((list) => list.map((m) => (m.id === id ? (done.media as Item) : m)));
+      setP((x) => ({
+        ...x,
+        media: x.media.includes(id) ? x.media : [...x.media, id],
+        coverMediaId: x.coverMediaId ?? id,
+      }));
+    } else {
+      patchItem(id, { status: replaceId ? "ready" : "failed", problem: errorText(done.error) });
+      setProblem(`${f.name}: ${errorText(done.error)}`);
+    }
   }
 
   function onDrop(e: DragEvent) {

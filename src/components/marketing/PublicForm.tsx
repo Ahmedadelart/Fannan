@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { cx } from "@/lib/cx";
 
 // One form for fannan.net's contact, report and copyright pages. Posts JSON to /api/report with
@@ -22,6 +22,8 @@ export interface FormText {
   error: string;
 }
 
+const noop = () => () => {};
+
 const input =
   "border-line bg-paper text-ink h-11 w-full rounded-md border px-3 text-[15px] focus:border-primary focus-visible:shadow-none";
 
@@ -42,6 +44,13 @@ export function PublicForm({
   const widget = useRef<HTMLDivElement>(null);
   const widgetId = useRef<string | undefined>(undefined);
   const [armed, setArmed] = useState(false);
+  // Until React takes over, a click would make the browser send the form itself (a page reload
+  // that drops what was typed), so the button waits for the page to be ready.
+  const ready = useSyncExternalStore(
+    noop,
+    () => true,
+    () => false,
+  );
   const arm = () => {
     if (turnstileKey && !armed) setArmed(true);
   };
@@ -167,7 +176,7 @@ export function PublicForm({
       )}
       <button
         type="submit"
-        disabled={state === "sending"}
+        disabled={!ready || state === "sending"}
         className="bg-primary text-on-primary rounded-pill font-medium hover:brightness-110 h-12 self-start px-6 disabled:opacity-50"
       >
         {state === "sending" ? text.sending : text.submit}
