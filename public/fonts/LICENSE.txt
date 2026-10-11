@@ -1,0 +1,4 @@
+The fonts in this folder are licensed under the SIL Open Font License, Version 1.1
+(https://openfontlicense.org). They come from Google Fonts via Fontsource; each font's
+copyright notice is in its Fontsource package (node_modules/@fontsource*/<font>/LICENSE).
+The list of fonts is in config/fonts.json.

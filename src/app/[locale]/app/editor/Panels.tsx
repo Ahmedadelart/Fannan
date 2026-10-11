@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { moveTo, startSortDrag } from "@/components/editor/sortDrag";
 import { ScaledSite } from "@/components/site/ScaledSite";
 import { SiteRender, type GalleryProject, type SiteMedia } from "@/components/site/SiteRender";
-import { arabicFonts, bodyFonts, headingFonts, siteFontVars } from "@/components/site/fonts";
+import { arabicFonts, headingFonts } from "@/components/site/fonts";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Toggle } from "@/components/ui/Controls";
@@ -30,6 +30,9 @@ import { freeBottom } from "@/lib/site/free";
 import { hasOwnPage } from "@/lib/site/pages";
 import { linksBlock } from "@/lib/site/links";
 import { LinksSettings } from "./LinksSettings";
+import { FontPicker } from "@/components/editor/FontPicker";
+
+const noPreview = () => {};
 import type {
   Block,
   BlockOf,
@@ -618,7 +621,7 @@ function NavSketch({ nav }: { nav: NavLayout }) {
   }
 }
 
-export type DesignSection = "logo" | "nav" | "styles" | "footer" | "lock";
+export type DesignSection = "logo" | "nav" | "styles" | "fonts" | "footer" | "lock";
 
 export function StyleTab({
   draft,
@@ -627,6 +630,7 @@ export function StyleTab({
   openPicker,
   section,
   credit,
+  onFontPreview,
 }: {
   draft: SiteDraft;
   media: Record<string, SiteMedia>;
@@ -634,11 +638,24 @@ export function StyleTab({
   openPicker: (kind: MediaKind, done: (id: string) => void) => void;
   section: DesignSection;
   credit?: boolean;
+  /** Round 12: shows fonts on the page while pointing at them in the picker. */
+  onFontPreview?: (fonts: Theme["fonts"] | null) => void;
 }) {
   const t = useTranslations("editor.style");
   const th = draft.theme;
   const setTheme = (patch: Partial<Theme>, key?: string) =>
     setDraft((d) => ({ ...d, theme: { ...d.theme, ...patch } }), key);
+
+  if (section === "fonts") {
+    return (
+      <FontPicker
+        fonts={th.fonts}
+        siteName={draft.title}
+        onChange={(fonts) => setTheme({ fonts })}
+        onPreview={onFontPreview ?? noPreview}
+      />
+    );
+  }
 
   if (section === "logo") {
     return (
@@ -768,57 +785,6 @@ export function StyleTab({
               />
               {t(c)}
             </label>
-          ))}
-        </div>
-      </div>
-      <Label title={t("headingFont")}>
-        <select
-          className={inputCls}
-          value={th.fonts.heading}
-          onChange={(e) => setTheme({ fonts: { ...th.fonts, heading: e.target.value as Theme["fonts"]["heading"] } })}
-        >
-          {Object.entries(headingFonts).map(([id, f]) => (
-            <option key={id} value={id}>
-              {f.label}
-            </option>
-          ))}
-        </select>
-      </Label>
-      <Label title={t("bodyFont")}>
-        <select
-          className={inputCls}
-          value={th.fonts.body}
-          onChange={(e) => setTheme({ fonts: { ...th.fonts, body: e.target.value as Theme["fonts"]["body"] } })}
-        >
-          {Object.entries(bodyFonts).map(([id, f]) => (
-            <option key={id} value={id}>
-              {f.label}
-            </option>
-          ))}
-        </select>
-      </Label>
-      {/* Arabic fonts, each shown in its own letters. */}
-      <div className="flex flex-col gap-2" role="radiogroup" aria-label={t("arabicFont")}>
-        <span className="text-[13px] font-semibold">{t("arabicFont")}</span>
-        <div className={cx("grid grid-cols-2 gap-2", siteFontVars)}>
-          {Object.entries(arabicFonts).map(([id, f]) => (
-            <button
-              key={id}
-              type="button"
-              role="radio"
-              aria-checked={th.fonts.arabic === id}
-              aria-label={f.label}
-              onClick={() => setTheme({ fonts: { ...th.fonts, arabic: id as Theme["fonts"]["arabic"] } })}
-              className={cx(
-                "flex flex-col items-start gap-1 rounded-[10px] border px-3 py-2 text-start",
-                th.fonts.arabic === id ? "border-lime border-2" : "border-line hover:border-line-strong",
-              )}
-            >
-              <span dir="rtl" className="w-full text-[20px] leading-tight" style={{ fontFamily: f.family, fontWeight: 700 }}>
-                فنان
-              </span>
-              <span className="text-muted text-[11px]">{f.label}</span>
-            </button>
           ))}
         </div>
       </div>

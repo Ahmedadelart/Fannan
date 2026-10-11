@@ -108,7 +108,10 @@ test("the Arabic font applies on any site, and lime keeps dark text in the dark 
 
   // English site: picking Marhey puts it in the font stack for Arabic words.
   await page.getByRole("button", { name: "Design" }).click();
-  await page.getByRole("radio", { name: "Marhey" }).click();
+  await page.getByRole("button", { name: "Fonts", exact: true }).click();
+  await page.getByTestId("fonts-tab-arabicBody").click();
+  await page.getByTestId("font-search").fill("marhey");
+  await page.getByTestId("font-marhey").click();
   const stack = await canvas(page)
     .locator(".site-root")
     .first()

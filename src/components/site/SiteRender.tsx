@@ -3,11 +3,9 @@ import { dirFor, type Locale } from "@/i18n/locales";
 import { cx } from "@/lib/cx";
 import { imageSources, posterSources, type MediaLike } from "@/lib/media";
 import type {
-  ArabicFont,
   Block,
   BlockOf,
   FreeItem,
-  HeadingFont,
   LinkItem,
   PageDraft,
   ProjectCard,
@@ -20,7 +18,7 @@ import { InlineText } from "@/components/editor/InlineText";
 import { CONTACT_WORDS, contactFormOf, type LegacyContactFields } from "@/lib/site/contact";
 import { normalizeFooter, normalizeHeader } from "@/lib/site/normalize";
 import { isSampleTone, toneFill } from "@/lib/site/samples";
-import { arabicFonts, bodyFonts, headingFonts, siteFontVars } from "./fonts";
+import { FONTS, fontOf, fontStack, siteFontVars } from "./fonts";
 import { SOCIAL_PATHS, socialPath } from "./socialIcons";
 import { embedSrc, linkShowsOn, networkOf, todayKey } from "@/lib/site/links";
 import { EDGE_PATHS } from "./edges";
@@ -208,7 +206,8 @@ function PlayMark() {
 const heading = (size: number): CSSProperties => ({
   fontFamily: "var(--site-heading)",
   fontWeight: "var(--site-heading-weight)" as unknown as number,
-  fontSize: size,
+  fontSize: `calc(${size}px * var(--site-heading-scale, 1))`,
+  textTransform: "var(--site-heading-case, none)" as CSSProperties["textTransform"],
   lineHeight: 1.1,
   letterSpacing: "-0.01em",
   margin: 0,
@@ -448,7 +447,8 @@ export function freeItemStyle(it: FreeItem, order: number): CSSProperties {
     ["--y" as string]: it.place.y + 1,
     ["--w" as string]: it.place.w,
     ["--h" as string]: it.place.h,
-    ["--fs" as string]: it.size,
+    // Headings follow the theme's heading size (Design → Fonts → size).
+    ["--fs" as string]: it.font === "heading" ? `calc(${it.size} * var(--site-heading-scale, 1))` : it.size,
     ["--ord" as string]: order,
     zIndex: it.z,
     opacity: it.opacity / 100,
@@ -494,12 +494,13 @@ const paint = (a: string, b: string | null) => (b ? `linear-gradient(135deg, ${a
 /** Typography shared by the text-like items (text, heading, button, quote, list). */
 function itemType(it: FreeItem): CSSProperties {
   return {
-    fontFamily: it.font === "heading" ? "var(--site-heading)" : "var(--site-body)",
+    // "heading" / "body" follow the theme; any other value is a chosen font (round 12).
+    fontFamily: it.font === "heading" ? "var(--site-heading)" : it.font === "body" ? "var(--site-body)" : `${fontStack(fontOf(it.font, "inter"))}, var(--site-body)`,
     fontWeight: it.weight,
+    textTransform: it.upper ? "uppercase" : it.font === "heading" ? ("var(--site-heading-case, none)" as CSSProperties["textTransform"]) : undefined,
     lineHeight: it.lineHeight / 100,
     // Arabic letters join, so letter spacing only applies to Latin text (the site sets lang).
     letterSpacing: it.tracking ? `${it.tracking / 100}em` : undefined,
-    textTransform: it.upper ? "uppercase" : undefined,
     fontStyle: it.italic ? "italic" : undefined,
     textShadow: it.deco.textShadow ? "0 2px 12px rgba(0,0,0,.35)" : undefined,
   };
@@ -2270,11 +2271,8 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
     ) : null;
   const partClass = cx(ctx.editing && "site-block", selected && "site-block-selected");
   const logo = theme.logoMediaId ? ctx.media[theme.logoMediaId] : null;
-  const logoFont = settings.logoFont
-    ? settings.logoFont in headingFonts
-      ? { fontFamily: headingFonts[settings.logoFont as HeadingFont].family, fontWeight: headingFonts[settings.logoFont as HeadingFont].weight }
-      : { fontFamily: arabicFonts[settings.logoFont as ArabicFont].family, fontWeight: 700 }
-    : null;
+  const lf = settings.logoFont ? FONTS[settings.logoFont] : null;
+  const logoFont = lf ? { fontFamily: fontStack(lf), fontWeight: lf.headingWeight, textTransform: "none" as const } : null;
   const titleStyle = (size: number): CSSProperties => ({ ...heading(size), ...logoFont });
   // Project menu items open the project; they disappear while the project is hidden or deleted.
   const projectSlug = (p: PageDraft) => ctx.projects?.find((x) => x.id === p.projectId && x.visibility !== "hidden")?.slug;
@@ -2535,7 +2533,10 @@ export function SiteRender({
     social,
   };
   const arabic = site.language === "ar";
-  const h = headingFonts[theme.fonts.heading];
+  const h = fontOf(theme.fonts.heading, "space-grotesk");
+  const b = fontOf(theme.fonts.body, "plex");
+  const ar = fontOf(theme.fonts.arabic, "plex-arabic");
+  const arBody = fontOf(theme.fonts.arabicBody ?? theme.fonts.arabic, "plex-arabic");
   const vars = {
     "--site-bg": theme.colors.background,
     "--site-text": theme.colors.text,
@@ -2550,13 +2551,11 @@ export function SiteRender({
     "--site-radius": `${theme.radius}px`,
     // The chosen Arabic font is always in the stack: Arabic sites lead with it, and on English
     // sites any Arabic words fall through the Latin font (which has no Arabic letters) to it.
-    "--site-heading": arabic
-      ? `${arabicFonts[theme.fonts.arabic].family}, ${h.family}, sans-serif`
-      : `${h.family}, ${arabicFonts[theme.fonts.arabic].family}, system-ui, sans-serif`,
-    "--site-heading-weight": arabic ? 700 : h.weight,
-    "--site-body": arabic
-      ? `${arabicFonts[theme.fonts.arabic].family}, ${bodyFonts[theme.fonts.body].family}, system-ui`
-      : `${bodyFonts[theme.fonts.body].family}, ${arabicFonts[theme.fonts.arabic].family}, system-ui, sans-serif`,
+    "--site-heading": arabic ? `${ar.family}, ${h.family}, sans-serif` : `${h.family}, ${ar.family}, ${fontStack(h)}`,
+    "--site-heading-weight": arabic ? ar.headingWeight : (theme.fonts.headingWeight ?? h.headingWeight),
+    "--site-heading-case": theme.fonts.headingUpper && !arabic ? "uppercase" : "none",
+    "--site-heading-scale": { s: 0.85, m: 1, l: 1.18 }[theme.fonts.headingScale ?? "m"],
+    "--site-body": arabic ? `${arBody.family}, ${b.family}, system-ui` : `${b.family}, ${arBody.family}, ${fontStack(b)}`,
   } as CSSProperties;
 
   const body = content ? (

@@ -1044,7 +1044,8 @@
       "nav": "Site navigation",
       "styles": "Global styles",
       "footer": "Footer",
-      "lock": "Password page"
+      "lock": "Password page",
+      "fonts": "Fonts"
     },
     "statsText": "See who visits your site, which projects they look at and where they come from.",
     "openStats": "Open stats",
@@ -1514,6 +1515,55 @@
       "pickHint": "Drawing works on free-form sections (most designs in the library are). Click one on your page, or add a blank one.",
       "addSection": "Add a blank section to draw on",
       "drawingHere": "Drawing on this section"
+    },
+    "fonts": {
+      "title": "Fonts",
+      "tabs": {
+        "pairs": "Pairs",
+        "heading": "Headings",
+        "body": "Text",
+        "arabic": "Arabic headings",
+        "arabicBody": "Arabic text"
+      },
+      "bodySample": "I design characters and tell stories for film, TV and games.",
+      "search": "Search fonts",
+      "none": "No fonts match.",
+      "cats": {
+        "all": "All",
+        "sans": "Sans",
+        "serif": "Serif",
+        "display": "Display",
+        "handwritten": "Handwritten",
+        "mono": "Mono",
+        "modern": "Modern",
+        "classic": "Classic"
+      },
+      "pairs": {
+        "gallery": "Gallery",
+        "bold": "Bold",
+        "editorial": "Editorial",
+        "elegant": "Elegant",
+        "classic": "Classic",
+        "poster": "Poster",
+        "cinema": "Cinema",
+        "studio": "Studio",
+        "modern": "Modern",
+        "magazine": "Magazine",
+        "friendly": "Friendly",
+        "handmade": "Handmade",
+        "sketchbook": "Sketchbook",
+        "retro": "Retro",
+        "quiet": "Quiet",
+        "technical": "Technical"
+      },
+      "weight": "Heading weight",
+      "size": "Heading size",
+      "sizes": {
+        "s": "Smaller",
+        "m": "Normal",
+        "l": "Bigger"
+      },
+      "upper": "Headings in CAPITALS"
     }
   },
   "inbox": {

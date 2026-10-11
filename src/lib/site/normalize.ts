@@ -3,6 +3,7 @@
 
 import { isSampleTone, upgradeTone } from "./samples";
 import { defaultDeco } from "./deco";
+import { isFont } from "@/components/site/fonts";
 import { normalizeDrawing } from "./drawing";
 import { defaultSectionStyle } from "./style";
 
@@ -62,17 +63,14 @@ export function normalizeTheme(raw: unknown): Theme {
       accent: color(colors.accent, p.colors.accent),
     },
     fonts: {
-      heading: pick(
-        oldHeading[fonts.heading as string] ?? fonts.heading,
-        ["bricolage", "fraunces", "syne", "space-grotesk", "instrument-serif"],
-        p.fonts.heading,
-      ),
-      body: pick(
-        fonts.body === "sans" || fonts.body === "serif" ? "plex" : fonts.body,
-        ["plex", "dm-sans", "work-sans"],
-        p.fonts.body,
-      ),
-      arabic: pick(fonts.arabic, ["plex-arabic", "marhey", "readex", "alexandria"], p.fonts.arabic),
+      // Any font from the registry (round 12); old ids are the same fonts.
+      heading: ((h) => (isFont(h, "latin") ? h : p.fonts.heading))(oldHeading[fonts.heading as string] ?? fonts.heading),
+      body: ((b) => (isFont(b, "latin") ? b : p.fonts.body))(fonts.body === "sans" || fonts.body === "serif" ? "plex" : fonts.body),
+      arabic: isFont(fonts.arabic, "arabic") ? fonts.arabic : p.fonts.arabic,
+      ...(isFont(fonts.arabicBody, "arabic") ? { arabicBody: fonts.arabicBody } : {}),
+      ...(typeof fonts.headingWeight === "number" ? { headingWeight: num(fonts.headingWeight, 100, 900, 600) } : {}),
+      ...(fonts.headingUpper === true ? { headingUpper: true } : {}),
+      ...(fonts.headingScale === "s" || fonts.headingScale === "l" ? { headingScale: fonts.headingScale } : {}),
     },
     radius: num(t.radius, 0, 24, p.radius),
     nav: pick(oldNav[t.nav as string] ?? t.nav, ["top", "centered", "sidebar", "split", "minimal"], p.nav),
@@ -567,11 +565,7 @@ export function normalizeHeader(raw: unknown): HeaderSettings {
     social: bool(h.social),
     logoSize: num(h.logoSize, 20, 140, 40),
     titleSize: num(h.titleSize, 14, 72, 26),
-    logoFont: (["bricolage", "fraunces", "syne", "space-grotesk", "instrument-serif", "plex-arabic", "marhey", "readex", "alexandria"] as const).includes(
-      h.logoFont as never,
-    )
-      ? (h.logoFont as HeaderSettings["logoFont"])
-      : null,
+    logoFont: isFont(h.logoFont) ? h.logoFont : null,
     upperLinks: bool(h.upperLinks),
     gradientTo: HEX.test(String(h.gradientTo)) ? String(h.gradientTo).toUpperCase() : null,
   };

@@ -5,15 +5,27 @@ import type { Locale } from "@/i18n/locales";
 
 export type LayoutId = "reel" | "grid" | "storyteller" | "minimalist";
 export type ThemePreset = "gallery" | "studio" | "paper" | "lime" | "night" | "sand";
-export type HeadingFont = "bricolage" | "fraunces" | "syne" | "space-grotesk" | "instrument-serif";
-export type BodyFont = "plex" | "dm-sans" | "work-sans";
-export type ArabicFont = "plex-arabic" | "marhey" | "readex" | "alexandria";
+/** Font ids from config/fonts.json (round 12: 60 fonts). Headings and body take Latin fonts. */
+export type HeadingFont = string;
+export type BodyFont = string;
+export type ArabicFont = string;
 export type NavLayout = "top" | "centered" | "sidebar" | "split" | "minimal";
 
 export interface Theme {
   preset: ThemePreset;
   colors: { background: string; text: string; accent: string };
-  fonts: { heading: HeadingFont; body: BodyFont; arabic: ArabicFont };
+  fonts: {
+    heading: HeadingFont;
+    body: BodyFont;
+    /** Arabic headings (and Arabic body text when arabicBody isn't set). */
+    arabic: ArabicFont;
+    /** Round 12: a separate Arabic font for body text. */
+    arabicBody?: ArabicFont;
+    /** Round 12: heading fine-tuning. */
+    headingWeight?: number;
+    headingUpper?: boolean;
+    headingScale?: "s" | "m" | "l";
+  };
   /** Corner radius in px, 0–24. */
   radius: number;
   nav: NavLayout;

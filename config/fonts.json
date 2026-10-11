@@ -1,0 +1,741 @@
+{
+  "_note": "Fonts artists can choose (round 12). All SIL Open Font License, from Fontsource (Google Fonts). Run `npm run fonts` after changing this file: it copies the files into public/fonts and writes src/styles/fonts.generated.css and src/components/site/fonts.generated.ts.",
+  "pairs": [
+    {
+      "id": "gallery",
+      "heading": "space-grotesk",
+      "body": "plex",
+      "arabic": "plex-arabic",
+      "arabicBody": "plex-arabic"
+    },
+    {
+      "id": "bold",
+      "heading": "bricolage",
+      "body": "inter",
+      "arabic": "lalezar",
+      "arabicBody": "cairo"
+    },
+    {
+      "id": "editorial",
+      "heading": "fraunces",
+      "body": "lora",
+      "arabic": "amiri",
+      "arabicBody": "noto-naskh"
+    },
+    {
+      "id": "elegant",
+      "heading": "playfair",
+      "body": "manrope",
+      "arabic": "el-messiri",
+      "arabicBody": "tajawal"
+    },
+    {
+      "id": "classic",
+      "heading": "eb-garamond",
+      "body": "libre-baskerville",
+      "arabic": "scheherazade",
+      "arabicBody": "markazi"
+    },
+    {
+      "id": "poster",
+      "heading": "anton",
+      "body": "work-sans",
+      "arabic": "rakkas",
+      "arabicBody": "almarai"
+    },
+    {
+      "id": "cinema",
+      "heading": "bebas",
+      "body": "dm-sans",
+      "arabic": "changa",
+      "arabicBody": "readex"
+    },
+    {
+      "id": "studio",
+      "heading": "syne",
+      "body": "outfit",
+      "arabic": "reem-kufi",
+      "arabicBody": "alexandria"
+    },
+    {
+      "id": "modern",
+      "heading": "unbounded",
+      "body": "sora",
+      "arabic": "kufam",
+      "arabicBody": "noto-kufi"
+    },
+    {
+      "id": "magazine",
+      "heading": "dm-serif",
+      "body": "plus-jakarta",
+      "arabic": "el-messiri",
+      "arabicBody": "cairo"
+    },
+    {
+      "id": "friendly",
+      "heading": "fredoka",
+      "body": "rubik",
+      "arabic": "lemonada",
+      "arabicBody": "tajawal"
+    },
+    {
+      "id": "handmade",
+      "heading": "caveat",
+      "body": "kalam",
+      "arabic": "aref-ruqaa",
+      "arabicBody": "readex"
+    },
+    {
+      "id": "sketchbook",
+      "heading": "permanent-marker",
+      "body": "work-sans",
+      "arabic": "marhey",
+      "arabicBody": "alexandria"
+    },
+    {
+      "id": "retro",
+      "heading": "shrikhand",
+      "body": "poppins",
+      "arabic": "lalezar",
+      "arabicBody": "almarai"
+    },
+    {
+      "id": "quiet",
+      "heading": "instrument-serif",
+      "body": "dm-sans",
+      "arabic": "markazi",
+      "arabicBody": "plex-arabic"
+    },
+    {
+      "id": "technical",
+      "heading": "space-mono",
+      "body": "jetbrains-mono",
+      "arabic": "noto-kufi",
+      "arabicBody": "plex-arabic"
+    }
+  ],
+  "fonts": [
+    {
+      "id": "inter",
+      "name": "Inter",
+      "script": "latin",
+      "category": "sans",
+      "package": "@fontsource-variable/inter",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "manrope",
+      "name": "Manrope",
+      "script": "latin",
+      "category": "sans",
+      "package": "@fontsource-variable/manrope",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "dm-sans",
+      "name": "DM Sans",
+      "script": "latin",
+      "category": "sans",
+      "package": "@fontsource-variable/dm-sans",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "work-sans",
+      "name": "Work Sans",
+      "script": "latin",
+      "category": "sans",
+      "package": "@fontsource-variable/work-sans",
+      "variable": true,
+      "headingWeight": 600
+    },
+    {
+      "id": "plus-jakarta",
+      "name": "Plus Jakarta Sans",
+      "script": "latin",
+      "category": "sans",
+      "package": "@fontsource-variable/plus-jakarta-sans",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "outfit",
+      "name": "Outfit",
+      "script": "latin",
+      "category": "sans",
+      "package": "@fontsource-variable/outfit",
+      "variable": true,
+      "headingWeight": 600
+    },
+    {
+      "id": "sora",
+      "name": "Sora",
+      "script": "latin",
+      "category": "sans",
+      "package": "@fontsource-variable/sora",
+      "variable": true,
+      "headingWeight": 600
+    },
+    {
+      "id": "rubik",
+      "name": "Rubik",
+      "script": "latin",
+      "category": "sans",
+      "package": "@fontsource-variable/rubik",
+      "variable": true,
+      "headingWeight": 600
+    },
+    {
+      "id": "space-grotesk",
+      "name": "Space Grotesk",
+      "script": "latin",
+      "category": "sans",
+      "package": "@fontsource-variable/space-grotesk",
+      "variable": true,
+      "headingWeight": 600
+    },
+    {
+      "id": "plex",
+      "name": "IBM Plex Sans",
+      "script": "latin",
+      "category": "sans",
+      "package": "@fontsource-variable/ibm-plex-sans",
+      "variable": true,
+      "headingWeight": 600
+    },
+    {
+      "id": "archivo",
+      "name": "Archivo",
+      "script": "latin",
+      "category": "sans",
+      "package": "@fontsource-variable/archivo",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "montserrat",
+      "name": "Montserrat",
+      "script": "latin",
+      "category": "sans",
+      "package": "@fontsource-variable/montserrat",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "poppins",
+      "name": "Poppins",
+      "script": "latin",
+      "category": "sans",
+      "package": "@fontsource/poppins",
+      "variable": false,
+      "headingWeight": 600,
+      "weights": [
+        400,
+        600,
+        700
+      ]
+    },
+    {
+      "id": "fraunces",
+      "name": "Fraunces",
+      "script": "latin",
+      "category": "serif",
+      "package": "@fontsource-variable/fraunces",
+      "variable": true,
+      "headingWeight": 600
+    },
+    {
+      "id": "playfair",
+      "name": "Playfair Display",
+      "script": "latin",
+      "category": "serif",
+      "package": "@fontsource-variable/playfair-display",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "lora",
+      "name": "Lora",
+      "script": "latin",
+      "category": "serif",
+      "package": "@fontsource-variable/lora",
+      "variable": true,
+      "headingWeight": 600
+    },
+    {
+      "id": "eb-garamond",
+      "name": "EB Garamond",
+      "script": "latin",
+      "category": "serif",
+      "package": "@fontsource-variable/eb-garamond",
+      "variable": true,
+      "headingWeight": 500
+    },
+    {
+      "id": "cormorant",
+      "name": "Cormorant",
+      "script": "latin",
+      "category": "serif",
+      "package": "@fontsource-variable/cormorant",
+      "variable": true,
+      "headingWeight": 600
+    },
+    {
+      "id": "libre-baskerville",
+      "name": "Libre Baskerville",
+      "script": "latin",
+      "category": "serif",
+      "package": "@fontsource-variable/libre-baskerville",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "instrument-serif",
+      "name": "Instrument Serif",
+      "script": "latin",
+      "category": "serif",
+      "package": "@fontsource/instrument-serif",
+      "variable": false,
+      "headingWeight": 400,
+      "weights": [
+        400
+      ]
+    },
+    {
+      "id": "young-serif",
+      "name": "Young Serif",
+      "script": "latin",
+      "category": "serif",
+      "package": "@fontsource/young-serif",
+      "variable": false,
+      "headingWeight": 400,
+      "weights": [
+        400
+      ]
+    },
+    {
+      "id": "dm-serif",
+      "name": "DM Serif Display",
+      "script": "latin",
+      "category": "serif",
+      "package": "@fontsource/dm-serif-display",
+      "variable": false,
+      "headingWeight": 400,
+      "weights": [
+        400
+      ]
+    },
+    {
+      "id": "bricolage",
+      "name": "Bricolage Grotesque",
+      "script": "latin",
+      "category": "display",
+      "package": "@fontsource-variable/bricolage-grotesque",
+      "variable": true,
+      "headingWeight": 800
+    },
+    {
+      "id": "syne",
+      "name": "Syne",
+      "script": "latin",
+      "category": "display",
+      "package": "@fontsource-variable/syne",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "unbounded",
+      "name": "Unbounded",
+      "script": "latin",
+      "category": "display",
+      "package": "@fontsource-variable/unbounded",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "anton",
+      "name": "Anton",
+      "script": "latin",
+      "category": "display",
+      "package": "@fontsource/anton",
+      "variable": false,
+      "headingWeight": 400,
+      "weights": [
+        400
+      ]
+    },
+    {
+      "id": "bebas",
+      "name": "Bebas Neue",
+      "script": "latin",
+      "category": "display",
+      "package": "@fontsource/bebas-neue",
+      "variable": false,
+      "headingWeight": 400,
+      "weights": [
+        400
+      ]
+    },
+    {
+      "id": "archivo-black",
+      "name": "Archivo Black",
+      "script": "latin",
+      "category": "display",
+      "package": "@fontsource/archivo-black",
+      "variable": false,
+      "headingWeight": 400,
+      "weights": [
+        400
+      ]
+    },
+    {
+      "id": "big-shoulders",
+      "name": "Big Shoulders",
+      "script": "latin",
+      "category": "display",
+      "package": "@fontsource-variable/big-shoulders-display",
+      "variable": true,
+      "headingWeight": 800
+    },
+    {
+      "id": "abril",
+      "name": "Abril Fatface",
+      "script": "latin",
+      "category": "display",
+      "package": "@fontsource/abril-fatface",
+      "variable": false,
+      "headingWeight": 400,
+      "weights": [
+        400
+      ]
+    },
+    {
+      "id": "shrikhand",
+      "name": "Shrikhand",
+      "script": "latin",
+      "category": "display",
+      "package": "@fontsource/shrikhand",
+      "variable": false,
+      "headingWeight": 400,
+      "weights": [
+        400
+      ]
+    },
+    {
+      "id": "righteous",
+      "name": "Righteous",
+      "script": "latin",
+      "category": "display",
+      "package": "@fontsource/righteous",
+      "variable": false,
+      "headingWeight": 400,
+      "weights": [
+        400
+      ]
+    },
+    {
+      "id": "fredoka",
+      "name": "Fredoka",
+      "script": "latin",
+      "category": "display",
+      "package": "@fontsource-variable/fredoka",
+      "variable": true,
+      "headingWeight": 600
+    },
+    {
+      "id": "caveat",
+      "name": "Caveat",
+      "script": "latin",
+      "category": "handwritten",
+      "package": "@fontsource-variable/caveat",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "kalam",
+      "name": "Kalam",
+      "script": "latin",
+      "category": "handwritten",
+      "package": "@fontsource/kalam",
+      "variable": false,
+      "headingWeight": 700,
+      "weights": [
+        400,
+        700
+      ]
+    },
+    {
+      "id": "permanent-marker",
+      "name": "Permanent Marker",
+      "script": "latin",
+      "category": "handwritten",
+      "package": "@fontsource/permanent-marker",
+      "variable": false,
+      "headingWeight": 400,
+      "weights": [
+        400
+      ]
+    },
+    {
+      "id": "gochi",
+      "name": "Gochi Hand",
+      "script": "latin",
+      "category": "handwritten",
+      "package": "@fontsource/gochi-hand",
+      "variable": false,
+      "headingWeight": 400,
+      "weights": [
+        400
+      ]
+    },
+    {
+      "id": "space-mono",
+      "name": "Space Mono",
+      "script": "latin",
+      "category": "mono",
+      "package": "@fontsource/space-mono",
+      "variable": false,
+      "headingWeight": 700,
+      "weights": [
+        400,
+        700
+      ]
+    },
+    {
+      "id": "jetbrains-mono",
+      "name": "JetBrains Mono",
+      "script": "latin",
+      "category": "mono",
+      "package": "@fontsource-variable/jetbrains-mono",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "plex-arabic",
+      "name": "IBM Plex Sans Arabic",
+      "script": "arabic",
+      "category": "modern",
+      "package": "@fontsource/ibm-plex-sans-arabic",
+      "variable": false,
+      "headingWeight": 700,
+      "weights": [
+        400,
+        600,
+        700
+      ]
+    },
+    {
+      "id": "readex",
+      "name": "Readex Pro",
+      "script": "arabic",
+      "category": "modern",
+      "package": "@fontsource-variable/readex-pro",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "alexandria",
+      "name": "Alexandria",
+      "script": "arabic",
+      "category": "modern",
+      "package": "@fontsource-variable/alexandria",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "cairo",
+      "name": "Cairo",
+      "script": "arabic",
+      "category": "modern",
+      "package": "@fontsource-variable/cairo",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "tajawal",
+      "name": "Tajawal",
+      "script": "arabic",
+      "category": "modern",
+      "package": "@fontsource/tajawal",
+      "variable": false,
+      "headingWeight": 700,
+      "weights": [
+        400,
+        700,
+        800
+      ]
+    },
+    {
+      "id": "almarai",
+      "name": "Almarai",
+      "script": "arabic",
+      "category": "modern",
+      "package": "@fontsource/almarai",
+      "variable": false,
+      "headingWeight": 700,
+      "weights": [
+        400,
+        700,
+        800
+      ]
+    },
+    {
+      "id": "changa",
+      "name": "Changa",
+      "script": "arabic",
+      "category": "modern",
+      "package": "@fontsource-variable/changa",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "noto-kufi",
+      "name": "Noto Kufi Arabic",
+      "script": "arabic",
+      "category": "modern",
+      "package": "@fontsource-variable/noto-kufi-arabic",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "reem-kufi",
+      "name": "Reem Kufi",
+      "script": "arabic",
+      "category": "modern",
+      "package": "@fontsource-variable/reem-kufi",
+      "variable": true,
+      "headingWeight": 600
+    },
+    {
+      "id": "kufam",
+      "name": "Kufam",
+      "script": "arabic",
+      "category": "modern",
+      "package": "@fontsource-variable/kufam",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "amiri",
+      "name": "Amiri",
+      "script": "arabic",
+      "category": "classic",
+      "package": "@fontsource/amiri",
+      "variable": false,
+      "headingWeight": 700,
+      "weights": [
+        400,
+        700
+      ]
+    },
+    {
+      "id": "noto-naskh",
+      "name": "Noto Naskh Arabic",
+      "script": "arabic",
+      "category": "classic",
+      "package": "@fontsource-variable/noto-naskh-arabic",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "markazi",
+      "name": "Markazi Text",
+      "script": "arabic",
+      "category": "classic",
+      "package": "@fontsource-variable/markazi-text",
+      "variable": true,
+      "headingWeight": 600
+    },
+    {
+      "id": "scheherazade",
+      "name": "Scheherazade New",
+      "script": "arabic",
+      "category": "classic",
+      "package": "@fontsource/scheherazade-new",
+      "variable": false,
+      "headingWeight": 700,
+      "weights": [
+        400,
+        700
+      ]
+    },
+    {
+      "id": "el-messiri",
+      "name": "El Messiri",
+      "script": "arabic",
+      "category": "display",
+      "package": "@fontsource-variable/el-messiri",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "lalezar",
+      "name": "Lalezar",
+      "script": "arabic",
+      "category": "display",
+      "package": "@fontsource/lalezar",
+      "variable": false,
+      "headingWeight": 400,
+      "weights": [
+        400
+      ]
+    },
+    {
+      "id": "rakkas",
+      "name": "Rakkas",
+      "script": "arabic",
+      "category": "display",
+      "package": "@fontsource/rakkas",
+      "variable": false,
+      "headingWeight": 400,
+      "weights": [
+        400
+      ]
+    },
+    {
+      "id": "lemonada",
+      "name": "Lemonada",
+      "script": "arabic",
+      "category": "display",
+      "package": "@fontsource-variable/lemonada",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "marhey",
+      "name": "Marhey",
+      "script": "arabic",
+      "category": "display",
+      "package": "@fontsource-variable/marhey",
+      "variable": true,
+      "headingWeight": 700
+    },
+    {
+      "id": "aref-ruqaa",
+      "name": "Aref Ruqaa",
+      "script": "arabic",
+      "category": "handwritten",
+      "package": "@fontsource/aref-ruqaa",
+      "variable": false,
+      "headingWeight": 700,
+      "weights": [
+        400,
+        700
+      ]
+    },
+    {
+      "id": "katibeh",
+      "name": "Katibeh",
+      "script": "arabic",
+      "category": "handwritten",
+      "package": "@fontsource/katibeh",
+      "variable": false,
+      "headingWeight": 400,
+      "weights": [
+        400
+      ]
+    }
+  ]
+}

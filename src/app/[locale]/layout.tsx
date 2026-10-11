@@ -5,6 +5,8 @@ import { setRequestLocale } from "next-intl/server";
 import { dirFor, isLocale, locales } from "@/i18n/locales";
 import { ToastProvider } from "@/components/ui/Toast";
 import "../globals.css";
+// Fonts artists can choose (round 12); each downloads only when a page uses it.
+import "@/styles/fonts.generated.css";
 
 // Fonts ship with the app (src/fonts, SIL Open Font License): Google Fonts sometimes serves files
 // the build can't read, which broke deploys.

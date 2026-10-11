@@ -1,90 +1,57 @@
-// Fonts artists can choose in the Style tab. Declared once; the browser only downloads the ones a
-// site actually uses. Bricolage, IBM Plex Sans/Arabic and Marhey come from the root layout.
-// Latin fonts get no Arial stand-in (adjustFontFallback: false): Arial has Arabic letters and would
-// otherwise draw Arabic text before the chosen Arabic font is reached in the stack.
-import localFont from "next/font/local";
-import type { ArabicFont, BodyFont, HeadingFont } from "@/lib/site/types";
+// Fonts artists can choose (round 12): 60 open fonts, English and Arabic, from config/fonts.json.
+// Their @font-face rules are in src/styles/fonts.generated.css (loaded once for every surface); a
+// browser downloads a font only when a page uses it. Pure: safe on the server and in the browser.
 
-const fraunces = localFont({
-  src: "../../fonts/fraunces-latin-600-normal.woff2",
-  weight: "600",
-  variable: "--font-fraunces",
-  preload: false,
-  adjustFontFallback: false,
-});
-const syne = localFont({
-  src: "../../fonts/syne-latin-700-normal.woff2",
-  weight: "700",
-  variable: "--font-syne",
-  preload: false,
-  adjustFontFallback: false,
-});
-const spaceGrotesk = localFont({
-  src: "../../fonts/space-grotesk-latin-600-normal.woff2",
-  weight: "600",
-  variable: "--font-space-grotesk",
-  preload: false,
-  adjustFontFallback: false,
-});
-const instrumentSerif = localFont({
-  src: "../../fonts/instrument-serif-latin-400-normal.woff2",
-  weight: "400",
-  variable: "--font-instrument-serif",
-  preload: false,
-  adjustFontFallback: false,
-});
-const dmSans = localFont({
-  src: [
-    { path: "../../fonts/dm-sans-latin-400-normal.woff2", weight: "400" },
-    { path: "../../fonts/dm-sans-latin-600-normal.woff2", weight: "600" },
-  ],
-  variable: "--font-dm-sans",
-  preload: false,
-  adjustFontFallback: false,
-});
-const workSans = localFont({
-  src: [
-    { path: "../../fonts/work-sans-latin-400-normal.woff2", weight: "400" },
-    { path: "../../fonts/work-sans-latin-600-normal.woff2", weight: "600" },
-  ],
-  variable: "--font-work-sans",
-  preload: false,
-  adjustFontFallback: false,
-});
-const readex = localFont({
-  src: "../../fonts/readex-pro-arabic-wght-normal.woff2",
-  weight: "160 700",
-  variable: "--font-readex",
-  preload: false,
-});
-const alexandria = localFont({
-  src: "../../fonts/alexandria-arabic-wght-normal.woff2",
-  weight: "100 900",
-  variable: "--font-alexandria",
-  preload: false,
-});
+import { FONT_LIST, FONT_PAIRS } from "./fonts.generated";
 
-export const siteFontVars = [fraunces, syne, spaceGrotesk, instrumentSerif, dmSans, workSans, readex, alexandria]
-  .map((f) => f.variable)
-  .join(" ");
+export type FontScript = "latin" | "arabic";
 
-export const headingFonts: Record<HeadingFont, { family: string; weight: number; label: string }> = {
-  bricolage: { family: "var(--font-bricolage)", weight: 800, label: "Bricolage Grotesque" },
-  fraunces: { family: "var(--font-fraunces)", weight: 600, label: "Fraunces" },
-  syne: { family: "var(--font-syne)", weight: 700, label: "Syne" },
-  "space-grotesk": { family: "var(--font-space-grotesk)", weight: 600, label: "Space Grotesk" },
-  "instrument-serif": { family: "var(--font-instrument-serif)", weight: 400, label: "Instrument Serif" },
-};
+export interface FontInfo {
+  id: string;
+  name: string;
+  script: FontScript;
+  category: string;
+  /** A CSS font-family value (quoted). */
+  family: string;
+  /** The weight that looks best for headings. */
+  headingWeight: number;
+  /** Variable fonts: [lightest, heaviest]; others: the weights there are. */
+  weights: readonly number[];
+  variable: boolean;
+}
 
-export const bodyFonts: Record<BodyFont, { family: string; label: string }> = {
-  plex: { family: "var(--font-plex)", label: "IBM Plex Sans" },
-  "dm-sans": { family: "var(--font-dm-sans)", label: "DM Sans" },
-  "work-sans": { family: "var(--font-work-sans)", label: "Work Sans" },
-};
+export const FONTS: Record<string, FontInfo> = Object.fromEntries(FONT_LIST.map((f) => [f.id, f as unknown as FontInfo]));
+export const LATIN_FONTS = FONT_LIST.filter((f) => f.script === "latin") as unknown as FontInfo[];
+export const ARABIC_FONTS = FONT_LIST.filter((f) => f.script === "arabic") as unknown as FontInfo[];
+export const PAIRS = FONT_PAIRS as unknown as Array<{ id: string; heading: string; body: string; arabic: string; arabicBody: string }>;
 
-export const arabicFonts: Record<ArabicFont, { family: string; label: string }> = {
-  "plex-arabic": { family: "var(--font-plex-arabic)", label: "IBM Plex Sans Arabic" },
-  marhey: { family: "var(--font-marhey)", label: "Marhey" },
-  readex: { family: "var(--font-readex)", label: "Readex Pro" },
-  alexandria: { family: "var(--font-alexandria)", label: "Alexandria" },
-};
+export const LATIN_CATEGORIES = ["sans", "serif", "display", "handwritten", "mono"] as const;
+export const ARABIC_CATEGORIES = ["modern", "classic", "display", "handwritten"] as const;
+
+export const isFont = (id: unknown, script?: FontScript): id is string =>
+  typeof id === "string" && !!FONTS[id] && (!script || FONTS[id].script === script);
+
+/** A font by id, or the fallback when the id isn't known. */
+export function fontOf(id: string | null | undefined, fallback: string): FontInfo {
+  return (id && FONTS[id]) || FONTS[fallback] || LATIN_FONTS[0];
+}
+
+/** The font stack for a font: the font, then a generic family that suits it. */
+export function fontStack(f: FontInfo): string {
+  const generic = f.category === "serif" || f.category === "classic" ? "serif" : f.category === "mono" ? "monospace" : "sans-serif";
+  return `${f.family}, ${generic}`;
+}
+
+/** No longer needed (fonts load from the generated stylesheet); kept so older imports still work. */
+export const siteFontVars = "";
+
+// Older names, still used across the app: every Latin font can be a heading or body font.
+export const headingFonts: Record<string, { family: string; weight: number; label: string }> = Object.fromEntries(
+  LATIN_FONTS.map((f) => [f.id, { family: f.family, weight: f.headingWeight, label: f.name }]),
+);
+export const bodyFonts: Record<string, { family: string; label: string }> = Object.fromEntries(
+  LATIN_FONTS.map((f) => [f.id, { family: f.family, label: f.name }]),
+);
+export const arabicFonts: Record<string, { family: string; label: string }> = Object.fromEntries(
+  ARABIC_FONTS.map((f) => [f.id, { family: f.family, label: f.name }]),
+);
