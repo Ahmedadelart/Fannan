@@ -24,6 +24,7 @@ import { DoodlePanel, defaultTools, finishSession, startSession, type DoodleSess
 import { FreeEditor, KIND_ICONS } from "@/components/editor/FreeEditor";
 import { PicTools, type PicTarget } from "@/components/editor/PicTools";
 import { TextToolbar } from "@/components/editor/TextToolbar";
+import { watchLoops } from "@/components/site/loops";
 import { LanguageButton, LogoutButton } from "../(dash)/DashClient";
 import { SiteEnhancer } from "@/components/site/live/SiteEnhancer";
 import { CONTACT_WORDS, contactFormOf, type LegacyContactFields } from "@/lib/site/contact";
@@ -1058,6 +1059,8 @@ export function Editor({
   /* ---------- round 13: pictures dropped, replaced or cropped right on the canvas ---------- */
 
   const canvasWrap = useRef<HTMLDivElement>(null);
+  // Loops (GIFs) on the canvas play when they're in view, like on the live site.
+  useEffect(() => watchLoops(document), []);
   const splitTarget = (target: PicTarget) => {
     const [blockId, path] = target.split("|");
     return { blockId, path };

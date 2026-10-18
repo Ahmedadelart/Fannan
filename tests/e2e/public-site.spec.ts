@@ -163,9 +163,9 @@ test("the published site: pages, projects, lightbox, contact form, sitemap, draf
   // GIFs play as looping videos now; the draft file's address is the video's.
   const draftImg = await page
     .getByTestId("canvas")
-    .locator("video[src*='/api/media/variants/']")
+    .locator("video[data-loop-src*='/api/media/variants/']")
     .last()
-    .getAttribute("src");
+    .getAttribute("data-loop-src");
   await expect(page.getByTestId("editor-status")).toHaveText("Unpublished changes", { timeout: 10_000 });
   await visitor.goto(at(username));
   await expect(visitor.getByText("Draft-only words")).toHaveCount(0);

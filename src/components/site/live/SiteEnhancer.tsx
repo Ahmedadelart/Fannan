@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { watchLoops } from "../loops";
 import { parseVideoLink, videoEmbedUrl } from "@/lib/video";
 
 // Small behaviours for public artist sites, attached to markers the server-rendered page carries
@@ -171,6 +172,9 @@ export function SiteEnhancer({ protectImages, closeLabel }: { protectImages: boo
         if (e.key === "ArrowRight") set(pct + (rtl ? -5 : 5));
       });
     });
+
+    // Looping videos load and play only near the screen.
+    cleanups.push(watchLoops(document));
 
     // Loops in galleries play while the pointer is over them.
     document.querySelectorAll<HTMLElement>("[data-hover-loop]").forEach((el) => {

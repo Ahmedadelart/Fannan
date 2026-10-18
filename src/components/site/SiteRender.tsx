@@ -126,7 +126,24 @@ export function readableOn(hex: string): string {
     const s = c / 255;
     return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
   });
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.4 ? "#141414" : "#FFFFFF";
+  const l = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  // Whichever reads better: near-black (#141414, luminance ≈ 0.007) or white.
+  return (l + 0.05) / 0.057 >= 1.05 / (l + 0.05) ? "#141414" : "#FFFFFF";
+}
+
+/** The cover's round button: a link when it has somewhere to go, otherwise just the label. */
+function CoverButton({ href, children }: { href?: string; children: ReactNode }) {
+  const cls = "inline-flex h-14 items-center gap-3 rounded-full ps-2 pe-6 font-semibold no-underline";
+  const style = { background: "#FFFFFF", color: "#111111" };
+  return href ? (
+    <a href={href} className={cls} style={style}>
+      {children}
+    </a>
+  ) : (
+    <span className={cls} style={style}>
+      {children}
+    </span>
+  );
 }
 
 const lum = (hex: string) => {
@@ -195,13 +212,12 @@ function Picture({
   if (m?.type === "gif" && m.loop && !still) {
     return (
       <video
-        src={`${base}${m.loop}`}
+        data-loop-src={`${base}${m.loop}`}
         poster={posterSources(m, want, base)?.src}
         muted
         loop
-        autoPlay
         playsInline
-        preload="metadata"
+        preload="none"
         aria-label={alt ?? m.alt ?? undefined}
         className={cx("block h-full w-full object-cover", className)}
         style={{
@@ -461,13 +477,12 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
         >
           {b.loopPlay === "always" && t.m?.loop ? (
             <video
-              src={`${ctx.base}${t.m.loop}`}
+              data-loop-src={`${ctx.base}${t.m.loop}`}
               poster={posterSources(t.m, 800, ctx.base)?.src}
               muted
               loop
-              autoPlay
               playsInline
-              preload="metadata"
+              preload="none"
               aria-label={t.title}
               className="block h-full w-full object-cover"
               style={{ aspectRatio: tileRatio ?? t.ratio ?? (t.m.width && t.m.height ? `${t.m.width} / ${t.m.height}` : undefined) }}
@@ -1863,7 +1878,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
         >
           {img && (
             <div className="absolute inset-0">
-              <Picture m={img} base={ctx.base} want={2560} className="h-full w-full !rounded-none" ratio="auto" crop={b.crop} pic={ctx.editing ? `${ctx.blockId}|mediaId` : undefined} />
+              <Picture m={img} base={ctx.base} want={2560} className="h-full w-full !rounded-none" ratio="auto" crop={b.crop} eager={(ctx.index ?? 9) <= 1} pic={ctx.editing ? `${ctx.blockId}|mediaId` : undefined} />
             </div>
           )}
           <div
@@ -1882,19 +1897,14 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
               <T ctx={ctx} path="subheading" value={b.subheading} as="p" className="m-0 text-[18px] opacity-85" />
             </div>
             {(b.button || (ctx.onText && ctx.selectedBlockId === ctx.blockId)) && (
-              <a
-                href={ctx.live ? b.link || undefined : undefined}
-                className="inline-flex h-14 items-center gap-3 rounded-full ps-2 pe-6 font-semibold no-underline"
-                style={{ background: "#FFFFFF", color: "#111111" }}
-                onClick={ctx.live ? undefined : (e) => e.preventDefault()}
-              >
+              <CoverButton href={ctx.live ? b.link : undefined}>
                 <span className="flex size-[42px] items-center justify-center rounded-full" style={{ background: "var(--site-accent)" }} aria-hidden>
                   <svg width="16" height="16" viewBox="0 0 24 24">
                     <path d="M8 5l12 7-12 7z" fill="var(--site-on-accent)" />
                   </svg>
                 </span>
                 <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path="button" value={b.button ?? ""} />
-              </a>
+              </CoverButton>
             )}
           </div>
         </div>
