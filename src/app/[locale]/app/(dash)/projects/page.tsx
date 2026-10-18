@@ -20,9 +20,14 @@ export default async function ProjectsPage({ params, searchParams }: PageProps<"
   setRequestLocale(locale);
   const t = await getTranslations("projects");
   const { site, limits } = await loadDashboard();
-  const projects = await listProjects(site.id);
+  const all = await listProjects(site.id);
+  const sp0 = await searchParams;
+  // Tags as filters: one click shows, say, every project tagged "needs-role".
+  const tag = typeof sp0.tag === "string" ? sp0.tag.toLowerCase() : "";
+  const tags = [...new Set(all.flatMap((p) => p.tags.map((x) => x.toLowerCase())))].sort();
+  const projects = tag ? all.filter((p) => p.tags.some((x) => x.toLowerCase() === tag)) : all;
   const limit = limits.projects;
-  const atLimit = limit !== null && projects.length >= limit;
+  const atLimit = limit !== null && all.length >= limit;
   const sp = await searchParams;
   const labels = {
     live: t("badge.live"),
@@ -47,10 +52,10 @@ export default async function ProjectsPage({ params, searchParams }: PageProps<"
         <div role="status" className="bg-lime flex flex-wrap items-center justify-between gap-3 rounded-lg p-4">
           <div className="flex flex-col">
             <span className="font-heading font-heading-weight text-[18px]">
-              {t("limitTitle", { count: projects.length, limit })}
+              {t("limitTitle", { count: all.length, limit })}
             </span>
             <span className="text-[14px]">{t("limitText", { price: await priceLabel(locale) })}</span>
-            {projects.length > limit && (
+            {all.length > limit && (
               <span className="text-[14px]" data-testid="over-limit">
                 {t("overLimit", { limit })}
               </span>
@@ -60,6 +65,21 @@ export default async function ProjectsPage({ params, searchParams }: PageProps<"
             {t("upgrade")}
           </a>
         </div>
+      )}
+
+      {tags.length > 0 && (
+        <nav aria-label={t("tagsLabel")} className="flex flex-wrap gap-1.5" data-testid="project-tags">
+          {["", ...tags].map((x) => (
+            <a
+              key={x || "all"}
+              href={x ? `/projects?tag=${encodeURIComponent(x)}` : "/projects"}
+              aria-current={x === tag ? "page" : undefined}
+              className={x === tag ? "bg-lime text-on-lime rounded-pill px-3 py-1.5 text-[13px] font-semibold" : "bg-mist text-ink-soft hover:text-ink rounded-pill px-3 py-1.5 text-[13px] font-semibold"}
+            >
+              {x ? `#${x}` : t("allTags", { count: all.length })}
+            </a>
+          ))}
+        </nav>
       )}
 
       {projects.length === 0 ? (

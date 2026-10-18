@@ -6,6 +6,7 @@ import { limitsFor, plansConfig } from "@/config/plans";
 import { slugify } from "@/config/usernames";
 import { adminDb } from "@/lib/firebase/admin";
 import type { ProjectCard } from "@/lib/site/types";
+import { cleanExtras, parseRows, type MediaUse, type ProjectExtras } from "@/lib/site/projectExtras";
 import { parseVideoLink } from "@/lib/video";
 import { getUser, userPlan, type SiteDoc } from "./data";
 import { processMedia, type ProcessKind, type ProcessResult, type Variants } from "./processor";
@@ -18,7 +19,7 @@ export type Visibility = "public" | "password" | "hidden";
 export type MediaType = "image" | "gif" | "svg" | "loop" | "pdf" | "embed" | "text";
 export type MediaStatus = "uploading" | "processing" | "ready" | "failed";
 
-export interface ProjectDoc {
+export interface ProjectDoc extends ProjectExtras {
   title: string;
   slug: string;
   category: string;
@@ -64,7 +65,7 @@ export interface MediaDoc {
   caption: string;
   alt: string;
   crop?: { x: number; y: number; w: number; h: number } | null;
-  display: { fullWidth: boolean; lightbox: boolean; autoplay: boolean };
+  display: { fullWidth: boolean; lightbox: boolean; autoplay: boolean; use?: MediaUse };
   embed?: { provider: "youtube" | "vimeo"; id: string; url: string; poster: string | null; title: string } | null;
   text?: string;
   /** Text items with a headline start a new part of the project (round 8). */
@@ -146,6 +147,7 @@ export interface ProjectSummary {
   published: boolean;
   items: number;
   cover: MediaDoc | null;
+  tags: string[];
 }
 
 export async function listProjects(siteId: string): Promise<ProjectSummary[]> {
@@ -163,6 +165,7 @@ export async function listProjects(siteId: string): Promise<ProjectSummary[]> {
     published: !!p.publishedAt,
     items: p.media.length,
     cover: byId.get(p.coverMediaId ?? p.media[0] ?? "") ?? null,
+    tags: p.tags ?? [],
   }));
 }
 
@@ -326,6 +329,13 @@ export interface ProjectPatch {
   mature?: boolean;
   cardSize?: ProjectCard["size"];
   cardText?: ProjectCard["text"];
+  /** Extra fields: network, video link, detail / credit / thanks rows as "Label: value" lines, tools comma-separated. */
+  network?: string;
+  video?: string;
+  details?: string;
+  credits?: string;
+  thanks?: string;
+  tools?: string;
 }
 
 export async function updateProject(o: Owner, projectId: string, patch: ProjectPatch): Promise<{ slug: string }> {
@@ -349,6 +359,12 @@ export async function updateProject(o: Owner, projectId: string, patch: ProjectP
   if (patch.arRole !== undefined) u["ar.role"] = text(patch.arRole, 160) ?? "";
   if (patch.arDescription !== undefined) u["ar.description"] = text(patch.arDescription, 4000) ?? "";
   if (patch.mature !== undefined) u.mature = !!patch.mature;
+  if (patch.network !== undefined) u.network = cleanExtras({ network: patch.network }).network ?? "";
+  if (patch.video !== undefined) u.video = cleanExtras({ video: patch.video }).video ?? "";
+  for (const k of ["details", "credits", "thanks"] as const) {
+    if (patch[k] !== undefined) u[k] = cleanExtras({ [k]: parseRows(String(patch[k])) })[k] ?? [];
+  }
+  if (patch.tools !== undefined) u.tools = cleanExtras({ tools: String(patch.tools).split(/[,،]/) }).tools ?? [];
   if (patch.cardSize !== undefined || patch.cardText !== undefined) {
     const was = project.card ?? { size: "m", text: "title" };
     u.card = {
@@ -685,6 +701,7 @@ export async function updateMedia(
     for (const k of ["fullWidth", "lightbox", "autoplay"] as const) {
       if (patch.display[k] !== undefined) u[`display.${k}`] = !!patch.display[k];
     }
+    if (patch.display.use !== undefined) u["display.use"] = (["gallery", "logo", "laurel"] as const).includes(patch.display.use) ? patch.display.use : "gallery";
   }
   if (Object.keys(u).length) await ref.update(u);
 }

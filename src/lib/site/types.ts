@@ -4,7 +4,7 @@
 import type { Locale } from "@/i18n/locales";
 
 export type LayoutId = "reel" | "grid" | "storyteller" | "minimalist";
-export type ThemePreset = "gallery" | "studio" | "paper" | "lime" | "night" | "sand";
+export type ThemePreset = "gallery" | "studio" | "paper" | "lime" | "night" | "sand" | "orange";
 /** Font ids from config/fonts.json (round 12: 60 fonts). Headings and body take Latin fonts. */
 export type HeadingFont = string;
 export type BodyFont = string;
@@ -110,7 +110,55 @@ export type ThumbHover = "none" | "zoom" | "title" | "lift";
 export type ThumbRatio = "16:9" | "4:3" | "1:1" | "2:3" | "original";
 
 export type Block =
-  | B<"cover", { mediaId: string | null; tone: string; heading: string; subheading: string; height: "full" | "large"; crop?: Crop }>
+  | B<
+      "cover",
+      {
+        mediaId: string | null;
+        tone: string;
+        heading: string;
+        subheading: string;
+        height: "full" | "large";
+        crop?: Crop;
+        /** Small line above the heading ("Cairo · Animation"). */
+        eyebrow?: string;
+        /** A round button at the bottom ("Watch reel") and where it goes. */
+        button?: string;
+        link?: string;
+        /** Inside the page width with rounded corners, instead of edge to edge. */
+        inset?: boolean;
+      }
+    >
+  | B<
+      "header",
+      {
+        /** Optional section number ("01"), shown small in the accent colour. */
+        number: string;
+        title: string;
+        subtitle: string;
+        /** A logo shown in place of the title (the title stays as its alt text). */
+        logoId: string | null;
+        /** A small pill ("Directed by me"). */
+        badge: string;
+        divider: boolean;
+        size: "m" | "l";
+      }
+    >
+  | B<
+      "feature",
+      {
+        /** One project shown inline: its video, logos, role, words, laurels and tools. */
+        projectId: string | null;
+        words: "all" | "short" | "none";
+        logos: boolean;
+        laurels: boolean;
+        tools: boolean;
+        credits: boolean;
+        /** Picture behind the whole block (white words over it). */
+        bgMediaId: string | null;
+        /** Video on the start side or the end side. */
+        side: "start" | "end";
+      }
+    >
   | B<"text", { text: string; align: "start" | "center"; size: "body" | "large" }>
   | B<"hero", { text: string; align: "start" | "center" }>
   | B<"columns", { items: Array<{ heading: string; text: string }> }>
@@ -129,6 +177,15 @@ export type Block =
         hoverPlay: boolean;
         /** Round 13: what a cover does under the pointer. Not set: a light fade. */
         hover?: ThumbHover;
+        /** Caption lines under each cover, in order (not set: the older title + credits switches). */
+        lines?: Array<"network" | "client" | "role" | "studio" | "year">;
+        /** Show the role line in the accent colour. */
+        accentRole?: boolean;
+        /** Grid: posters in one row, landscape covers in the next (wideColumns across). */
+        split?: boolean;
+        wideColumns?: number;
+        /** Loops on covers: play under the pointer (default) or all the time. */
+        loopPlay?: "hover" | "always";
         filter: boolean;
         /** Round 8: each project's own card size and text, instead of one size for all. */
         cardSizes?: boolean;
@@ -158,9 +215,21 @@ export type Block =
   | B<"pdf", { mediaId: string | null; label: string }>
   | B<"reel", { url: string; mediaId: string | null; title: string; tone: string }>
   | B<"credits", { heading: string; items: Array<{ year: string; title: string; role: string; studio: string }> }>
-  | B<"logos", { heading: string; items: Array<{ name: string; mediaId: string | null }> }>
+  | B<
+      "logos",
+      {
+        heading: string;
+        items: Array<{ name: string; mediaId: string | null }>;
+        /** A colour band behind the logos (null: none). */
+        band?: string | null;
+        /** Logos as they are, or all white / all black. */
+        tint?: "original" | "white" | "black";
+        /** All logos in one even row. */
+        oneRow?: boolean;
+      }
+    >
   | B<"about", { heading: string; text: string; photoId: string | null; cvId: string | null }>
-  | B<"contact", { heading: string; text: string; button: string; form?: ContactForm }>
+  | B<"contact", { heading: string; text: string; button: string; form?: ContactForm; /** An illustration beside the form. */ mediaId?: string | null }>
   | B<"hire", { text: string }>
   | B<"social", { links: Array<{ network: string; url: string }> }>
   | B<"quote", { text: string; author: string }>
@@ -215,6 +284,7 @@ export interface LinksSection {
 export type CardVariant =
   | "icons"
   | "images"
+  | "tiles"
   | "stats"
   | "faq"
   | "mosaic"

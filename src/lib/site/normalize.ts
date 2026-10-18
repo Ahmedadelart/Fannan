@@ -177,7 +177,7 @@ export function normalizeSectionStyle(raw: unknown): SectionStyle {
   };
 }
 
-const CARD_VARIANTS = ["icons", "images", "stats", "faq", "mosaic", "nav", "marquee", "testimonials", "timeline", "press", "films", "offers"] as const;
+const CARD_VARIANTS = ["icons", "images", "tiles", "stats", "faq", "mosaic", "nav", "marquee", "testimonials", "timeline", "press", "films", "offers"] as const;
 
 function normalizeCards(id: string, b: Any): Block {
   return {
@@ -225,6 +225,35 @@ function normalizeBlockBody(raw: unknown): Block | null {
         subheading: str(b.subheading, 300),
         height: pick(b.height, ["full", "large"], "large"),
         ...normalizeCrop(b.crop),
+        ...(str(b.eyebrow, 120) ? { eyebrow: str(b.eyebrow, 120) } : {}),
+        ...(str(b.button, 60) ? { button: str(b.button, 60) } : {}),
+        ...(b.link ? { link: safeLink(b.link) } : {}),
+        ...(b.inset === true ? { inset: true } : {}),
+      };
+    case "header":
+      return {
+        id,
+        type: "header",
+        number: str(b.number, 8),
+        title: str(b.title, 160),
+        subtitle: str(b.subtitle, 200),
+        logoId: idOrNull(b.logoId),
+        badge: str(b.badge, 40),
+        divider: bool(b.divider, true),
+        size: pick(b.size, ["m", "l"], "m"),
+      };
+    case "feature":
+      return {
+        id,
+        type: "feature",
+        projectId: idOrNull(b.projectId),
+        words: pick(b.words, ["all", "short", "none"], "short"),
+        logos: bool(b.logos, true),
+        laurels: bool(b.laurels, true),
+        tools: bool(b.tools, true),
+        credits: bool(b.credits),
+        bgMediaId: idOrNull(b.bgMediaId),
+        side: pick(b.side, ["start", "end"], "start"),
       };
     case "text":
       return {
@@ -257,6 +286,12 @@ function normalizeBlockBody(raw: unknown): Block | null {
         credits: bool(b.credits, true),
         hoverPlay: bool(b.hoverPlay, true),
         ...(["zoom", "title", "lift", "none"].includes(b.hover as string) ? { hover: b.hover as "zoom" } : {}),
+        ...(Array.isArray(b.lines)
+          ? { lines: [...new Set((b.lines as unknown[]).filter((x): x is "role" => ["network", "client", "role", "studio", "year"].includes(x as string)))] }
+          : {}),
+        ...(b.accentRole === true ? { accentRole: true } : {}),
+        ...(b.split === true ? { split: true, wideColumns: num(b.wideColumns, 1, 4, 2) } : {}),
+        ...(b.loopPlay === "always" ? { loopPlay: "always" as const } : {}),
         filter: bool(b.filter),
         ...(b.cardSizes === true ? { cardSizes: true } : {}),
         ...(Array.isArray(b.picks) && b.picks.length
@@ -366,6 +401,9 @@ function normalizeBlockBody(raw: unknown): Block | null {
         type: "logos",
         heading: str(b.heading, 120),
         items: list(b.items, 40, (x) => ({ name: str(x.name, 80), mediaId: idOrNull(x.mediaId) })),
+        ...(b.band ? { band: color(b.band, "#FF5A1F") } : {}),
+        ...(b.tint === "white" || b.tint === "black" ? { tint: b.tint } : {}),
+        ...(b.oneRow === true ? { oneRow: true } : {}),
       };
     case "about":
       return {
@@ -384,6 +422,7 @@ function normalizeBlockBody(raw: unknown): Block | null {
         text: str(b.text, 600),
         button: str(b.button, 60),
         ...(b.form ? { form: normalizeContactForm(b.form) } : {}),
+        ...(idOrNull(b.mediaId) ? { mediaId: idOrNull(b.mediaId) } : {}),
       };
     case "hire":
       return { id, type: "hire", text: str(b.text, 300) };
@@ -562,7 +601,7 @@ export function normalizePage(raw: unknown, i: number): PageDraft {
             .replace(/[^a-z0-9-]/g, "") || `page-${i}`,
     title: str(p.title, 60) || "Page",
     type,
-    ...(type === "link" ? { url: str(p.url, 300) } : {}),
+    ...(type === "link" ? { url: safeLink(p.url) } : {}),
     ...(type === "project" ? { projectId: str(p.projectId, 40) } : {}),
     showInNav: bool(p.showInNav, true),
     parentId: i > 0 && typeof p.parentId === "string" && p.parentId ? p.parentId.slice(0, 40) : null,

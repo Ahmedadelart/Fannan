@@ -66,7 +66,14 @@
       "team": "Team",
       "download": "Download PDF",
       "back": "All work",
-      "pages": "{count, plural, one {# page} other {# pages}}"
+      "pages": "{count, plural, one {# page} other {# pages}}",
+      "network": "Network",
+      "credits": "Credits",
+      "thanks": "Special thanks",
+      "tools": "Tools",
+      "laurels": "Festivals",
+      "next": "Next project",
+      "view": "View project"
     },
     "cv": "Résumé (PDF)",
     "report": "Report this site"
@@ -608,7 +615,29 @@
       "cancel": "Cancel",
       "save": "Save",
       "saving": "Creating…"
-    }
+    },
+    "extra": {
+      "title": "More about the project",
+      "hint": "Shown on the project page when filled in. Leave anything empty to hide it.",
+      "network": "Network or channel",
+      "video": "Main video",
+      "videoHint": "Its address on YouTube or Vimeo.",
+      "details": "Details",
+      "detailsHint": "One per line, like “Episodes: 26” or “Dates: 2020 – 2022”.",
+      "credits": "Credits",
+      "creditsHint": "One per line, like “Directed by: Name”.",
+      "thanks": "Special thanks",
+      "thanksHint": "One per line, like “Name: for the sound design”.",
+      "tools": "Tools"
+    },
+    "use": {
+      "label": "Shows as",
+      "gallery": "In the gallery",
+      "logo": "Header logo",
+      "laurel": "Festival laurel"
+    },
+    "tagsLabel": "Filter by tag",
+    "allTags": "All ({count})"
   },
   "editor": {
     "metaTitle": "Site editor",
@@ -717,7 +746,10 @@
       "img-grid": "Image grid",
       "img-masonry": "Image masonry",
       "img-rows": "Smart rows",
-      "img-slideshow": "Slideshow"
+      "img-slideshow": "Slideshow",
+      "header": "Section header",
+      "feature": "Project feature",
+      "c-tiles": "Category tiles"
     },
     "addHint": "Click to add below the selected section, or drag onto the page.",
     "dropHere": "Drop the section here",
@@ -737,7 +769,8 @@
         "paper": "Paper",
         "lime": "Lime",
         "night": "Night",
-        "sand": "Sand"
+        "sand": "Sand",
+        "orange": "Studio Orange"
       },
       "headingFont": "Heading font",
       "bodyFont": "Body font",
@@ -1670,6 +1703,89 @@
       "size": "Size",
       "lineHeight": "Line height",
       "tracking": "Letter spacing"
+    },
+    "header": {
+      "number": "Number",
+      "numberHint": "Like 01. Leave empty for none.",
+      "title": "Title",
+      "subtitle": "Subtitle",
+      "logo": "Logo instead of the title",
+      "badge": "Badge",
+      "badgeHint": "A small pill, like “Directed by me”.",
+      "divider": "Line under it",
+      "size": "Size",
+      "sizes": {
+        "m": "Regular",
+        "l": "Large"
+      },
+      "anchor": "Menu link name",
+      "anchorHint": "Link to this part from the menu with /#name."
+    },
+    "feature": {
+      "project": "Project",
+      "pick": "Choose a project",
+      "words": "Words",
+      "wordsOpts": {
+        "all": "All",
+        "short": "First two paragraphs",
+        "none": "None"
+      },
+      "logos": "Header logos",
+      "laurels": "Festival laurels",
+      "tools": "Tools",
+      "credits": "Credits and thanks",
+      "background": "Picture behind it",
+      "side": "Video side",
+      "sides": {
+        "start": "First",
+        "end": "Second"
+      },
+      "soon": "Video coming soon",
+      "soonHint": "Add the YouTube or Vimeo link in the project. Only you see this note.",
+      "view": "View project",
+      "noProject": "Choose a project in the settings.",
+      "toolsTitle": "Tools",
+      "creditsTitle": "Credits",
+      "thanksTitle": "Special thanks"
+    },
+    "logosx": {
+      "band": "Colour band",
+      "tint": "Logo colour",
+      "tints": {
+        "original": "As they are",
+        "white": "White",
+        "black": "Black"
+      },
+      "oneRow": "One even row"
+    },
+    "coverx": {
+      "eyebrow": "Small line above",
+      "button": "Button",
+      "link": "Button link",
+      "inset": "Inside the page, rounded"
+    },
+    "contactx": {
+      "image": "Illustration beside the form"
+    },
+    "galleryx": {
+      "tag": "Tag",
+      "tags": "Projects with a tag",
+      "lines": "Caption lines",
+      "lineNames": {
+        "network": "Network or client",
+        "client": "Client",
+        "role": "Role",
+        "studio": "Studio",
+        "year": "Year"
+      },
+      "accentRole": "Role in the accent colour",
+      "split": "Posters and landscape in separate rows",
+      "wideColumns": "Landscape columns",
+      "loopPlay": "Loops on covers",
+      "loopPlays": {
+        "hover": "Play on hover",
+        "always": "Always play"
+      }
     }
   },
   "inbox": {

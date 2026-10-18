@@ -69,6 +69,24 @@ function galleryProjects(s: LiveSite): GalleryProject[] {
       role: projectText(s, p).role,
       visibility: p.visibility,
       coverId: p.visibility === "password" ? null : p.coverId,
+      tags: p.tags,
+      studio: p.studio,
+      year: p.year,
+      // Locked projects show their cover only after the password, so nothing else leaks either.
+      ...(p.visibility === "password"
+        ? {}
+        : {
+            description: projectText(s, p).description,
+            network: p.network,
+            video: p.video,
+            details: p.details,
+            credits: p.credits,
+            thanks: p.thanks,
+            tools: p.tools,
+            mediaIds: p.mediaIds,
+            logoIds: p.logoIds,
+            laurelIds: p.laurelIds,
+          }),
       mature: p.mature,
       ...(p.card ? { card: p.card } : {}),
     }));
@@ -166,13 +184,54 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
   const tm = await getTranslations("site.mature");
   const tp = await getTranslations("projects");
   const text = projectText(site, project);
+  // The meta row: network, client, studio, the artist's own detail rows, year, team.
   const credits: Array<[string, string]> = [
-    [t("role"), text.role],
-    [t("client"), project.client],
+    [t("network"), project.network ?? ""],
+    [t("client"), project.client === project.network ? "" : project.client],
     [t("studio"), project.studio],
+    ...(project.details ?? []).map((d) => [d.label, d.value] as [string, string]),
     [t("year"), project.year],
     [t("team"), project.team],
-  ].filter(([, v]) => v) as Array<[string, string]>;
+  ].filter(([k, v]) => k && v) as Array<[string, string]>;
+  // The first paragraph is the one line under the title; the rest are the artist's words.
+  const paragraphs = text.description.split(/\n\s*\n/).map((x) => x.trim()).filter(Boolean);
+  const lead = paragraphs[0] && paragraphs[0].length <= 240 ? paragraphs[0] : "";
+  const words = lead ? paragraphs.slice(1) : paragraphs;
+  // Back to the part of the site this project belongs to (a section whose menu link name is one of its tags).
+  const back = (() => {
+    for (const tag of project.tags.map((x) => x.toLowerCase())) {
+      for (const pg of site.pages) {
+        const b = pg.blocks.find((x) => x.style?.anchor?.toLowerCase() === tag);
+        if (b) return { href: `/${pg.slug}#${b.style!.anchor}`.replace(/^\/\//, "/"), label: b.type === "header" ? b.title : "" };
+      }
+    }
+    return { href: "/", label: "" };
+  })();
+  // Next project: the next one shown in galleries (newest first), round to the first.
+  const visible = site.projects.filter((x) => x.visibility === "public").sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+  const at = visible.findIndex((x) => x.id === project.id);
+  const next = visible.length > 1 && at >= 0 ? visible[(at + 1) % visible.length] : null;
+  const video = project.video ? parseVideoLink(project.video) : null;
+  const cover = project.coverId ? site.media[project.coverId] : undefined;
+  const coverSrc = cover ? imageSources(cover, 2560, base) : null;
+  const heading = { fontFamily: "var(--site-heading)", fontWeight: "var(--site-heading-weight)" as unknown as number };
+  const label = "text-[13px] font-semibold tracking-[.08em] uppercase";
+  const rows = (title: string, list?: Array<{ label: string; value: string }>) =>
+    list?.length ? (
+      <section className="flex flex-col gap-3">
+        <h2 className="m-0 text-[22px]" style={heading}>
+          {title}
+        </h2>
+        <dl className="m-0 grid grid-cols-[minmax(0,220px)_1fr] gap-x-6 gap-y-2 @max-xl:grid-cols-1">
+          {list.map((r, i) => (
+            <div key={i} className="contents">
+              <dt style={{ color: "var(--site-muted)" }}>{r.label}</dt>
+              <dd className="m-0 font-medium">{r.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    ) : null;
 
   const items = project.mediaIds
     .map(
@@ -332,23 +391,30 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
   );
 
   return (
-    <article className="flex flex-col gap-8">
-      <a href="/" style={{ color: "var(--site-muted)", textDecoration: "none" }} className="text-[14px]">
+    <article className="flex flex-col gap-10" data-testid="project-page">
+      <a href={back.href} style={{ color: "var(--site-muted)", textDecoration: "none" }} className="text-[14px]">
         <span aria-hidden className="inline-block rtl:-scale-x-100">
           ←
         </span>{" "}
-        {t("back")}
+        {back.label || t("back")}
       </a>
-      <header className="flex flex-col gap-4">
-        <h1
-          className="m-0 text-[48px] leading-[1.05] @max-2xl:text-[34px]"
-          style={{ fontFamily: "var(--site-heading)", fontWeight: "var(--site-heading-weight)" as unknown as number }}
-        >
-          {text.title}
-        </h1>
-        {project.category && <span style={{ color: "var(--site-muted)" }}>{tp(`categories.${project.category}`)}</span>}
+      <header className="flex flex-col gap-6">
+        <div className="flex flex-wrap items-end justify-between gap-5">
+          <div className="flex max-w-[820px] flex-col gap-3">
+            <h1 className="m-0 text-[56px] leading-[1.02] @max-2xl:text-[36px]" style={heading}>
+              {text.title}
+            </h1>
+            {lead && <p className="m-0 text-[20px] leading-[1.5]" style={{ color: "var(--site-muted)" }}>{lead}</p>}
+            {!lead && project.category && <span style={{ color: "var(--site-muted)" }}>{tp(`categories.${project.category}`)}</span>}
+          </div>
+          {text.role && (
+            <span className="rounded-full px-4 py-2 text-[15px] font-semibold" style={{ background: "var(--site-accent)", color: "var(--site-on-accent)" }} data-testid="project-role">
+              {text.role}
+            </span>
+          )}
+        </div>
         {credits.length > 0 && (
-          <dl className="m-0 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-x-8 gap-y-3">
+          <dl className="m-0 flex flex-wrap gap-x-10 gap-y-3 py-5" style={{ borderBlock: "1px solid var(--site-line)" }} data-testid="project-meta">
             {credits.map(([k, v]) => (
               <div key={k} className="flex flex-col">
                 <dt className="text-[13px]" style={{ color: "var(--site-muted)" }}>
@@ -359,16 +425,106 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
             ))}
           </dl>
         )}
-        {text.description && (
-          <p className="m-0 max-w-[760px] text-[18px] leading-[1.6] whitespace-pre-line">{text.description}</p>
-        )}
+        {video ? (
+          <div
+            className="relative overflow-hidden"
+            data-video={project.video}
+            style={{ aspectRatio: "16 / 9", background: "#141414", borderRadius: "calc(var(--site-radius) * 1.6)" }}
+          >
+            {(videoPoster(video) || coverSrc) && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={videoPoster(video) ?? coverSrc!.src} alt={text.title} className="block h-full w-full object-cover" />
+            )}
+            <span aria-hidden className="absolute inset-0 m-auto flex size-16 items-center justify-center rounded-full" style={{ background: "var(--site-accent)" }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="var(--site-on-accent)">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </span>
+          </div>
+        ) : coverSrc && cover ? (
+          <picture className="block overflow-hidden" style={{ borderRadius: "calc(var(--site-radius) * 1.6)" }}>
+            {coverSrc.avifSet && <source type="image/avif" srcSet={coverSrc.avifSet} sizes="(min-width: 1200px) 1200px, 100vw" />}
+            <img
+              src={coverSrc.src}
+              srcSet={coverSrc.srcSet}
+              sizes="(min-width: 1200px) 1200px, 100vw"
+              alt={text.title}
+              width={cover.width}
+              height={cover.height}
+              fetchPriority="high"
+              className="mx-auto block h-auto max-h-[80vh] w-auto max-w-full"
+            />
+          </picture>
+        ) : null}
       </header>
+      {words.length > 0 && (
+        <section className="flex max-w-[760px] flex-col gap-4" data-testid="project-words">
+          {words.map((w, i) => (
+            <p key={i} className="m-0 text-[18px] leading-[1.65] whitespace-pre-line">
+              {w}
+            </p>
+          ))}
+        </section>
+      )}
       {project.mature ? (
         <MatureGate text={tm("text")} button={tm("view")}>
           {mediaList}
         </MatureGate>
       ) : (
         mediaList
+      )}
+      {!!project.laurelIds?.length && (
+        <section className="flex flex-wrap items-center gap-6" aria-label={t("laurels")} data-testid="project-laurels">
+          {project.laurelIds.map((id) => {
+            const l = site.media[id];
+            const src = l ? imageSources(l, 400, base) : null;
+            // eslint-disable-next-line @next/next/no-img-element
+            return src ? <img key={id} src={src.src} alt={l?.alt || ""} className="block h-20 w-auto" loading="lazy" /> : null;
+          })}
+        </section>
+      )}
+      {rows(t("credits"), project.credits)}
+      {rows(t("thanks"), project.thanks)}
+      {!!project.tools?.length && (
+        <section className="flex flex-col gap-3">
+          <h2 className="m-0 text-[22px]" style={heading}>
+            {t("tools")}
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {project.tools.map((x) => (
+              <span key={x} className="rounded-full px-3.5 py-1.5 text-[14px]" style={{ border: "1px solid var(--site-line)" }}>
+                {x}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
+      {next && (
+        <a
+          href={`/${next.slug}`}
+          className="grid grid-cols-[1fr_minmax(0,320px)] items-center gap-8 overflow-hidden p-8 @max-xl:grid-cols-1"
+          style={{ background: "var(--site-surface)", borderRadius: "calc(var(--site-radius) * 2)", color: "inherit", textDecoration: "none" }}
+          data-testid="next-project"
+        >
+          <span className="flex flex-col gap-2">
+            <span className={label} style={{ color: "var(--site-muted)" }}>
+              {t("next")}
+            </span>
+            <span className="text-[28px] leading-tight" style={heading}>
+              {projectText(site, next).title}
+            </span>
+            <span style={{ color: "var(--site-muted)" }}>{[next.network || next.client, projectText(site, next).role].filter(Boolean).join(" · ")}</span>
+            <span className="font-semibold" style={{ color: "var(--site-accent-ink)" }}>
+              {t("view")} →
+            </span>
+          </span>
+          {(() => {
+            const nc = next.coverId && next.visibility === "public" ? site.media[next.coverId] : undefined;
+            const src = nc ? imageSources(nc, 800, base) : null;
+            // eslint-disable-next-line @next/next/no-img-element
+            return src ? <img src={src.src} alt="" loading="lazy" className="block aspect-[16/10] w-full object-cover" style={{ borderRadius: "var(--site-radius)" }} /> : <span />;
+          })()}
+        </a>
       )}
     </article>
   );

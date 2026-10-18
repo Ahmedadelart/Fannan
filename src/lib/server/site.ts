@@ -13,6 +13,7 @@ import { forgetSiteLanguage } from "./site-language";
 import { forgetLiveSite } from "./public";
 import { checkPassword, scryptHash } from "./passwords";
 import { ProjectError, type MediaDoc, type Owner, type ProjectDoc } from "./projects";
+import { cleanExtras, type ProjectExtras } from "@/lib/site/projectExtras";
 
 const db = () => adminDb();
 const siteRef = (siteId: string) => db().collection("sites").doc(siteId);
@@ -53,10 +54,21 @@ export async function loadRenderData(siteId: string): Promise<{
   ]);
   const media: Record<string, SiteMedia> = {};
   for (const d of mediaSnap.docs) media[d.id] = toSiteMedia(d.id, d.data() as MediaDoc);
+  const uses = new Map(mediaSnap.docs.map((d) => [d.id, (d.data() as MediaDoc).display?.use ?? "gallery"]));
   const projects = projectSnap.docs.map((d) => {
     const p = d.data() as ProjectDoc;
     const coverId = p.coverMediaId ?? p.media.find((id) => media[id]) ?? null;
+    const useOf = (id: string) => uses.get(id) ?? "gallery";
+    const ready = p.media.filter((id) => media[id]);
     return {
+      ...cleanExtras(p),
+      mediaIds: ready.filter((id) => useOf(id) === "gallery"),
+      logoIds: ready.filter((id) => useOf(id) === "logo"),
+      laurelIds: ready.filter((id) => useOf(id) === "laurel"),
+      studio: p.studio,
+      year: p.year,
+      tags: p.tags,
+      description: p.description,
       id: d.id,
       slug: p.slug,
       title: p.title,
@@ -140,7 +152,7 @@ export async function setPagePassword(o: Owner, pageId: string, password: string
 
 /* ---------- publishing ---------- */
 
-export interface PublishedProject {
+export interface PublishedProject extends ProjectExtras {
   id: string;
   slug: string;
   title: string;
@@ -155,7 +167,10 @@ export interface PublishedProject {
   visibility: ProjectDoc["visibility"];
   passwordHash: string | null;
   coverId: string | null;
+  /** Gallery items (logos and laurels are listed apart). */
   mediaIds: string[];
+  logoIds?: string[];
+  laurelIds?: string[];
   /** Milliseconds; galleries show newest first. Missing in snapshots made before phase 6. */
   createdAt?: number;
   seo: ProjectDoc["seo"];
@@ -201,6 +216,12 @@ function blockOwnMediaIds(b: Block): Array<string | null> {
       return [b.beforeId, b.afterId];
     case "about":
       return [b.photoId, b.cvId];
+    case "header":
+      return [b.logoId];
+    case "feature":
+      return [b.bgMediaId];
+    case "contact":
+      return [b.mediaId ?? null];
     case "logos":
     case "images":
       return b.items.map((i) => i.mediaId);
@@ -234,8 +255,15 @@ export async function publish(o: Owner): Promise<{ version: number }> {
   const allMedia = new Map(mediaSnap.docs.map((d) => [d.id, d.data() as MediaDoc]));
   const projects: PublishedProject[] = projectSnap.docs.map((d) => {
     const p = d.data() as ProjectDoc;
-    const mediaIds = p.media.filter((id) => allMedia.has(id));
+    const ready = p.media.filter((id) => allMedia.has(id));
+    const useOf = (id: string) => allMedia.get(id)?.display?.use ?? "gallery";
+    const mediaIds = ready.filter((id) => useOf(id) === "gallery");
+    const logoIds = ready.filter((id) => useOf(id) === "logo");
+    const laurelIds = ready.filter((id) => useOf(id) === "laurel");
     return {
+      ...cleanExtras(p),
+      ...(logoIds.length ? { logoIds } : {}),
+      ...(laurelIds.length ? { laurelIds } : {}),
       id: d.id,
       slug: p.slug,
       title: p.title,
@@ -260,7 +288,7 @@ export async function publish(o: Owner): Promise<{ version: number }> {
   });
 
   const used = new Set<string>();
-  projects.forEach((p) => p.mediaIds.forEach((id) => used.add(id)));
+  projects.forEach((p) => [...p.mediaIds, ...(p.logoIds ?? []), ...(p.laurelIds ?? [])].forEach((id) => used.add(id)));
   draft.pages.forEach((p) => p.blocks.forEach((b) => blockMediaIds(b).forEach((id) => id && used.add(id))));
   if (draft.theme.logoMediaId) used.add(draft.theme.logoMediaId);
   if (draft.theme.faviconMediaId) used.add(draft.theme.faviconMediaId);

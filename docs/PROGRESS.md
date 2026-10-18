@@ -466,6 +466,29 @@ _Last updated: 10 Oct 2026, phase 8 (Editor 2.0) under way; round 8 (guided setu
 - **Safe by construction:** a text field holds plain text or a small HTML piece from an allowlist (`<b> <i> <u> <br> <a href> <span style="color / font-family">`). `src/lib/site/richtext.ts` rebuilds it from scratch when a draft is saved and again when a page is drawn, so scripts, event handlers, other tags, `javascript:` / `data:` links and unknown fonts never survive. Pasted or dragged-in text arrives as plain words. Live links get `rel="noopener noreferrer"` and open in a new tab. Fields without formatting stay plain text, and `*accent*` / `==highlight==` still work.
 - **Tests:** `richtext.spec.ts` (the cleaner: allowed tags, 15 attack strings, fonts, broken tags, Arabic) and `textbar.spec.ts` (bold + link on the canvas reach the live site; injected code is stripped).
 
+### Showcase blocks (for rebuilding ahmedadel.art; plan in `docs/AHMED-SITE-PLAN.md`)
+- **Project fields** in the project editor ("More about the project"): network or channel, main video link, details / credits / special-thanks rows ("Label: value" per line), tools. Each project picture can be shown **in the gallery, as a header logo or as a festival laurel**.
+- **Project page** rebuilt:
+  - back link to its section (a section whose menu link name matches one of the project's tags);
+  - title with its one line, role pill, meta row (network, client, studio, details, year, team);
+  - video or hero picture, words, gallery;
+  - laurels, credits, special thanks, tools;
+  - **next project**.
+- **Project grids:** pull projects **by tag**; choose **caption lines** (network/client, role, studio, year) with the **role in the accent colour**; **posters and landscape in separate rows**; loops on covers play on hover or always.
+- **New blocks:**
+  - **Section header:** number, title or logo, subtitle, badge, divider.
+  - **Project feature:** one project inline, with video, logos, role, words, laurels, tools and credits; a picture can go behind it. "Video coming soon" shows only in the editor.
+  - **Category tiles:** a cards variant.
+- **Upgraded blocks:**
+  - **Logo wall:** colour band, white/black/original logos, one even row.
+  - **Cover:** small line above, round "Watch reel" button, inset with rounded corners.
+  - **Contact:** an illustration beside the form.
+- **Theme preset "Studio Orange"** (white, #111111, #FF5A1F, Rubik). Every theme now gets a readable **accent-for-text** shade (`--site-accent-ink`, darkened to 4.5:1, e.g. #FF5A1F → #C93F0E), also inside coloured bands.
+- **GIFs become muted looping MP4s** (with a poster and their real size).
+- Menu links inside the site (`/#broadcast`) open in the same tab, and link pages only accept safe links.
+- **Projects page:** filter by tag (for example #needs-role).
+- **Tests:** `showcase.spec.ts`.
+
 ## Not done yet from the phase 6 "done when"
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).
 

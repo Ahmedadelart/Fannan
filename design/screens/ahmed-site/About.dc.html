@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ahmed Adel · About</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#FFFFFF}
+a{color:#111111}a:hover{color:#C93F0E}
+</style>
+</helmet>
+<div style="width: 100%; background: #FFFFFF; color: #111111; font-family: 'Rubik', sans-serif; font-size: 16px; line-height: 1.5">
+
+<header style="max-width: 1320px; margin: 0 auto; padding: 22px 32px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+<a href="Home2.dc.html" aria-label="Ahmed Adel, home"><img src="/_blob/e9f565bf5dbbd9f3cd3081d5c8f5d4d2" alt="Ahmed Adel" style="display: block; height: 18px; width: auto"></a>
+<nav aria-label="Main" style="display: flex; flex-wrap: wrap; align-items: center; gap: 30px; font-size: 14px; font-weight: 500">
+<a href="Home2.dc.html" style="text-decoration: none">Broadcast</a>
+<a href="Home2.dc.html" style="text-decoration: none">Directing</a>
+<a href="Home2.dc.html" style="text-decoration: none">Commercial</a>
+<a href="Home2.dc.html" style="text-decoration: none">Portfolio</a>
+<a href="About2.dc.html" style="text-decoration: none; color: #C93F0E">About</a>
+<a href="#" style="display: inline-flex; align-items: center; height: 38px; padding: 0 18px; border-radius: 999px; background: #111111; color: #FFFFFF; text-decoration: none">Contact</a>
+</nav>
+</header>
+
+<section aria-label="Intro" style="max-width: 1320px; margin: 0 auto; padding: 56px 32px 0; box-sizing: border-box; display: grid; grid-template-columns: 5fr 7fr; gap: 64px; align-items: center">
+<img src="/_blob/0949b07e25a0db0466204ae9b6c39db1" alt="Portrait of Ahmed Adel" style="width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 40px; display: block">
+<div style="display: flex; flex-direction: column; gap: 22px">
+<span style="font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: #C93F0E; font-weight: 600">About</span>
+<h1 style="margin: 0; font-size: 52px; font-weight: 700; line-height: 1.05">Hello, I’m Ahmed.</h1>
+<p style="margin: 0; font-size: 19px; color: #3D3935; max-width: 600px">Animation director and supervisor in Cairo. I lead teams on broadcast series, direct my own shorts, and design characters at lead level, which shapes how I direct performance.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 12px">
+<a href="#" style="display: inline-flex; align-items: center; height: 50px; padding: 0 24px; border-radius: 999px; background: #FF5A1F; color: #111111; text-decoration: none; font-weight: 600">Download CV</a>
+<a href="#" style="display: inline-flex; align-items: center; height: 50px; padding: 0 22px; border-radius: 999px; border: 1px solid #111111; text-decoration: none; font-weight: 500">adel4art@gmail.com</a>
+</div>
+</div>
+</section>
+
+<section aria-label="In numbers" style="max-width: 1320px; margin: 0 auto; padding: 80px 32px 0; box-sizing: border-box">
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid #E6E2DE; border-bottom: 1px solid #E6E2DE">
+<div style="padding: 28px 0; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 44px; font-weight: 700; line-height: 1">8</span><span style="font-size: 14px; color: #6B655F">years in 2D animation</span></div>
+<div style="padding: 28px 0; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 44px; font-weight: 700; line-height: 1">26</span><span style="font-size: 14px; color: #6B655F">episodes supervised on one series</span></div>
+<div style="padding: 28px 0; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 44px; font-weight: 700; line-height: 1">150+</span><span style="font-size: 14px; color: #6B655F">students mentored</span></div>
+<div style="padding: 28px 0; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 44px; font-weight: 700; line-height: 1">2nd</span><span style="font-size: 14px; color: #6B655F">prize, Cairo Int’l Animation Festival</span></div>
+</div>
+</section>
+
+<section aria-label="Experience" style="max-width: 1320px; margin: 0 auto; padding: 90px 32px 0; box-sizing: border-box; display: grid; grid-template-columns: 4fr 8fr; gap: 64px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0; font-size: 28px; font-weight: 700">Experience</h2>
+<span style="font-size: 15px; color: #6B655F">Studios I’ve worked with, newest first.</span>
+</div>
+<div role="list">
+<sc-for list="{{jobs}}" as="j" hint-placeholder-count="8">
+<div role="listitem" style="display: grid; grid-template-columns: 150px 1fr auto; gap: 20px; padding: 16px 0; border-bottom: 1px solid #E6E2DE; align-items: baseline">
+<span style="font-size: 14px; color: #6B655F">{{j.years}}</span>
+<span style="font-weight: 600">{{j.role}}</span>
+<span style="font-size: 15px; color: #4A4540">{{j.studio}}</span>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section aria-label="Teaching and community" style="max-width: 1320px; margin: 0 auto; padding: 90px 32px 0; box-sizing: border-box">
+<h2 style="margin: 0 0 28px; font-size: 28px; font-weight: 700">Teaching &amp; community</h2>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+<sc-for list="{{community}}" as="c" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<img src="{{c.img}}" alt="{{c.alt}}" style="width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 18px; display: block">
+<span style="display: flex; flex-direction: column"><span style="font-weight: 600">{{c.title}}</span><span style="font-size: 14px; color: #6B655F">{{c.role}}</span></span>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section aria-label="Education and tools" style="max-width: 1320px; margin: 0 auto; padding: 90px 32px 70px; box-sizing: border-box">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+<div style="padding: 32px; border-radius: 22px; background: #F5F2EE; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: #C93F0E; font-weight: 600">Education</span>
+<span style="font-size: 20px; font-weight: 600">BA, Animation Direction</span>
+<span style="color: #4A4540">Academy of Arts, High Cinema Institute · Cairo · 2018–2023</span>
+</div>
+<div style="padding: 32px; border-radius: 22px; background: #111111; color: #FFFFFF; display: flex; flex-direction: column; gap: 14px">
+<span style="font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: #FF7A47; font-weight: 600">Tools</span>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{tools}}" as="t" hint-placeholder-count="10"><span style="padding: 6px 12px; border-radius: 999px; border: 1px solid #3A3632; font-size: 14px">{{t}}</span></sc-for>
+</div>
+</div>
+</div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":3000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      jobs: [
+        { years: '2025 – now', role: 'Animation Director', studio: 'Jump Animation' },
+        { years: '2024 – now', role: 'Co-Founder, CEO & Animation Director', studio: 'Big Cat Animation' },
+        { years: '2025', role: 'Lead Character Designer', studio: 'Giraffics' },
+        { years: '2024 – 2025', role: 'Lead Character Designer', studio: 'Aspect Studio' },
+        { years: '2023 – 2024', role: 'Character Designer', studio: 'Zaini Studios' },
+        { years: '2023', role: 'Senior Animator & Animatic Artist', studio: 'SandGlobe' },
+        { years: '2022', role: 'Senior 2D Animator', studio: 'Sun Creature Studio' },
+        { years: '2020 – 2022', role: 'Animation Supervisor & Team Lead', studio: 'Jump Animation' },
+        { years: '2018 – 2020', role: 'Animator, Illustrator & Storyboard Artist', studio: 'Parrots Studio' }
+      ],
+      community: [
+        { title: 'ART GYM', role: 'Co-founder & lead mentor · 1,500-member community', img: '/_blob/802269a0d94714a8bb247c0bdee5083e', alt: 'ART GYM meet-up group photo' },
+        { title: 'Helwan University', role: 'Lead instructor · Faculty of Fine Arts', img: '/_blob/f136b2946962e247aa17387d29dcf66c', alt: 'Students at Helwan University' },
+        { title: 'AnimateX Festival', role: 'Workshop instructor & panellist', img: '/_blob/1d8ae17dc1cced976cf33c89318f894e', alt: 'At AnimateX festival' }
+      ],
+      tools: ['Toon Boom Harmony', 'TV Paint', 'Adobe Animate', 'Moho', 'Photoshop', 'After Effects', 'Procreate', 'Blender', 'ZBrush', 'Quill VR']
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 "use client";
 
+import { rowsText } from "@/lib/site/projectExtras";
 import { useCallback, useEffect, useRef, useState, type DragEvent, type ReactNode } from "react";
 import { CATEGORY_GROUPS } from "@/config/categories";
 import { useTranslations } from "next-intl";
@@ -755,6 +756,26 @@ export function ProjectEditor({
                       e.target.value = "";
                     }}
                   />
+                  {selected.type !== "text" && selected.type !== "embed" && (
+                    <label className="flex items-center gap-2 text-[13px]">
+                      {t("use.label")}
+                      <select
+                        className={cx(inputCls, "h-9 w-auto")}
+                        value={selected.display.use ?? "gallery"}
+                        onChange={(e) => {
+                          const use = e.target.value as "gallery" | "logo" | "laurel";
+                          editItem(selected.id, { display: { use } }, { display: { ...selected.display, use } });
+                        }}
+                        data-testid="media-use"
+                      >
+                        {(["gallery", "logo", "laurel"] as const).map((u) => (
+                          <option key={u} value={u}>
+                            {t(`use.${u}`)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
                   {selected.type !== "text" && (
                     <div className="flex flex-wrap gap-3.5 text-[13px]">
                       <Checkbox
@@ -893,6 +914,31 @@ export function ProjectEditor({
                 defaultValue={p.tags.join(", ")}
                 onChange={(e) => save("tags", { tags: e.target.value })}
               />
+            </Field>
+          </Panel>
+
+          <Panel title={t("extra.title")}>
+            <p className="text-muted m-0 text-[12px]">{t("extra.hint")}</p>
+            <div className="grid grid-cols-2 gap-2.5">
+              <Field label={t("extra.network")}>
+                <input className={inputCls} defaultValue={p.network ?? ""} maxLength={120} onChange={(e) => save("network", { network: e.target.value })} data-testid="project-network" />
+              </Field>
+              <Field label={t("extra.video")} hint={t("extra.videoHint")}>
+                <input className={inputCls} dir="ltr" placeholder="https://vimeo.com/…" defaultValue={p.video ?? ""} onChange={(e) => save("video", { video: e.target.value })} data-testid="project-video" />
+              </Field>
+            </div>
+            {(["details", "credits", "thanks"] as const).map((k) => (
+              <Field key={k} label={t(`extra.${k}`)} hint={t(`extra.${k}Hint`)}>
+                <textarea
+                  className={cx(areaCls, "min-h-[84px]")}
+                  defaultValue={rowsText(p[k])}
+                  onChange={(e) => save(k, { [k]: e.target.value })}
+                  data-testid={`project-${k}`}
+                />
+              </Field>
+            ))}
+            <Field label={t("extra.tools")} hint={t("fields.tagsHint")}>
+              <input className={inputCls} defaultValue={(p.tools ?? []).join(", ")} onChange={(e) => save("tools", { tools: e.target.value })} data-testid="project-tools" />
             </Field>
           </Panel>
 

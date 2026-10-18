@@ -19,6 +19,7 @@ import { InlineText } from "@/components/editor/InlineText";
 import { CONTACT_WORDS, contactFormOf, type LegacyContactFields } from "@/lib/site/contact";
 import { normalizeFooter, normalizeHeader } from "@/lib/site/normalize";
 import { isRich, richHtml } from "@/lib/site/richtext";
+import type { ProjectExtras } from "@/lib/site/projectExtras";
 import { isSampleTone, toneFill } from "@/lib/site/samples";
 import { FONTS, fontOf, fontStack, siteFontVars } from "./fonts";
 import { SOCIAL_PATHS, socialPath } from "./socialIcons";
@@ -44,13 +45,21 @@ export interface SiteMedia extends MediaLike {
   embed?: { poster: string | null; url?: string; title?: string; provider?: string } | null;
 }
 
-export interface GalleryProject {
+export interface GalleryProject extends ProjectExtras {
   id: string;
   slug: string;
   title: string;
   category: string;
   client: string;
   role: string;
+  /** Richer project data for captions, the project feature block and project grids by tag. */
+  studio?: string;
+  year?: string;
+  tags?: string[];
+  description?: string;
+  mediaIds?: string[];
+  logoIds?: string[];
+  laurelIds?: string[];
   visibility: "public" | "password" | "hidden";
   coverId: string | null;
   mature: boolean;
@@ -118,6 +127,36 @@ export function readableOn(hex: string): string {
     return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
   });
   return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.4 ? "#141414" : "#FFFFFF";
+}
+
+const lum = (hex: string) => {
+  const n = parseInt(hex.slice(1), 16);
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((c) => {
+    const v = c / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const contrast = (a: string, b: string) => {
+  const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m);
+  return (x + 0.05) / (y + 0.05);
+};
+
+/**
+ * The accent, darkened (or lightened on dark pages) just enough to read as text on the background
+ * (4.5:1). Bright accents like orange stay the colour of buttons and bands; words use this shade.
+ */
+export function accentInk(accent: string, bg: string): string {
+  if (!/^#[0-9a-f]{6}$/i.test(accent) || !/^#[0-9a-f]{6}$/i.test(bg)) return accent;
+  if (contrast(accent, bg) >= 4.5) return accent;
+  const toward = lum(bg) > 0.4 ? 0 : 255;
+  const n = parseInt(accent.slice(1), 16);
+  const rgb = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  for (let t = 0.05; t <= 1; t += 0.05) {
+    const hex = `#${rgb.map((c) => Math.round(c + (toward - c) * t).toString(16).padStart(2, "0")).join("")}`;
+    if (contrast(hex, bg) >= 4.5) return hex.toUpperCase();
+  }
+  return toward ? "#FFFFFF" : "#141414";
 }
 
 /* ---------- pieces ---------- */
@@ -336,8 +375,12 @@ function paragraphs(text: string) {
 /* ---------- blocks ---------- */
 
 function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
+  // Source: all projects, one category, or one tag ("tag:broadcast").
+  const tag = b.source.startsWith("tag:") ? b.source.slice(4).toLowerCase() : null;
   const shown = (ctx.projects ?? []).filter(
-    (p) => p.visibility !== "hidden" && (b.source === "all" || p.category === b.source),
+    (p) =>
+      p.visibility !== "hidden" &&
+      (b.source === "all" || (tag ? (p.tags ?? []).some((x) => x.toLowerCase() === tag) : p.category === b.source)),
   );
   // Picked projects keep the order they were picked in.
   const projects = b.picks?.length
@@ -358,8 +401,10 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
     locked?: boolean;
     ratio?: string;
     card?: ProjectCard;
+    p?: GalleryProject;
   }> = projects.length
     ? projects.map((p, i) => ({
+        p,
         key: p.id,
         slug: p.slug,
         title: p.title,
@@ -390,8 +435,22 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
         <div
           className={cx("site-thumb relative overflow-hidden", (b.layout === "rows" || size === "l") && "h-full")}
           style={{ borderRadius: "var(--site-radius)" }}
-          data-hover-loop={ctx.live && b.hoverPlay && t.m?.loop ? `${ctx.base}${t.m.loop}` : undefined}
+          data-hover-loop={ctx.live && b.hoverPlay && b.loopPlay !== "always" && t.m?.loop ? `${ctx.base}${t.m.loop}` : undefined}
         >
+          {b.loopPlay === "always" && t.m?.loop ? (
+            <video
+              src={`${ctx.base}${t.m.loop}`}
+              poster={posterSources(t.m, 800, ctx.base)?.src}
+              muted
+              loop
+              autoPlay
+              playsInline
+              preload="metadata"
+              aria-label={t.title}
+              className="block h-full w-full object-cover"
+              style={{ aspectRatio: tileRatio ?? t.ratio ?? (t.m.width && t.m.height ? `${t.m.width} / ${t.m.height}` : undefined) }}
+            />
+          ) : (
           <Picture
             m={t.m}
             base={ctx.base}
@@ -403,6 +462,7 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
             eager={(ctx.index ?? 9) <= 1 && tiles.indexOf(t) < cols}
             still={!b.hoverPlay || !!t.m?.loop}
           />
+          )}
           {hover === "title" && t.title && (
             <span className="site-thumb-title" aria-hidden>
               <span className="font-semibold">{t.title}</span>
@@ -418,7 +478,22 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
             </span>
           )}
         </div>
-        {(showTitle || showMeta) && t.title && hover !== "title" && (
+        {b.lines?.length && t.p && hover !== "title" ? (
+          <figcaption className="flex flex-col gap-0.5 text-[14px]" style={fullscreen ? { padding: "0 12px" } : undefined}>
+            {showTitle && <span className="text-[16px] font-semibold">{t.title}</span>}
+            {b.lines.map((line) => {
+              const v = captionLine(t.p!, line);
+              if (!v) return null;
+              const accent = line === "role" && b.accentRole;
+              return (
+                <span key={line} style={{ color: accent ? "var(--site-accent-ink)" : "var(--site-muted)", fontWeight: accent ? 500 : undefined }}>
+                  {v}
+                </span>
+              );
+            })}
+          </figcaption>
+        ) : null}
+        {!b.lines?.length && (showTitle || showMeta) && t.title && hover !== "title" && (
           <figcaption className="flex flex-col gap-0.5" style={fullscreen ? { padding: "0 12px" } : undefined}>
             {showTitle && <span className="font-semibold">{t.title}</span>}
             {showMeta && t.meta && (
@@ -511,6 +586,29 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
           <span aria-hidden style={{ flex: "10 1 0px" }} />
         </div>
       ) : (
+        b.split && (b.layout === "grid" || b.layout === "fullscreen") ? (
+          // Posters in one row, landscape in the next: nothing is cropped into the wrong shape.
+          (() => {
+            const shapeOf = (t: (typeof tiles)[number]) => (t.m?.width && t.m?.height ? t.m.width / t.m.height : t.ratio === "3 / 4" ? 0.75 : 1.4);
+            const posters = tiles.filter((t) => shapeOf(t) < 0.95);
+            const wides = tiles.filter((t) => shapeOf(t) >= 0.95);
+            const real = b.ratio === "original";
+            return (
+              <div className="flex flex-col" style={{ gap: Math.max(b.gap, 24) + 16 }} data-layout="split">
+                {posters.length > 0 && (
+                  <div className="site-grid grid" style={{ gap: b.gap, ["--cols" as string]: cols }}>
+                    {posters.map((t) => tile(t, real ? undefined : "2 / 3"))}
+                  </div>
+                )}
+                {wides.length > 0 && (
+                  <div className="site-grid grid" style={{ gap: b.gap, ["--cols" as string]: Math.max(1, Math.min(4, b.wideColumns ?? 2)) }}>
+                    {wides.map((t) => tile(t, real ? undefined : "16 / 9"))}
+                  </div>
+                )}
+              </div>
+            );
+          })()
+        ) : (
         <div
           className={cx("site-grid grid", (ownSizes || b.layout === "featured") && "grid-flow-row-dense")}
           style={{ gap: fullscreen ? 0 : b.gap, ["--cols" as string]: cols }}
@@ -518,10 +616,156 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
         >
           {tiles.map((t) => tile(t))}
         </div>
+        )
       )}
     </div>
   );
 }
+
+/** One caption line under a project cover. "network" falls back to the client. */
+function captionLine(p: GalleryProject, line: NonNullable<BlockOf<"gallery">["lines"]>[number]): string {
+  switch (line) {
+    case "network":
+      return p.network || p.client;
+    case "client":
+      return p.client;
+    case "role":
+      return p.role;
+    case "studio":
+      return p.studio ?? "";
+    case "year":
+      return p.year ?? "";
+  }
+}
+
+/* ---------- one project inline (project feature block) ---------- */
+
+function FeatureView({ b, ctx }: { b: BlockOf<"feature">; ctx: Ctx }) {
+  const p = (ctx.projects ?? []).find((x) => x.id === b.projectId);
+  const m = (id: string | null | undefined) => (id ? (ctx.media[id] ?? null) : null);
+  const words = ctx.language === "ar" ? FEATURE_WORDS.ar : FEATURE_WORDS.en;
+  if (!p) return ctx.editing ? <Empty show>{words.noProject}</Empty> : null;
+  const bg = m(b.bgMediaId);
+  const paragraphs = (p.description ?? "").split(/\n\s*\n/).map((x) => x.trim()).filter(Boolean);
+  const shown = b.words === "none" ? [] : b.words === "short" ? paragraphs.slice(0, 2) : paragraphs;
+  const cover = m(p.coverId);
+  const video = p.video ? (
+    <VideoView url={p.video} title={p.title} ctx={ctx} />
+  ) : (
+    <div className="relative">
+      <Picture m={cover} base={ctx.base} tone="sample:05" ratio="16 / 9" want={1600} alt={p.title} />
+      {ctx.editing && (
+        <span className="absolute start-4 bottom-4 rounded-full px-3 py-1 text-[13px] font-semibold" style={{ background: "rgba(20,20,20,.75)", color: "#FFFFFF" }} title={words.soonHint} data-testid="video-soon">
+          {words.soon}
+        </span>
+      )}
+    </div>
+  );
+  const rows = (title: string, list?: Array<{ label: string; value: string }>) =>
+    list?.length ? (
+      <div className="flex flex-col gap-1.5">
+        <span className="text-[13px] font-semibold tracking-[.08em] uppercase" style={{ color: "var(--site-muted)" }}>
+          {title}
+        </span>
+        <dl className="m-0 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-[15px]">
+          {list.map((r, i) => (
+            <div key={i} className="contents">
+              <dt style={{ color: "var(--site-muted)" }}>{r.label}</dt>
+              <dd className="m-0">{r.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    ) : null;
+  const text = (
+    <div className="flex flex-col gap-4">
+      {b.logos && !!p.logoIds?.length && (
+        <div className="flex flex-wrap items-center gap-6">
+          {p.logoIds.map((id) => (
+            <span key={id} className="block h-9">
+              <Picture m={m(id)} base={ctx.base} want={400} ratio="auto" className="h-full !rounded-none [&_img]:!h-full [&_img]:!w-auto [&_img]:object-contain" />
+            </span>
+          ))}
+        </div>
+      )}
+      <h2 className="m-0" style={heading(36)}>
+        {ctx.live ? (
+          <a href={`/${p.slug}`} style={{ color: "inherit", textDecoration: "none" }}>
+            {p.title}
+          </a>
+        ) : (
+          p.title
+        )}
+      </h2>
+      {p.role && (
+        <span className="w-fit rounded-full px-3.5 py-1.5 text-[14px] font-semibold" style={{ background: "var(--site-accent)", color: "var(--site-on-accent)" }}>
+          {p.role}
+        </span>
+      )}
+      {(p.network || p.studio) && (
+        <span className="text-[15px]" style={{ color: "var(--site-muted)" }}>
+          {[p.network || p.client, p.studio].filter(Boolean).join(" · ")}
+        </span>
+      )}
+      {shown.map((t, i) => (
+        <p key={i} className="m-0 text-[17px] leading-[1.65]">
+          {t}
+        </p>
+      ))}
+      {b.laurels && !!p.laurelIds?.length && (
+        <div className="flex flex-wrap items-center gap-5">
+          {p.laurelIds.map((id) => (
+            <span key={id} className="block h-16">
+              <Picture m={m(id)} base={ctx.base} want={400} ratio="auto" className="h-full !rounded-none [&_img]:!h-full [&_img]:!w-auto [&_img]:object-contain" />
+            </span>
+          ))}
+        </div>
+      )}
+      {b.tools && !!p.tools?.length && (
+        <div className="flex flex-col gap-2">
+          <span className="text-[13px] font-semibold tracking-[.08em] uppercase" style={{ color: "var(--site-muted)" }}>
+            {words.tools}
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {p.tools.map((t) => (
+              <span key={t} className="rounded-full px-3 py-1 text-[13px]" style={{ border: "1px solid var(--site-line)" }}>
+                {t}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+      {b.credits && rows(words.credits, p.credits)}
+      {b.credits && rows(words.thanks, p.thanks)}
+      {ctx.live && (
+        <a href={`/${p.slug}`} className="w-fit text-[15px] font-semibold" style={{ color: "var(--site-accent-ink)" }}>
+          {words.view} →
+        </a>
+      )}
+    </div>
+  );
+  const body = (
+    <div className={cx("grid grid-cols-2 items-center gap-12 @max-2xl:grid-cols-1", b.side === "end" && "[&>*:first-child]:order-2 @max-2xl:[&>*:first-child]:order-none")}>
+      <div className="min-w-0">{video}</div>
+      {text}
+    </div>
+  );
+  if (!bg) return <div data-testid="project-feature">{body}</div>;
+  return (
+    <div className="relative overflow-hidden p-12 @max-xl:p-6" style={{ borderRadius: "calc(var(--site-radius) * 2.3)", color: "#FFFFFF", ["--site-muted" as string]: "rgba(255,255,255,.75)", ["--site-line" as string]: "rgba(255,255,255,.3)", ["--site-accent-ink" as string]: "#FFFFFF" }} data-testid="project-feature">
+      <div className="absolute inset-0">
+        <Picture m={bg} base={ctx.base} want={2560} ratio="auto" className="h-full w-full !rounded-none" alt="" />
+        <div className="absolute inset-0" style={{ background: "rgba(10,8,6,.62)" }} />
+      </div>
+      <div className="relative">{body}</div>
+    </div>
+  );
+}
+
+const FEATURE_WORDS = {
+  en: { noProject: "Choose a project in the settings.", soon: "Video coming soon", soonHint: "Add the YouTube or Vimeo link in the project. Only you see this note.", tools: "Tools", credits: "Credits", thanks: "Special thanks", view: "View project" },
+  ar: { noProject: "اختر مشروعًا من الإعدادات.", soon: "الفيديو قريبًا", soonHint: "أضف رابط يوتيوب أو فيميو في المشروع. هذه الملاحظة تظهر لك فقط.", tools: "الأدوات", credits: "فريق العمل", thanks: "شكر خاص", view: "شاهد المشروع" },
+};
 
 function VideoView({
   url,
@@ -1248,6 +1492,37 @@ function CardsView({ b, ctx }: { b: BlockOf<"cards">; ctx: Ctx }) {
 
   let body: ReactNode = null;
   switch (b.variant) {
+    case "tiles":
+      // Picture tiles with the title over them, each linking to a page (portfolio categories).
+      body = (
+        <div className="site-cards-grid grid gap-5" style={grid}>
+          {b.items.map((it, n) =>
+            link(
+              it.link,
+              <>
+                <Picture
+                  m={m(it.mediaId)}
+                  base={ctx.base}
+                  tone={it.tone}
+                  ratio="4 / 5"
+                  want={800}
+                  className="absolute inset-0 h-full !rounded-none"
+                  alt=""
+                  pic={ctx.editing ? `${ctx.blockId}|items.${n}.mediaId` : undefined}
+                />
+                <span aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "linear-gradient(0deg, rgba(10,8,6,.7) 0%, rgba(10,8,6,0) 50%)" }} />
+                <span className="pointer-events-none absolute inset-x-5 bottom-[18px] flex items-baseline justify-between gap-3" style={{ color: "#FFFFFF" }}>
+                  <span className="pointer-events-auto">{tx(n, "title", { style: { fontSize: 20, fontWeight: 700 } })}</span>
+                  {(it.meta || ctx.onText) && <span className="pointer-events-auto text-[13px] opacity-85">{tx(n, "meta")}</span>}
+                </span>
+              </>,
+              "site-tile relative block aspect-[4/5] overflow-hidden",
+              { borderRadius: "calc(var(--site-radius) * 1.3)", color: "#FFFFFF" },
+            ),
+          )}
+        </div>
+      );
+      break;
     case "icons":
       body = (
         <div className="site-cards-grid grid gap-8" style={grid}>
@@ -1550,8 +1825,14 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
           className="relative flex flex-col justify-end overflow-hidden"
           data-pic={ctx.editing && !img ? `${ctx.blockId}|mediaId` : undefined}
           style={{
-            minHeight: b.height === "full" ? "min(88vh, 900px)" : "min(60vh, 560px)",
-            marginInline: "calc(var(--site-pad) * -1)",
+            minHeight: b.inset
+              ? b.height === "full"
+                ? "min(80vh, 760px)"
+                : "min(56vh, 540px)"
+              : b.height === "full"
+                ? "min(88vh, 900px)"
+                : "min(60vh, 560px)",
+            ...(b.inset ? { borderRadius: "calc(var(--site-radius) * 2.3)" } : { marginInline: "calc(var(--site-pad) * -1)" }),
             background: toneFill(b.tone),
           }}
         >
@@ -1561,15 +1842,35 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
             </div>
           )}
           <div
-            className="relative flex flex-col gap-3 p-[var(--site-pad)]"
+            className="relative flex flex-wrap items-end justify-between gap-5 p-[var(--site-pad)] @max-xl:p-6"
             style={{
               // On a picture or a sample drawing: white words over a soft shade.
               color: img || isSampleTone(b.tone) ? "#FFFFFF" : readableOn(b.tone),
-              background: img || isSampleTone(b.tone) ? "linear-gradient(transparent, rgba(0,0,0,.45))" : undefined,
+              background: img || isSampleTone(b.tone) ? "linear-gradient(transparent, rgba(10,8,6,.7))" : undefined,
             }}
           >
-            <T ctx={ctx} path="heading" value={b.heading} as="h1" style={heading(52)} className="@max-2xl:!text-[34px]" />
-            <T ctx={ctx} path="subheading" value={b.subheading} as="p" className="m-0 text-[18px] opacity-85" />
+            <div className="flex max-w-[820px] flex-col gap-3">
+              {(b.eyebrow || (ctx.onText && ctx.selectedBlockId === ctx.blockId)) && (
+                <T ctx={ctx} path="eyebrow" value={b.eyebrow ?? ""} className="text-[13px] font-medium tracking-[.14em] uppercase opacity-85" />
+              )}
+              <T ctx={ctx} path="heading" value={b.heading} as="h1" style={{ ...heading(56), lineHeight: 1.02 }} className="@max-2xl:!text-[34px]" />
+              <T ctx={ctx} path="subheading" value={b.subheading} as="p" className="m-0 text-[18px] opacity-85" />
+            </div>
+            {(b.button || (ctx.onText && ctx.selectedBlockId === ctx.blockId)) && (
+              <a
+                href={ctx.live ? b.link || undefined : undefined}
+                className="inline-flex h-14 items-center gap-3 rounded-full ps-2 pe-6 font-semibold no-underline"
+                style={{ background: "#FFFFFF", color: "#111111" }}
+                onClick={ctx.live ? undefined : (e) => e.preventDefault()}
+              >
+                <span className="flex size-[42px] items-center justify-center rounded-full" style={{ background: "var(--site-accent)" }} aria-hidden>
+                  <svg width="16" height="16" viewBox="0 0 24 24">
+                    <path d="M8 5l12 7-12 7z" fill="var(--site-on-accent)" />
+                  </svg>
+                </span>
+                <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path="button" value={b.button ?? ""} />
+              </a>
+            )}
           </div>
         </div>
       );
@@ -1776,15 +2077,26 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
           </ul>
         </div>
       );
-    case "logos":
+    case "logos": {
+      const tint = b.tint === "white" ? "brightness(0) invert(1)" : b.tint === "black" ? "brightness(0)" : undefined;
       return (
         <div className="flex flex-col gap-5">
           <T ctx={ctx} path="heading" value={b.heading} as="h2" style={{ ...heading(20), color: "var(--site-muted)" }} />
-          <div className={cx("flex flex-wrap items-center gap-x-10 gap-y-5", alignRow(ctx.align))}>
+          <div
+            className={cx(
+              b.oneRow ? "grid items-center gap-9 @max-xl:!grid-cols-3 @max-xl:gap-6" : cx("flex flex-wrap items-center gap-x-10 gap-y-5", alignRow(ctx.align)),
+              b.band && "px-12 py-8 @max-xl:px-6",
+            )}
+            style={{
+              ...(b.oneRow ? { gridTemplateColumns: `repeat(${Math.max(1, b.items.length)}, minmax(0, 1fr))` } : {}),
+              ...(b.band ? { background: b.band, borderRadius: "calc(var(--site-radius) * 1.6)" } : {}),
+            }}
+            data-testid="logo-wall"
+          >
             {b.items.map((l, i) => {
               const logo = m(l.mediaId);
               return logo ? (
-                <span key={i} className="block h-10 w-28">
+                <span key={i} className={cx("block h-10", b.oneRow ? "w-full" : "w-28")} style={tint ? { filter: tint } : undefined}>
                   <Picture
                     m={logo}
                     base={ctx.base}
@@ -1800,13 +2112,53 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
                   ctx={{ ...ctx, selectedBlockId: ctx.blockId }}
                   path={`items.${i}.name`}
                   value={l.name}
-                  style={{ ...heading(22), opacity: 0.75 }}
+                  style={{ ...heading(22), opacity: 0.75, color: b.band ? readableOn(b.band) : undefined }}
                 />
               );
             })}
           </div>
         </div>
       );
+    }
+    case "header": {
+      const logo = m(b.logoId);
+      return (
+        <div
+          className="flex flex-wrap items-baseline justify-between gap-4"
+          style={b.divider ? { borderBottom: "1px solid var(--site-line)", paddingBottom: 18 } : undefined}
+          data-testid="section-header"
+        >
+          <h2 className="m-0 flex flex-wrap items-center gap-4" style={heading(b.size === "l" ? 44 : 30)}>
+            {(b.number || (ctx.onText && ctx.selectedBlockId === ctx.blockId)) && (
+              <T ctx={ctx} path="number" value={b.number} style={{ fontSize: 15, fontWeight: 600, color: "var(--site-accent-ink)", fontFamily: "var(--site-body)" }} />
+            )}
+            {logo ? (
+              <span className="block h-[30px]" title={b.title}>
+                <Picture m={logo} base={ctx.base} want={400} ratio="auto" alt={b.title} className="h-full !rounded-none [&_img]:!h-full [&_img]:!w-auto [&_img]:object-contain" />
+              </span>
+            ) : (
+              <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path="title" value={b.title} />
+            )}
+          </h2>
+          {(b.badge || b.subtitle || (ctx.onText && ctx.selectedBlockId === ctx.blockId)) && (
+            <span className="flex flex-wrap items-center gap-2.5 text-[14px]" style={{ color: "var(--site-muted)" }}>
+              {(b.badge || (ctx.onText && ctx.selectedBlockId === ctx.blockId)) && (
+                <T
+                  ctx={ctx}
+                  path="badge"
+                  value={b.badge}
+                  className="rounded-full px-3 py-1 text-[13px] font-semibold"
+                  style={{ background: "var(--site-text)", color: "var(--site-bg)" }}
+                />
+              )}
+              <T ctx={ctx} path="subtitle" value={b.subtitle} />
+            </span>
+          )}
+        </div>
+      );
+    }
+    case "feature":
+      return <FeatureView b={b} ctx={ctx} />;
     case "about": {
       const photo = m(b.photoId);
       const cv = m(b.cvId);
@@ -1870,14 +2222,30 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
             <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path="button" value={b.button} className="site-button mt-1" />
           </div>
         );
+      const art = m(b.mediaId ?? null);
+      const inner = (
+        <>
+          {intro}
+          {formPart}
+        </>
+      );
       return (
         <div
           id={ctx.live ? "contact" : undefined}
-          className={cx("gap-8 p-10 @max-xl:p-6", split ? "grid grid-cols-2 items-start @max-2xl:grid-cols-1" : "flex flex-col items-start gap-3")}
-          style={{ background: "var(--site-surface)", borderRadius: "calc(var(--site-radius) * 2)" }}
+          className={cx(
+            "gap-8 p-10 @max-xl:p-6",
+            art ? "grid grid-cols-[minmax(0,320px)_1fr] items-center gap-14 p-14 @max-2xl:grid-cols-1" : split ? "grid grid-cols-2 items-start @max-2xl:grid-cols-1" : "flex flex-col items-start gap-3",
+          )}
+          style={{ background: "var(--site-surface)", borderRadius: "calc(var(--site-radius) * 2.3)" }}
         >
-          {intro}
-          {formPart}
+          {art ? (
+            <>
+              <Picture m={art} base={ctx.base} want={800} ratio="1 / 1" className="[&_img]:mix-blend-multiply" pic={ctx.editing ? `${ctx.blockId}|mediaId` : undefined} />
+              <div className={cx("flex flex-col gap-6", split && "grid grid-cols-2 items-start @max-2xl:grid-cols-1")}>{inner}</div>
+            </>
+          ) : (
+            inner
+          )}
         </div>
       );
     }
@@ -1942,6 +2310,8 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
 
 interface Ctx {
   media: Record<string, SiteMedia>;
+  /** The theme's accent, so coloured bands can work out a readable accent for their text. */
+  accent?: string;
   projects?: GalleryProject[];
   base: string;
   editing: boolean;
@@ -2104,6 +2474,7 @@ function SectionBand({
             ? bg.overlay
             : undefined,
     ...(text && (banded || s.text) ? inkVars(text, base ?? "#FFFFFF") : {}),
+    ...(base && ctx.accent && banded ? { ["--site-accent-ink" as string]: accentInk(ctx.accent, base) } : {}),
   };
 
   const edge = (where: "top" | "bottom") => {
@@ -2473,7 +2844,8 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
         href={href}
         style={{ color: "inherit", textDecoration: "none", ...style }}
         aria-current={p.id === page.id ? "page" : undefined}
-        {...(p.type === "link" ? { target: "_blank", rel: "noopener" } : {})}
+        // Links to other websites open in a new tab; links within the site (like /#broadcast) don't.
+        {...(p.type === "link" && /^https?:/i.test(href) ? { target: "_blank", rel: "noopener" } : {})}
       >
         {p.title}
       </a>
@@ -2693,6 +3065,7 @@ export function SiteRender({
   const page = site.pages.find((p) => p.id === pageId) ?? site.pages[0];
   const { theme } = site;
   const ctx: Ctx = {
+    accent: theme.colors.accent,
     media,
     projects,
     base: mediaBase,
@@ -2721,6 +3094,7 @@ export function SiteRender({
     "--site-text": theme.colors.text,
     "--site-accent": theme.colors.accent,
     "--site-on-accent": readableOn(theme.colors.accent),
+    "--site-accent-ink": accentInk(theme.colors.accent, theme.colors.background),
     "--site-muted": `color-mix(in srgb, ${theme.colors.text} 62%, ${theme.colors.background})`,
     "--site-line": `color-mix(in srgb, ${theme.colors.text} 16%, ${theme.colors.background})`,
     "--site-surface": `color-mix(in srgb, ${theme.colors.text} 6%, ${theme.colors.background})`,

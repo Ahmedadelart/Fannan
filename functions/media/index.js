@@ -111,12 +111,29 @@ async function processSvg(req, input) {
 }
 
 async function processGif(req, input) {
-  // Keeps the animation: animated WebP in every size, plus a still poster.
-  const p = await prepare(input, { animated: true });
-  const anim = await writeVariants({ ...req, base: input, width: p.width, height: p.height, animated: true });
-  const still = await sharp(input, { failOn: "none" }).png().toBuffer();
+  // A GIF becomes a muted looping MP4 (far smaller and smoother than an animated image), plus a
+  // still poster in every size from its first frame. The real width and height are kept.
+  const p = await prepare(input, { animated: false });
+  const still = await sharp(input, { failOn: "none", pages: 1 }).png().toBuffer();
   const poster = await writeVariants({ ...req, dest: `${req.dest}/poster`, base: still, width: p.width, height: p.height });
-  return { ...anim, poster: poster.variants };
+  const dir = await mkdtemp(join(tmpdir(), "gif-"));
+  try {
+    const { ffmpeg } = await binaries();
+    const src = join(dir, "in.gif");
+    const out = join(dir, "loop.mp4");
+    await writeFile(src, input);
+    await run(ffmpeg, [
+      "-y", "-i", src, "-an", "-movflags", "+faststart", "-pix_fmt", "yuv420p",
+      // H.264 needs even sizes; very large GIFs are brought down to 1920 wide.
+      "-vf", "scale='min(1920,iw)':-2:flags=lanczos,scale=trunc(iw/2)*2:trunc(ih/2)*2",
+      "-c:v", "libx264", "-preset", "veryfast", "-crf", "22", out,
+    ]);
+    const loopPath = `${req.dest}/loop.mp4`;
+    await writeObject(req.bucket, loopPath, await readFile(out), "video/mp4");
+    return { width: p.width, height: p.height, variants: poster.variants, poster: poster.variants, loop: loopPath };
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
 }
 
 async function binaries() {

@@ -20,7 +20,8 @@ export type CardKey =
   | "c-timeline"
   | "c-press"
   | "c-films"
-  | "c-offers";
+  | "c-offers"
+  | "c-tiles";
 
 export const CARD_VARIANT: Record<CardKey, CardVariant> = {
   "c-icons": "icons",
@@ -35,6 +36,7 @@ export const CARD_VARIANT: Record<CardKey, CardVariant> = {
   "c-press": "press",
   "c-films": "films",
   "c-offers": "offers",
+  "c-tiles": "tiles",
 };
 
 export function cardItem(extra: Partial<CardItem> = {}): CardItem {
@@ -63,6 +65,15 @@ const W = {
         ["film", "Animation", "Keys, roughs and acting that make characters feel alive."],
         ["pen", "Storyboards", "Clear shots and staging that tell the story quickly."],
         ["book", "Teaching", "Workshops and mentoring for artists who want to grow."],
+      ],
+    },
+    tiles: {
+      heading: "Portfolio",
+      items: [
+        ["Character design", "", "/character-design"],
+        ["Illustration", "", "/illustration"],
+        ["Animation", "", "/animation"],
+        ["Storyboard", "", "/storyboard"],
       ],
     },
     cards: {
@@ -134,6 +145,15 @@ const W = {
         ["film", "الرسوم المتحركة", "حركة وأداء يجعلان الشخصيات تنبض بالحياة."],
         ["pen", "القصص المصورة", "لقطات واضحة تحكي القصة بسرعة."],
         ["book", "التدريس", "ورش عمل وإرشاد للفنانين الذين يريدون التطور."],
+      ],
+    },
+    tiles: {
+      heading: "أعمالي",
+      items: [
+        ["تصميم الشخصيات", "", "/character-design"],
+        ["الرسم", "", "/illustration"],
+        ["الأنيميشن", "", "/animation"],
+        ["الستوري بورد", "", "/storyboard"],
       ],
     },
     cards: {
@@ -224,6 +244,11 @@ export function cardsBlock(key: CardKey, language: Locale): Extract<Block, { typ
       heading = w.faq.heading;
       items = w.faq.items.map(([title, text]) => cardItem({ title, text }));
       columns = 1;
+      break;
+    case "tiles":
+      heading = w.tiles.heading;
+      items = w.tiles.items.map(([title, meta, link], i) => cardItem({ title, meta, link, tone: sampleTone(i + 1) }));
+      columns = 4;
       break;
     case "mosaic":
       items = Array.from({ length: 8 }, (_, i) => cardItem({ tone: sampleTone(i) }));

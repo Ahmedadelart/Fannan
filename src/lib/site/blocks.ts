@@ -293,6 +293,41 @@ export const blockKinds: BlockKind[] = [
     make: (l) => linksBlock(l),
   },
   {
+    key: "header",
+    type: "header",
+    group: "layout",
+    icon: "hero-headline",
+    make: (l) => ({
+      id: newId(),
+      type: "header",
+      number: "01",
+      title: l === "ar" ? "أعمال مختارة" : "Selected work",
+      subtitle: l === "ar" ? "مسلسلات وأفلام" : "Series and films",
+      logoId: null,
+      badge: "",
+      divider: true,
+      size: "m",
+    }),
+  },
+  {
+    key: "feature",
+    type: "feature",
+    group: "galleries",
+    icon: "projects",
+    make: () => ({
+      id: newId(),
+      type: "feature",
+      projectId: null,
+      words: "short",
+      logos: true,
+      laurels: true,
+      tools: true,
+      credits: false,
+      bgMediaId: null,
+      side: "start",
+    }),
+  },
+  {
     key: "quote",
     type: "quote",
     group: "hire",
@@ -362,6 +397,7 @@ const CARD_ICONS: Record<CardKey, IconName> = {
   "c-press": "book",
   "c-films": "film",
   "c-offers": "hire-me-badge",
+  "c-tiles": "fullscreen-grid",
 };
 export const cardKinds: BlockKind[] = (Object.keys(CARD_ICONS) as CardKey[]).map((key) => ({
   key,
@@ -379,7 +415,7 @@ export type LibraryGroup = "intro" | "work" | "images" | "text" | "about" | "med
 export const LIBRARY: Array<{ group: LibraryGroup; keys: string[] }> = [
   // Round 13: pictures first in every group ("show, not tell").
   { group: "intro", keys: ["d-title-over", "d-hero-photo", "d-hero-split", "d-cover", "d-title", "d-statement", "c-nav"] },
-  { group: "work", keys: ["grid", "masonry", "d-project-intro", "d-split-left", "d-split-right", "slider", "c-mosaic", "c-films"] },
+  { group: "work", keys: ["grid", "masonry", "feature", "c-tiles", "d-project-intro", "d-split-left", "d-split-right", "slider", "c-mosaic", "c-films"] },
   {
     group: "images",
     keys: [
@@ -401,7 +437,7 @@ export const LIBRARY: Array<{ group: LibraryGroup; keys: string[] }> = [
       "d-before-after",
     ],
   },
-  { group: "text", keys: ["c-icons", "c-stats", "c-faq", "d-info", "d-long-text", "d-project-info", "d-resume", "quote"] },
+  { group: "text", keys: ["header", "c-icons", "c-stats", "c-faq", "d-info", "d-long-text", "d-project-info", "d-resume", "quote"] },
   {
     group: "about",
     keys: [

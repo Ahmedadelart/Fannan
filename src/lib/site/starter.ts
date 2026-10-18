@@ -58,6 +58,16 @@ export const themes: Record<ThemePreset, Theme> = {
     radius: 10,
     nav: "centered",
   },
+  // "Studio Orange": white, near-black ink and a strong orange, in Rubik.
+  // Words in the accent colour use a darker orange automatically, so they stay readable.
+  orange: {
+    ...base,
+    preset: "orange",
+    colors: { background: "#FFFFFF", text: "#111111", accent: "#FF5A1F" },
+    fonts: { heading: "rubik", body: "rubik", arabic: "plex-arabic", headingWeight: 700 },
+    radius: 12,
+    nav: "top",
+  },
 };
 
 export const presetIds = Object.keys(themes) as ThemePreset[];

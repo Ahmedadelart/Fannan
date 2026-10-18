@@ -441,6 +441,8 @@ function previewHeight(b: Block): number {
     case "social":
     case "quote":
       return 300;
+    case "header":
+      return 160;
     default:
       return 560;
   }
@@ -1642,10 +1644,10 @@ export function BlockSettings({
       const v = block.variant;
       const cf = (name: string) => t(`cardsForm.${name}`);
       const withIcon = v === "icons";
-      const withPicture = ["images", "mosaic", "testimonials", "timeline", "films", "marquee"].includes(v);
+      const withPicture = ["images", "tiles", "mosaic", "testimonials", "timeline", "films", "marquee"].includes(v);
       const withText = ["icons", "images", "stats", "faq", "testimonials", "timeline", "films", "offers"].includes(v);
-      const withMeta = ["testimonials", "timeline", "press", "offers"].includes(v);
-      const withLink = ["images", "nav", "press", "offers"].includes(v);
+      const withMeta = ["testimonials", "timeline", "press", "offers", "tiles"].includes(v);
+      const withLink = ["images", "nav", "press", "offers", "tiles"].includes(v);
       const withButton = ["images", "offers"].includes(v);
       body = (
         <>
@@ -1655,7 +1657,7 @@ export function BlockSettings({
               <Area title={cf("intro")} value={block.intro} onChange={(x) => set({ intro: x }, k("intro"))} />
             </>
           )}
-          {["icons", "images", "stats", "mosaic", "films", "offers"].includes(v) && (
+          {["icons", "images", "tiles", "stats", "mosaic", "films", "offers"].includes(v) && (
             <Range title={cf("columns")} value={block.columns} min={1} max={6} onChange={(x) => set({ columns: x }, k("cols"))} />
           )}
           {["icons", "stats"].includes(v) && (
@@ -1745,6 +1747,12 @@ export function BlockSettings({
           {mediaField(f("image"), block.mediaId, "image", (id) => set({ mediaId: id }))}
           <Text title={f("heading")} value={block.heading} onChange={(v) => set({ heading: v }, k("h"))} />
           <Text title={f("subheading")} value={block.subheading} onChange={(v) => set({ subheading: v }, k("s"))} />
+          <Text title={t("coverx.eyebrow")} value={block.eyebrow ?? ""} onChange={(v) => set({ eyebrow: v }, k("eb"))} />
+          <div className="grid grid-cols-2 gap-2.5">
+            <Text title={t("coverx.button")} value={block.button ?? ""} onChange={(v) => set({ button: v }, k("btn"))} />
+            <Text title={t("coverx.link")} dir="ltr" placeholder="https://" value={block.link ?? ""} onChange={(v) => set({ link: v }, k("lnk"))} />
+          </div>
+          <Switch title={t("coverx.inset")} checked={!!block.inset} onChange={(v) => set({ inset: v })} />
           <Choice
             title={f("height")}
             value={block.height}
@@ -1815,6 +1823,18 @@ export function BlockSettings({
                   {label}
                 </option>
               ))}
+              {(() => {
+                const tags = [...new Set(projects.flatMap((p) => p.tags ?? []).map((x) => x.toLowerCase()))].sort();
+                return tags.length ? (
+                  <optgroup label={t("galleryx.tags")}>
+                    {tags.map((x) => (
+                      <option key={x} value={`tag:${x}`}>
+                        #{x}
+                      </option>
+                    ))}
+                  </optgroup>
+                ) : null;
+              })()}
             </select>
           </Label>
           <GalleryLayoutPicker b={b} set={set} isPro={isPro} />
@@ -1862,6 +1882,38 @@ export function BlockSettings({
             </Label>
             <Switch title={g("credits")} checked={b.credits} onChange={(v) => set({ credits: v })} />
             <Switch title={g("hoverPlay")} checked={b.hoverPlay} onChange={(v) => set({ hoverPlay: v })} />
+            <Choice
+              title={t("galleryx.loopPlay")}
+              value={b.loopPlay ?? "hover"}
+              options={(["hover", "always"] as const).map((x) => [x, t(`galleryx.loopPlays.${x}`)])}
+              onChange={(v) => set({ loopPlay: v })}
+            />
+            {(b.layout === "grid" || b.layout === "fullscreen") && (
+              <Switch title={t("galleryx.split")} checked={!!b.split} onChange={(v) => set({ split: v, wideColumns: b.wideColumns ?? 2 })} />
+            )}
+            {b.split && (b.layout === "grid" || b.layout === "fullscreen") && (
+              <Range title={t("galleryx.wideColumns")} value={b.wideColumns ?? 2} min={1} max={4} onChange={(v) => set({ wideColumns: v }, k("wcols"))} />
+            )}
+            <div className="flex flex-col gap-1.5" data-testid="gallery-lines">
+              <span className="text-[12px] font-semibold">{t("galleryx.lines")}</span>
+              <div className="flex flex-wrap gap-1.5">
+                {(["network", "client", "role", "studio", "year"] as const).map((line) => {
+                  const on = !!b.lines?.includes(line);
+                  return (
+                    <button
+                      key={line}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => set({ lines: on ? (b.lines ?? []).filter((x) => x !== line) : [...(b.lines ?? []), line] })}
+                      className={cx("rounded-pill border px-2.5 py-1 text-[12px] font-semibold", on ? "border-ink bg-mist" : "border-line hover:bg-mist")}
+                    >
+                      {t(`galleryx.lineNames.${line}`)}
+                    </button>
+                  );
+                })}
+              </div>
+              {!!b.lines?.length && <Switch title={t("galleryx.accentRole")} checked={!!b.accentRole} onChange={(v) => set({ accentRole: v })} />}
+            </div>
             <Switch title={g("filter")} checked={b.filter} onChange={(v) => set({ filter: v })} />
             {b.layout === "grid" && (
               <Switch title={g("cardSizes")} checked={!!b.cardSizes} onChange={(v) => set({ cardSizes: v })} />
@@ -2012,6 +2064,77 @@ export function BlockSettings({
             { name: "", mediaId: null },
             40,
           )}
+          <Switch title={t("logosx.oneRow")} checked={!!block.oneRow} onChange={(v) => set({ oneRow: v })} />
+          <Choice
+            title={t("logosx.tint")}
+            value={block.tint ?? "original"}
+            options={(["original", "white", "black"] as const).map((x) => [x, t(`logosx.tints.${x}`)])}
+            onChange={(v) => set({ tint: v })}
+          />
+          <div className="flex items-center justify-between gap-3 text-[13px]">
+            <span>{t("logosx.band")}</span>
+            <span className="flex items-center gap-2">
+              <Toggle label={t("logosx.band")} hideLabel checked={!!block.band} onChange={(v) => set({ band: v ? "#FF5A1F" : null })} />
+              {block.band && (
+                <input type="color" aria-label={t("logosx.band")} value={block.band} onChange={(e) => set({ band: e.target.value.toUpperCase() }, k("band"))} className="border-line h-8 w-10 rounded-[8px] border p-0.5" />
+              )}
+            </span>
+          </div>
+        </>
+      );
+      break;
+    case "header":
+      body = (
+        <>
+          <div className="grid grid-cols-[80px_1fr] gap-2.5">
+            <Text title={t("header.number")} value={block.number} onChange={(v) => set({ number: v }, k("n"))} />
+            <Text title={t("header.title")} value={block.title} onChange={(v) => set({ title: v }, k("t"))} />
+          </div>
+          <Text title={t("header.subtitle")} value={block.subtitle} onChange={(v) => set({ subtitle: v }, k("s"))} />
+          <Text title={t("header.badge")} placeholder={t("header.badgeHint")} value={block.badge} onChange={(v) => set({ badge: v }, k("b"))} />
+          {mediaField(t("header.logo"), block.logoId, "image", (id) => set({ logoId: id }))}
+          <Switch title={t("header.divider")} checked={block.divider} onChange={(v) => set({ divider: v })} />
+          <Choice
+            title={t("header.size")}
+            value={block.size}
+            options={(["m", "l"] as const).map((x) => [x, t(`header.sizes.${x}`)])}
+            onChange={(v) => set({ size: v })}
+          />
+          <p className="text-muted m-0 text-[12px]">{t("header.anchorHint")}</p>
+        </>
+      );
+      break;
+    case "feature":
+      body = (
+        <>
+          <Label title={t("feature.project")}>
+            <select className={inputCls} value={block.projectId ?? ""} onChange={(e) => set({ projectId: e.target.value || null })} data-testid="feature-project">
+              <option value="">{t("feature.pick")}</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.title}
+                </option>
+              ))}
+            </select>
+          </Label>
+          <Choice
+            title={t("feature.words")}
+            value={block.words}
+            options={(["short", "all", "none"] as const).map((x) => [x, t(`feature.wordsOpts.${x}`)])}
+            onChange={(v) => set({ words: v })}
+          />
+          <Switch title={t("feature.logos")} checked={block.logos} onChange={(v) => set({ logos: v })} />
+          <Switch title={t("feature.laurels")} checked={block.laurels} onChange={(v) => set({ laurels: v })} />
+          <Switch title={t("feature.tools")} checked={block.tools} onChange={(v) => set({ tools: v })} />
+          <Switch title={t("feature.credits")} checked={block.credits} onChange={(v) => set({ credits: v })} />
+          <Choice
+            title={t("feature.side")}
+            value={block.side}
+            options={(["start", "end"] as const).map((x) => [x, t(`feature.sides.${x}`)])}
+            onChange={(v) => set({ side: v })}
+          />
+          {mediaField(t("feature.background"), block.bgMediaId, "image", (id) => set({ bgMediaId: id }))}
+          <p className="text-muted m-0 text-[12px]">{t("feature.soonHint")}</p>
         </>
       );
       break;
@@ -2035,6 +2158,7 @@ export function BlockSettings({
         <>
           <Text title={f("heading")} value={block.heading} onChange={(v) => set({ heading: v }, k("h"))} />
           <Area title={f("text")} value={block.text} onChange={(v) => set({ text: v }, k("t"))} />
+          {mediaField(t("contactx.image"), block.mediaId ?? null, "image", (id) => set({ mediaId: id }))}
           <Choice
             title={c("layout")}
             value={form.layout}

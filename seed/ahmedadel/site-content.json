@@ -1,0 +1,195 @@
+{
+  "_about": "Content map for rebuilding ahmedadel.art as a normal, fully editable Fannan site. All paths are relative to ASSETS_ROOT (Ahmed's folder: C:\\Users\\PC\\Downloads\\ahmedadel.art-assets). Text in 'words' fields is Ahmed's own wording from his current site, lightly cleaned; keep it as is. Anything in [brackets] is unknown: leave it as a visible placeholder or a hidden draft for Ahmed to fill in the editor.",
+
+  "account": {
+    "email": "adel4art@gmail.com",
+    "displayName": "Ahmed Adel",
+    "username": "ahmedadel",
+    "plan": "pro (comped by admin, 12 months)",
+    "customDomain": "ahmedadel.art (connect LAST, only after Ahmed approves the new site; it currently points to Squarespace)",
+    "siteLanguage": "en"
+  },
+
+  "theme": {
+    "name": "Studio Orange",
+    "saveAsPreset": true,
+    "fonts": { "heading": "Rubik 700", "body": "Rubik 400/500", "arabic": "Rubik (has Arabic)" },
+    "colors": { "background": "#FFFFFF", "text": "#111111", "muted": "#6B655F", "accent": "#FF5A1F", "accentText": "#C93F0E", "dark": "#111111", "soft": "#F5F2EE", "line": "#E6E2DE" },
+    "radius": { "images": 12, "cards": 20, "hero": 28, "buttons": 999 },
+    "nav": "Top bar: logo left (image _site/logo.png) · links right · black pill 'Contact'",
+    "favicon": "make from _site/logo.png (first letter) or ask Ahmed",
+    "shareImage": "_site/social-share-image.jpeg"
+  },
+
+  "reference_designs": "design/screens/ahmed-site/Home.dc.html, Project-Zakia.dc.html, About.dc.html (images mapped in blob-map.json)",
+
+  "projects": [
+    { "id": "zakia-al-zakia", "group": "broadcast", "title": "Zakia Al Zakia", "network": "Majid TV", "studio": "Jump Animation Studio", "role": "Animation Supervisor & Team Lead", "dates": "06.2020 – 09.2022", "episodes": 26, "shape": "poster",
+      "cover": "home/04_broadcast-film/002_MV5BMDNhNTlkMjQtYTY1ZC00M2MyLTlmMTktMWMyODViMDdiOGE1XkEyXkFqcGc@._V1_FMjpg_UY2708_.jpg",
+      "headerLogos": "2d-animation/02_header-logos-zakia-al-zakia-majid-tv-jum/",
+      "video": { "file": "_videos/zakia-al-zakia-reel.mp4", "note": "upload to Vimeo/YouTube first (see AHMED-TODO), then embed" },
+      "words": [
+        "I worked with Jump as an Animation Supervisor and Team Lead for 2.5 years on this 26-episode TV series. It’s currently airing on MAJID TV channel & MAJID APP.",
+        "I was responsible for supervising and leading the animation team consisting of 8 full-time animators and more freelance animators when needed, while also animating traditional/cutout shots.",
+        "This is a process video of the whole progress for the opening song for the series. I was responsible for animating some shots and supervising the rest of the animation by the amazing team in Jump.",
+        "Here are some of the shots I animated."
+      ],
+      "shots": "[Ahmed to supply the shot GIFs/loops from his Squarespace project page]" },
+
+    { "id": "ivandoe", "group": "broadcast", "title": "The Heroic Quest of the Valiant Prince Ivandoe", "shortTitle": "Prince Ivandoe", "network": "Cartoon Network / HBO", "studio": "Sun Creature Studio", "role": "Senior Key & Rough Animator", "dates": "2022 · 3 months, remote", "shape": "poster",
+      "cover": "home/04_broadcast-film/003_MV5BZTFkYWVkZGQtOTRlYi00YzYxLWFhNTktNjU2MmIwNjk4MjhkXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+      "headerLogos": "2d-animation/04_header-logos-valiant-prince-ivandoe-cart/",
+      "video": { "file": "_videos/valiant-prince-ivandoe-reel.mp4" },
+      "words": [
+        "I had the chance to work with Sun Creature Studio on this amazing show for Cartoon Network and HBO.",
+        "I worked with them remotely as a Senior Key & Rough Animator for a 3-month full-time contract.",
+        "It was really late in the production and I had to join and adapt very quickly to the style and process of the show, and it was an amazing experience overall and such a great team to work with!"
+      ] },
+
+    { "id": "the-grand-night", "group": "broadcast", "title": "The Grand Night", "network": "Annecy MIFA selection", "studio": "Giraffics Studio / Jump Animation Studio", "role": "2D Traditional/Cutout Animator", "shape": "landscape",
+      "cover": "home/04_broadcast-film/006_MV5BZGE0MzIzYzgtYTMwNy00NzA4LTg0YzAtMDg1MzhkZjM2ODY2XkEyXkFqcGc@._V1_FMjpg_UX2154_.jpg",
+      "headerLogos": "2d-animation/06_header-logos-the-grand-night-giraffics-j/",
+      "video": { "file": "_videos/the-grand-night-reel.mp4" },
+      "words": [ "I was asked to animate a lot of the shots for this POC trailer produced by Giraffics Studio with Jump Animation Studio. I also did some of the coloring/finishing and shadowing on other shots." ],
+      "credits": [ ["Directed by", "Ahmed Gamal"], ["Art director", "Ahmed Teilab"], ["Storyboard by", "Ahmed Abd El Warith"] ] },
+
+    { "id": "fever-dreams", "group": "broadcast", "title": "Fever Dreams (Ahlam Al Asr)", "network": "Netflix", "studio": "Zaini Studios", "role": "Lead Character Designer", "shape": "poster",
+      "cover": "home/04_broadcast-film/005_Screenshot 2026-05-24 034224.png",
+      "headerLogos": "character-design/02_project-header-logos-fever-dreams-netfli/",
+      "gallery": "character-design/03_fever-dreams-gallery/ (18 images, keep order)" },
+
+    { "id": "hakawati-nation", "group": "broadcast", "title": "Hakawati Nation", "network": "MBC Academy", "studio": "Aspect Studio", "role": "Lead Character Designer", "shape": "landscape",
+      "cover": "home/04_broadcast-film/007_Untitled-1afsasd.jpg",
+      "headerLogos": "character-design/04_project-header-logos-hakawati-nation-mbc/",
+      "gallery": "character-design/05_hakawati-nation-gallery/ (36 images, keep order)" },
+
+    { "id": "last-da7ee7", "group": "broadcast", "title": "Last Da7ee7 on Earth", "network": "Spacetoon", "role": "Senior Layout Artist & Animator", "shape": "poster",
+      "cover": "home/04_broadcast-film/004_561392665_10236871141254751_4521313613729756171_n.jpg", "words": [] },
+
+    { "id": "long-night", "group": "directing", "title": "Long Night", "role": "Director and creator", "dates": "2023", "school": "Academy of Arts · High Cinema Institute", "type": "Graduation film", "shape": "poster",
+      "cover": "home/06_independent-directing/002_Long Night Poster .png",
+      "hero": "2d-animation/08_graduation-film-header-background-image-/001_Untitled-1 copy.jpg",
+      "laurels": "2d-animation/08_graduation-film-header-background-image-/002–007 (festival laurels: Cairo International Animation Festival winner, Babylon, Alexandria Short Film Festival, Animatex official selection)",
+      "video": { "file": "_videos/graduation-film-vr.mp4" },
+      "words": [
+        "This graduation short film was a whole new experience for me since I decided to make it completely in 3D for the first time using a VR headset, which was a very challenging yet very enjoyable new industry process.",
+        "The film is more about the technical new process that I always wanted to try out, and less about the story itself (which went through many iterations because of the deadline and graduation purposes)."
+      ],
+      "tools": ["Quill VR (Oculus Quest 2)", "Blender", "Adobe After Effects", "Adobe Photoshop"],
+      "thanks": [ ["Diyaa Salah", "for the help in some rough animation parts"], ["Ibrahim Salah", "for his great sound design"], ["Ahmed Mansour", "for his help with the poster"] ] },
+
+    { "id": "final-smoke", "group": "directing", "title": "Final Smoke", "role": "Co-Director", "shape": "poster", "cover": "home/06_independent-directing/003_بوستر 2 copy.jpg" },
+    { "id": "qahwet-al-foqara", "group": "directing", "title": "Qahwet Al Foqara", "role": "Animation Director", "shape": "poster", "cover": "home/06_independent-directing/004_Screenshot 2026-05-24 041729.png" },
+    { "id": "can-you-feel-it", "group": "directing", "title": "Can You Feel It?", "role": "Co-Director", "shape": "poster", "cover": "home/06_independent-directing/006_Gemini_Generated_Image_jmztu4jmztu4jmzt copy.jpg" },
+    { "id": "where-do-lovers-go", "group": "directing", "title": "Where Do Lovers Go?", "role": "Co-Director", "type": "Animated music video", "shape": "poster", "cover": "home/06_independent-directing/007_dgssdfgasf.jpg" },
+    { "id": "sweet-potato", "group": "directing-other", "title": "Sweet Potato", "role": "Senior Animator", "shape": "square", "cover": "home/06_independent-directing/005_gsdafsdad.png", "note": "On the old site under Independent Directing, but Ahmed wasn't the director. Show it in 2D Animation, not under Directing." },
+
+    { "_group_note": "BIG CAT = commercial work Ahmed DIRECTED as co-founder. Always label 'Director · Big Cat Animation'. Each GIF becomes a muted looping video (convert GIF → MP4 in the media pipeline). The PNG after each thumbnail in folder 10 is that client's logo." },
+    { "id": "bc-ralphs", "group": "bigcat", "title": "Ralph’s Coffee", "client": "Ralph’s Coffee (Ralph Lauren)", "role": "Director", "shape": "square", "loop": "home/10_commercial-projects-thumbnail-client-log/002_RALPH08 (1).gif", "logo": "home/10_commercial-projects-thumbnail-client-log/003_hasdfsfs.png" },
+    { "id": "bc-sinai", "group": "bigcat", "title": "Sinai.ai", "role": "Director", "shape": "landscape", "loop": "home/10_commercial-projects-thumbnail-client-log/010_Animation30.gif", "logo": "home/10_commercial-projects-thumbnail-client-log/011_ahsfssdf.png" },
+    { "id": "bc-naseej", "group": "bigcat", "title": "Naseej", "role": "Director", "shape": "landscape", "loop": "home/10_commercial-projects-thumbnail-client-log/012_Animation.gif", "logo": "home/10_commercial-projects-thumbnail-client-log/013_ahfssdgfsf.png" },
+    { "id": "bc-osn", "group": "bigcat", "title": "OSN+", "role": "Director", "shape": "landscape", "cover": "home/10_commercial-projects-thumbnail-client-log/014_feature1.jpg", "logo": "home/03_network-logos-hbo-cartoon-network-netfli/004_MBC-ACADEMY-Logo-1-e1593415agsdsd083802 copy.png" },
+    { "id": "bc-alula", "group": "bigcat", "title": "AlUla FC", "role": "Director", "shape": "landscape", "loop": "home/10_commercial-projects-thumbnail-client-log/022_Animation45.gif", "logo": "home/10_commercial-projects-thumbnail-client-log/023_hadgsdfs.png" },
+    { "id": "bc-fund", "group": "bigcat", "title": "Cultural Development Fund", "role": "Director", "shape": "landscape", "cover": "home/10_commercial-projects-thumbnail-client-log/026_Screenshot 2026-05-26 055650.png", "logo": "home/10_commercial-projects-thumbnail-client-log/027_gdasdfasdsad.png" },
+    { "id": "bc-sharmoofers", "group": "bigcat", "title": "Sharmoofers", "role": "Director", "shape": "square", "cover": "home/10_commercial-projects-thumbnail-client-log/031_Screenshot 2026-05-24 152627.png", "logo": "home/10_commercial-projects-thumbnail-client-log/032_agsfdsd.png" },
+    { "id": "bc-reel-2025", "group": "bigcat", "title": "Big Cat 2025 Showreel", "role": "Director", "shape": "landscape", "video": { "url": "[Big Cat 2025 showreel link — it was embedded on the old home page]" }, "logo": "home/07_commercial-leadership/001_Comp 2.gif" },
+
+    { "_group_note": "UNSURE: Ahmed hasn't said yet whether these were Big Cat or another studio. Import them as HIDDEN drafts in a 'Needs role' group so he can sort them in the editor. Do not guess." },
+    { "id": "u-dulcis", "group": "needs-role", "title": "Dulcis", "loop": "home/10_commercial-projects-thumbnail-client-log/004_Dulcis01.gif", "logo": "home/10_commercial-projects-thumbnail-client-log/005_afhsdasf.png" },
+    { "id": "u-ie", "group": "needs-role", "title": "weare.ie", "loop": "home/10_commercial-projects-thumbnail-client-log/006_Animationyasta11-ezgif.com-optimize.gif", "logo": "home/10_commercial-projects-thumbnail-client-log/007_fgagdsga.png" },
+    { "id": "u-animatex", "group": "needs-role", "title": "Animatex", "loop": "home/10_commercial-projects-thumbnail-client-log/020_Animation49.gif", "logo": "home/10_commercial-projects-thumbnail-client-log/021_gasdgsshg.png" },
+    { "id": "u-qudrat", "group": "needs-role", "title": "Qudrat Al Arabiya", "cover": "home/10_commercial-projects-thumbnail-client-log/028_WhatsApp Image 2023-12-05 at 9.03.37 PM.jpeg", "logo": "home/10_commercial-projects-thumbnail-client-log/029_fafsafsd.png" },
+    { "id": "u-luneverse", "group": "needs-role", "title": "Luneverse", "loop": "home/10_commercial-projects-thumbnail-client-log/033_Animation37.gif", "logo": "home/10_commercial-projects-thumbnail-client-log/034_hafhsgds.png" },
+    { "id": "u-safer", "group": "needs-role", "title": "Safer Internet", "cover": "home/10_commercial-projects-thumbnail-client-log/035_998d2d177055209.64cfde069e0f9.webp" },
+
+    { "_group_note": "COMMERCIAL AT OTHER STUDIOS: Ahmed did NOT direct these. Always show his actual role and the studio." },
+    { "id": "c-sff10", "group": "commercial", "title": "Saudi Film Festival · 10th", "role": "Character Design & Animation", "studio": "Zaini Studios", "shape": "landscape", "cover": "home/10_commercial-projects-thumbnail-client-log/018_Screenshot 2026-05-26 061814.png", "logo": "home/10_commercial-projects-thumbnail-client-log/019_lhlkjl.png", "gallery": "character-design/08_project-header-logos/ + character-design/09/" },
+    { "id": "c-sff9", "group": "commercial", "title": "Saudi Film Festival · 9th", "role": "Character Design & Animation", "studio": "Zaini Studios", "shape": "landscape", "cover": "home/10_commercial-projects-thumbnail-client-log/016_khjjkhk.png", "logo": "home/10_commercial-projects-thumbnail-client-log/017_kjljlkjkj.png" },
+    { "id": "c-euro", "group": "commercial", "title": "UEFA Euro 2020 · Skillzy", "role": "2D Animator", "studio": "Freelance", "shape": "poster", "cover": "home/10_commercial-projects-thumbnail-client-log/008_Gemini_Generated_Image_js5rkxjs5rkxjs5r copy.jpg", "logo": "home/10_commercial-projects-thumbnail-client-log/009_afsdasda.png" },
+    { "id": "c-riot", "group": "commercial", "title": "Riot Games · League of Legends", "role": "Senior Animator", "studio": "SandGlobe", "shape": "square", "cover": "home/10_commercial-projects-thumbnail-client-log/036_503834611_2134355950404102_7203043462975942828_n.jpg", "logo": "home/10_commercial-projects-thumbnail-client-log/037_gasdfafa.png" },
+    { "id": "c-mlbb", "group": "commercial", "title": "Mobile Legends: Bang Bang", "role": "Character Designer", "studio": "BUG Studio", "shape": "landscape", "cover": "home/10_commercial-projects-thumbnail-client-log/038_619902201_18058160951338407_36596118680437934_n.jpg", "logo": "home/10_commercial-projects-thumbnail-client-log/039_asgdasdf.png", "gallery": "character-design/06_project-header-logos-bug-studio-1/ + character-design/07/" },
+    { "id": "c-da7ee7", "group": "commercial", "title": "Al Da7ee7", "role": "2D Animator", "studio": "The Post Office", "shape": "poster", "cover": "home/10_commercial-projects-thumbnail-client-log/030_make_this_thumbnail_3_4_202605241756 copy.jpg" },
+    { "id": "c-ahlmasr", "group": "commercial", "title": "Ahl Masr Foundation", "role": "2D Animator", "studio": "Freelance", "shape": "square", "cover": "home/10_commercial-projects-thumbnail-client-log/024_Screenshot 2026-05-24 064907.png", "logo": "home/10_commercial-projects-thumbnail-client-log/025_logos copyasda.png" }
+  ],
+
+  "pages": [
+    { "slug": "/", "title": "Home", "reference": "design/screens/ahmed-site/Home.dc.html", "blocks": [
+      { "block": "Fullscreen cover", "image": "home/05_intro/001_afsdsadf.png", "eyebrow": "Cairo · Animation", "heading": "Animation Director, Supervisor & Visual Storyteller.", "button": "Watch reel → [reel link]", "style": "rounded 28px, text bottom-left" },
+      { "block": "Logo wall", "title": "Credits in", "style": "orange band, white logos, one row", "logos": "home/03_network-logos-hbo-cartoon-network-netfli/ (6 files; 004 is OSN+, 006 is MBC Academy despite their names)" },
+      { "block": "Project grid", "number": "01", "title": "Broadcast Work", "source": "projects where group=broadcast", "layout": "posters row (2:3) + landscape row (16:9) — never crop a landscape into a poster", "caption": "title · network · role (role in accent colour)" },
+      { "block": "Project grid", "number": "02", "title": "Independent Directing", "source": "group=directing", "style": "black section", "layout": "posters, one row" },
+      { "block": "Project grid", "number": "03", "title": "Commercial Leadership at BIG CAT Animation", "subtitle": "Co-Founder, CEO and Director", "badge": "Directed by me", "logo": "home/07_commercial-leadership/001_Comp 2.gif", "source": "group=bigcat", "layout": "Justified rows (keep each image's real shape, one height per row)" },
+      { "block": "Project grid", "number": "04", "title": "Commercial Projects", "subtitle": "At other studios", "source": "group=commercial", "layout": "Justified rows", "caption": "client · role · studio" },
+      { "block": "Columns (cards)", "number": "05", "title": "Ventures & IPs", "cards": [
+        { "title": "Sweet & Sour", "role": "Co-Creator", "image": "home/11_ventures-ips/003_cairocomixpost.jpg" },
+        { "title": "ART GYM", "role": "Co-Founder / Community Manager", "image": "home/11_ventures-ips/001_IMG_5635.GIF or about/04_community-mentorship/002_THE MEET-UP_20260115_173751_0000.png" },
+        { "title": "BIG BOX Merchandise", "role": "Founder", "image": "home/11_ventures-ips/004_Logo intro.gif" } ] },
+      { "block": "Category tiles", "number": "06", "title": "Portfolio", "tiles": [
+        { "title": "Character Design", "image": "home/13_portfolio-category-tiles/001_0000000mrAR000000000GL-9.jpeg", "link": "/character-design" },
+        { "title": "Illustration", "image": "home/13_portfolio-category-tiles/002_0000000mrAR000000000FC-12.jpeg", "link": "/illustration" },
+        { "title": "2D Animation", "image": "home/13_portfolio-category-tiles/003_0000000mrAR000000000FC-18.jpeg", "link": "/2d-animation" },
+        { "title": "Storyboard", "image": "home/13_portfolio-category-tiles/004_IMG_5563.JPG", "link": "/storyboard" } ] },
+      { "block": "Contact form", "title": "Get in touch", "image": "home/14_get-in-touch/001_Group 3 copy.png", "fields": ["First name", "Last name", "Email", "Message"], "email": "Adel4art@gmail.com" }
+    ] },
+
+    { "slug": "/character-design", "title": "Character Design", "blocks": [
+      { "block": "Hero headline", "heading": "Character Design" },
+      { "block": "Project section", "project": "fever-dreams", "logos": "character-design/02_project-header-logos-fever-dreams-netfli/", "gallery": "character-design/03_fever-dreams-gallery/", "style": "black background, red frames like the old site, lightbox" },
+      { "block": "Project section", "project": "hakawati-nation", "logos": "character-design/04_project-header-logos-hakawati-nation-mbc/", "gallery": "character-design/05_hakawati-nation-gallery/", "style": "soft pink background (#F6E3DC), lightbox" },
+      { "block": "Project section", "project": "c-mlbb", "logos": "character-design/06_project-header-logos-bug-studio-1/", "gallery": "character-design/07/" },
+      { "block": "Project section", "project": "c-sff10", "logos": "character-design/08_project-header-logos/", "gallery": "character-design/09/" },
+      { "block": "Project section", "title": "Sweet & Sour", "logos": "character-design/10_project-header-logo/", "gallery": "character-design/11_merch-stickers-tote-bag-keychains-cairo-/" },
+      { "block": "Gallery (masonry, lightbox)", "title": "Personal Work", "folders": ["character-design/12/", "13/", "15/", "16/", "17/", "18/", "19/", "20/", "21/", "22/", "23/"], "note": "each numbered folder is one group; keep groups together" }
+    ] },
+
+    { "slug": "/illustration", "title": "Illustration", "blocks": [
+      { "block": "Hero headline", "heading": "Illustration" },
+      { "block": "Gallery (masonry, lightbox)", "folder": "illustration/02_gallery-30-pieces-lightbox/", "count": 30, "note": "keep real shapes; no cropping" }
+    ] },
+
+    { "slug": "/2d-animation", "title": "2D Animation", "blocks": [
+      { "block": "Hero headline", "heading": "2D Animation" },
+      { "block": "Project feature", "project": "zakia-al-zakia", "logos": "2d-animation/02_header-logos-zakia-al-zakia-majid-tv-jum/", "video": "_videos/zakia-al-zakia-reel.mp4", "role": "Animation Supervisor & Team Lead", "words": "first two paragraphs of zakia-al-zakia.words" },
+      { "block": "Project feature", "project": "ivandoe", "logos": "2d-animation/04_header-logos-valiant-prince-ivandoe-cart/", "video": "_videos/valiant-prince-ivandoe-reel.mp4", "role": "Senior Key & Rough Animator" },
+      { "block": "Project feature", "project": "the-grand-night", "logos": "2d-animation/06_header-logos-the-grand-night-giraffics-j/", "video": "_videos/the-grand-night-reel.mp4", "role": "2D Traditional/Cutout Animator" },
+      { "block": "Project feature", "project": "long-night", "background": "2d-animation/08_graduation-film-header-background-image-/001_Untitled-1 copy.jpg", "laurels": "2d-animation/08_graduation-film-header-background-image-/002–007", "video": "_videos/graduation-film-vr.mp4", "role": "Director and creator", "tools": true },
+      { "block": "Project feature", "project": "sweet-potato", "note": "small card at the end" }
+    ] },
+
+    { "slug": "/storyboard", "title": "Storyboards & Animatics", "blocks": [
+      { "block": "Hero headline", "heading": "Storyboards & Animatics" },
+      { "block": "Section", "title": "Graduation Projects", "items": ["storyboard/02/", "storyboard/03/", "storyboard/04_long-night/"], "video": "_videos/graduation-animatic.mp4" },
+      { "block": "Section", "title": "Client Boards", "logos": "storyboard/11_client-header-logos/", "items": ["storyboard/06/", "storyboard/07/", "storyboard/08/", "storyboard/09/", "storyboard/10/", "storyboard/12/"], "videos": ["_videos/client-board-1.mp4", "_videos/client-board-2.mp4"] },
+      { "block": "Section", "title": "Personal Boards", "videos": ["_videos/personal-board-1.mp4", "_videos/personal-board-2.mp4", "_videos/personal-board-3.mp4"] },
+      { "note": "Check the old page capture (screencapture-ahmedadel-art-storyboard-*.pdf) for exact grouping; boards are landscape pages — show them wide, never cropped." }
+    ] },
+
+    { "slug": "/about", "title": "About", "reference": "design/screens/ahmed-site/About.dc.html", "blocks": [
+      { "block": "About / CV", "image": "about/01_bio/001_ِِAhmed Adel - Profile Picture.jpg", "heading": "Hello, I’m Ahmed",
+        "words": [
+          "I’m a Director, Animator and Character Designer with over 9 years of experience, based in Egypt.",
+          "I have a Bachelor’s degree in “Animation Directing” from the High Cinema Institute, and I’m very enthusiastic when it comes to animation in all its forms and mediums, and I especially love animation for films and music.",
+          "My professional work includes projects for Netflix (Fever Dreams), Cartoon Network & HBO (The Heroic Quest of the Valiant Prince Ivandoe), Majid TV (Zakia Al Zakia), and MBC (Hakawati Nation).",
+          "Don’t hesitate to contact me for any inquiries."
+        ],
+        "button": "View resume → upload the CV PDF Ahmed chooses" },
+      { "block": "Logo wall", "title": "Teams I’ve worked with", "logos": "about/03_studio-logos-big-cat-jump-animation-sun-/ (12 logos)", "style": "orange band" },
+      { "block": "Columns (cards)", "title": "Community participation & Mentorship", "cards": [
+        { "title": "ART GYM", "role": "Co-Founder", "image": "about/04_community-mentorship/002_THE MEET-UP_20260115_173751_0000.png", "words": "[short line from old About page]" },
+        { "title": "Helwan University", "role": "Instructor", "image": "about/04_community-mentorship/003_IMG_20251223_151213_2.jpg", "words": "[short line from old About page]" },
+        { "title": "Animatex", "role": "Speaker & Instructor", "image": "about/04_community-mentorship/004_IMG-20260212-WA0054.jpg", "words": "[short line from old About page]" } ] }
+    ] },
+
+    { "slug": "/contact", "title": "Contact", "blocks": [
+      { "block": "Contact form", "image": "contact/01/002_2.jpg", "heading": "Get in touch", "email": "Adel4art@gmail.com" }
+    ] }
+  ],
+
+  "project_page_template": {
+    "reference": "design/screens/ahmed-site/Project-Zakia.dc.html",
+    "order": ["Back link to its section", "Title + one line (from words[0])", "Role pill", "Meta row: Network · Studio · Episodes/Type · Dates · Team", "Video (16:9) or hero image", "His words (short paragraphs, not cards with invented numbers)", "Shots / gallery (keep real shapes)", "Credits / Special thanks / Tools / Laurels when present", "Next project"],
+    "rule": "Use only the fields that exist for that project. Never invent stats."
+  },
+
+  "footer": { "left": "AHMED ADEL · © 2026 All rights reserved.", "socials": ["Vimeo", "LinkedIn", "Behance", "Instagram", "Facebook"], "email": "Adel4art@gmail.com", "note": "[Ahmed to give the exact social URLs]" }
+}
