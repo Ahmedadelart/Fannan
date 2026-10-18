@@ -87,6 +87,12 @@ export async function writeLocal(path: string, data: Buffer) {
   await writeFile(full, data);
 }
 
+/** Writes a file straight from the server (imports and seed scripts; browsers use signed links). */
+export async function writeObject(path: string, data: Buffer, contentType: string) {
+  if (LOCAL) return writeLocal(path, data);
+  await bucket().file(path).save(data, { contentType, resumable: data.length > 8 * 1024 * 1024 });
+}
+
 /** Streams a stored file (used by the owner-only media route). */
 export async function readStream(path: string): Promise<{ stream: ReadableStream; size: number } | null> {
   try {

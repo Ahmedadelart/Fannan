@@ -252,6 +252,10 @@
   .site-root .site-masonry {
     column-count: 1 !important;
   }
+  /* Grids of four or more (posters) keep two across on a phone. */
+  .site-root .site-grid[data-phone="2"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 /* Editor canvas: hover and selection outlines (Fannan UI, not the artist's theme). */

@@ -35,7 +35,10 @@ export async function processMedia(input: {
   crop?: { x: number; y: number; w: number; h: number };
 }): Promise<ProcessResult> {
   const headers: Record<string, string> = { "content-type": "application/json" };
-  if (firebaseEnv() !== "emulator") {
+  if (firebaseEnv() !== "emulator" && process.env.MEDIA_ID_TOKEN) {
+    // Scripts run by a person (imports, seeds) sign the call with that person's own short-lived token.
+    headers.authorization = `Bearer ${process.env.MEDIA_ID_TOKEN}`;
+  } else if (firebaseEnv() !== "emulator") {
     auth ??= new GoogleAuth();
     const client = await auth.getIdTokenClient(URL_);
     // Newer versions return a fetch Headers object, older ones a plain object.

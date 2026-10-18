@@ -704,6 +704,17 @@ export async function updateMedia(
     if (patch.display.use !== undefined) u["display.use"] = (["gallery", "logo", "laurel"] as const).includes(patch.display.use) ? patch.display.use : "gallery";
   }
   if (Object.keys(u).length) await ref.update(u);
+  // A header logo or laurel is never the project's cover: the first gallery picture takes over.
+  if (u["display.use"] && u["display.use"] !== "gallery" && media.projectId !== LIBRARY) {
+    const proj = await projectsCol(o.siteId).doc(media.projectId).get();
+    const p = proj.data() as ProjectDoc | undefined;
+    if (p && (p.coverMediaId === mediaId || !p.coverMediaId)) {
+      const rest = p.media.filter((id) => id !== mediaId);
+      const others = rest.length ? await db().getAll(...rest.map((id) => mediaCol(o.siteId).doc(id))) : [];
+      const next = others.find((d) => d.exists && ((d.data() as MediaDoc).display?.use ?? "gallery") === "gallery");
+      await proj.ref.update({ coverMediaId: next?.id ?? null });
+    }
+  }
 }
 
 export async function setCover(o: Owner, projectId: string, mediaId: string) {

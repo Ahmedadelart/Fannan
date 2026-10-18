@@ -160,9 +160,10 @@ test("the published site: pages, projects, lightbox, contact form, sitemap, draf
   await page.getByTestId("block-settings").getByRole("button", { name: "Choose" }).click();
   await page.getByTestId("picker-file").setInputFiles("tests/fixtures/anim.gif");
   await expect(page.getByRole("dialog", { name: "Choose media" })).toBeHidden({ timeout: 60_000 });
+  // GIFs play as looping videos now; the draft file's address is the video's.
   const draftImg = await page
     .getByTestId("canvas")
-    .locator("img[src*='/api/media/variants/']")
+    .locator("video[src*='/api/media/variants/']")
     .last()
     .getAttribute("src");
   await expect(page.getByTestId("editor-status")).toHaveText("Unpublished changes", { timeout: 10_000 });

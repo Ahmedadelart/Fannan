@@ -233,7 +233,10 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
       </section>
     ) : null;
 
+  // Without a video the cover is the big picture at the top, so the gallery doesn't repeat it.
+  const heroIsCover = !project.video && !!project.coverId;
   const items = project.mediaIds
+    .filter((id) => !(heroIsCover && id === project.coverId))
     .map(
       (id) =>
         site.media[id] as
@@ -442,6 +445,7 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
             </span>
           </div>
         ) : coverSrc && cover ? (
+          <figure className="m-0" data-lightbox={coverSrc.src} data-lightbox-caption={cover.caption || text.title}>
           <picture className="block overflow-hidden" style={{ borderRadius: "calc(var(--site-radius) * 1.6)" }}>
             {coverSrc.avifSet && <source type="image/avif" srcSet={coverSrc.avifSet} sizes="(min-width: 1200px) 1200px, 100vw" />}
             <img
@@ -455,6 +459,7 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
               className="mx-auto block h-auto max-h-[80vh] w-auto max-w-full"
             />
           </picture>
+          </figure>
         ) : null}
       </header>
       {words.length > 0 && (

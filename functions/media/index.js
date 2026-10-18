@@ -114,8 +114,7 @@ async function processGif(req, input) {
   // A GIF becomes a muted looping MP4 (far smaller and smoother than an animated image), plus a
   // still poster in every size from its first frame. The real width and height are kept.
   const p = await prepare(input, { animated: false });
-  const still = await sharp(input, { failOn: "none", pages: 1 }).png().toBuffer();
-  const poster = await writeVariants({ ...req, dest: `${req.dest}/poster`, base: still, width: p.width, height: p.height });
+  const first = await sharp(input, { failOn: "none", pages: 1 }).png().toBuffer();
   const dir = await mkdtemp(join(tmpdir(), "gif-"));
   try {
     const { ffmpeg } = await binaries();
@@ -130,6 +129,16 @@ async function processGif(req, input) {
     ]);
     const loopPath = `${req.dest}/loop.mp4`;
     await writeObject(req.bucket, loopPath, await readFile(out), "video/mp4");
+    // The still: a frame a little way in, since animations often start blank.
+    let still = first;
+    try {
+      const frame = join(dir, "poster.png");
+      await run(ffmpeg, ["-y", "-ss", "0.6", "-i", out, "-frames:v", "1", frame]);
+      still = await readFile(frame);
+    } catch {
+      /* very short loops: keep the first frame */
+    }
+    const poster = await writeVariants({ ...req, dest: `${req.dest}/poster`, base: still, width: p.width, height: p.height });
     return { width: p.width, height: p.height, variants: poster.variants, poster: poster.variants, loop: loopPath };
   } finally {
     await rm(dir, { recursive: true, force: true });

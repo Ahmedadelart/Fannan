@@ -191,6 +191,28 @@ function Picture({
   /** Editor only: "blockId|path" so a dropped file or the hover tools know where the picture goes. */
   pic?: string;
 }) {
+  // GIFs are stored as muted looping videos; they play wherever the picture is shown (not in "still" places).
+  if (m?.type === "gif" && m.loop && !still) {
+    return (
+      <video
+        src={`${base}${m.loop}`}
+        poster={posterSources(m, want, base)?.src}
+        muted
+        loop
+        autoPlay
+        playsInline
+        preload="metadata"
+        aria-label={alt ?? m.alt ?? undefined}
+        className={cx("block h-full w-full object-cover", className)}
+        style={{
+          borderRadius: "var(--site-radius)",
+          aspectRatio: ratio ?? (m.width && m.height ? `${m.width} / ${m.height}` : undefined),
+          ...(crop ? { objectPosition: `${crop.x}% ${crop.y}%` } : {}),
+        }}
+        data-pic={pic}
+      />
+    );
+  }
   const src = m ? (still ? posterSources(m, want, base) : imageSources(m, want, base)) : null;
   if (!src) {
     return (
@@ -596,7 +618,7 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
             return (
               <div className="flex flex-col" style={{ gap: Math.max(b.gap, 24) + 16 }} data-layout="split">
                 {posters.length > 0 && (
-                  <div className="site-grid grid" style={{ gap: b.gap, ["--cols" as string]: cols }}>
+                  <div className="site-grid grid" style={{ gap: b.gap, ["--cols" as string]: cols }} data-phone={cols >= 3 ? "2" : undefined}>
                     {posters.map((t) => tile(t, real ? undefined : "2 / 3"))}
                   </div>
                 )}
@@ -613,6 +635,7 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
           className={cx("site-grid grid", (ownSizes || b.layout === "featured") && "grid-flow-row-dense")}
           style={{ gap: fullscreen ? 0 : b.gap, ["--cols" as string]: cols }}
           data-layout={b.layout}
+          data-phone={cols >= 4 && !ownSizes ? "2" : undefined}
         >
           {tiles.map((t) => tile(t))}
         </div>
@@ -1496,8 +1519,9 @@ function CardsView({ b, ctx }: { b: BlockOf<"cards">; ctx: Ctx }) {
       // Picture tiles with the title over them, each linking to a page (portfolio categories).
       body = (
         <div className="site-cards-grid grid gap-5" style={grid}>
-          {b.items.map((it, n) =>
-            link(
+          {b.items.map((it, n) => (
+            <div key={n} className="contents">
+              {link(
               it.link,
               <>
                 <Picture
@@ -1518,8 +1542,9 @@ function CardsView({ b, ctx }: { b: BlockOf<"cards">; ctx: Ctx }) {
               </>,
               "site-tile relative block aspect-[4/5] overflow-hidden",
               { borderRadius: "calc(var(--site-radius) * 1.3)", color: "#FFFFFF" },
-            ),
-          )}
+              )}
+            </div>
+          ))}
         </div>
       );
       break;
@@ -2096,7 +2121,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
             {b.items.map((l, i) => {
               const logo = m(l.mediaId);
               return logo ? (
-                <span key={i} className={cx("block h-10", b.oneRow ? "w-full" : "w-28")} style={tint ? { filter: tint } : undefined}>
+                <span key={i} className={cx("block", b.oneRow ? "h-12 w-full" : "h-14 w-36")} style={tint ? { filter: tint } : undefined}>
                   <Picture
                     m={logo}
                     base={ctx.base}

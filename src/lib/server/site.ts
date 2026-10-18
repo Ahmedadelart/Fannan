@@ -284,8 +284,11 @@ export async function publish(o: Owner): Promise<{ version: number }> {
       ar: p.ar,
       mature: p.mature,
       ...(p.card ? { card: p.card } : {}),
+      createdAt: (p.createdAt as Timestamp | undefined)?.toMillis?.() ?? 0,
     };
   });
+  // Galleries show newest first, on the live site as in the editor.
+  projects.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
 
   const used = new Set<string>();
   projects.forEach((p) => [...p.mediaIds, ...(p.logoIds ?? []), ...(p.laurelIds ?? [])].forEach((id) => used.add(id)));
