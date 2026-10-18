@@ -9,6 +9,9 @@
  *   Local (emulators + media function running):
  *     FIREBASE_ENV=emulator npx tsx --conditions=react-server scripts/seed-site.ts --assets "<folder>" --fresh --publish
  *
+ *   Production (after `gcloud auth login`; nothing secret is printed):
+ *     MEDIA_ID_TOKEN="$(gcloud auth print-identity-token)" FIREBASE_ENV=production MEDIA_BUCKET=fannan-media-production  *     MEDIA_FUNCTION_URL=https://fannan-media-mtxig4fw3a-ew.a.run.app GOOGLE_CLOUD_QUOTA_PROJECT=fannan-510913  *     CLOUDFLARE_API_TOKEN="$(gcloud secrets versions access latest --secret=cloudflare-api-token --project fannan-510913)"  *     CLOUDFLARE_ZONE_ID=ee75c783272f2a590bb5c44b0eccf85c ROOT_DOMAIN=fannan.net  *     npx tsx --conditions=react-server scripts/seed-site.ts --assets "<folder>" --fresh --publish
+ *
  * Flags:
  *   --assets <dir>   the artist's folder of files (ASSETS_ROOT)
  *   --fresh          remove the site's existing projects and library files first

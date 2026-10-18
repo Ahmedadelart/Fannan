@@ -489,6 +489,40 @@ _Last updated: 10 Oct 2026, phase 8 (Editor 2.0) under way; round 8 (guided setu
 - **Projects page:** filter by tag (for example #needs-role).
 - **Tests:** `showcase.spec.ts`.
 
+### ahmedadel.fannan.net (live, 19 Oct 2026)
+- Built by `scripts/seed-site.ts` from `seed/ahmedadel/site-content.json` and Ahmed's folder, using only the app's own functions. 290 files went through the normal pipeline, with every project, all 7 pages and a project page each. Published, with no automatic email sent.
+- Production changes, all approved by Ahmed:
+  - the empty test account that held "ahmedadel" is now "ahmedadel-test";
+  - his site moved from "ahmed" to "ahmedadel" (ahmed.fannan.net forwards);
+  - the test domain www.ranakorany.com was disconnected.
+  - Pro was already on until 8 Oct 2027.
+- **Lighthouse (home, live):**
+
+  | | Phone | Desktop |
+  |---|---|---|
+  | Performance | 90–92 | 96 |
+  | Accessibility | 100 | 100 |
+  | SEO | 100 | 100 |
+  | Best practices | 100 | 100 |
+
+- **Fixed along the way (for everyone):**
+  - published grids keep editor order;
+  - a renamed site's own domain follows the new name;
+  - old names keep forwarding after sign-in;
+  - looping videos load only near the screen;
+  - the cover picture loads first;
+  - text on coloured buttons uses whichever of black/white reads better.
+- **Left for Ahmed to fill in the editor (his choice):**
+  - video links (10 + Big Cat showreel; the showreel project stays hidden until then);
+  - social links;
+  - which CV goes behind "View resume";
+  - the three community lines on About;
+  - roles for the six #needs-role projects (hidden drafts);
+  - one studio logo's name on About;
+  - the Zakia shot loops.
+- **Re-running the seed against production** needs a fresh `gcloud auth login` (it signs media calls with `gcloud auth print-identity-token`). The command is in the script's header.
+- **Domain ahmedadel.art:** waits for Ahmed's go-ahead.
+
 ## Not done yet from the phase 6 "done when"
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).
 
