@@ -156,6 +156,9 @@ export async function changeUsername(o: Owner, input: string): Promise<Availabil
       expiresAt: Timestamp.fromMillis(Date.now() + REDIRECT_DAYS * 86_400_000),
     });
     tx.update(db.collection("sites").doc(o.siteId), { username: name });
+    // The artist's own domain follows the new name.
+    const host = (o.site as { customDomain?: string | null }).customDomain;
+    if (host) tx.set(db.collection("domains").doc(host), { username: name }, { merge: true });
     tx.set(db.collection("users").doc(o.uid), { onboarding: { username: name } }, { merge: true });
     return { ok: true as const, username: name };
   });

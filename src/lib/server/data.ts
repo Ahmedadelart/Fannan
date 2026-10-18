@@ -359,7 +359,8 @@ export async function finishClaim(token: string | null, uid: string, email: stri
 export async function makeNamesPermanent(uid: string) {
   const mine = await usernames().where("uid", "==", uid).get();
   const batch = db().batch();
-  mine.docs.forEach((d) => batch.update(d.ref, { status: "claimed", expiresAt: null }));
+  // Only names on hold become permanent; an old name forwarding to a new one stays a redirect.
+  mine.docs.filter((d) => d.data().status === "held").forEach((d) => batch.update(d.ref, { status: "claimed", expiresAt: null }));
   batch.set(users().doc(uid), { isAnonymous: false }, { merge: true });
   await batch.commit();
 }

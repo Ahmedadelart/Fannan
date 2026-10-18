@@ -115,7 +115,7 @@ async function upload(target: string, file: string, alt: string, use: "gallery" 
   // Names can be wrong (a JPEG saved as .png): the first bytes say what the file really is.
   const type = realType(data) ?? TYPES[extname(file).toLowerCase()];
   if (!type) throw new Error(`Unsupported file: ${file}`);
-  const { mediaId } = await startUpload(o, target, { name: basename(file), type, size: data.length });
+  const { mediaId } = await startUpload(o, target, { name: basename(file), type, size: data.length }, undefined, { link: false });
   const media = (await adminDb().collection("sites").doc(o.siteId).collection("media").doc(mediaId).get()).data() as MediaDoc & { pendingOriginal: string };
   await writeObject(media.pendingOriginal, data, type);
   await finishUpload(o, mediaId);

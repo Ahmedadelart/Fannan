@@ -452,6 +452,8 @@ export async function startUpload(
   projectId: string,
   file: { name: string; type: string; size: number },
   replaceMediaId?: string,
+  /** Scripts that write the file themselves need no browser upload link. */
+  opts: { link?: boolean } = {},
 ): Promise<{ mediaId: string; uploadUrl: string; contentType: string }> {
   const t = TYPES[file.type];
   if (!t) throw new ProjectError("bad-type");
@@ -508,7 +510,7 @@ export async function startUpload(
       });
     }
   }
-  return { mediaId: mediaRef.id, uploadUrl: await signedUploadUrl(original, file.type), contentType: file.type };
+  return { mediaId: mediaRef.id, uploadUrl: opts.link === false ? "" : await signedUploadUrl(original, file.type), contentType: file.type };
 }
 
 type Pending = MediaDoc & { pendingOriginal?: string; pendingGen?: number; pendingSize?: number };
