@@ -522,6 +522,15 @@ _Last updated: 10 Oct 2026, phase 8 (Editor 2.0) under way; round 8 (guided setu
   - the Zakia shot loops.
 - **Re-running the seed against production** needs a fresh `gcloud auth login` (it signs media calls with `gcloud auth print-identity-token`). The command is in the script's header.
 - **Domain ahmedadel.art:** waits for Ahmed's go-ahead.
+- **19 Oct 2026, rebuilt to match his current Squarespace site** (`scripts/seed-classic.ts`). It follows the old site page by page, from the page captures in his folder, with his own words: centred orange titles, orange logo bands, Clients wall (20), Commercial Projects grid (20), Ventures, Portfolio tiles, Character Design project bands, 2D Animation banners, storyboard groups, About with his community lines.
+  - New options for everyone:
+    - section header accent/capitals/underline;
+    - logo sizes and per-row count;
+    - picture frames; 4:5 grids and accent captions;
+    - flat cards, tile shape and centred titles, flat contact, cover heading size, blurred section backgrounds;
+    - menu "links beside the logo".
+  - Fixes for everyone: real-shape picture grids no longer crop to squares; animated logos fit their box.
+  - Needs-role projects are public again, as on his old site. Their roles are still to fill in.
 
 ## Not done yet from the phase 6 "done when"
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).
