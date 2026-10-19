@@ -149,7 +149,9 @@ export async function classicPages(content: Any, t: ClassicTools): Promise<{ pag
     { title: "ART GYM", role: "Co-Founder / Community Manager", file: "home/11_ventures-ips/002_Animationyasta11-ezgif.com-optimize (1).gif" },
     { title: "BIG BOX Merchandise", role: "FOUNDER", file: "home/11_ventures-ips/004_Logo intro.gif" },
   ];
-  const ventureIds = await Promise.all(ventures.map((v) => t.lib(v.file, v.title)));
+  // One at a time: two big animations at once can run the media processor out of memory.
+  const ventureIds: string[] = [];
+  for (const v of ventures) ventureIds.push(await t.lib(v.file, v.title));
   const tiles = [
     { title: "Character Design", link: "/character-design", file: "home/13_portfolio-category-tiles/001_0000000mrAR000000000GL-9.jpeg" },
     { title: "Illustration", link: "/illustration", file: "home/13_portfolio-category-tiles/003_0000000mrAR000000000FC-18.jpeg" },

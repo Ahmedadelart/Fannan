@@ -28,6 +28,7 @@ import { grantPro } from "@/lib/server/billing";
 import {
   createProject,
   deleteLibraryMedia,
+  deleteMedia,
   deleteProject,
   finishUpload,
   LIBRARY,
@@ -120,10 +121,22 @@ async function upload(target: string, file: string, alt: string, use: "gallery" 
   // Names can be wrong (a JPEG saved as .png): the first bytes say what the file really is.
   const type = realType(data) ?? TYPES[extname(file).toLowerCase()];
   if (!type) throw new Error(`Unsupported file: ${file}`);
-  const { mediaId } = await startUpload(o, target, { name: basename(file), type, size: data.length }, undefined, { link: false });
-  const media = (await adminDb().collection("sites").doc(o.siteId).collection("media").doc(mediaId).get()).data() as MediaDoc & { pendingOriginal: string };
-  await writeObject(media.pendingOriginal, data, type);
-  await finishUpload(o, mediaId);
+  // Cloud Storage now and then answers "Service Unavailable": a failed file is removed and sent again.
+  let mediaId = "";
+  for (let attempt = 1; ; attempt++) {
+    ({ mediaId } = await startUpload(o, target, { name: basename(file), type, size: data.length }, undefined, { link: false }));
+    const media = (await adminDb().collection("sites").doc(o.siteId).collection("media").doc(mediaId).get()).data() as MediaDoc & { pendingOriginal: string };
+    try {
+      await writeObject(media.pendingOriginal, data, type);
+      await finishUpload(o, mediaId);
+      break;
+    } catch (e) {
+      await (target === LIBRARY ? deleteLibraryMedia(o, mediaId) : deleteMedia(o, target, mediaId)).catch(() => {});
+      if (attempt >= 3) throw e;
+      process.stdout.write("r");
+      await new Promise((r) => setTimeout(r, 5000 * attempt));
+    }
+  }
   await updateMedia(o, mediaId, { alt, ...(use !== "gallery" ? { display: { use } } : {}) });
   uploaded.set(key, mediaId);
   process.stdout.write(".");
