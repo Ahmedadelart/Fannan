@@ -30,20 +30,21 @@ export interface ClassicTools {
 
 /* ---------- building blocks ---------- */
 
-const ORANGE = "#FF5A1F";
+/** His current site (Aug 2026): red, Londrina Solid headings in capitals, Montserrat text. */
+const RED = "#FC221C";
 const BLACK = "#000000";
 const st = (patch: Parameters<typeof sectionStyle>[0] = {}): SectionStyle => sectionStyle(patch);
 const dark = (patch: Parameters<typeof sectionStyle>[0] = {}) => st({ bg: { kind: "color", color: BLACK }, padTop: 56, padBottom: 56, ...patch });
 const centre = (patch: Parameters<typeof sectionStyle>[0] = {}) => st({ align: "center", ...patch });
 /** Content widths measured on the old site at 1920px wide (its page margins leave 1672px). */
-const W = { page: 1672, wide: 1612, ventures: 1530, sheets: 1450, broadcast: 1388, directing: 1052, form: 980, video: 840 };
+const W = { page: 1672, wide: 1612, ventures: 1530, sheets: 1450, broadcast: 1388, directing: 1175, form: 980, video: 840 };
 const at = (maxWidth: number, patch: Parameters<typeof sectionStyle>[0] = {}) => st({ maxWidth, ...patch } as never);
 const darkAt = (maxWidth: number, patch: Parameters<typeof sectionStyle>[0] = {}) => dark({ maxWidth, ...patch } as never);
 /** An orange band right across the page (the section's own background, square like the old site). */
-const orangeBand = (patch: Parameters<typeof sectionStyle>[0] = {}) => at(W.page, { bg: { kind: "color", color: ORANGE }, padTop: 48, padBottom: 48, ...patch } as never);
+const redBand = (patch: Parameters<typeof sectionStyle>[0] = {}) => at(W.page, { bg: { kind: "color", color: RED }, padTop: 48, padBottom: 48, ...patch } as never);
 
 /** A centred section title like the old site's: orange, often in capitals, with a short line under it. */
-function title(text: string, opts: { accent?: boolean; upper?: boolean; underline?: boolean; subtitle?: string; divider?: boolean; style?: Parameters<typeof sectionStyle>[0] } = {}): Block {
+function title(text: string, opts: { accent?: boolean; upper?: boolean; underline?: boolean; subtitle?: string; divider?: boolean; line?: string; style?: Parameters<typeof sectionStyle>[0] } = {}): Block {
   return {
     id: newId(),
     type: "header",
@@ -53,10 +54,12 @@ function title(text: string, opts: { accent?: boolean; upper?: boolean; underlin
     logoId: null,
     badge: "",
     divider: !!opts.divider,
-    size: "m",
+    // Section titles are 46px on his site.
     accent: opts.accent ?? true,
     upper: !!opts.upper,
-    underline: opts.underline ?? true,
+    underline: opts.line ? false : (opts.underline ?? false),
+    ...(opts.line ? { lineId: opts.line } : {}),
+    size: "l",
     style: centre({ padTop: 64, padBottom: 36, ...(opts.style ?? {}) }),
   };
 }
@@ -120,8 +123,15 @@ export async function classicPages(content: Any, t: ClassicTools): Promise<{ pag
   const cat = await t.lib("home/14_get-in-touch/001_Group 3 copy.png", "Ahmed drawn as a cartoon holding an orange cat");
 
   /* ---------- Home ---------- */
-  const heroText = "Animation Director, Supervisor & Visual Storyteller.";
-  const hero = await t.lib("home/05_intro/001_afsdsadf.png", "Key art: a warrior between two giant cats");
+  const heroText = "Director, Animator & Character Designer.";
+  // His site opens on a video; until he sends the file, the Long Night key art stands in.
+  const hero = await t.lib("2d-animation/08_graduation-film-header-background-image-/001_Untitled-1 copy.jpg", "Long Night, key art");
+  const warrior = await t.lib("home/05_intro/001_afsdsadf.png", "Key art: a warrior between two giant cats");
+  // Hand-drawn lines under the titles (animated GIFs that draw themselves).
+  const squiggle = await t.lib("home/04_broadcast-film/001_IMG_5633.GIF", "");
+  const zigWhite = await t.lib("home/11_ventures-ips/001_IMG_5635.GIF", "");
+  const zigRed = await t.lib("home/12_portfolio-heading/001_IMG_5636.GIF", "");
+  const zigDirect = await t.lib("home/06_independent-directing/001_IMG_5634.GIF", "");
   const credits = (await t.logoItems(t.filesOf("home/03_network-logos-hbo-cartoon-network-netfli"))).filter((l) => l.name !== "MBC Academy");
   const bigCat = await t.lib("home/07_commercial-leadership/001_Comp 2.gif", "Big Cat Animation");
   const clientFiles = [
@@ -132,7 +142,8 @@ export async function classicPages(content: Any, t: ClassicTools): Promise<{ pag
     ...t.filesOf("home/09_client-logos-sharmoofers-ralph-s-coffee-").slice(14),
     ...t.pick("home/10_commercial-projects-thumbnail-client-log", ["029"]),
   ];
-  const clients = await t.logoItems(clientFiles);
+  // His current site shows 15 of them (no Sinai, Dulcis, Luneverse, IE or Qudrat).
+  const clients = (await t.logoItems(clientFiles)).filter((_, i) => ![10, 15, 16, 17, 19].includes(i));
   const ventures = [
     { title: "Sweet & Sour", role: "Co-Creator", file: "home/11_ventures-ips/003_cairocomixpost.jpg" },
     { title: "ART GYM", role: "Co-Founder / Community Manager", file: "home/11_ventures-ips/002_Animationyasta11-ezgif.com-optimize (1).gif" },
@@ -151,49 +162,52 @@ export async function classicPages(content: Any, t: ClassicTools): Promise<{ pag
   const intro = free(
     10,
     [
-      fi("image", { x: 3, y: 0, w: 6, h: 7 }, { mediaId: cat, fit: "contain", tone: sampleTone(2) }),
-      fi("heading", { x: 12, y: 0, w: 11, h: 1 }, { text: "Hello, I’m Ahmed", size: 26, color: "#E8501A" }),
-      fi("text", { x: 12, y: 1, w: 11, h: 3 }, {
-        text: "I’m a <b>Director</b>, <b>Animator</b>, and <b>Character Designer</b> working in animation.<br><br>I help tell stories through design, direct short films, and teach what I’ve learned along the way through Workshops, Panels, and Online content.",
+      fi("image", { x: 0, y: 0, w: 12, h: 8 }, { mediaId: warrior, fit: "contain", tone: sampleTone(2) }),
+      fi("heading", { x: 12, y: 1, w: 11, h: 1 }, { text: "Hello, I’m Ahmed!", size: 33, color: RED }),
+      fi("image", { x: 12, y: 2, w: 5, h: 1 }, { mediaId: squiggle, fit: "contain", tone: sampleTone(1) }),
+      fi("text", { x: 12, y: 3, w: 11, h: 2 }, {
+        text: "I’m an <b>Animation Director</b> and <b>Character Designer</b>.<br><br>While my focus is on leading creative teams and directing campaigns, I’m still a hands-on <b>Animator</b> and <b>Character Designer</b> at heart. I love telling stories through design, bringing short films to life, and sharing what I’ve learned with the community.",
         size: 12,
       }),
-      fi("button", { x: 15, y: 4, w: 4, h: 1 }, { text: "LEARN MORE ABOUT ME", link: "/about", size: 10, fill: ORANGE, color: "#141414" }),
+      fi("button", { x: 19, y: 5, w: 4, h: 1 }, { text: "LEARN MORE ABOUT ME", link: "/about", size: 10, fill: RED, color: "#FFFFFF" }),
     ],
-    at(W.page, { padTop: 56, padBottom: 56 }),
+    at(W.page, { padTop: 8, padBottom: 8 }),
   );
 
   const commercialOrder = ["bc-ralphs", "bc-sinai", "u-animatex", "bc-sharmoofers", "u-dulcis", "bc-naseej", "bc-alula", "u-luneverse", "u-ie", "bc-osn", "c-ahlmasr", "u-safer", "c-euro", "c-sff9", "c-sff10", "u-qudrat", "c-riot", "c-mlbb", "bc-fund", "c-da7ee7"];
   const home: Block[] = [
-    { id: newId(), type: "cover", mediaId: hero, tone: "#1A1714", heading: heroText, subheading: "", height: "full", roundBottom: true, size: "s" },
-    title("Credits in", { upper: true, style: { padTop: 24, padBottom: 20 } }),
-    logos(credits, { tint: "white", size: "l" }, orangeBand({ padTop: 44, padBottom: 44 })),
-    title("Broadcast Work"),
+    { id: newId(), type: "cover", mediaId: hero, tone: "#1A1714", heading: heroText, subheading: "", height: "full", roundBottom: true, size: "m" },
+    title("Credits in", { style: { padTop: 16, padBottom: 60 } }),
+    // His credits glide by, right to left, in an endless row.
+    logos(credits, { tint: "white", size: "l", moving: true }, st({ width: "full", bg: { kind: "color", color: RED }, padTop: 30, padBottom: 30 })),
+    title("Broadcast & Film", { line: squiggle }),
     gallery(
-      { source: "tag:broadcast", split: true, wideColumns: 2, lines: ["network", "role"], captionStyle: "accent", captionSize: "l", ratio: "3:4", gap: 36 },
+      { source: "tag:broadcast", split: true, wideColumns: 2, lines: ["network", "role"], captionStyle: "accent", captionSize: "xl", ratio: "3:4", gap: 36 },
       at(W.broadcast, { align: "center" }),
     ),
     intro,
-    title("Independent Directing", { accent: false, style: { bg: { kind: "color", color: BLACK }, padTop: 56, padBottom: 0 } }),
+    title("Independent Directing", { accent: false, line: zigDirect, style: { bg: { kind: "color", color: BLACK }, padTop: 56, padBottom: 0 } }),
     gallery(
-      { picks: ["long-night", "final-smoke", "sweet-potato", "qahwet-al-foqara", "can-you-feel-it", "where-do-lovers-go"].map(t.project), columns: 3, lines: ["role"], captionSize: "l", gap: 40 },
+      { picks: ["long-night", "final-smoke", "sweet-potato", "qahwet-al-foqara", "can-you-feel-it", "where-do-lovers-go"].map(t.project), columns: 3, lines: ["role"], captionStyle: "heading", captionSize: "xl", gap: 100 },
       darkAt(W.directing, { padTop: 24, padBottom: 72, align: "center" }),
     ),
     {
       ...title("Commercial Leadership at BIG CAT Animation", { underline: false, subtitle: "Co-Founder ,CEO and Director driving high-end commercial animation, brand campaigns, and festival-selected films." }),
     },
     logos([{ name: "Big Cat Animation", mediaId: bigCat }], { size: "xl" }, centre({ padTop: 24, padBottom: 24 })),
-    video("[Big Cat 2025 Showreel: paste the Vimeo link]", at(W.form)),
-    title("Clients", { upper: true }),
-    logos(clients, { tint: "white", oneRow: false, columns: 5, size: "xl" }, orangeBand({ padTop: 56, padBottom: 56 })),
-    title("Commercial Projects", { upper: true }),
-    gallery({ picks: commercialOrder.map(t.project), columns: 4, ratio: "4:5", captions: false, credits: false, gap: 20, loopPlay: "always" }, at(W.wide, { align: "center" })),
-    title("Ventures & IPs", { accent: false, style: { bg: { kind: "color", color: BLACK }, padTop: 48, padBottom: 0 } }),
+    { id: newId(), type: "video", url: "https://vimeo.com/1153052104", caption: "", style: at(W.form) },
+    title("Clients"),
+    logos(clients, { tint: "white", oneRow: false, columns: 5, size: "xl" }, redBand({ padTop: 56, padBottom: 56 })),
+    title("Commercial Projects", { line: squiggle }),
+    gallery({ picks: commercialOrder.map(t.project), columns: 4, ratio: "4:5", captions: false, credits: false, gap: 20, loopPlay: "always", coverLogo: true }, at(W.wide, { align: "center" })),
+    title("Ventures & IPs", { accent: false, line: zigWhite, style: { bg: { kind: "color", color: BLACK }, padTop: 48, padBottom: 0 } }),
     {
       id: newId(),
       type: "cards",
       design: "c-cards",
       variant: "images",
       flat: true,
+      bigTitles: true,
       heading: "",
       intro: "",
       columns: 3,
@@ -205,7 +219,7 @@ export async function classicPages(content: Any, t: ClassicTools): Promise<{ pag
       items: ventures.map((v, i) => card(v.title, v.role, ventureIds[i])),
       style: darkAt(W.ventures, { padTop: 24, padBottom: 72 }),
     },
-    title("Portfolio", { upper: true }),
+    title("Portfolio", { line: zigRed }),
     {
       id: newId(),
       type: "cards",
@@ -236,26 +250,26 @@ export async function classicPages(content: Any, t: ClassicTools): Promise<{ pag
     { title: "Animatex (Speaker & Instructor)", text: "Gave Animation Principles Workshop & Spoke at a panel on animation education, industry standards, and the future of the medium.", file: "about/04_community-mentorship/004_IMG-20260212-WA0054.jpg" },
   ];
   const communityIds = await Promise.all(community.map((c) => t.lib(c.file, c.title)));
-  const signature = await t.lib("about/01_bio/002_IMG_5633.GIF", "Ahmed Adel in Arabic calligraphy");
+
   const about: Block[] = [
     free(
       10,
       [
-        fi("image", { x: 4, y: 0, w: 7, h: 7 }, { mediaId: portrait, deco: { ...fi("image", {}).deco, mask: "rounded" } }),
-        fi("heading", { x: 12, y: 0, w: 11, h: 1 }, { text: "Hello, I’m Ahmed", size: 26, color: "#E8501A" }),
-        fi("text", { x: 12, y: 1, w: 11, h: 5 }, {
+        fi("image", { x: 3, y: 0, w: 6, h: 7 }, { mediaId: portrait, deco: { ...fi("image", {}).deco, mask: "rounded" } }),
+        fi("heading", { x: 12, y: 0, w: 11, h: 1 }, { text: "Hello, I’m Ahmed !", size: 33, color: RED }),
+        fi("image", { x: 12, y: 1, w: 5, h: 1 }, { mediaId: squiggle, fit: "contain", tone: sampleTone(1) }),
+        fi("text", { x: 12, y: 2, w: 11, h: 5 }, {
           text:
-            "I’m a <b>Director</b> ,<b>Animator</b> and <b>Character Designer</b> with over 9 years of experience based in Egypt.<br><br>I have a Bachelor Degree in “Animation Directing” from the HIGH CINEMA INSTITUTE ,And I’m very enthusiastic when it comes to animation in all it’s forms and mediums ,and I especially love animation for films and music.<br><br>My professional work includes projects for <b>Netflix</b> (<i>Fever Dreams</i>), <b>Cartoon Network &amp; HBO</b> (<i>The Heroic Quest of the Valiant Prince Ivandoe</i>), <b>Majid TV</b> (<i>Zakia Al Zakia</i>), and <b>MBC</b> (<i>Hakawati Nation</i>).<br><br>Don’t hesitate to <a href=\"/contact\">contact me</a> for any inquiries.",
+            "I'm an <b>Animation Director, Supervisor, and Visual Storyteller</b> with over 10 years of experience, based in Cairo, Egypt.<br><br>I hold a Bachelor's Degree in “Animation Directing” from the <b>High Cinema Institute</b>. While my focus is on leading creative teams and directing campaigns, I am still a hands-on <b>Animator</b> and <b>Character Designer</b> at heart. I love telling stories through design, bringing short films to life, and sharing what I've learned with the community.<br><br><i>My professional work includes projects for</i> <b>Netflix</b> (<i>Fever Dreams</i>), <b>Cartoon Network &amp; HBO</b> (<i>The Heroic Quest of the Valiant Prince Ivandoe</i>), <b>Majid TV</b> (<i>Zakia Al Zakia</i>), and <b>MBC</b> (<i>Hakawati Nation</i>).<br><br>Don’t hesitate to <a href=\"/contact\">contact me</a> for any inquiries.",
           size: 11,
         }),
-        fi("button", { x: 12, y: 6, w: 3, h: 1 }, { text: "VIEW RESUME", link: "", size: 10, fill: ORANGE, color: "#141414" }),
-        fi("image", { x: 19, y: 5, w: 3, h: 3 }, { mediaId: signature, fit: "contain", tone: sampleTone(1) }),
+        fi("button", { x: 19, y: 7, w: 4, h: 1 }, { text: "DOWNLOAD RESUME", link: "", size: 10, fill: RED, color: "#FFFFFF" }),
       ],
       at(W.page, { padTop: 48, padBottom: 48 }),
     ),
-    title("Teams I’ve worked with!", { underline: false }),
-    logos(teams, { tint: "white", oneRow: false, columns: 6, size: "xl" }, orangeBand({ padTop: 56, padBottom: 56 })),
-    title("Community participation & Mentorship", { underline: false }),
+    { ...title("Teams I’ve worked with!", { line: squiggle }), size: "m" } as Block,
+    logos(teams, { tint: "white", oneRow: false, columns: 6, size: "xl" }, redBand({ padTop: 56, padBottom: 56 })),
+    { ...title("Community participation & Mentorship", { line: squiggle }), size: "m" } as Block,
     {
       id: newId(),
       type: "cards",
@@ -270,6 +284,9 @@ export async function classicPages(content: Any, t: ClassicTools): Promise<{ pag
       link: "",
       mediaId: null,
       tone: sampleTone(0),
+      bigTitles: true,
+      accentTitles: true,
+      tileRatio: "16/9",
       items: community.map((c, i) => card(c.title, c.text, communityIds[i])),
       style: at(W.page, { padBottom: 72 }),
     },
@@ -414,7 +431,9 @@ export async function classicPages(content: Any, t: ClassicTools): Promise<{ pag
 
   /* ---------- Contact ---------- */
   const armsUp = await t.lib("contact/01/002_2.jpg", "Ahmed drawn as a cartoon with an orange cat on his head");
-  const contactPage: Block[] = [contact("GET IN TOUCH", armsUp, at(W.page, { padTop: 64, padBottom: 72 }))];
+  const contactPage: Block[] = [
+    { ...contact("Have a project in mind? Drop me a note below and let’s create something cool together!", armsUp, at(W.page, { padTop: 64, padBottom: 72 })), button: "SEND" } as Block,
+  ];
 
   /* ---------- menu: PORTFOLIO ▾ · About · Contact ---------- */
   const page = (slug: string, titleText: string, blocks: Block[], extra: Partial<PageDraft> = {}): PageDraft => ({ id: newId(), slug, title: titleText, type: "custom", showInNav: true, blocks, ...extra });
@@ -441,7 +460,6 @@ function contact(heading: string, mediaId: string, style: SectionStyle): Block {
     button: "SUBMIT",
     mediaId,
     flat: true,
-    headingSize: "m",
     accent: true,
     form: { projectType: false, budget: false, deadline: false, custom: "", labels: { name: "Name", email: "Email", message: "Message" }, success: "", layout: "stacked" } as never,
     style,

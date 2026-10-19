@@ -180,6 +180,24 @@
   .site-root [class*="site-link-"] { animation: none !important; }
 }
 
+/* Round 15: logos gliding in an endless row (right to left; left to right on Arabic sites). */
+@keyframes site-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.site-root .site-marquee-track {
+  animation: site-marquee 40s linear infinite;
+}
+.site-root [dir="rtl"] .site-marquee-track,
+.site-root[dir="rtl"] .site-marquee-track {
+  animation-direction: reverse;
+}
+.site-root .site-marquee:hover .site-marquee-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-root .site-marquee-track { animation: none; }
+}
 /* Round 14: masonry in reading order on wide screens, plain columns on narrow ones. */
 @container (max-width: 820px) {
   .site-root .site-masonry-rows {

@@ -349,6 +349,19 @@ export const FONT_LIST = [
     "variable": false
   },
   {
+    "id": "londrina",
+    "name": "Londrina Solid",
+    "script": "latin",
+    "category": "display",
+    "family": "\"fn-londrina\"",
+    "headingWeight": 400,
+    "weights": [
+      400,
+      900
+    ],
+    "variable": false
+  },
+  {
     "id": "archivo-black",
     "name": "Archivo Black",
     "script": "latin",

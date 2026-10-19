@@ -456,6 +456,7 @@ export const LIBRARY: Array<{ group: LibraryGroup; keys: string[] }> = [
       "social",
       "credits",
       "c-marquee",
+      "logos",
       "d-logo-wall",
     ],
   },

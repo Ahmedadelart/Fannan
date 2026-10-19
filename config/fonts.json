@@ -379,6 +379,19 @@
       ]
     },
     {
+      "id": "londrina",
+      "name": "Londrina Solid",
+      "script": "latin",
+      "category": "display",
+      "package": "@fontsource/londrina-solid",
+      "variable": false,
+      "headingWeight": 400,
+      "weights": [
+        400,
+        900
+      ]
+    },
+    {
       "id": "archivo-black",
       "name": "Archivo Black",
       "script": "latin",

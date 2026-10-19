@@ -337,7 +337,16 @@ async function main() {
     language: "en",
     title: acct.displayName,
     tagline: "",
-    theme: { ...themes.orange, nav: "inline", radius: 4, logoMediaId: siteLogo, faviconMediaId: null },
+    // His current site: red, Londrina Solid headings in capitals with a little letter spacing, Montserrat text.
+    theme: {
+      ...themes.orange,
+      colors: { ...themes.orange.colors, accent: "#FC221C" },
+      fonts: { ...themes.orange.fonts, heading: "londrina", body: "montserrat", headingWeight: 400, headingUpper: true, headingTracking: 5 },
+      nav: "inline",
+      radius: 4,
+      logoMediaId: siteLogo,
+      faviconMediaId: null,
+    },
     pages,
     header: {
       ...normalizeHeader({}),
@@ -347,7 +356,7 @@ async function main() {
       space: 6,
       tagline: false,
       social: true,
-      textColor: "#E8501A",
+      textColor: "#000000",
       upperLinks: false,
     },
     footer: {
@@ -362,12 +371,20 @@ async function main() {
       background: "#000000",
       textColor: "#FFFFFF",
       align: "start",
-      logo: true,
-      accent: true,
+      big: true,
     },
   };
   // Social links known from his folder (Behance and Instagram captures); Ahmed adds Vimeo, LinkedIn and Facebook.
-  await saveSettings(o, { social: [{ network: "behance", url: "https://www.behance.net/ahmedadelart" }, { network: "instagram", url: "https://www.instagram.com/ahmedadel.art" }] });
+  // The links on his current site.
+  await saveSettings(o, {
+    social: [
+      { network: "vimeo", url: "https://vimeo.com/ahmadadelart" },
+      { network: "youtube", url: "https://www.youtube.com/@AhmedAdel-art" },
+      { network: "instagram", url: "https://www.instagram.com/ahmedadel.art/" },
+      { network: "behance", url: "https://www.behance.net/ahmedadelart" },
+      { network: "linkedin", url: "https://www.linkedin.com/in/ahmedadel-art/" },
+    ],
+  });
   await saveDraft(o, draft);
   await saveSettings(o, { seo: { title: "Ahmed Adel · Animation Director", description: heroText, shareImageId: share } });
   await adminDb().collection("sites").doc(o.siteId).update({ title: acct.displayName, updatedAt: FieldValue.serverTimestamp() });

@@ -217,7 +217,7 @@ function blockOwnMediaIds(b: Block): Array<string | null> {
     case "about":
       return [b.photoId, b.cvId];
     case "header":
-      return [b.logoId];
+      return [b.logoId, b.lineId ?? null];
     case "feature":
       return [b.bgMediaId];
     case "contact":

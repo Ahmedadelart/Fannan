@@ -1248,7 +1248,8 @@
       "logoFont": "Font of your name",
       "logoFontSite": "Same as headings",
       "footerLogo": "Logo picture instead of the name",
-      "footerAccent": "Name, email and arrow in the accent colour"
+      "footerAccent": "Name, email and arrow in the accent colour",
+      "footerBig": "Big name and email, in the heading font"
     },
     "account": {
       "label": "Your account",
@@ -1643,7 +1644,8 @@
         "m": "Normal",
         "l": "Bigger"
       },
-      "upper": "Headings in CAPITALS"
+      "upper": "Headings in CAPITALS",
+      "tracking": "Heading letter spacing"
     },
     "layout": {
       "align": "Text alignment",
@@ -1729,7 +1731,8 @@
       "anchorHint": "Link to this part from the menu with /#name.",
       "accent": "Title in the accent colour",
       "upper": "Title in capitals",
-      "underline": "Short line under the title"
+      "underline": "Short line under the title",
+      "line": "Hand-drawn line under the title (picture)"
     },
     "feature": {
       "project": "Project",
@@ -1774,7 +1777,8 @@
         "l": "Large",
         "xl": "Extra large"
       },
-      "columns": "Logos per row (0: as many as fit)"
+      "columns": "Logos per row (0: as many as fit)",
+      "moving": "Moving: logos glide in an endless loop"
     },
     "coverx": {
       "eyebrow": "Small line above",
@@ -1819,13 +1823,18 @@
       "captionSizes": {
         "s": "Small",
         "m": "Medium",
-        "l": "Large"
-      }
+        "l": "Large",
+        "xl": "Extra large"
+      },
+      "captionHeading": "Title in the heading font",
+      "coverLogo": "Project logo on the cover"
     },
     "cardsx": {
       "flat": "No panel behind the cards",
       "tileRatio": "Tile shape",
-      "tileCenter": "Title in the middle, in capitals"
+      "tileCenter": "Title in the middle, in capitals",
+      "bigTitles": "Bigger titles",
+      "accentTitles": "Titles in the accent colour"
     }
   },
   "inbox": {

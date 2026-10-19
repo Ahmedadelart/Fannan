@@ -72,3 +72,29 @@ test("header height, centred grid rows and masonry in reading order", async ({ p
   expect(xs[0]).toBeLessThan(xs[1]);
   expect(xs[1]).toBeLessThan(xs[2]);
 });
+
+test("logos can glide in an endless row", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop");
+  test.setTimeout(150_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signUp(page);
+  await openEditor(page);
+  const canvas = page.getByTestId("canvas");
+  await page.getByTestId("add-logos").click();
+  const wall = canvas.getByTestId("logo-wall").last();
+  await wall.scrollIntoViewIfNeeded();
+  await wall.click();
+  const moving = page.getByRole("switch", { name: /^Moving/ });
+  await expect(async () => {
+    if (!(await moving.isVisible())) await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+    await expect(moving).toBeVisible({ timeout: 2000 });
+  }).toPass({ timeout: 15_000 });
+  await moving.click();
+  const track = canvas.getByTestId("logo-marquee").locator(".site-marquee-track");
+  await expect(track).toBeVisible();
+  expect(await track.evaluate((el) => getComputedStyle(el).animationName)).toBe("site-marquee");
+  // Two identical halves, so the loop never jumps.
+  const n = await track.locator(":scope > span").count();
+  expect(n % 2).toBe(0);
+  expect(n).toBeGreaterThanOrEqual(2);
+});

@@ -441,7 +441,7 @@ const heading = (size: number): CSSProperties => ({
   fontSize: `calc(${size}px * var(--site-heading-scale, 1))`,
   textTransform: "var(--site-heading-case, none)" as CSSProperties["textTransform"],
   lineHeight: 1.1,
-  letterSpacing: "-0.01em",
+  letterSpacing: "var(--site-heading-tracking, -0.01em)",
   margin: 0,
 });
 
@@ -472,8 +472,13 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
     : shown;
   const ownSizes = !!b.cardSizes && b.layout === "grid";
   // Caption sizes (round 14): the title, then the lines under it.
-  const capTitle = b.captionSize === "s" ? 14 : b.captionSize === "l" ? 22 : 16;
-  const capLine = b.captionSize === "s" ? 12 : b.captionSize === "l" ? 15 : 14;
+  const capTitle = b.captionSize === "s" ? 14 : b.captionSize === "l" ? 22 : b.captionSize === "xl" ? 28 : 16;
+  const capLine = b.captionSize === "s" ? 12 : b.captionSize === "l" ? 15 : b.captionSize === "xl" ? 16 : 14;
+  // "accent" and "heading" captions (round 15): the title in the heading font, like a small headline.
+  const capHead: CSSProperties =
+    b.captionStyle === "accent" || b.captionStyle === "heading"
+      ? { ...heading(capTitle), fontSize: capTitle, lineHeight: 1.15, ...(b.captionStyle === "accent" ? { color: "var(--site-accent-ink)" } : {}) }
+      : {};
   const hover = b.hover ?? "fade";
   const fullscreen = b.layout === "fullscreen";
   const cols = Math.max(1, Math.min(6, b.columns));
@@ -549,6 +554,11 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
             still={!b.hoverPlay || !!t.m?.loop}
           />
           )}
+          {b.coverLogo && t.p?.logoIds?.[0] && ctx.media[t.p.logoIds[0]] && (
+            <span className="pointer-events-none absolute inset-x-[6%] bottom-[5%] block h-[34%]" aria-hidden data-testid="cover-logo">
+              <Picture m={ctx.media[t.p.logoIds[0]]} base={ctx.base} want={400} ratio="auto" className="h-full !rounded-none [&_img]:object-contain [&_img]:object-bottom" />
+            </span>
+          )}
           {hover === "title" && t.title && (
             <span className="site-thumb-title" aria-hidden>
               <span className="font-semibold">{t.title}</span>
@@ -569,7 +579,7 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
             {showTitle && (
               <span
                 className="font-semibold"
-                style={{ fontSize: capTitle, ...(b.captionStyle === "accent" ? { color: "var(--site-accent-ink)", fontWeight: 700, lineHeight: 1.2 } : {}) }}
+                style={{ fontSize: capTitle, ...(b.captionStyle === "accent" ? { color: "var(--site-accent-ink)", fontWeight: 700, lineHeight: 1.2 } : {}), ...capHead }}
               >
                 {t.title}
               </span>
@@ -577,7 +587,8 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
             {b.lines.map((line) => {
               const v = captionLine(t.p!, line);
               if (!v) return null;
-              const accent = line === "role" && b.accentRole;
+              // Accent captions (round 15): every line in the accent colour, like the title.
+              const accent = (line === "role" && b.accentRole) || b.captionStyle === "accent";
               const small = b.captionStyle === "accent";
               return (
                 <span
@@ -596,7 +607,7 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
         ) : null}
         {!b.lines?.length && (showTitle || showMeta) && t.title && hover !== "title" && (
           <figcaption className="flex flex-col gap-0.5" style={fullscreen ? { padding: "0 12px" } : undefined}>
-            {showTitle && <span className="font-semibold" style={b.captionSize ? { fontSize: capTitle } : undefined}>{t.title}</span>}
+            {showTitle && <span className="font-semibold" style={b.captionSize || b.captionStyle === "heading" ? { fontSize: capTitle, ...capHead } : undefined}>{t.title}</span>}
             {showMeta && t.meta && (
               <span style={{ color: "var(--site-muted)", fontSize: capLine }}>
                 {t.meta}
@@ -1011,7 +1022,7 @@ function itemType(it: FreeItem): CSSProperties {
     textTransform: it.upper ? "uppercase" : it.font === "heading" ? ("var(--site-heading-case, none)" as CSSProperties["textTransform"]) : undefined,
     lineHeight: it.lineHeight / 100,
     // Arabic letters join, so letter spacing only applies to Latin text (the site sets lang).
-    letterSpacing: it.tracking ? `${it.tracking / 100}em` : undefined,
+    letterSpacing: it.tracking ? `${it.tracking / 100}em` : it.font === "heading" ? "var(--site-heading-tracking)" : undefined,
     fontStyle: it.italic ? "italic" : undefined,
     textShadow: it.deco.textShadow ? "0 2px 12px rgba(0,0,0,.35)" : undefined,
   };
@@ -1638,7 +1649,7 @@ function CardsView({ b, ctx }: { b: BlockOf<"cards">; ctx: Ctx }) {
                   style={{ color: "#FFFFFF", textShadow: b.tileText === "center" ? "0 2px 12px rgba(0,0,0,.45)" : undefined }}
                 >
                   <span className="pointer-events-auto">
-                    {tx(n, "title", { style: b.tileText === "center" ? { fontSize: `clamp(20px, ${(9.6 / Math.max(1, b.columns)).toFixed(2)}cqi, 48px)`, fontWeight: 700, textTransform: "uppercase", lineHeight: 1.1 } : { fontSize: 20, fontWeight: 700 } })}
+                    {tx(n, "title", { style: b.tileText === "center" ? { ...heading(24), fontSize: `clamp(20px, ${(12 / Math.max(1, b.columns)).toFixed(2)}cqi, 64px)`, textTransform: "uppercase", lineHeight: 1.05 } : { fontSize: 20, fontWeight: 700 } })}
                   </span>
                   {(it.meta || ctx.onText) && <span className="pointer-events-auto text-[13px] opacity-85">{tx(n, "meta")}</span>}
                 </span>
@@ -1675,12 +1686,12 @@ function CardsView({ b, ctx }: { b: BlockOf<"cards">; ctx: Ctx }) {
                 m={m(it.mediaId)}
                 base={ctx.base}
                 tone={it.tone}
-                ratio={b.flat ? "1 / 1" : "4 / 3"}
+                ratio={b.flat ? (b.tileRatio ? b.tileRatio.replace("/", " / ") : "1 / 1") : "4 / 3"}
                 className={b.flat ? undefined : "!rounded-none"}
                 pic={ctx.editing ? `${ctx.blockId}|items.${n}.mediaId` : undefined}
               />
               <div className={cx("flex flex-1 flex-col items-start gap-2", b.flat ? "gap-1" : "p-6")}>
-                {tx(n, "title", { as: "h3", style: heading(b.flat ? 18 : 26) })}
+                {tx(n, "title", { as: "h3", style: { ...heading(b.bigTitles ? 28 : b.flat ? 18 : 26), ...(b.accentTitles ? { color: "var(--site-accent-ink)" } : {}) } })}
                 {tx(n, "text", { as: "p", className: "m-0 text-[16px] leading-[1.6]", style: { color: "var(--site-muted)" }, multiline: true })}
                 {(it.button || ctx.onText) && link(it.link, tx(n, "button"), "site-button mt-auto text-[14px]")}
               </div>
@@ -2218,6 +2229,42 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       );
     case "logos": {
       const tint = b.tint === "white" ? "brightness(0) invert(1)" : b.tint === "black" ? "brightness(0)" : undefined;
+      if (b.moving && b.items.length) {
+        // Round 15: an endless row. Two identical halves slide by half their width, so the loop never jumps;
+        // each half repeats the logos until it's wider than a big screen.
+        const size = b.size ?? "m";
+        const w = { s: 96, m: 144, l: 208, xl: 320 }[size];
+        const gap = Math.round(w * 0.45);
+        const reps = Math.max(1, Math.ceil(2400 / (b.items.length * (w + gap))));
+        const half = Array.from({ length: reps }, () => b.items).flat();
+        const one = (l: (typeof b.items)[number], i: number, hidden: boolean) => {
+          const logo = m(l.mediaId);
+          return (
+            <span key={i} className={cx("block flex-none", LOGO_SIZE[size], LOGO_WIDTH[size])} style={{ marginInlineEnd: gap, ...(tint ? { filter: tint } : {}) }} aria-hidden={hidden || undefined}>
+              {logo ? (
+                <Picture m={logo} base={ctx.base} want={400} ratio="auto" className="h-full [&_img]:object-contain" alt={hidden ? "" : l.name} />
+              ) : (
+                <span style={{ ...heading(22), opacity: 0.75 }}>{l.name}</span>
+              )}
+            </span>
+          );
+        };
+        return (
+          <div className="flex flex-col gap-5">
+            <T ctx={ctx} path="heading" value={b.heading} as="h2" style={{ ...heading(20), color: "var(--site-muted)" }} />
+            <div
+              className={cx("site-marquee overflow-hidden", b.band && "py-8")}
+              style={b.band ? { background: b.band } : undefined}
+              data-testid="logo-marquee"
+            >
+              <div className="site-marquee-track flex w-max items-center" style={{ animationDuration: `${Math.round((half.length * (w + gap)) / 45)}s` }}>
+                {half.map((l, i) => one(l, i, i >= b.items.length))}
+                {half.map((l, i) => one(l, half.length + i, true))}
+              </div>
+            </div>
+          </div>
+        );
+      }
       return (
         <div className="flex flex-col gap-5">
           <T ctx={ctx} path="heading" value={b.heading} as="h2" style={{ ...heading(20), color: "var(--site-muted)" }} />
@@ -2265,6 +2312,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
     }
     case "header": {
       const logo = m(b.logoId);
+      const line = m(b.lineId ?? null);
       const centred = ctx.align === "center";
       return (
         <div
@@ -2278,7 +2326,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
               ...heading(b.size === "l" ? 44 : 30),
               ...(b.accent ? { color: "var(--site-accent-ink)" } : {}),
               ...(b.upper ? { textTransform: "uppercase" as const } : {}),
-              ...(b.underline ? { paddingBottom: 10, backgroundImage: "linear-gradient(var(--site-accent), var(--site-accent))", backgroundSize: "64px 2px", backgroundRepeat: "no-repeat", backgroundPosition: centred ? "center bottom" : "left bottom" } : {}),
+              ...(b.underline && !line ? { paddingBottom: 10, backgroundImage: "linear-gradient(var(--site-accent), var(--site-accent))", backgroundSize: "64px 2px", backgroundRepeat: "no-repeat", backgroundPosition: centred ? "center bottom" : "left bottom" } : {}),
             }}
           >
             {(b.number || (ctx.onText && ctx.selectedBlockId === ctx.blockId)) && (
@@ -2292,6 +2340,17 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
               <T ctx={{ ...ctx, selectedBlockId: ctx.blockId }} path="title" value={b.title} />
             )}
           </h2>
+          {line && (
+            // A hand-drawn line under the title (an animated GIF draws itself).
+            <span
+              className="-mt-3 block"
+              style={{ height: "clamp(18px, 2.1cqi, 40px)", aspectRatio: line.width && line.height ? `${line.width} / ${line.height}` : "4 / 1", flexBasis: "100%", maxWidth: "min(100%, 420px)" }}
+              aria-hidden
+              data-testid="title-line"
+            >
+              <Picture m={line} base={ctx.base} want={800} ratio="auto" className="h-full !rounded-none [&_img]:object-contain" />
+            </span>
+          )}
           {(b.badge || b.subtitle || (ctx.onText && ctx.selectedBlockId === ctx.blockId)) && (
             <span className="flex flex-wrap items-center gap-2.5 text-[14px]" style={{ color: "var(--site-muted)" }}>
               {(b.badge || (ctx.onText && ctx.selectedBlockId === ctx.blockId)) && (
@@ -2802,6 +2861,7 @@ function Footer({
   // Round 14: the footer can repeat the logo picture, and put the name, email and arrow in the accent colour.
   const footLogo = settings.logo && site.theme.logoMediaId ? ctx.media[site.theme.logoMediaId] : null;
   const strong = settings.accent ? "var(--site-accent)" : (settings.textColor ?? "var(--site-text)");
+  const big = !!settings.big;
   const title =
     settings.showTitle &&
     (footLogo ? (
@@ -2809,14 +2869,14 @@ function Footer({
         <Picture m={footLogo} base={ctx.base} want={400} ratio="auto" alt={site.title} className="h-full [&_img]:object-contain [&_img]:object-left" />
       </span>
     ) : (
-      <span style={{ ...heading(22), color: strong }}>{site.title}</span>
+      <span style={{ ...heading(big ? 46 : 22), color: strong }}>{site.title}</span>
     ));
   const email = settings.email && (
     <a
       href={ctx.live ? `mailto:${settings.email}` : undefined}
       dir="ltr"
       className="text-[15px] font-semibold underline underline-offset-4"
-      style={{ color: strong }}
+      style={{ color: strong, ...(big ? { ...heading(28), fontSize: 28 } : {}) }}
     >
       {settings.email}
     </a>
@@ -2826,7 +2886,7 @@ function Footer({
       href={ctx.live ? "#" : undefined}
       aria-label="↑"
       className="flex size-10 items-center justify-center rounded-full text-[18px]"
-      style={{ border: "1.5px solid currentColor", color: strong }}
+      style={{ border: "1.5px solid currentColor", color: big ? "var(--site-accent)" : strong, ...(big ? { height: 56, width: 36, fontSize: 22 } : {}) }}
     >
       ↑
     </a>
@@ -3298,6 +3358,8 @@ export function SiteRender({
     "--site-heading-weight": arabic ? ar.headingWeight : (theme.fonts.headingWeight ?? h.headingWeight),
     "--site-heading-case": theme.fonts.headingUpper && !arabic ? "uppercase" : "none",
     "--site-heading-scale": { s: 0.85, m: 1, l: 1.18 }[theme.fonts.headingScale ?? "m"],
+    // Arabic letters join, so heading letter spacing only applies to Latin sites.
+    "--site-heading-tracking": arabic ? "0" : `${(theme.fonts.headingTracking ?? -1) / 100}em`,
     "--site-body": arabic ? `${arBody.family}, ${b.family}, system-ui` : `${b.family}, ${arBody.family}, ${fontStack(b)}`,
   } as CSSProperties;
 

@@ -282,6 +282,21 @@ export function FontPicker({
             ))}
           </div>
         </div>
+        <label className="flex flex-col gap-1 text-[12px] font-semibold">
+          <span className="flex justify-between">
+            {t("tracking")}
+            <span className="text-muted font-normal tabular-nums">{((fonts.headingTracking ?? -1) / 100).toFixed(2)}em</span>
+          </span>
+          <input
+            type="range"
+            min={-10}
+            max={30}
+            value={fonts.headingTracking ?? -1}
+            onChange={(e) => onChange({ ...fonts, headingTracking: Number(e.target.value) })}
+            className="fannan-range"
+            data-testid="heading-tracking"
+          />
+        </label>
         <label className="flex items-center justify-between gap-2 text-[13px]">
           {t("upper")}
           <input type="checkbox" className="accent-primary size-4" checked={!!fonts.headingUpper} onChange={(e) => onChange({ ...fonts, headingUpper: e.target.checked })} />

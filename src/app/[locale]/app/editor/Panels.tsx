@@ -1527,6 +1527,7 @@ export function SitePartSettings({
           <Switch title={t("backToTop")} checked={footer.backToTop} onChange={(v) => setFooter({ backToTop: v })} />
           {footer.showTitle && draft.theme.logoMediaId && <Switch title={t("footerLogo")} checked={!!footer.logo} onChange={(v) => setFooter({ logo: v })} />}
           <Switch title={t("footerAccent")} checked={!!footer.accent} onChange={(v) => setFooter({ accent: v })} />
+          <Switch title={t("footerBig")} checked={!!footer.big} onChange={(v) => setFooter({ big: v })} />
           <div className="border-line flex flex-col gap-3 border-t pt-4">
             <Switch title={t("showSocial")} checked={footer.social} onChange={(v) => setFooter({ social: v })} />
             {socialEditor}
@@ -1680,6 +1681,16 @@ export function BlockSettings({
             </>
           )}
           {v === "images" && <Switch title={t("cardsx.flat")} checked={!!block.flat} onChange={(x) => set({ flat: x })} />}
+          {v === "images" && block.flat && (
+            <Choice
+              title={t("cardsx.tileRatio")}
+              value={block.tileRatio ?? "1/1"}
+              options={(["1/1", "4/3", "16/9", "4/5"] as const).map((x) => [x, x.replace("/", ":")])}
+              onChange={(x) => set({ tileRatio: x })}
+            />
+          )}
+          {v === "images" && <Switch title={t("cardsx.bigTitles")} checked={!!block.bigTitles} onChange={(x) => set({ bigTitles: x })} />}
+          {v === "images" && <Switch title={t("cardsx.accentTitles")} checked={!!block.accentTitles} onChange={(x) => set({ accentTitles: x })} />}
           {v === "tiles" && (
             <>
               <Choice
@@ -1890,7 +1901,7 @@ export function BlockSettings({
             title={g("spacing")}
             value={b.gap}
             min={0}
-            max={40}
+            max={120}
             unit="px"
             onChange={(v) => set({ gap: v }, k("gap"))}
           />
@@ -1911,6 +1922,7 @@ export function BlockSettings({
           <fieldset className="border-line flex flex-col gap-2.5 border-t pt-3">
             <legend className="mb-1 text-[12px] font-semibold">{g("options")}</legend>
             <Switch title={g("lightbox")} checked={b.lightbox} onChange={(v) => set({ lightbox: v })} />
+            <Switch title={t("galleryx.coverLogo")} checked={!!b.coverLogo} onChange={(v) => set({ coverLogo: v })} />
             <Switch title={g("captions")} checked={b.captions} onChange={(v) => set({ captions: v })} />
             <Label title={g("hover")}>
               <select className={inputCls} value={b.hover ?? "none"} onChange={(e) => set({ hover: e.target.value as BlockOf<"gallery">["hover"] })} data-testid="gallery-hover">
@@ -1957,10 +1969,13 @@ export function BlockSettings({
               {!!b.lines?.length && (
                 <Switch title={t("galleryx.captionAccent")} checked={b.captionStyle === "accent"} onChange={(v) => set({ captionStyle: v ? "accent" : "plain" })} />
               )}
+              {b.captionStyle !== "accent" && (
+                <Switch title={t("galleryx.captionHeading")} checked={b.captionStyle === "heading"} onChange={(v) => set({ captionStyle: v ? "heading" : "plain" })} />
+              )}
               <Choice
                 title={t("galleryx.captionSize")}
                 value={b.captionSize ?? "m"}
-                options={(["s", "m", "l"] as const).map((x) => [x, t(`galleryx.captionSizes.${x}`)])}
+                options={(["s", "m", "l", "xl"] as const).map((x) => [x, t(`galleryx.captionSizes.${x}`)])}
                 onChange={(v) => set({ captionSize: v === "m" ? undefined : v })}
               />
             </div>
@@ -2114,7 +2129,8 @@ export function BlockSettings({
             { name: "", mediaId: null },
             40,
           )}
-          <Switch title={t("logosx.oneRow")} checked={!!block.oneRow} onChange={(v) => set({ oneRow: v })} />
+          <Switch title={t("logosx.moving")} checked={!!block.moving} onChange={(v) => set({ moving: v })} />
+          {!block.moving && <Switch title={t("logosx.oneRow")} checked={!!block.oneRow} onChange={(v) => set({ oneRow: v })} />}
           <Choice
             title={t("logosx.size")}
             value={block.size ?? "m"}
@@ -2154,6 +2170,7 @@ export function BlockSettings({
           <Switch title={t("header.accent")} checked={!!block.accent} onChange={(v) => set({ accent: v })} />
           <Switch title={t("header.upper")} checked={!!block.upper} onChange={(v) => set({ upper: v })} />
           <Switch title={t("header.underline")} checked={!!block.underline} onChange={(v) => set({ underline: v })} />
+          {mediaField(t("header.line"), block.lineId ?? null, "image", (id) => set({ lineId: id }))}
           <Choice
             title={t("header.size")}
             value={block.size}

@@ -81,6 +81,7 @@ export function normalizeTheme(raw: unknown): Theme {
       ...(typeof fonts.headingWeight === "number" ? { headingWeight: num(fonts.headingWeight, 100, 900, 600) } : {}),
       ...(fonts.headingUpper === true ? { headingUpper: true } : {}),
       ...(fonts.headingScale === "s" || fonts.headingScale === "l" ? { headingScale: fonts.headingScale } : {}),
+      ...(typeof fonts.headingTracking === "number" ? { headingTracking: num(fonts.headingTracking, -10, 30, -1) } : {}),
     },
     radius: num(t.radius, 0, 24, p.radius),
     nav: pick(oldNav[t.nav as string] ?? t.nav, ["top", "centered", "sidebar", "split", "minimal", "inline"], p.nav),
@@ -190,6 +191,8 @@ function normalizeCards(id: string, b: Any): Block {
     ...(b.flat === true ? { flat: true } : {}),
     ...(["4/5", "16/9", "1/1", "4/3"].includes(b.tileRatio as string) ? { tileRatio: b.tileRatio as "4/5" } : {}),
     ...(b.tileText === "center" ? { tileText: "center" as const } : {}),
+    ...(b.bigTitles === true ? { bigTitles: true } : {}),
+    ...(b.accentTitles === true ? { accentTitles: true } : {}),
     heading: str(b.heading, 200),
     intro: str(b.intro, 600),
     columns: num(b.columns, 1, 6, 3),
@@ -251,6 +254,7 @@ function normalizeBlockBody(raw: unknown): Block | null {
         ...(b.accent === true ? { accent: true } : {}),
         ...(b.upper === true ? { upper: true } : {}),
         ...(b.underline === true ? { underline: true } : {}),
+        ...(idOrNull(b.lineId) ? { lineId: idOrNull(b.lineId) } : {}),
       };
     case "feature":
       return {
@@ -289,7 +293,7 @@ function normalizeBlockBody(raw: unknown): Block | null {
         layout: pick(b.layout, ["grid", "masonry", "slider", "fullscreen", "alternate", "featured", "rows"], "grid"),
         source: str(b.source, 40) || "all",
         columns: num(b.columns, 1, 6, 3),
-        gap: num(b.gap, 0, 40, 12),
+        gap: num(b.gap, 0, 120, 12),
         ratio: pick(b.ratio, ["16:9", "4:3", "1:1", "4:5", "3:4", "2:3", "original"], "4:3"),
         lightbox: bool(b.lightbox, true),
         captions: bool(b.captions, true),
@@ -302,8 +306,9 @@ function normalizeBlockBody(raw: unknown): Block | null {
         ...(b.accentRole === true ? { accentRole: true } : {}),
         ...(b.split === true ? { split: true, wideColumns: num(b.wideColumns, 1, 4, 2) } : {}),
         ...(b.loopPlay === "always" ? { loopPlay: "always" as const } : {}),
-        ...(b.captionStyle === "accent" ? { captionStyle: "accent" as const } : {}),
-        ...(b.captionSize === "s" || b.captionSize === "l" ? { captionSize: b.captionSize as "s" | "l" } : {}),
+        ...(b.captionStyle === "accent" || b.captionStyle === "heading" ? { captionStyle: b.captionStyle as "accent" | "heading" } : {}),
+        ...(b.coverLogo === true ? { coverLogo: true } : {}),
+        ...(["s", "l", "xl"].includes(b.captionSize as string) ? { captionSize: b.captionSize as "s" | "l" | "xl" } : {}),
         filter: bool(b.filter),
         ...(b.cardSizes === true ? { cardSizes: true } : {}),
         ...(Array.isArray(b.picks) && b.picks.length
@@ -419,6 +424,7 @@ function normalizeBlockBody(raw: unknown): Block | null {
         ...(b.oneRow === true ? { oneRow: true } : {}),
         ...(["s", "l", "xl"].includes(b.size as string) ? { size: b.size as "l" } : {}),
         ...(num(b.columns, 0, 8, 0) ? { columns: num(b.columns, 0, 8, 0) } : {}),
+        ...(b.moving === true ? { moving: true } : {}),
       };
     case "about":
       return {
@@ -693,6 +699,7 @@ export function normalizeFooter(raw: unknown): FooterSettings {
     backToTop: bool(f.backToTop),
     ...(f.logo === true ? { logo: true } : {}),
     ...(f.accent === true ? { accent: true } : {}),
+    ...(f.big === true ? { big: true } : {}),
     socialStyle: f.socialStyle === "icons" ? "icons" : "text",
     border: bool(f.border),
     padding: num(f.padding, 0, 120, 32),

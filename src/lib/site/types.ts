@@ -26,6 +26,8 @@ export interface Theme {
     headingWeight?: number;
     headingUpper?: boolean;
     headingScale?: "s" | "m" | "l";
+    /** Round 15: heading letter spacing in hundredths of an em (not set: -1, slightly tight). */
+    headingTracking?: number;
   };
   /** Corner radius in px, 0–24. */
   radius: number;
@@ -154,6 +156,8 @@ export type Block =
         accent?: boolean;
         upper?: boolean;
         underline?: boolean;
+        /** Round 15: a picture under the title (a hand-drawn line), instead of the short line. */
+        lineId?: string | null;
       }
     >
   | B<
@@ -200,9 +204,11 @@ export type Block =
         /** Loops on covers: play under the pointer (default) or all the time. */
         loopPlay?: "hover" | "always";
         /** "accent": the title in the accent colour, the network small in capitals. */
-        captionStyle?: "plain" | "accent";
+        captionStyle?: "plain" | "accent" | "heading";
+        /** Round 15: each project's first logo laid over the bottom of its cover. */
+        coverLogo?: boolean;
         /** Round 14: caption text size (not set: medium). */
-        captionSize?: "s" | "m" | "l";
+        captionSize?: "s" | "m" | "l" | "xl";
         filter: boolean;
         /** Round 8: each project's own card size and text, instead of one size for all. */
         cardSizes?: boolean;
@@ -248,6 +254,8 @@ export type Block =
         /** How big the logos are, and how many per row (0: as many as fit). */
         size?: "s" | "m" | "l" | "xl";
         columns?: number;
+        /** Round 15: the logos glide sideways in an endless loop. */
+        moving?: boolean;
       }
     >
   | B<"about", { heading: string; text: string; photoId: string | null; cvId: string | null }>
@@ -353,6 +361,9 @@ export interface CardsSection {
   flat?: boolean;
   /** Category tiles: their shape, and the title in a corner or in the middle (in capitals). */
   tileRatio?: "4/5" | "16/9" | "1/1" | "4/3";
+  /** Round 15: card titles larger, and in the accent colour. */
+  bigTitles?: boolean;
+  accentTitles?: boolean;
   tileText?: "corner" | "center";
   items: CardItem[];
 }
@@ -629,6 +640,8 @@ export interface FooterSettings {
   /** Round 14: the logo picture instead of the site name, and the name, email and arrow in the accent colour. */
   logo?: boolean;
   accent?: boolean;
+  /** Round 15: the name and email large, in the heading font (the arrow in the accent colour). */
+  big?: boolean;
   socialStyle: "icons" | "text";
   border: boolean;
   padding: number;

@@ -115,6 +115,16 @@ async function processGif(req, input) {
   // still poster in every size from its first frame. The real width and height are kept.
   const p = await prepare(input, { animated: false });
   const first = await sharp(input, { failOn: "none", pages: 1 }).png().toBuffer();
+  // Small see-through GIFs (a hand-drawn underline, a logo) can't be MP4s, which have no transparency:
+  // they become animated WebP pictures instead, which keep it. Big animations stay videos.
+  const pages = (await sharp(input, { failOn: "none" }).metadata()).pages ?? 1;
+  if (p.width * p.height * pages <= 40_000_000 && !(await sharp(first).stats()).isOpaque) {
+    try {
+      return await writeVariants({ ...req, base: input, width: p.width, height: p.height, animated: true });
+    } catch {
+      /* too heavy after all: make the video below */
+    }
+  }
   const dir = await mkdtemp(join(tmpdir(), "gif-"));
   try {
     const { ffmpeg } = await binaries();

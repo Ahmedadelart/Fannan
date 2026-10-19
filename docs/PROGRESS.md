@@ -545,6 +545,27 @@ _Last updated: 10 Oct 2026, phase 8 (Editor 2.0) under way; round 8 (guided setu
   - Fix for everyone: masonry keeps pictures in reading order (the first pictures are the first row), like Squarespace. The lightbox follows the same order.
   - Seed fixes: ART GYM uses its cat animation (it had a scribble); the Illustration and 2D Animation tiles had swapped pictures; banners show the project art sharp.
   - Test: `tests/e2e/sizing.spec.ts`.
+- **19 Oct 2026, round 15: matched to his latest Squarespace design** (captures from Aug 2026 in `latest ahmedadel.art squarespace/`, words and links read from the live site):
+  - red #FC221C;
+  - Londrina Solid headings in capitals with letter spacing (added to the font list, approved by Ahmed), Montserrat text;
+  - new section names and words;
+  - hand-drawn lines under titles;
+  - his 15 current clients;
+  - client logos on the Commercial Projects covers;
+  - the Big Cat showreel from Vimeo;
+  - his five social links.
+  - New options for everyone:
+    - **moving logos** (an endless row, right to left; reversed on Arabic sites; still for reduced motion), as Ahmed asked for the credits band;
+    - a picture under a section title;
+    - heading letter spacing;
+    - captions in the heading font, and an extra-large caption size;
+    - project logo on the cover;
+    - bigger / accent card titles and the card picture shape;
+    - big footer name and email;
+    - gallery spacing up to 120px;
+    - the logo wall in the section library.
+  - Fix for everyone: see-through GIFs now become animated WebP (MP4 has no transparency); large ones stay videos.
+  - **Waiting on Ahmed:** the home page's top video file (the Long Night art stands in); YouTube/Vimeo links for the reels on 2D Animation and Storyboard.
 
 ## Not done yet from the phase 6 "done when"
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).
