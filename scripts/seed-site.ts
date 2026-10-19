@@ -342,7 +342,9 @@ async function main() {
     header: {
       ...normalizeHeader({}),
       hire: { on: false, label: "Contact", link: "/contact", style: "filled" },
-      logoSize: 22,
+      // The wordmark is 12:1, so an 83px box shows it about 297px wide, as on the old site; 6px above and below makes the 96px bar.
+      logoSize: 83,
+      space: 6,
       tagline: false,
       social: true,
       textColor: "#E8501A",
@@ -360,6 +362,8 @@ async function main() {
       background: "#000000",
       textColor: "#FFFFFF",
       align: "start",
+      logo: true,
+      accent: true,
     },
   };
   // Social links known from his folder (Behance and Instagram captures); Ahmed adds Vimeo, LinkedIn and Facebook.

@@ -1,0 +1,74 @@
+import { expect, test, type Page } from "@playwright/test";
+import { signUp, at } from "./helpers";
+
+// Round 14 (matching ahmedadel.art): the header's height, grids that follow the section's alignment
+// (a short last row sits in the middle), and masonry that keeps the pictures in reading order.
+
+async function openEditor(page: Page) {
+  await page.goto(at("app", "/editor"));
+  const dialog = page.getByRole("dialog");
+  await dialog.waitFor({ timeout: 3000 }).catch(() => {});
+  for (let i = 0; i < 6 && (await dialog.isVisible().catch(() => false)); i++) {
+    const before = await dialog.getAttribute("aria-label");
+    await page.getByRole("button", { name: /^(Next|Got it)$/ }).click();
+    await expect
+      .poll(async () => ((await dialog.isVisible()) ? await dialog.getAttribute("aria-label") : "closed"))
+      .not.toBe(before);
+  }
+  await page.waitForLoadState("networkidle");
+}
+
+test("header height, centred grid rows and masonry in reading order", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop");
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signUp(page);
+  await openEditor(page);
+  const canvas = page.getByTestId("canvas");
+
+  // The header gets shorter with a smaller height, even without a background: the first section moves up.
+  const header = canvas.locator('[data-site-part="header"]');
+  const firstTop = async () => {
+    const root = (await canvas.locator(".site-root").first().boundingBox())!;
+    return (await canvas.locator("[data-block-id]").first().boundingBox())!.y - root.y;
+  };
+  const tall = await firstTop();
+  await header.click({ position: { x: 4, y: 4 } });
+  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await page.getByTestId("header-settings").getByRole("slider", { name: /^Height/ }).fill("4");
+  await expect.poll(firstTop).toBeLessThan(tall - 60);
+  await page.keyboard.press("Escape");
+
+  // Six pictures in four columns, centred: the two left over sit in the middle of the last row.
+  await page.getByTestId("add-img-grid").click();
+  const section = canvas.getByTestId("images-section").last();
+  await section.scrollIntoViewIfNeeded();
+  await section.click({ position: { x: 10, y: 10 } });
+  // A new section may open its settings by itself; the button toggles them.
+  const columns = page.getByRole("slider", { name: /^Columns/ });
+  await expect(async () => {
+    if (!(await columns.isVisible())) await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+    await expect(columns).toBeVisible({ timeout: 2000 });
+  }).toPass({ timeout: 15_000 });
+  await columns.fill("4");
+  await page.getByTestId("align-center").click();
+  const tiles = section.locator("figure");
+  await expect(tiles).toHaveCount(6);
+  await expect(section.locator('[data-layout="flow"]')).toBeVisible();
+  const box = (await section.locator('[data-layout="flow"]').boundingBox())!;
+  const a = (await tiles.nth(4).boundingBox())!;
+  const b = (await tiles.nth(5).boundingBox())!;
+  const leftGap = a.x - box.x;
+  const rightGap = box.x + box.width - (b.x + b.width);
+  expect(leftGap).toBeGreaterThan(40);
+  expect(Math.abs(leftGap - rightGap)).toBeLessThan(4);
+  await page.screenshot({ path: "test-results/r14-centred-row.png" });
+
+  // Masonry: the first three pictures are the first row, one in each column.
+  await page.getByTestId("images-layout-masonry").click();
+  await columns.fill("3");
+  await expect(section.locator('[data-layout="masonry"]')).toBeVisible();
+  const xs = await Promise.all([0, 1, 2].map(async (n) => (await section.locator(`figure[style*="order: ${n};"]`).boundingBox())!.x));
+  expect(xs[0]).toBeLessThan(xs[1]);
+  expect(xs[1]).toBeLessThan(xs[2]);
+});

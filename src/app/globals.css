@@ -180,6 +180,35 @@
   .site-root [class*="site-link-"] { animation: none !important; }
 }
 
+/* Round 14: masonry in reading order on wide screens, plain columns on narrow ones. */
+@container (max-width: 820px) {
+  .site-root .site-masonry-rows {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .site-root .site-masonry-col {
+    display: contents;
+  }
+}
+@container (max-width: 560px) {
+  .site-root .site-masonry-rows {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* Round 14: beside a picture, the contact form fills its column. */
+.site-root .site-form-wide .site-form {
+  max-width: none;
+}
+/* Round 14: a grid that follows the section's alignment (a short last row sits in the middle or on the right). */
+.site-root .site-flow {
+  --n: var(--cols, 3);
+  display: flex;
+  flex-wrap: wrap;
+}
+.site-root .site-flow > * {
+  flex: none;
+  width: calc((100% - (var(--n) - 1) * var(--gap, 0px)) / var(--n));
+}
 /* Round 8: project cards with their own size (big: two columns and two rows; wide: two columns). */
 .site-root .site-grid > .site-span-l {
   grid-column: span min(2, var(--cols, 3));
@@ -226,6 +255,9 @@
   .site-root .site-masonry {
     column-count: min(var(--cols, 3), 2) !important;
   }
+  .site-root .site-flow {
+    --n: min(var(--cols, 3), 2);
+  }
   .site-root .site-about {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -251,6 +283,12 @@
   }
   .site-root .site-masonry {
     column-count: 1 !important;
+  }
+  .site-root .site-flow {
+    --n: 1;
+  }
+  .site-root .site-flow[data-phone="2"] {
+    --n: 2;
   }
   /* Grids of four or more (posters) keep two across on a phone. */
   .site-root .site-grid[data-phone="2"] {

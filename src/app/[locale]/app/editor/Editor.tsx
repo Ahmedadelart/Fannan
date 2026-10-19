@@ -573,7 +573,7 @@ function PreviewContact({
   );
   return (
     <form
-      className="mt-2 grid w-full max-w-[560px] gap-3"
+      className="site-form mt-2 grid w-full max-w-[560px] gap-3"
       onSubmit={(e) => {
         e.preventDefault();
         toast(t("previewSend"), "messages");

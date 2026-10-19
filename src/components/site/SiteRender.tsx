@@ -116,6 +116,7 @@ const RATIO_CSS: Record<ThumbRatio, string | undefined> = {
   "4:3": "4 / 3",
   "1:1": "1 / 1",
   "4:5": "4 / 5",
+  "3:4": "3 / 4",
   "2:3": "2 / 3",
   original: undefined,
 };
@@ -280,6 +281,18 @@ const LOGO_WIDTH = { s: "w-24", m: "w-36", l: "w-52", xl: "w-80" } as const;
 
 const SAMPLE_RATIOS = [4 / 5, 4 / 3, 1, 3 / 4, 16 / 10, 4 / 3];
 
+/**
+ * Round 14: a grid that follows the section's alignment. Centred or right-aligned, a short last row
+ * (one picture left over) sits in the middle or on the right instead of on the left.
+ */
+function flowProps(align: Ctx["align"], cols: number, gap: number): { className?: string; style: CSSProperties } {
+  if (align !== "center" && align !== "end") return { style: {} };
+  return {
+    className: "site-flow",
+    style: { ["--cols" as string]: cols, ["--gap" as string]: `${gap}px`, justifyContent: align === "center" ? "center" : "flex-end" },
+  };
+}
+
 function ImagesView({ b, ctx }: { b: BlockOf<"images">; ctx: Ctx }) {
   const shown = b.items.map((it, n) => ({ it, n, pic: it.mediaId ? (ctx.media[it.mediaId] ?? null) : null })).filter((x) => x.pic || ctx.editing);
   if (!shown.length) return null;
@@ -319,9 +332,27 @@ function ImagesView({ b, ctx }: { b: BlockOf<"images">; ctx: Ctx }) {
   );
   let body: ReactNode;
   if (b.layout === "masonry") {
+    // Round 14: pictures go in reading order, each into the shortest column (like Squarespace and
+    // Pinterest), so the first row is the first pictures. Narrow screens use plain columns instead.
+    const shapeOf = (x: (typeof shown)[number]) => {
+      const f = fixed?.split(" / ").map(Number);
+      return f && f[0] && f[1] ? f[0] / f[1] : natural(x);
+    };
+    const stacks: Array<typeof shown> = Array.from({ length: cols }, () => []);
+    const heights = new Array<number>(cols).fill(0);
+    for (const x of shown) {
+      const c = heights.indexOf(Math.min(...heights));
+      stacks[c].push(x);
+      heights[c] += 1 / shapeOf(x) + 0.02;
+    }
+    // On narrow screens the columns dissolve into a simple grid; "order" puts the pictures back in reading order.
     body = (
-      <div className={cx(cols > 2 && "@max-2xl:!columns-2", "@max-md:!columns-1")} style={{ columns: cols, columnGap: b.gap }}>
-        {shown.map((x) => tile(x, fixed ?? `${natural(x)}`, { breakInside: "avoid", marginBottom: b.gap }))}
+      <div className="site-masonry-rows flex items-start" style={{ gap: b.gap }} data-layout="masonry">
+        {stacks.map((stack, c) => (
+          <div key={c} className="site-masonry-col flex min-w-0 flex-1 flex-col" style={{ gap: b.gap }}>
+            {stack.map((x) => tile(x, fixed ?? `${natural(x)}`, { order: shown.indexOf(x) }))}
+          </div>
+        ))}
       </div>
     );
   } else if (b.layout === "rows") {
@@ -343,7 +374,12 @@ function ImagesView({ b, ctx }: { b: BlockOf<"images">; ctx: Ctx }) {
       </div>
     );
   } else {
-    body = (
+    const flow = flowProps(ctx.align, cols, b.gap);
+    body = flow.className ? (
+      <div className={flow.className} style={{ gap: b.gap, ...flow.style }} data-layout="flow">
+        {shown.map((x) => tile(x, fixed ?? `${natural(x)}`))}
+      </div>
+    ) : (
       <div
         className={cx("grid", cols > 2 && "@max-2xl:!grid-cols-2", cols > 1 && "@max-md:!grid-cols-1")}
         style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gap: b.gap }}
@@ -435,6 +471,9 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
     ? (b.picks.map((id) => shown.find((p) => p.id === id)).filter(Boolean) as GalleryProject[])
     : shown;
   const ownSizes = !!b.cardSizes && b.layout === "grid";
+  // Caption sizes (round 14): the title, then the lines under it.
+  const capTitle = b.captionSize === "s" ? 14 : b.captionSize === "l" ? 22 : 16;
+  const capLine = b.captionSize === "s" ? 12 : b.captionSize === "l" ? 15 : 14;
   const hover = b.hover ?? "fade";
   const fullscreen = b.layout === "fullscreen";
   const cols = Math.max(1, Math.min(6, b.columns));
@@ -526,9 +565,12 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
           )}
         </div>
         {b.lines?.length && t.p && hover !== "title" ? (
-          <figcaption className="flex flex-col gap-0.5 text-[14px]" style={fullscreen ? { padding: "0 12px" } : undefined}>
+          <figcaption className="flex flex-col gap-0.5" style={{ fontSize: capLine, ...(fullscreen ? { padding: "0 12px" } : {}) }}>
             {showTitle && (
-              <span className="text-[16px] font-semibold" style={b.captionStyle === "accent" ? { color: "var(--site-accent-ink)", fontWeight: 700, lineHeight: 1.2 } : undefined}>
+              <span
+                className="font-semibold"
+                style={{ fontSize: capTitle, ...(b.captionStyle === "accent" ? { color: "var(--site-accent-ink)", fontWeight: 700, lineHeight: 1.2 } : {}) }}
+              >
                 {t.title}
               </span>
             )}
@@ -543,7 +585,7 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
                   style={{
                     color: accent ? "var(--site-accent-ink)" : "var(--site-muted)",
                     fontWeight: accent ? 500 : undefined,
-                    ...(small ? { fontSize: line === "network" ? 11 : 12, textTransform: line === "network" ? ("uppercase" as const) : undefined, letterSpacing: line === "network" ? ".04em" : undefined } : {}),
+                    ...(small ? { fontSize: line === "network" ? capLine - 3 : capLine - 2, textTransform: line === "network" ? ("uppercase" as const) : undefined, letterSpacing: line === "network" ? ".04em" : undefined } : {}),
                   }}
                 >
                   {v}
@@ -554,9 +596,9 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
         ) : null}
         {!b.lines?.length && (showTitle || showMeta) && t.title && hover !== "title" && (
           <figcaption className="flex flex-col gap-0.5" style={fullscreen ? { padding: "0 12px" } : undefined}>
-            {showTitle && <span className="font-semibold">{t.title}</span>}
+            {showTitle && <span className="font-semibold" style={b.captionSize ? { fontSize: capTitle } : undefined}>{t.title}</span>}
             {showMeta && t.meta && (
-              <span className="text-[14px]" style={{ color: "var(--site-muted)" }}>
+              <span style={{ color: "var(--site-muted)", fontSize: capLine }}>
                 {t.meta}
               </span>
             )}
@@ -652,15 +694,23 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
             const posters = tiles.filter((t) => shapeOf(t) < 0.95);
             const wides = tiles.filter((t) => shapeOf(t) >= 0.95);
             const real = b.ratio === "original";
+            const wideCols = Math.max(1, Math.min(4, b.wideColumns ?? 2));
             return (
               <div className="flex flex-col" style={{ gap: Math.max(b.gap, 24) + 16 }} data-layout="split">
                 {posters.length > 0 && (
-                  <div className="site-grid grid" style={{ gap: b.gap, ["--cols" as string]: cols }} data-phone={cols >= 3 ? "2" : undefined}>
-                    {posters.map((t) => tile(t, real ? undefined : "2 / 3"))}
+                  <div
+                    className={cx("site-grid grid", flowProps(ctx.align, cols, b.gap).className)}
+                    style={{ gap: b.gap, ["--cols" as string]: cols, ...flowProps(ctx.align, cols, b.gap).style }}
+                    data-phone={cols >= 3 ? "2" : undefined}
+                  >
+                    {posters.map((t) => tile(t, real ? undefined : b.ratio === "4:5" || b.ratio === "3:4" ? ratio : "2 / 3"))}
                   </div>
                 )}
                 {wides.length > 0 && (
-                  <div className="site-grid grid" style={{ gap: b.gap, ["--cols" as string]: Math.max(1, Math.min(4, b.wideColumns ?? 2)) }}>
+                  <div
+                    className={cx("site-grid grid", flowProps(ctx.align, wideCols, b.gap).className)}
+                    style={{ gap: b.gap, ["--cols" as string]: wideCols, ...flowProps(ctx.align, wideCols, b.gap).style }}
+                  >
                     {wides.map((t) => tile(t, real ? undefined : "16 / 9"))}
                   </div>
                 )}
@@ -669,8 +719,16 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
           })()
         ) : (
         <div
-          className={cx("site-grid grid", (ownSizes || b.layout === "featured") && "grid-flow-row-dense")}
-          style={{ gap: fullscreen ? 0 : b.gap, ["--cols" as string]: cols }}
+          className={cx(
+            "site-grid grid",
+            (ownSizes || b.layout === "featured") && "grid-flow-row-dense",
+            !ownSizes && b.layout !== "featured" && flowProps(ctx.align, cols, fullscreen ? 0 : b.gap).className,
+          )}
+          style={{
+            gap: fullscreen ? 0 : b.gap,
+            ["--cols" as string]: cols,
+            ...(!ownSizes && b.layout !== "featured" ? flowProps(ctx.align, cols, fullscreen ? 0 : b.gap).style : {}),
+          }}
           data-layout={b.layout}
           data-phone={cols >= 4 && !ownSizes ? "2" : undefined}
         >
@@ -1580,12 +1638,12 @@ function CardsView({ b, ctx }: { b: BlockOf<"cards">; ctx: Ctx }) {
                   style={{ color: "#FFFFFF", textShadow: b.tileText === "center" ? "0 2px 12px rgba(0,0,0,.45)" : undefined }}
                 >
                   <span className="pointer-events-auto">
-                    {tx(n, "title", { style: b.tileText === "center" ? { fontSize: 24, fontWeight: 700, textTransform: "uppercase", lineHeight: 1.1 } : { fontSize: 20, fontWeight: 700 } })}
+                    {tx(n, "title", { style: b.tileText === "center" ? { fontSize: `clamp(20px, ${(9.6 / Math.max(1, b.columns)).toFixed(2)}cqi, 48px)`, fontWeight: 700, textTransform: "uppercase", lineHeight: 1.1 } : { fontSize: 20, fontWeight: 700 } })}
                   </span>
                   {(it.meta || ctx.onText) && <span className="pointer-events-auto text-[13px] opacity-85">{tx(n, "meta")}</span>}
                 </span>
               </>,
-              cx("site-tile relative block overflow-hidden", b.tileRatio === "16/9" ? "aspect-[16/9]" : b.tileRatio === "1/1" ? "aspect-square" : "aspect-[4/5]"),
+              cx("site-tile relative block overflow-hidden", b.tileRatio === "16/9" ? "aspect-[16/9]" : b.tileRatio === "1/1" ? "aspect-square" : b.tileRatio === "4/3" ? "aspect-[4/3]" : "aspect-[4/5]"),
               { borderRadius: "calc(var(--site-radius) * 1.3)", color: "#FFFFFF" },
               )}
             </div>
@@ -1909,7 +1967,9 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
               : b.height === "full"
                 ? "min(88vh, 900px)"
                 : "min(60vh, 560px)",
-            ...(b.inset ? { borderRadius: "calc(var(--site-radius) * 2.3)" } : { marginInline: "calc(var(--site-pad) * -1)" }),
+            ...(b.inset
+              ? { borderRadius: "calc(var(--site-radius) * 2.3)" }
+              : { marginInline: "calc(var(--site-pad) * -1)", ...(b.roundBottom ? { borderRadius: "0 0 clamp(20px, 3vw, 48px) clamp(20px, 3vw, 48px)" } : {}) }),
             background: toneFill(b.tone),
           }}
         >
@@ -2271,9 +2331,10 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       const form = contactFormOf(b, ctx.contactFallback);
       const words = CONTACT_WORDS[ctx.language];
       const split = form.layout === "split";
+      const headStyle = { ...heading(b.headingSize === "s" ? 30 : b.headingSize === "m" ? 38 : 48), ...(b.accent ? { color: "var(--site-accent-ink)" } : {}) };
       const intro = ctx.live ? (
         <div className="flex flex-col items-start gap-3">
-          <h2 style={heading(48)}>{b.heading}</h2>
+          <h2 style={headStyle}>{b.heading}</h2>
           {b.text && (
             <p className="m-0" style={{ color: "var(--site-muted)" }}>
               {b.text}
@@ -2282,7 +2343,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
         </div>
       ) : (
         <div className="flex flex-col items-start gap-3">
-          <T ctx={ctx} path="heading" value={b.heading} as="h2" style={heading(48)} />
+          <T ctx={ctx} path="heading" value={b.heading} as="h2" style={headStyle} />
           <T ctx={ctx} path="text" value={b.text} as="p" className="m-0 text-[18px]" style={{ color: "var(--site-muted)" }} multiline />
         </div>
       );
@@ -2301,7 +2362,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
         ctx.live && ctx.renderContact ? (
           ctx.renderContact(b)
         ) : (
-          <div className="flex w-full max-w-[560px] flex-col items-start gap-3" data-testid="contact-preview">
+          <div className="site-form flex w-full max-w-[560px] flex-col items-start gap-3" data-testid="contact-preview">
             <div className="grid w-full gap-3" aria-hidden>
               {fake(form.labels.name || words.name)}
               {fake(form.labels.email || words.email)}
@@ -2326,7 +2387,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
           id={ctx.live ? "contact" : undefined}
           className={cx(
             "gap-8 p-10 @max-xl:p-6",
-            art ? "grid grid-cols-[minmax(0,320px)_1fr] items-center gap-14 p-14 @max-2xl:grid-cols-1" : split ? "grid grid-cols-2 items-start @max-2xl:grid-cols-1" : "flex flex-col items-start gap-3",
+            art ? "site-form-wide grid grid-cols-[minmax(0,max(320px,28%))_1fr] items-center gap-14 p-14 @max-2xl:grid-cols-1" : split ? "grid grid-cols-2 items-start @max-2xl:grid-cols-1" : "flex flex-col items-start gap-3",
           )}
           style={b.flat ? { padding: 0 } : { background: "var(--site-surface)", borderRadius: "calc(var(--site-radius) * 2.3)" }}
         >
@@ -2591,11 +2652,13 @@ function SectionBand({
     );
   };
 
+  // An exact width (round 14) wins over the named widths; "full" stays edge to edge.
+  const maxW = s.width !== "full" && s.maxWidth ? s.maxWidth : WIDTHS[s.width];
   const inner = s.card.on ? (
     <div
       className="relative"
       style={{
-        maxWidth: WIDTHS[s.width],
+        maxWidth: maxW,
         marginInline: "auto",
         background: s.card.color ?? "var(--site-bg)",
         borderRadius: s.card.radius,
@@ -2614,7 +2677,7 @@ function SectionBand({
       {children}
     </div>
   ) : (
-    <div className="relative" style={{ maxWidth: WIDTHS[s.width], marginInline: WIDTHS[s.width] ? "auto" : undefined }}>
+    <div className="relative" style={{ maxWidth: maxW, marginInline: maxW ? "auto" : undefined }}>
       {children}
     </div>
   );
@@ -2736,15 +2799,24 @@ function Footer({
         </p>
       )
     );
-  const title = settings.showTitle && (
-    <span style={{ ...heading(22), color: settings.textColor ?? "var(--site-text)" }}>{site.title}</span>
-  );
+  // Round 14: the footer can repeat the logo picture, and put the name, email and arrow in the accent colour.
+  const footLogo = settings.logo && site.theme.logoMediaId ? ctx.media[site.theme.logoMediaId] : null;
+  const strong = settings.accent ? "var(--site-accent)" : (settings.textColor ?? "var(--site-text)");
+  const title =
+    settings.showTitle &&
+    (footLogo ? (
+      <span className="block h-8 w-[220px]">
+        <Picture m={footLogo} base={ctx.base} want={400} ratio="auto" alt={site.title} className="h-full [&_img]:object-contain [&_img]:object-left" />
+      </span>
+    ) : (
+      <span style={{ ...heading(22), color: strong }}>{site.title}</span>
+    ));
   const email = settings.email && (
     <a
       href={ctx.live ? `mailto:${settings.email}` : undefined}
       dir="ltr"
       className="text-[15px] font-semibold underline underline-offset-4"
-      style={{ color: settings.textColor ?? "var(--site-text)" }}
+      style={{ color: strong }}
     >
       {settings.email}
     </a>
@@ -2754,7 +2826,7 @@ function Footer({
       href={ctx.live ? "#" : undefined}
       aria-label="↑"
       className="flex size-10 items-center justify-center rounded-full text-[18px]"
-      style={{ border: "1.5px solid currentColor", color: settings.textColor ?? "var(--site-text)" }}
+      style={{ border: "1.5px solid currentColor", color: strong }}
     >
       ↑
     </a>
@@ -2868,7 +2940,10 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
   const settings = site.header ?? normalizeHeader(null);
   const selected = ctx.selectedBlockId === "__header";
   // On the canvas the header is clicked like a section; its settings open beside it.
+  // Round 14: a set header height always applies, with or without a background.
+  const space = settings.space != null && theme.nav !== "sidebar" ? settings.space : null;
   const band =
+    space != null ||
     settings.background !== "none" ||
     settings.border ||
     settings.shadow ||
@@ -2888,8 +2963,9 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
       ? ({
           background: bandColor,
           color: settings.textColor ?? (settings.background.startsWith("#") ? readableOn(settings.background) : undefined),
-          margin: "calc(var(--site-pad) * -1) calc(var(--site-pad) * -1) 0",
-          padding: `${20 + settings.padding}px var(--site-pad)`,
+          // With a set height the page's usual gap under the header goes too: the height is all the space there is.
+          margin: `calc(var(--site-pad) * -1) calc(var(--site-pad) * -1) ${space != null ? "-48px" : "0"}`,
+          padding: `${space ?? 20 + settings.padding}px var(--site-pad)`,
           borderBottom: settings.border ? "1px solid var(--site-line)" : undefined,
           boxShadow: settings.shadow ? "0 6px 20px rgba(0,0,0,.08)" : undefined,
           ...(settings.sticky && ctx.live && theme.nav !== "sidebar" ? { position: "sticky", top: 0, zIndex: 30 } : {}),

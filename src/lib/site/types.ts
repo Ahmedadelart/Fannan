@@ -76,6 +76,8 @@ export interface SectionStyle {
   padTop: number;
   padBottom: number;
   width: "narrow" | "medium" | "normal" | "full";
+  /** Round 14: an exact content width in px; not set: the width above decides. */
+  maxWidth?: number;
   card: { on: boolean; color: string | null; radius: number; shadow: boolean; padding: number };
   /** Text colour; null picks a readable one for the background. */
   text: string | null;
@@ -110,7 +112,7 @@ export type ImagesLayout = "grid" | "masonry" | "rows" | "slideshow";
 // Round 13: alternate (tall and short), featured (one big, Pro) and rows (every cover keeps its shape).
 export type GalleryLayout = "grid" | "masonry" | "slider" | "fullscreen" | "alternate" | "featured" | "rows";
 export type ThumbHover = "none" | "zoom" | "title" | "lift";
-export type ThumbRatio = "16:9" | "4:3" | "1:1" | "4:5" | "2:3" | "original";
+export type ThumbRatio = "16:9" | "4:3" | "1:1" | "4:5" | "3:4" | "2:3" | "original";
 
 export type Block =
   | B<
@@ -129,6 +131,8 @@ export type Block =
         link?: string;
         /** Inside the page width with rounded corners, instead of edge to edge. */
         inset?: boolean;
+        /** Round 14: edge to edge with rounded bottom corners. */
+        roundBottom?: boolean;
         /** Heading size: a small line, medium or big. */
         size?: "s" | "m" | "l";
       }
@@ -197,6 +201,8 @@ export type Block =
         loopPlay?: "hover" | "always";
         /** "accent": the title in the accent colour, the network small in capitals. */
         captionStyle?: "plain" | "accent";
+        /** Round 14: caption text size (not set: medium). */
+        captionSize?: "s" | "m" | "l";
         filter: boolean;
         /** Round 8: each project's own card size and text, instead of one size for all. */
         cardSizes?: boolean;
@@ -245,7 +251,7 @@ export type Block =
       }
     >
   | B<"about", { heading: string; text: string; photoId: string | null; cvId: string | null }>
-  | B<"contact", { heading: string; text: string; button: string; form?: ContactForm; /** An illustration beside the form. */ mediaId?: string | null; /** No panel behind it. */ flat?: boolean }>
+  | B<"contact", { heading: string; text: string; button: string; form?: ContactForm; /** An illustration beside the form. */ mediaId?: string | null; /** No panel behind it. */ flat?: boolean; /** Round 14: heading size (not set: large) and colour. */ headingSize?: "s" | "m" | "l"; accent?: boolean }>
   | B<"hire", { text: string }>
   | B<"social", { links: Array<{ network: string; url: string }> }>
   | B<"quote", { text: string; author: string }>
@@ -346,7 +352,7 @@ export interface CardsSection {
   /** Picture cards without a panel behind them. */
   flat?: boolean;
   /** Category tiles: their shape, and the title in a corner or in the middle (in capitals). */
-  tileRatio?: "4/5" | "16/9" | "1/1";
+  tileRatio?: "4/5" | "16/9" | "1/1" | "4/3";
   tileText?: "corner" | "center";
   items: CardItem[];
 }
@@ -587,6 +593,8 @@ export interface HeaderSettings {
   linkGap: number;
   /** Extra space above and below, px. */
   padding: number;
+  /** Round 14: the header's height as the space above and below it, px (null: the older spacing above). */
+  space?: number | null;
   width: "full" | "inset";
   border: boolean;
   shadow: boolean;
@@ -618,6 +626,9 @@ export interface FooterSettings {
   showTitle: boolean;
   email: string;
   backToTop: boolean;
+  /** Round 14: the logo picture instead of the site name, and the name, email and arrow in the accent colour. */
+  logo?: boolean;
+  accent?: boolean;
   socialStyle: "icons" | "text";
   border: boolean;
   padding: number;

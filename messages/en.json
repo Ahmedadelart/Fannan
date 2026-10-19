@@ -1246,7 +1246,9 @@
       "removeGroup": "Remove column",
       "addGroup": "Add a column",
       "logoFont": "Font of your name",
-      "logoFontSite": "Same as headings"
+      "logoFontSite": "Same as headings",
+      "footerLogo": "Logo picture instead of the name",
+      "footerAccent": "Name, email and arrow in the accent colour"
     },
     "account": {
       "label": "Your account",
@@ -1351,7 +1353,9 @@
       },
       "animPro": "Animations play on your live site with Pro.",
       "reset": "Reset the design",
-      "blur": "Blur the picture"
+      "blur": "Blur the picture",
+      "exactWidth": "Exact width",
+      "exactWidthHint": "0: the width above decides. Set an exact width to match another site."
     },
     "deco": {
       "words": "Words",
@@ -1782,11 +1786,14 @@
         "s": "Small",
         "m": "Medium",
         "l": "Large"
-      }
+      },
+      "roundBottom": "Rounded bottom corners"
     },
     "contactx": {
       "image": "Illustration beside the form",
-      "flat": "No panel behind it"
+      "flat": "No panel behind it",
+      "headingSize": "Heading size",
+      "accent": "Heading in the accent colour"
     },
     "galleryx": {
       "tag": "Tag",
@@ -1807,7 +1814,13 @@
         "hover": "Play on hover",
         "always": "Always play"
       },
-      "captionAccent": "Title in the accent colour, network in small capitals"
+      "captionAccent": "Title in the accent colour, network in small capitals",
+      "captionSize": "Caption size",
+      "captionSizes": {
+        "s": "Small",
+        "m": "Medium",
+        "l": "Large"
+      }
     },
     "cardsx": {
       "flat": "No panel behind the cards",

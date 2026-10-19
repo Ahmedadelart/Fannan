@@ -93,7 +93,17 @@ export function SiteEnhancer({ protectImages, closeLabel }: { protectImages: boo
     }
 
     // Lightbox: every marked picture on the page is part of one set.
-    const boxes = [...document.querySelectorAll<HTMLElement>("[data-lightbox]")];
+    // Masonry columns (round 14) hold their pictures column by column; the lightbox follows reading order.
+    const boxes: HTMLElement[] = [];
+    const done = new Set<Element>();
+    for (const el of document.querySelectorAll<HTMLElement>("[data-lightbox]")) {
+      const wall = el.closest(".site-masonry-rows");
+      if (!wall) boxes.push(el);
+      else if (!done.has(wall)) {
+        done.add(wall);
+        boxes.push(...[...wall.querySelectorAll<HTMLElement>("[data-lightbox]")].sort((a, b) => Number(a.style.order) - Number(b.style.order)));
+      }
+    }
     const items = boxes.map((el) => ({ src: el.dataset.lightbox!, caption: el.dataset.lightboxCaption }));
     boxes.forEach((el, n) => {
       el.style.cursor = "zoom-in";

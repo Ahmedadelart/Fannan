@@ -35,6 +35,12 @@ const BLACK = "#000000";
 const st = (patch: Parameters<typeof sectionStyle>[0] = {}): SectionStyle => sectionStyle(patch);
 const dark = (patch: Parameters<typeof sectionStyle>[0] = {}) => st({ bg: { kind: "color", color: BLACK }, padTop: 56, padBottom: 56, ...patch });
 const centre = (patch: Parameters<typeof sectionStyle>[0] = {}) => st({ align: "center", ...patch });
+/** Content widths measured on the old site at 1920px wide (its page margins leave 1672px). */
+const W = { page: 1672, wide: 1612, ventures: 1530, sheets: 1450, broadcast: 1388, directing: 1052, form: 980, video: 840 };
+const at = (maxWidth: number, patch: Parameters<typeof sectionStyle>[0] = {}) => st({ maxWidth, ...patch } as never);
+const darkAt = (maxWidth: number, patch: Parameters<typeof sectionStyle>[0] = {}) => dark({ maxWidth, ...patch } as never);
+/** An orange band right across the page (the section's own background, square like the old site). */
+const orangeBand = (patch: Parameters<typeof sectionStyle>[0] = {}) => at(W.page, { bg: { kind: "color", color: ORANGE }, padTop: 48, padBottom: 48, ...patch } as never);
 
 /** A centred section title like the old site's: orange, often in capitals, with a short line under it. */
 function title(text: string, opts: { accent?: boolean; upper?: boolean; underline?: boolean; subtitle?: string; divider?: boolean; style?: Parameters<typeof sectionStyle>[0] } = {}): Block {
@@ -129,14 +135,14 @@ export async function classicPages(content: Any, t: ClassicTools): Promise<{ pag
   const clients = await t.logoItems(clientFiles);
   const ventures = [
     { title: "Sweet & Sour", role: "Co-Creator", file: "home/11_ventures-ips/003_cairocomixpost.jpg" },
-    { title: "ART GYM", role: "Co-Founder / Community Manager", file: "home/11_ventures-ips/001_IMG_5635.GIF" },
+    { title: "ART GYM", role: "Co-Founder / Community Manager", file: "home/11_ventures-ips/002_Animationyasta11-ezgif.com-optimize (1).gif" },
     { title: "BIG BOX Merchandise", role: "FOUNDER", file: "home/11_ventures-ips/004_Logo intro.gif" },
   ];
   const ventureIds = await Promise.all(ventures.map((v) => t.lib(v.file, v.title)));
   const tiles = [
     { title: "Character Design", link: "/character-design", file: "home/13_portfolio-category-tiles/001_0000000mrAR000000000GL-9.jpeg" },
-    { title: "Illustration", link: "/illustration", file: "home/13_portfolio-category-tiles/002_0000000mrAR000000000FC-12.jpeg" },
-    { title: "2D Animation", link: "/2d-animation", file: "home/13_portfolio-category-tiles/003_0000000mrAR000000000FC-18.jpeg" },
+    { title: "Illustration", link: "/illustration", file: "home/13_portfolio-category-tiles/003_0000000mrAR000000000FC-18.jpeg" },
+    { title: "2D Animation", link: "/2d-animation", file: "home/13_portfolio-category-tiles/002_0000000mrAR000000000FC-12.jpeg" },
     { title: "Storyboard", link: "/storyboard", file: "home/13_portfolio-category-tiles/004_IMG_5563.JPG" },
   ];
   const tileIds = await Promise.all(tiles.map((x) => t.lib(x.file, x.title)));
@@ -145,39 +151,42 @@ export async function classicPages(content: Any, t: ClassicTools): Promise<{ pag
   const intro = free(
     10,
     [
-      fi("image", { x: 3, y: 0, w: 7, h: 10 }, { mediaId: cat, fit: "contain", tone: sampleTone(2) }),
-      fi("heading", { x: 12, y: 1, w: 11, h: 2 }, { text: "Hello, I’m Ahmed", size: 30, color: "#E8501A" }),
-      fi("text", { x: 12, y: 3, w: 11, h: 4 }, {
+      fi("image", { x: 3, y: 0, w: 6, h: 7 }, { mediaId: cat, fit: "contain", tone: sampleTone(2) }),
+      fi("heading", { x: 12, y: 0, w: 11, h: 1 }, { text: "Hello, I’m Ahmed", size: 26, color: "#E8501A" }),
+      fi("text", { x: 12, y: 1, w: 11, h: 3 }, {
         text: "I’m a <b>Director</b>, <b>Animator</b>, and <b>Character Designer</b> working in animation.<br><br>I help tell stories through design, direct short films, and teach what I’ve learned along the way through Workshops, Panels, and Online content.",
-        size: 16,
+        size: 12,
       }),
-      fi("button", { x: 12, y: 7, w: 6, h: 1 }, { text: "LEARN MORE ABOUT ME", link: "/about", size: 13, fill: ORANGE, color: "#141414" }),
+      fi("button", { x: 15, y: 4, w: 4, h: 1 }, { text: "LEARN MORE ABOUT ME", link: "/about", size: 10, fill: ORANGE, color: "#141414" }),
     ],
-    st({ width: "medium", padTop: 32 }),
+    at(W.page, { padTop: 56, padBottom: 56 }),
   );
 
   const commercialOrder = ["bc-ralphs", "bc-sinai", "u-animatex", "bc-sharmoofers", "u-dulcis", "bc-naseej", "bc-alula", "u-luneverse", "u-ie", "bc-osn", "c-ahlmasr", "u-safer", "c-euro", "c-sff9", "c-sff10", "u-qudrat", "c-riot", "c-mlbb", "bc-fund", "c-da7ee7"];
   const home: Block[] = [
-    { id: newId(), type: "cover", mediaId: hero, tone: "#1A1714", heading: heroText, subheading: "", height: "large", inset: true, size: "s" },
-    title("Credits in", { upper: true }),
-    logos(credits, { band: ORANGE, tint: "white", size: "m" }, st({ width: "full", padTop: 24 })),
+    { id: newId(), type: "cover", mediaId: hero, tone: "#1A1714", heading: heroText, subheading: "", height: "full", roundBottom: true, size: "s" },
+    title("Credits in", { upper: true, style: { padTop: 24, padBottom: 20 } }),
+    logos(credits, { tint: "white", size: "l" }, orangeBand({ padTop: 44, padBottom: 44 })),
     title("Broadcast Work"),
-    gallery({ source: "tag:broadcast", split: true, wideColumns: 2, lines: ["network", "role"], captionStyle: "accent", gap: 10 }, st({ width: "narrow" })),
+    gallery(
+      { source: "tag:broadcast", split: true, wideColumns: 2, lines: ["network", "role"], captionStyle: "accent", captionSize: "l", ratio: "3:4", gap: 36 },
+      at(W.broadcast, { align: "center" }),
+    ),
     intro,
     title("Independent Directing", { accent: false, style: { bg: { kind: "color", color: BLACK }, padTop: 56, padBottom: 0 } }),
     gallery(
-      { picks: ["long-night", "final-smoke", "sweet-potato", "qahwet-al-foqara", "can-you-feel-it", "where-do-lovers-go"].map(t.project), columns: 3, lines: ["role"], gap: 24 },
-      dark({ width: "narrow", padTop: 16 }),
+      { picks: ["long-night", "final-smoke", "sweet-potato", "qahwet-al-foqara", "can-you-feel-it", "where-do-lovers-go"].map(t.project), columns: 3, lines: ["role"], captionSize: "l", gap: 40 },
+      darkAt(W.directing, { padTop: 24, padBottom: 72, align: "center" }),
     ),
     {
       ...title("Commercial Leadership at BIG CAT Animation", { underline: false, subtitle: "Co-Founder ,CEO and Director driving high-end commercial animation, brand campaigns, and festival-selected films." }),
     },
     logos([{ name: "Big Cat Animation", mediaId: bigCat }], { size: "xl" }, centre({ padTop: 24, padBottom: 24 })),
-    video("[Big Cat 2025 Showreel: paste the Vimeo link]", st({ width: "narrow" })),
+    video("[Big Cat 2025 Showreel: paste the Vimeo link]", at(W.form)),
     title("Clients", { upper: true }),
-    logos(clients, { band: ORANGE, tint: "white", oneRow: false, columns: 5, size: "l" }, st({ width: "full", padTop: 24 })),
+    logos(clients, { tint: "white", oneRow: false, columns: 5, size: "xl" }, orangeBand({ padTop: 56, padBottom: 56 })),
     title("Commercial Projects", { upper: true }),
-    gallery({ picks: commercialOrder.map(t.project), columns: 4, ratio: "4:5", captions: false, credits: false, gap: 10, loopPlay: "always" }, st({ width: "medium" })),
+    gallery({ picks: commercialOrder.map(t.project), columns: 4, ratio: "4:5", captions: false, credits: false, gap: 20, loopPlay: "always" }, at(W.wide, { align: "center" })),
     title("Ventures & IPs", { accent: false, style: { bg: { kind: "color", color: BLACK }, padTop: 48, padBottom: 0 } }),
     {
       id: newId(),
@@ -194,7 +203,7 @@ export async function classicPages(content: Any, t: ClassicTools): Promise<{ pag
       mediaId: null,
       tone: sampleTone(0),
       items: ventures.map((v, i) => card(v.title, v.role, ventureIds[i])),
-      style: dark({ width: "medium", padTop: 16 }),
+      style: darkAt(W.ventures, { padTop: 24, padBottom: 72 }),
     },
     title("Portfolio", { upper: true }),
     {
@@ -202,7 +211,7 @@ export async function classicPages(content: Any, t: ClassicTools): Promise<{ pag
       type: "cards",
       design: "c-tiles",
       variant: "tiles",
-      tileRatio: "16/9",
+      tileRatio: "4/3",
       tileText: "center",
       heading: "",
       intro: "",
@@ -213,9 +222,9 @@ export async function classicPages(content: Any, t: ClassicTools): Promise<{ pag
       mediaId: null,
       tone: sampleTone(0),
       items: tiles.map((x, i) => card(x.title, "", tileIds[i], x.link)),
-      style: st({ width: "medium" }),
+      style: at(W.page),
     },
-    contact("GET IN TOUCH", cat, st({ width: "medium", anchor: "contact" })),
+    contact("GET IN TOUCH", cat, at(W.page, { anchor: "contact", padTop: 64, padBottom: 72 })),
   ];
 
   /* ---------- About ---------- */
@@ -227,23 +236,25 @@ export async function classicPages(content: Any, t: ClassicTools): Promise<{ pag
     { title: "Animatex (Speaker & Instructor)", text: "Gave Animation Principles Workshop & Spoke at a panel on animation education, industry standards, and the future of the medium.", file: "about/04_community-mentorship/004_IMG-20260212-WA0054.jpg" },
   ];
   const communityIds = await Promise.all(community.map((c) => t.lib(c.file, c.title)));
+  const signature = await t.lib("about/01_bio/002_IMG_5633.GIF", "Ahmed Adel in Arabic calligraphy");
   const about: Block[] = [
     free(
       10,
       [
-        fi("image", { x: 2, y: 0, w: 8, h: 9 }, { mediaId: portrait, deco: { ...fi("image", {}).deco, mask: "rounded" } }),
-        fi("heading", { x: 12, y: 0, w: 11, h: 2 }, { text: "Hello, I’m Ahmed", size: 30, color: "#E8501A" }),
-        fi("text", { x: 12, y: 2, w: 11, h: 6 }, {
+        fi("image", { x: 4, y: 0, w: 7, h: 7 }, { mediaId: portrait, deco: { ...fi("image", {}).deco, mask: "rounded" } }),
+        fi("heading", { x: 12, y: 0, w: 11, h: 1 }, { text: "Hello, I’m Ahmed", size: 26, color: "#E8501A" }),
+        fi("text", { x: 12, y: 1, w: 11, h: 5 }, {
           text:
             "I’m a <b>Director</b> ,<b>Animator</b> and <b>Character Designer</b> with over 9 years of experience based in Egypt.<br><br>I have a Bachelor Degree in “Animation Directing” from the HIGH CINEMA INSTITUTE ,And I’m very enthusiastic when it comes to animation in all it’s forms and mediums ,and I especially love animation for films and music.<br><br>My professional work includes projects for <b>Netflix</b> (<i>Fever Dreams</i>), <b>Cartoon Network &amp; HBO</b> (<i>The Heroic Quest of the Valiant Prince Ivandoe</i>), <b>Majid TV</b> (<i>Zakia Al Zakia</i>), and <b>MBC</b> (<i>Hakawati Nation</i>).<br><br>Don’t hesitate to <a href=\"/contact\">contact me</a> for any inquiries.",
-          size: 14,
+          size: 11,
         }),
-        fi("button", { x: 12, y: 8, w: 5, h: 1 }, { text: "VIEW RESUME", link: "", size: 13, fill: ORANGE, color: "#141414" }),
+        fi("button", { x: 12, y: 6, w: 3, h: 1 }, { text: "VIEW RESUME", link: "", size: 10, fill: ORANGE, color: "#141414" }),
+        fi("image", { x: 19, y: 5, w: 3, h: 3 }, { mediaId: signature, fit: "contain", tone: sampleTone(1) }),
       ],
-      st({ width: "medium", padTop: 24 }),
+      at(W.page, { padTop: 48, padBottom: 48 }),
     ),
     title("Teams I’ve worked with!", { underline: false }),
-    logos(teams, { band: ORANGE, tint: "white", oneRow: false, columns: 6, size: "l" }, st({ width: "full", padTop: 24 })),
+    logos(teams, { tint: "white", oneRow: false, columns: 6, size: "xl" }, orangeBand({ padTop: 56, padBottom: 56 })),
     title("Community participation & Mentorship", { underline: false }),
     {
       id: newId(),
@@ -260,7 +271,7 @@ export async function classicPages(content: Any, t: ClassicTools): Promise<{ pag
       mediaId: null,
       tone: sampleTone(0),
       items: community.map((c, i) => card(c.title, c.text, communityIds[i])),
-      style: st({ width: "medium" }),
+      style: at(W.page, { padBottom: 72 }),
     },
   ];
 
@@ -316,22 +327,22 @@ export async function classicPages(content: Any, t: ClassicTools): Promise<{ pag
   /* ---------- Illustration ---------- */
   const ill: Block[] = [
     title("Illustrations", { upper: true, underline: false, divider: true, style: { padBottom: 24 } }),
-    pictures(await t.libs(t.filesOf("illustration/02_gallery-30-pieces-lightbox"), "Illustration"), { layout: "masonry", columns: 3, gap: 6 }, st({ width: "medium" })),
+    pictures(await t.libs(t.filesOf("illustration/02_gallery-30-pieces-lightbox"), "Illustration"), { layout: "masonry", columns: 3, gap: 8 }, at(W.page)),
   ];
 
   /* ---------- 2D Animation ---------- */
   const anim: Block[] = [title("2D Animation", { accent: false, upper: true, underline: false, style: { padBottom: 24 } })];
   const banner = (bgId: string | null, color = BLACK) =>
-    st({ width: "full", padTop: 24, padBottom: 24, bg: bgId ? { kind: "image", mediaId: bgId, overlay: "#000000", overlayOpacity: 25, blur: 14 } : { kind: "color", color } });
+    at(W.page, { padTop: 96, padBottom: 96, bg: bgId ? { kind: "image", mediaId: bgId, overlay: "#000000", overlayOpacity: 8 } : { kind: "color", color } });
   const roleRow = (role: string, col1: string, col2 = "", rows = 3) =>
     free(
       rows,
       [
-        fi("heading", { x: 1, y: 0, w: 9, h: 2 }, { text: role, size: 24 }),
-        fi("text", { x: 12, y: 0, w: 5, h: rows }, { text: col1, size: 12 }),
-        ...(col2 ? [fi("text", { x: 18, y: 0, w: 5, h: rows }, { text: col2, size: 12 })] : []),
+        fi("heading", { x: 0, y: 0, w: 9, h: 2 }, { text: role, size: 22 }),
+        fi("text", { x: 11, y: 0, w: 6, h: rows }, { text: col1, size: 10 }),
+        ...(col2 ? [fi("text", { x: 18, y: 0, w: 6, h: rows }, { text: col2, size: 10 })] : []),
       ],
-      st({ padTop: 40, padBottom: 24 }),
+      at(W.page, { padTop: 56, padBottom: 32 }),
     );
   const cover = async (id: string) => {
     const p = (content.projects as Any[]).find((x) => x.id === id);
@@ -339,71 +350,71 @@ export async function classicPages(content: Any, t: ClassicTools): Promise<{ pag
   };
   const z = "2d-animation/02_header-logos-zakia-al-zakia-majid-tv-jum";
   anim.push(
-    logos(await L(z, ["002", "003", "001"]), { size: "l", tint: "original" }, banner(await cover("zakia-al-zakia"))),
+    logos(await L(z, ["002", "003", "001"]), { size: "xl", tint: "original" }, banner(await cover("zakia-al-zakia"))),
     roleRow(
       "Animation Supervisor & Team Lead",
       "I worked with <b>Jump</b> as an <b>Animation Supervisor</b> and <b>Team lead</b> for <b>2.5 Years</b> on this <b>26 episodes</b> TV Series<br><br>it’s currently airing and ongoing on <b>MAJID TV</b> channel &amp; <b>MAJID APP.</b>",
       "I was responsible for supervising and leading the animation team consisting of 8 full-time animators and more freelance animators when needed. while also animating traditional/cutout shots",
     ),
-    video("[Zakia Al Zakia: paste the video link]", st({ width: "narrow" })),
+    video("[Zakia Al Zakia: paste the video link]", at(W.video)),
   );
   const iv = "2d-animation/04_header-logos-valiant-prince-ivandoe-cart";
   anim.push(
-    logos(await L(iv, ["002", "003", "001"]), { size: "l" }, banner(await cover("ivandoe"))),
+    logos(await L(iv, ["002", "003", "001"]), { size: "xl" }, banner(await cover("ivandoe"))),
     roleRow(
       "Senior Key & Rough Animator",
       "I had the chance to work with <b>SunCreature Studio</b> on this amazing upcoming tv show for <b>Cartoon Network</b> and <b>HBO.</b><br><br>I worked with them remotely as a <b>Senior Key &amp; Rough Animator</b> for 3 months full-time contract.",
       "It was really late in the production and I had to join and adapt very quickly to the style and process of the show ,and it was an amazing experience overall and such a great team to work with!",
     ),
-    video("[The Heroic Quest of the Valiant Prince Ivandoe: paste the video link]", st({ width: "narrow" })),
+    video("[The Heroic Quest of the Valiant Prince Ivandoe: paste the video link]", at(W.video)),
   );
   const gn = "2d-animation/06_header-logos-the-grand-night-giraffics-j";
   anim.push(
-    logos(await L(gn, ["001", "003", "002"]), { size: "l" }, banner(null)),
+    logos(await L(gn, ["001", "003", "002"]), { size: "xl" }, banner(null)),
     roleRow("2D Traditional/Cutout Animator", "I was asked to animate a lot of the shots for this POC trailer produce by <b>Giraffics Studio</b> with <b>JUMP ANIMATION STUDIO</b>"),
-    video("[The Grand Night: paste the video link]", st({ width: "narrow" })),
+    video("[The Grand Night: paste the video link]", at(W.video)),
   );
   const ln = "2d-animation/08_graduation-film-header-background-image-";
   const lnBg = await t.lib(`${ln}/001_Untitled-1 copy.jpg`, "Long Night");
   anim.push(
-    logos(await L(ln, ["002", "003", "004", "005", "007", "006"]), { size: "l" }, banner(lnBg)),
+    logos(await L(ln, ["002", "003", "004", "005", "007", "006"]), { size: "xl" }, banner(lnBg)),
     roleRow(
       "Director and creator",
       "This Graduation short film was a whole new experience for me since I decided to make it completely in 3D for the first time using a VR headset which was a very challenging yet very enjoyable new industry process<br><br>The film is more about the technical new process that I always wanted to try out, and less about the story itself (which went through many iterations because of the deadline and graduation purposes)",
       "Tools :<br>Quill VR (Oculus Quest 2)<br>Blender<br>Adobe After effects<br>Adobe Photoshop",
       6,
     ),
-    video("[Long Night: paste the video link]", st({ width: "narrow" })),
+    video("[Long Night: paste the video link]", at(W.video)),
   );
 
   /* ---------- Storyboards & Animatics ---------- */
   const sb: Block[] = [
     title("Storyboards & Animatics", { accent: false, upper: true, underline: false, divider: true, style: { padBottom: 24 } }),
     logos(await L("storyboard/11_client-header-logos", ["002", "003", "001"]), { size: "l" }),
-    pictures(await t.libs(t.filesOf("storyboard/12"), "Client storyboard"), { columns: 3, gap: 16 }, st({ width: "medium" })),
-    video("[Client board 1: paste the video link]", st({ width: "narrow" })),
-    video("[Client board 2: paste the video link]", st({ width: "narrow" })),
+    pictures(await t.libs(t.filesOf("storyboard/12"), "Client storyboard"), { columns: 3, gap: 16 }, at(W.sheets)),
+    video("[Client board 1: paste the video link]", at(W.video)),
+    video("[Client board 2: paste the video link]", at(W.video)),
     logos(await L("storyboard/02"), { size: "l" }, dark({ padBottom: 0 })),
     title("Graduation Projects", { accent: false, upper: true, underline: false, style: { bg: { kind: "color", color: BLACK }, padTop: 8, padBottom: 8 } }),
-    pictures(await t.libs(t.pick("storyboard/04_long-night", ["001"]), "Long Night poster"), { columns: 1 }, dark({ width: "narrow", padTop: 8, padBottom: 8 })),
-    pictures(await t.libs(t.pick("storyboard/04_long-night", ["002", "003", "004", "005", "006"]), "Long Night storyboard"), { columns: 2, gap: 8 }, dark({ width: "medium", padTop: 8 })),
-    video("[Graduation animatic: paste the video link]", st({ width: "narrow" })),
-    pictures(await t.libs(t.pick("storyboard/03", ["003", "004", "005"]), "Graduation project storyboard"), { columns: 3, gap: 8 }, st({ width: "medium" })),
-    pictures(await t.libs(t.pick("storyboard/03", ["002", "001"]), "Graduation project characters"), { columns: 2, gap: 8 }, st({ width: "medium" })),
+    pictures(await t.libs(t.pick("storyboard/04_long-night", ["001"]), "Long Night poster"), { columns: 1 }, darkAt(400, { padTop: 8, padBottom: 8 })),
+    pictures(await t.libs(t.pick("storyboard/04_long-night", ["002", "003", "004", "005", "006"]), "Long Night storyboard"), { columns: 2, gap: 8 }, darkAt(1256, { padTop: 8 })),
+    video("[Graduation animatic: paste the video link]", at(W.video)),
+    pictures(await t.libs(t.pick("storyboard/03", ["003", "004", "005"]), "Graduation project storyboard"), { columns: 3, gap: 8 }, at(W.sheets)),
+    pictures(await t.libs(t.pick("storyboard/03", ["002", "001"]), "Graduation project characters"), { columns: 2, gap: 8 }, at(W.sheets)),
     title("Personal Boards", { accent: false, upper: true, underline: false, divider: true }),
-    pictures(await t.libs(t.filesOf("storyboard/06"), "Personal storyboard"), { columns: 1 }, st({ width: "narrow" })),
-    video("[Personal board 1: paste the video link]", st({ width: "narrow" })),
-    video("[Personal board 2: paste the video link]", dark({ width: "narrow", padBottom: 8 })),
-    pictures(await t.libs(t.filesOf("storyboard/07"), "Personal storyboard"), { columns: 1 }, dark({ width: "narrow", padTop: 8 })),
-    pictures(await t.libs(t.filesOf("storyboard/08"), "Personal storyboard"), { columns: 1 }, st({ width: "narrow" })),
-    video("[Personal board 3: paste the video link]", st({ width: "narrow" })),
-    pictures(await t.libs(t.filesOf("storyboard/09"), "Personal storyboard"), { columns: 2, gap: 8 }, dark({ width: "medium" })),
-    pictures(await t.libs(t.filesOf("storyboard/10"), "Personal storyboard"), { columns: 2, gap: 24 }, st({ width: "medium" })),
+    pictures(await t.libs(t.filesOf("storyboard/06"), "Personal storyboard"), { columns: 1 }, at(560)),
+    video("[Personal board 1: paste the video link]", at(W.video)),
+    video("[Personal board 2: paste the video link]", darkAt(W.form, { padBottom: 8 })),
+    pictures(await t.libs(t.filesOf("storyboard/07"), "Personal storyboard"), { columns: 1 }, darkAt(560, { padTop: 8 })),
+    pictures(await t.libs(t.filesOf("storyboard/08"), "Personal storyboard"), { columns: 1 }, at(560)),
+    video("[Personal board 3: paste the video link]", at(W.video)),
+    pictures(await t.libs(t.filesOf("storyboard/09"), "Personal storyboard"), { columns: 2, gap: 8 }, darkAt(W.sheets)),
+    pictures(await t.libs(t.filesOf("storyboard/10"), "Personal storyboard"), { columns: 2, gap: 24 }, at(W.sheets)),
   ];
 
   /* ---------- Contact ---------- */
   const armsUp = await t.lib("contact/01/002_2.jpg", "Ahmed drawn as a cartoon with an orange cat on his head");
-  const contactPage: Block[] = [contact("GET IN TOUCH", armsUp, st({ width: "medium" }))];
+  const contactPage: Block[] = [contact("GET IN TOUCH", armsUp, at(W.page, { padTop: 64, padBottom: 72 }))];
 
   /* ---------- menu: PORTFOLIO ▾ · About · Contact ---------- */
   const page = (slug: string, titleText: string, blocks: Block[], extra: Partial<PageDraft> = {}): PageDraft => ({ id: newId(), slug, title: titleText, type: "custom", showInNav: true, blocks, ...extra });
@@ -430,6 +441,8 @@ function contact(heading: string, mediaId: string, style: SectionStyle): Block {
     button: "SUBMIT",
     mediaId,
     flat: true,
+    headingSize: "m",
+    accent: true,
     form: { projectType: false, budget: false, deadline: false, custom: "", labels: { name: "Name", email: "Email", message: "Message" }, success: "", layout: "stacked" } as never,
     style,
   };

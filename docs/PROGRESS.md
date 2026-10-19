@@ -531,6 +531,20 @@ _Last updated: 10 Oct 2026, phase 8 (Editor 2.0) under way; round 8 (guided setu
     - menu "links beside the logo".
   - Fixes for everyone: real-shape picture grids no longer crop to squares; animated logos fit their box.
   - Needs-role projects are public again, as on his old site. Their roles are still to fill in.
+- **19 Oct 2026, round 14: sizes matched to the old site at full size.** Ahmed compared full-page captures of the new site with the Squarespace ones. The first rebuild had measured the old pages from half-size images, so galleries were 720px wide instead of about 1,400 and text came out small. Every section now uses widths measured on ahmedadel.art at 1920px wide.
+  - New options for everyone:
+    - **header height** (space above and below), which works with or without a background (Ahmed: "the header is too long and no option to control that");
+    - **grids follow the section's alignment:** centred or right-aligned, a short last row sits in the middle or on the right (Ahmed's request);
+    - **exact section width** in px;
+    - cover with rounded bottom corners;
+    - gallery caption size;
+    - 3:4 shape;
+    - contact heading size and accent colour, and the form fills its column beside a picture;
+    - 4:3 tiles, with tile titles that scale with the page;
+    - footer logo picture and accent colour.
+  - Fix for everyone: masonry keeps pictures in reading order (the first pictures are the first row), like Squarespace. The lightbox follows the same order.
+  - Seed fixes: ART GYM uses its cat animation (it had a scribble); the Illustration and 2D Animation tiles had swapped pictures; banners show the project art sharp.
+  - Test: `tests/e2e/sizing.spec.ts`.
 
 ## Not done yet from the phase 6 "done when"
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).

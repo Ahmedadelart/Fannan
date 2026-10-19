@@ -159,6 +159,7 @@ function Range({
   min,
   max,
   unit = "",
+  step,
   onChange,
 }: {
   title: string;
@@ -166,6 +167,7 @@ function Range({
   min: number;
   max: number;
   unit?: string;
+  step?: number;
   onChange: (v: number) => void;
 }) {
   return (
@@ -181,6 +183,7 @@ function Range({
         type="range"
         min={min}
         max={max}
+        step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
         className="fannan-range"
@@ -1256,7 +1259,14 @@ export function SitePartSettings({
               onChange={(v) => setHeader({ width: v })}
             />
             <Range title={t("linkGap")} value={header.linkGap} min={4} max={64} unit="px" onChange={(v) => setHeader({ linkGap: v }, "h-gap")} />
-            <Range title={t("height")} value={header.padding} min={0} max={80} unit="px" onChange={(v) => setHeader({ padding: v }, "h-pad")} />
+            <Range
+              title={t("height")}
+              value={header.space ?? (header.background !== "none" || header.border || header.shadow || header.padding > 0 ? 20 + header.padding : 48)}
+              min={0}
+              max={96}
+              unit="px"
+              onChange={(v) => setHeader({ space: v }, "h-pad")}
+            />
             <Switch title={t("sticky")} checked={header.sticky} onChange={(v) => setHeader({ sticky: v })} />
             <p className="text-muted -mt-3 text-[12px]">{t("stickyHint")}</p>
             <div className="border-line flex flex-col gap-3 border-t pt-4">
@@ -1515,6 +1525,8 @@ export function SitePartSettings({
           <Switch title={t("showTitle")} checked={footer.showTitle} onChange={(v) => setFooter({ showTitle: v })} />
           <Text title={t("email")} value={footer.email} dir="ltr" placeholder="you@email.com" onChange={(v) => setFooter({ email: v }, "f-email")} />
           <Switch title={t("backToTop")} checked={footer.backToTop} onChange={(v) => setFooter({ backToTop: v })} />
+          {footer.showTitle && draft.theme.logoMediaId && <Switch title={t("footerLogo")} checked={!!footer.logo} onChange={(v) => setFooter({ logo: v })} />}
+          <Switch title={t("footerAccent")} checked={!!footer.accent} onChange={(v) => setFooter({ accent: v })} />
           <div className="border-line flex flex-col gap-3 border-t pt-4">
             <Switch title={t("showSocial")} checked={footer.social} onChange={(v) => setFooter({ social: v })} />
             {socialEditor}
@@ -1673,7 +1685,7 @@ export function BlockSettings({
               <Choice
                 title={t("cardsx.tileRatio")}
                 value={block.tileRatio ?? "4/5"}
-                options={(["4/5", "1/1", "16/9"] as const).map((x) => [x, x.replace("/", ":")])}
+                options={(["4/5", "1/1", "4/3", "16/9"] as const).map((x) => [x, x.replace("/", ":")])}
                 onChange={(x) => set({ tileRatio: x })}
               />
               <Switch title={t("cardsx.tileCenter")} checked={block.tileText === "center"} onChange={(x) => set({ tileText: x ? "center" : "corner" })} />
@@ -1775,6 +1787,7 @@ export function BlockSettings({
             <Text title={t("coverx.link")} dir="ltr" placeholder="https://" value={block.link ?? ""} onChange={(v) => set({ link: v }, k("lnk"))} />
           </div>
           <Switch title={t("coverx.inset")} checked={!!block.inset} onChange={(v) => set({ inset: v })} />
+          {!block.inset && <Switch title={t("coverx.roundBottom")} checked={!!block.roundBottom} onChange={(v) => set({ roundBottom: v })} />}
           <Choice
             title={t("coverx.size")}
             value={block.size ?? "l"}
@@ -1887,7 +1900,7 @@ export function BlockSettings({
               value={b.ratio}
               onChange={(e) => set({ ratio: e.target.value as BlockOf<"gallery">["ratio"] })}
             >
-              {(["16:9", "4:3", "1:1", "4:5", "2:3"] as const).map((r) => (
+              {(["16:9", "4:3", "1:1", "4:5", "3:4", "2:3"] as const).map((r) => (
                 <option key={r} value={r}>
                   {r}
                 </option>
@@ -1944,6 +1957,12 @@ export function BlockSettings({
               {!!b.lines?.length && (
                 <Switch title={t("galleryx.captionAccent")} checked={b.captionStyle === "accent"} onChange={(v) => set({ captionStyle: v ? "accent" : "plain" })} />
               )}
+              <Choice
+                title={t("galleryx.captionSize")}
+                value={b.captionSize ?? "m"}
+                options={(["s", "m", "l"] as const).map((x) => [x, t(`galleryx.captionSizes.${x}`)])}
+                onChange={(v) => set({ captionSize: v === "m" ? undefined : v })}
+              />
             </div>
             <Switch title={g("filter")} checked={b.filter} onChange={(v) => set({ filter: v })} />
             {b.layout === "grid" && (
@@ -2201,6 +2220,13 @@ export function BlockSettings({
           <Area title={f("text")} value={block.text} onChange={(v) => set({ text: v }, k("t"))} />
           {mediaField(t("contactx.image"), block.mediaId ?? null, "image", (id) => set({ mediaId: id }))}
           <Switch title={t("contactx.flat")} checked={!!block.flat} onChange={(v) => set({ flat: v })} />
+          <Choice
+            title={t("contactx.headingSize")}
+            value={block.headingSize ?? "l"}
+            options={(["s", "m", "l"] as const).map((x) => [x, t(`coverx.sizes.${x}`)])}
+            onChange={(v) => set({ headingSize: v === "l" ? undefined : v })}
+          />
+          <Switch title={t("contactx.accent")} checked={!!block.accent} onChange={(v) => set({ accent: v })} />
           <Choice
             title={c("layout")}
             value={form.layout}
@@ -2622,6 +2648,7 @@ function ImagesSettings({
             ["1:1", "1:1"],
             ["4:3", "4:3"],
             ["4:5", "4:5"],
+            ["3:4", "3:4"],
             ["2:3", "2:3"],
             ["16:9", "16:9"],
           ]}
@@ -2968,8 +2995,22 @@ function SectionDesign({
             ["normal", d("widths.normal")],
             ["full", d("widths.full")],
           ]}
-          onChange={(v) => set({ width: v })}
+          onChange={(v) => set({ width: v, maxWidth: undefined })}
         />
+        {st.width !== "full" && (
+          <>
+            <Range
+              title={d("exactWidth")}
+              value={st.maxWidth ?? 0}
+              min={0}
+              max={1920}
+              step={10}
+              unit="px"
+              onChange={(v) => set({ maxWidth: v >= 320 ? v : undefined }, "mw")}
+            />
+            <p className="text-muted -mt-2 text-[12px]">{d("exactWidthHint")}</p>
+          </>
+        )}
       </div>
       )}
 

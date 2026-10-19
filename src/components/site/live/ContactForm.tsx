@@ -90,7 +90,7 @@ export function ContactForm({ button, turnstileKey, form }: { button: string; tu
       onSubmit={submit}
       onFocusCapture={arm}
       onPointerDownCapture={arm}
-      className="mt-2 grid w-full max-w-[560px] gap-3"
+      className="site-form mt-2 grid w-full max-w-[560px] gap-3"
       noValidate
     >
       <label className="grid gap-1.5 text-[14px] font-semibold">

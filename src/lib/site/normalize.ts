@@ -162,6 +162,7 @@ export function normalizeSectionStyle(raw: unknown): SectionStyle {
     padTop: num(s.padTop, 0, 240, 48),
     padBottom: num(s.padBottom, 0, 240, 48),
     width: pick(s.width, ["narrow", "medium", "normal", "full"], "normal"),
+    ...(typeof s.maxWidth === "number" && s.maxWidth >= 320 ? { maxWidth: num(s.maxWidth, 320, 1920, 1200) } : {}),
     card: {
       on: bool(card.on),
       color: card.color ? color(card.color, "#FFFFFF") : null,
@@ -187,7 +188,7 @@ function normalizeCards(id: string, b: Any): Block {
     design: typeof b.design === "string" && /^c-[a-z0-9-]{1,30}$/.test(b.design) ? b.design : "c-cards",
     variant: pick(b.variant, CARD_VARIANTS, "images"),
     ...(b.flat === true ? { flat: true } : {}),
-    ...(["4/5", "16/9", "1/1"].includes(b.tileRatio as string) ? { tileRatio: b.tileRatio as "4/5" } : {}),
+    ...(["4/5", "16/9", "1/1", "4/3"].includes(b.tileRatio as string) ? { tileRatio: b.tileRatio as "4/5" } : {}),
     ...(b.tileText === "center" ? { tileText: "center" as const } : {}),
     heading: str(b.heading, 200),
     intro: str(b.intro, 600),
@@ -233,6 +234,7 @@ function normalizeBlockBody(raw: unknown): Block | null {
         ...(str(b.button, 60) ? { button: str(b.button, 60) } : {}),
         ...(b.link ? { link: safeLink(b.link) } : {}),
         ...(b.inset === true ? { inset: true } : {}),
+        ...(b.roundBottom === true ? { roundBottom: true } : {}),
         ...(b.size === "s" || b.size === "m" ? { size: b.size as "s" } : {}),
       };
     case "header":
@@ -288,7 +290,7 @@ function normalizeBlockBody(raw: unknown): Block | null {
         source: str(b.source, 40) || "all",
         columns: num(b.columns, 1, 6, 3),
         gap: num(b.gap, 0, 40, 12),
-        ratio: pick(b.ratio, ["16:9", "4:3", "1:1", "4:5", "2:3", "original"], "4:3"),
+        ratio: pick(b.ratio, ["16:9", "4:3", "1:1", "4:5", "3:4", "2:3", "original"], "4:3"),
         lightbox: bool(b.lightbox, true),
         captions: bool(b.captions, true),
         credits: bool(b.credits, true),
@@ -301,6 +303,7 @@ function normalizeBlockBody(raw: unknown): Block | null {
         ...(b.split === true ? { split: true, wideColumns: num(b.wideColumns, 1, 4, 2) } : {}),
         ...(b.loopPlay === "always" ? { loopPlay: "always" as const } : {}),
         ...(b.captionStyle === "accent" ? { captionStyle: "accent" as const } : {}),
+        ...(b.captionSize === "s" || b.captionSize === "l" ? { captionSize: b.captionSize as "s" | "l" } : {}),
         filter: bool(b.filter),
         ...(b.cardSizes === true ? { cardSizes: true } : {}),
         ...(Array.isArray(b.picks) && b.picks.length
@@ -356,7 +359,7 @@ function normalizeBlockBody(raw: unknown): Block | null {
         layout: pick(b.layout, ["grid", "masonry", "rows", "slideshow"], "grid"),
         columns: num(b.columns, 1, 6, 3),
         gap: num(b.gap, 0, 64, 16),
-        ratio: pick(b.ratio, ["16:9", "4:3", "1:1", "4:5", "2:3", "original"], "4:3"),
+        ratio: pick(b.ratio, ["16:9", "4:3", "1:1", "4:5", "3:4", "2:3", "original"], "4:3"),
         captions: bool(b.captions),
         ...(b.frame ? { frame: color(b.frame, "#E0261B") } : {}),
       };
@@ -436,6 +439,8 @@ function normalizeBlockBody(raw: unknown): Block | null {
         ...(b.form ? { form: normalizeContactForm(b.form) } : {}),
         ...(idOrNull(b.mediaId) ? { mediaId: idOrNull(b.mediaId) } : {}),
         ...(b.flat === true ? { flat: true } : {}),
+        ...(b.headingSize === "s" || b.headingSize === "m" ? { headingSize: b.headingSize as "s" | "m" } : {}),
+        ...(b.accent === true ? { accent: true } : {}),
       };
     case "hire":
       return { id, type: "hire", text: str(b.text, 300) };
@@ -655,6 +660,7 @@ export function normalizeHeader(raw: unknown): HeaderSettings {
     },
     linkGap: num(h.linkGap, 4, 64, 20),
     padding: num(h.padding, 0, 80, 0),
+    space: typeof h.space === "number" ? num(h.space, 0, 96, 24) : null,
     width: h.width === "inset" ? "inset" : "full",
     border: bool(h.border),
     shadow: bool(h.shadow),
@@ -685,6 +691,8 @@ export function normalizeFooter(raw: unknown): FooterSettings {
     showTitle: bool(f.showTitle),
     email: str(f.email, 120),
     backToTop: bool(f.backToTop),
+    ...(f.logo === true ? { logo: true } : {}),
+    ...(f.accent === true ? { accent: true } : {}),
     socialStyle: f.socialStyle === "icons" ? "icons" : "text",
     border: bool(f.border),
     padding: num(f.padding, 0, 120, 32),
