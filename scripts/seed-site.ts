@@ -27,6 +27,7 @@ import { claimUsernameAndCreateSite, ensureUser, getUser, makeNamesPermanent } f
 import { grantPro } from "@/lib/server/billing";
 import {
   createProject,
+  deleteLibraryMedia,
   deleteProject,
   finishUpload,
   LIBRARY,
@@ -41,12 +42,10 @@ import {
 import { publish, saveDraft } from "@/lib/server/site";
 import { saveSettings } from "@/lib/server/settings";
 import { writeObject } from "@/lib/server/storage";
-import { newId } from "@/lib/site/ids";
 import { themes } from "@/lib/site/starter";
-import { sectionStyle } from "@/lib/site/style";
 import { normalizeFooter, normalizeHeader } from "@/lib/site/normalize";
-import type { Block, PageDraft, SiteDraft } from "@/lib/site/types";
-import { sampleTone } from "@/lib/site/samples";
+import type { SiteDraft } from "@/lib/site/types";
+import { classicPages } from "./seed-classic";
 
 /* ---------- arguments ---------- */
 
@@ -103,7 +102,10 @@ function realType(b: Buffer): string | null {
 }
 const fileOf = (spec: string) => filesOf(spec)[0];
 /** Pictures by number in one folder ("002", "006"). */
-const pick = (folder: string, nums: string[]) => filesOf(folder).filter((f) => nums.some((n) => basename(f).startsWith(`${n}_`)));
+const pick = (folder: string, nums: string[]) => {
+  const files = filesOf(folder);
+  return nums.map((n) => files.find((f) => basename(f).startsWith(`${n}_`))).filter((f): f is string => !!f);
+};
 
 /* ---------- uploads through the normal pipeline ---------- */
 
@@ -240,7 +242,8 @@ async function makeProject(p: Any) {
     tools: (p.tools ?? []).join(", "),
     // Ahmed sorts these himself: hidden until he gives them a role.
     // A project with nothing to show yet (only a [video link] to come) waits as a hidden draft too.
-    ...(p.group === "needs-role" || (!p.cover && !p.loop && !p.gallery) ? { visibility: "hidden" as const } : {}),
+    // On his current site every commercial piece shows; only a project with nothing to show yet waits hidden.
+    ...(!p.cover && !p.loop && !p.gallery ? { visibility: "hidden" as const } : {}),
   };
   await updateProject(o, id, patch);
 
@@ -267,62 +270,6 @@ async function makeProject(p: Any) {
   made.set(p.id, { id, title: p.title, coverId });
   console.log(`\n  project: ${p.title}`);
 }
-
-/* ---------- blocks ---------- */
-
-const header = (number: string, title: string, extra: Partial<Extract<Block, { type: "header" }>> = {}, anchor = ""): Block => ({
-  id: newId(),
-  type: "header",
-  number,
-  title,
-  subtitle: "",
-  logoId: null,
-  badge: "",
-  divider: true,
-  size: "m",
-  ...extra,
-  ...(anchor ? { style: sectionStyle({ anchor, padBottom: 0 }) } : {}),
-});
-
-const grid = (tag: string, extra: Partial<Extract<Block, { type: "gallery" }>> = {}): Block => ({
-  id: newId(),
-  type: "gallery",
-  layout: "grid",
-  source: `tag:${tag}`,
-  columns: 4,
-  gap: 24,
-  ratio: "2:3",
-  lightbox: false,
-  captions: true,
-  credits: false,
-  hoverPlay: true,
-  filter: false,
-  samples: [],
-  ...extra,
-});
-
-const heroTitle = (text: string): Block => ({ id: newId(), type: "hero", text, align: "start" });
-
-const images = (ids: string[], extra: Partial<Extract<Block, { type: "images" }>> = {}): Block => ({
-  id: newId(),
-  type: "images",
-  heading: "",
-  items: ids.map((mediaId, i) => ({ id: newId(), mediaId, tone: sampleTone(i), caption: "" })),
-  layout: "masonry",
-  columns: 3,
-  gap: 16,
-  ratio: "original",
-  captions: false,
-  ...extra,
-});
-
-const logos = (heading: string, items: Array<{ name: string; mediaId: string }>, extra: Partial<Extract<Block, { type: "logos" }>> = {}): Block => ({
-  id: newId(),
-  type: "logos",
-  heading,
-  items,
-  ...extra,
-});
 
 /* ---------- the run ---------- */
 
@@ -358,254 +305,67 @@ async function main() {
   for (const d of existing.docs) await deleteProject(o, d.id);
   if (flag("fresh")) {
     const libMedia = await adminDb().collection("sites").doc(o.siteId).collection("media").where("projectId", "==", LIBRARY).get();
-    for (const d of libMedia.docs) await d.ref.delete();
-    await adminDb().collection("sites").doc(o.siteId).update({ storageUsed: 0 });
+    // Through the app's own delete, so stored files go too and the storage meter stays right.
+    await each(libMedia.docs, (d) => deleteLibraryMedia(o, d.id), 6);
   }
 
   // 3. Projects, oldest first in each group, so galleries (newest first) show them in the content's order.
   const projects = (content.projects as Any[]).filter((p) => p.id);
   for (const p of [...projects].reverse()) await makeProject(p);
 
-  // 4. Library pictures for the pages.
-  const logoItems = async (folder: string) =>
-    each(filesOf(folder), async (f) => {
-      const name = brandOf(f, "Logo");
-      return { name, mediaId: await upload(LIBRARY, f, name) };
-    });
-  const siteLogo = await lib("_site/logo.png", acct.displayName);
-  const share = await lib("_site/social-share-image.jpeg", acct.displayName);
-
-  const home: Any = content.pages.find((p: Any) => p.slug === "/");
-  const hb = (name: string, i = 0) => home.blocks.filter((b: Any) => b.block === name)[i];
-  const cover = hb("Fullscreen cover");
-  const coverImg = await lib(cover.image, "Key art: a warrior between two giant cats");
-  const credits = await logoItems("home/03_network-logos-hbo-cartoon-network-netfli");
-  const bigCatLogo = await lib("home/07_commercial-leadership/001_Comp 2.gif", "Big Cat Animation");
-  const ventures = hb("Columns (cards)");
-  // Where the content offers two pictures, the second (a photo) reads better than a white-on-white animation.
-  const ventureImgs = await each(ventures.cards as Any[], (c) => lib(String(c.image).split(" or ").pop()!, c.title));
-  const tilesBlock = hb("Category tiles");
-  const tileImgs = await each(tilesBlock.tiles as Any[], (t) => lib(t.image, t.title));
-  const contactArt = await lib(hb("Contact form").image, "Ahmed drawn as a cartoon holding an orange cat");
-
-  const soft = "#F5F2EE";
-  const dark = sectionStyle({ bg: { kind: "color", color: "#111111" } as never, padTop: 72, padBottom: 72 });
-  const homeBlocks: Block[] = [
-    {
-      id: newId(),
-      type: "cover",
-      mediaId: coverImg,
-      tone: "#1A1714",
-      heading: cover.heading,
-      subheading: "",
-      height: "large",
-      eyebrow: cover.eyebrow,
-      button: "Watch reel",
-      link: "",
-      inset: true,
+  // 4. The pages, as on his current site (see seed-classic.ts).
+  const { pages, logoId: siteLogo, shareId: share, heroText } = await classicPages(content, {
+    lib,
+    libs: (files, alt) => each(files, (f) => upload(LIBRARY, f, alt)),
+    logoItems: (files) =>
+      each(files, async (f) => {
+        const name = brandOf(f, "Logo");
+        return { name, mediaId: await upload(LIBRARY, f, name) };
+      }),
+    filesOf,
+    pick,
+    project: (id) => {
+      const m = made.get(id);
+      if (!m) throw new Error(`No project ${id}`);
+      return m.id;
     },
-    logos("", credits, { band: "#FF5A1F", tint: "white", oneRow: true }),
-    header("01", "Broadcast Work", {}, "broadcast"),
-    grid("broadcast", { columns: 4, split: true, wideColumns: 2, lines: ["network", "role"], accentRole: true }),
-    { ...header("02", "Independent Directing", {}, "directing"), style: { ...dark, anchor: "directing", padBottom: 0 } },
-    { ...grid("directing", { columns: 5, lines: ["role"], accentRole: true }), style: { ...dark, padTop: 24 } },
-    header("03", "Commercial Leadership at BIG CAT Animation", { subtitle: "Co-Founder, CEO and Director", badge: "Directed by me" }, "bigcat"),
-    grid("bigcat", { layout: "rows", columns: 4, ratio: "original", gap: 20, lines: ["role"], loopPlay: "always" }),
-    header("04", "Commercial Projects", { subtitle: "At other studios" }, "commercial"),
-    grid("commercial", { layout: "rows", columns: 4, ratio: "original", gap: 20, lines: ["role", "studio"], accentRole: true, loopPlay: "always" }),
-    header("05", "Ventures & IPs", {}, "ventures"),
-    {
-      id: newId(),
-      type: "cards",
-      design: "c-cards",
-      variant: "images",
-      heading: "",
-      intro: "",
-      columns: 3,
-      align: "start",
-      button: "",
-      link: "",
-      mediaId: null,
-      tone: sampleTone(0),
-      items: (ventures.cards as Any[]).map((c, i) => ({ title: c.title, text: c.role, meta: "", icon: "sparkle", mediaId: ventureImgs[i], tone: sampleTone(i), link: "", button: "", stars: 0, price: "", url: "" })),
-    },
-    header("06", "Portfolio", {}, "portfolio"),
-    {
-      id: newId(),
-      type: "cards",
-      design: "c-tiles",
-      variant: "tiles",
-      heading: "",
-      intro: "",
-      columns: 4,
-      align: "start",
-      button: "",
-      link: "",
-      mediaId: null,
-      tone: sampleTone(0),
-      items: (tilesBlock.tiles as Any[]).map((t, i) => ({ title: t.title, text: "", meta: "", icon: "sparkle", mediaId: tileImgs[i], tone: sampleTone(i), link: t.link, button: "", stars: 0, price: "", url: "" })),
-    },
-    {
-      id: newId(),
-      type: "contact",
-      heading: hb("Contact form").title,
-      text: "",
-      button: "Send",
-      mediaId: contactArt,
-      form: { projectType: false, budget: false, deadline: false, custom: "", labels: { name: "Name", email: "Email", message: "Message" }, success: "", layout: "stacked" } as never,
-      style: sectionStyle({ anchor: "contact" }),
-    },
-  ];
-  homeBlocks[1] = { ...homeBlocks[1], ...{} };
-  // The Big Cat section header shows its logo.
-  (homeBlocks[6] as Extract<Block, { type: "header" }>).logoId = bigCatLogo;
+    projectPics: (id, files, alt) => each(files, (f) => upload(made.get(id)!.id, f, alt)),
+  });
 
-  // Character Design: one section per project, then personal work.
-  const cd: Any = content.pages.find((p: Any) => p.slug === "/character-design");
-  const cdBlocks: Block[] = [heroTitle("Character Design")];
-  const sectionStyles: Record<string, ReturnType<typeof sectionStyle>> = {
-    "fever-dreams": sectionStyle({ bg: { kind: "color", color: "#111111" } as never, padTop: 64, padBottom: 64 }),
-    "hakawati-nation": sectionStyle({ bg: { kind: "color", color: "#F6E3DC" } as never, padTop: 64, padBottom: 64 }),
-  };
-  for (const b of cd.blocks as Any[]) {
-    if (b.block === "Project section") {
-      const p = b.project ? projects.find((x) => x.id === b.project) : null;
-      const title = p?.title ?? b.title;
-      const st = p ? sectionStyles[p.id] : undefined;
-      const logoList = await each(filesOf(b.logos), async (f) => ({ name: brandOf(f, title), mediaId: await upload(LIBRARY, f, brandOf(f, title)) }));
-      const galleryFiles = filesOf(b.gallery);
-      const pics = p ? await each(galleryFiles, (f) => upload(made.get(p.id)!.id, f, title)) : await each(galleryFiles, (f) => upload(LIBRARY, f, title));
-      cdBlocks.push(
-        { ...header("", title, { subtitle: p ? [p.role, p.network ?? p.studio].filter(Boolean).join(" · ") : "", divider: false }), ...(st ? { style: { ...st, padBottom: 0 } } : {}) },
-        { ...logos("", logoList, { tint: p?.id === "fever-dreams" ? "white" : "original" }), ...(st ? { style: { ...st, padTop: 0, padBottom: 0 } } : {}) },
-        { ...images(pics, { layout: "grid", columns: 3, ratio: "original" }), ...(st ? { style: { ...st, padTop: 16 } } : {}) },
-      );
-    } else if (String(b.block).startsWith("Gallery")) {
-      const files = (b.folders as string[]).flatMap((f) => filesOf(f.includes("/") && f.startsWith("character-design") ? f : `character-design/${f}`));
-      const pics = await each(files, (f) => upload(LIBRARY, f, "Personal work"));
-      cdBlocks.push(header("", b.title), images(pics, { layout: "masonry", columns: 3 }));
-    }
-  }
-
-  // Illustration.
-  const illFiles = filesOf("illustration/02_gallery-30-pieces-lightbox");
-  const illPics = await each(illFiles, (f) => upload(LIBRARY, f, "Illustration"));
-  const illBlocks: Block[] = [heroTitle("Illustration"), images(illPics, { layout: "masonry", columns: 3 })];
-
-  // 2D Animation: one project feature each.
-  const anim: Any = content.pages.find((p: Any) => p.slug === "/2d-animation");
-  const longNightBg = await lib("2d-animation/08_graduation-film-header-background-image-/001_Untitled-1 copy.jpg", "Long Night");
-  const animBlocks: Block[] = [heroTitle("2D Animation")];
-  for (const b of anim.blocks as Any[]) {
-    if (b.block !== "Project feature") continue;
-    const m = made.get(b.project);
-    if (!m) continue;
-    animBlocks.push({
-      id: newId(),
-      type: "feature",
-      projectId: m.id,
-      words: b.project === "sweet-potato" ? "none" : "short",
-      logos: true,
-      laurels: true,
-      tools: !!b.tools,
-      credits: b.project === "the-grand-night" || b.project === "long-night",
-      bgMediaId: b.project === "long-night" ? longNightBg : null,
-      side: animBlocks.length % 2 ? "start" : "end",
-    });
-  }
-
-  // Storyboards: groups of boards, wide and uncropped, with the video slots waiting for links.
-  const sb: Any = content.pages.find((p: Any) => p.slug === "/storyboard");
-  const sbBlocks: Block[] = [heroTitle("Storyboards & Animatics")];
-  for (const b of sb.blocks as Any[]) {
-    if (b.block !== "Section") continue;
-    const extra: Partial<Extract<Block, { type: "header" }>> = {};
-    sbBlocks.push(header("", b.title, extra));
-    if (b.logos) sbBlocks.push(logos("", await logoItems(b.logos)));
-    if (b.items) {
-      const files = (b.items as string[]).flatMap((x) => filesOf(x));
-      const pics = await each(files, (f) => upload(LIBRARY, f, `${b.title}: storyboard`));
-      sbBlocks.push(images(pics, { layout: "grid", columns: 2, ratio: "original" }));
-    }
-    const videos = (b.videos ?? (b.video ? [b.video] : [])) as string[];
-    for (const v of videos) sbBlocks.push({ id: newId(), type: "video", url: "", caption: `[Video: ${basename(v)}]` });
-  }
-
-  // About.
-  const ab: Any = content.pages.find((p: Any) => p.slug === "/about");
-  const bio = ab.blocks.find((b: Any) => b.block === "About / CV");
-  const portrait = await lib(bio.image, "Portrait of Ahmed Adel");
-  const teams = await logoItems("about/03_studio-logos-big-cat-jump-animation-sun-");
-  const community = ab.blocks.find((b: Any) => b.block === "Columns (cards)");
-  const communityImgs = await each(community.cards as Any[], (c) => lib(c.image, c.title));
-  const aboutBlocks: Block[] = [
-    { id: newId(), type: "about", heading: bio.heading, text: (bio.words as string[]).join("\n\n"), photoId: portrait, cvId: null },
-    logos(ab.blocks.find((b: Any) => b.block === "Logo wall").title, teams, { band: "#FF5A1F", tint: "white" }),
-    {
-      id: newId(),
-      type: "cards",
-      design: "c-cards",
-      variant: "images",
-      heading: community.title,
-      intro: "",
-      columns: 3,
-      align: "start",
-      button: "",
-      link: "",
-      mediaId: null,
-      tone: sampleTone(0),
-      items: (community.cards as Any[]).map((c, i) => ({ title: c.title, text: `${c.role}. ${c.words}`, meta: c.role, icon: "sparkle", mediaId: communityImgs[i], tone: sampleTone(i), link: "", button: "", stars: 0, price: "", url: "" })),
-    },
-  ];
-
-  // Contact.
-  const ct: Any = content.pages.find((p: Any) => p.slug === "/contact");
-  const ctb = ct.blocks[0];
-  const contactPhoto = await lib(ctb.image, "Ahmed Adel");
-  const contactBlocks: Block[] = [
-    {
-      id: newId(),
-      type: "contact",
-      heading: ctb.heading,
-      text: "",
-      button: "Send",
-      mediaId: contactPhoto,
-      form: { projectType: false, budget: false, deadline: false, custom: "", labels: { name: "Name", email: "Email", message: "Message" }, success: "", layout: "stacked" } as never,
-    },
-  ];
-
-  // 5. Pages and menu: Broadcast · Directing · Big Cat · Commercial · Portfolio ▾ · About · Contact.
-  const page = (slug: string, title: string, blocks: Block[], extra: Partial<PageDraft> = {}): PageDraft => ({ id: newId(), slug, title, type: "custom", showInNav: true, blocks, ...extra });
-  const link = (title: string, url: string): PageDraft => ({ id: newId(), slug: title.toLowerCase().replace(/\W+/g, "-"), title, type: "link", url, showInNav: true, blocks: [] });
-  const folder = page("portfolio", "Portfolio", [], { type: "folder" });
-  const pages: PageDraft[] = [
-    page("", "Home", homeBlocks, { showInNav: false }),
-    link("Broadcast", "/#broadcast"),
-    link("Directing", "/#directing"),
-    link("Big Cat", "/#bigcat"),
-    link("Commercial", "/#commercial"),
-    folder,
-    page("character-design", "Character Design", cdBlocks, { parentId: folder.id }),
-    page("illustration", "Illustration", illBlocks, { parentId: folder.id }),
-    page("2d-animation", "2D Animation", animBlocks, { parentId: folder.id }),
-    page("storyboard", "Storyboard", sbBlocks, { parentId: folder.id }),
-    page("about", "About", aboutBlocks, { type: "about" }),
-    page("contact", "Contact", contactBlocks, { showInNav: false }),
-  ];
-
-  // 6. Theme: Studio Orange, Rubik, his logo; the header's button goes to Contact.
+  // 5. Theme and frame: Studio Orange; links beside the logo, social icons on the right; a black footer.
   const draft: SiteDraft = {
     language: "en",
     title: acct.displayName,
     tagline: "",
-    theme: { ...themes.orange, logoMediaId: siteLogo, faviconMediaId: null },
+    theme: { ...themes.orange, nav: "inline", radius: 4, logoMediaId: siteLogo, faviconMediaId: null },
     pages,
-    header: { ...normalizeHeader({}), hire: { on: true, label: "Contact", link: "/contact", style: "filled" }, logoSize: 22, tagline: false },
-    footer: { ...normalizeFooter({}), text: content.footer.left, email: "Adel4art@gmail.com", social: true, align: "start" },
+    header: {
+      ...normalizeHeader({}),
+      hire: { on: false, label: "Contact", link: "/contact", style: "filled" },
+      logoSize: 22,
+      tagline: false,
+      social: true,
+      textColor: "#E8501A",
+      upperLinks: false,
+    },
+    footer: {
+      ...normalizeFooter({}),
+      text: "© 2026 All rights reserved.",
+      email: "Adel4art@gmail.com",
+      social: true,
+      socialStyle: "icons",
+      layout: "columns",
+      showTitle: true,
+      backToTop: true,
+      background: "#000000",
+      textColor: "#FFFFFF",
+      align: "start",
+    },
   };
-  void soft;
+  // Social links known from his folder (Behance and Instagram captures); Ahmed adds Vimeo, LinkedIn and Facebook.
+  await saveSettings(o, { social: [{ network: "behance", url: "https://www.behance.net/ahmedadelart" }, { network: "instagram", url: "https://www.instagram.com/ahmedadel.art" }] });
   await saveDraft(o, draft);
-  await saveSettings(o, { seo: { title: "Ahmed Adel · Animation Director", description: cover.heading, shareImageId: share } });
+  await saveSettings(o, { seo: { title: "Ahmed Adel · Animation Director", description: heroText, shareImageId: share } });
   await adminDb().collection("sites").doc(o.siteId).update({ title: acct.displayName, updatedAt: FieldValue.serverTimestamp() });
   console.log("\n  draft saved");
 

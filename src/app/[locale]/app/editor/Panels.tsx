@@ -610,6 +610,16 @@ function NavSketch({ nav }: { nav: NavLayout }) {
           <span className="bg-current/15 block h-6 flex-1 rounded-[2px] opacity-20" />
         </span>
       );
+    case "inline":
+      return (
+        <span className="flex w-full items-center justify-between">
+          <span className="flex items-center gap-1.5">
+            <span className={`${bar} w-5`} />
+            {links}
+          </span>
+          <span className={dot} />
+        </span>
+      );
     case "minimal":
       return (
         <span className="flex w-full items-center justify-between">
@@ -688,7 +698,7 @@ export function StyleTab({
     return (
       <div className="flex flex-col gap-2">
         <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t("nav")}>
-          {(["top", "centered", "sidebar", "split", "minimal"] as NavLayout[]).map((n) => (
+          {(["top", "inline", "centered", "sidebar", "split", "minimal"] as NavLayout[]).map((n) => (
             <button
               key={n}
               type="button"
@@ -1657,6 +1667,18 @@ export function BlockSettings({
               <Area title={cf("intro")} value={block.intro} onChange={(x) => set({ intro: x }, k("intro"))} />
             </>
           )}
+          {v === "images" && <Switch title={t("cardsx.flat")} checked={!!block.flat} onChange={(x) => set({ flat: x })} />}
+          {v === "tiles" && (
+            <>
+              <Choice
+                title={t("cardsx.tileRatio")}
+                value={block.tileRatio ?? "4/5"}
+                options={(["4/5", "1/1", "16/9"] as const).map((x) => [x, x.replace("/", ":")])}
+                onChange={(x) => set({ tileRatio: x })}
+              />
+              <Switch title={t("cardsx.tileCenter")} checked={block.tileText === "center"} onChange={(x) => set({ tileText: x ? "center" : "corner" })} />
+            </>
+          )}
           {["icons", "images", "tiles", "stats", "mosaic", "films", "offers"].includes(v) && (
             <Range title={cf("columns")} value={block.columns} min={1} max={6} onChange={(x) => set({ columns: x }, k("cols"))} />
           )}
@@ -1753,6 +1775,12 @@ export function BlockSettings({
             <Text title={t("coverx.link")} dir="ltr" placeholder="https://" value={block.link ?? ""} onChange={(v) => set({ link: v }, k("lnk"))} />
           </div>
           <Switch title={t("coverx.inset")} checked={!!block.inset} onChange={(v) => set({ inset: v })} />
+          <Choice
+            title={t("coverx.size")}
+            value={block.size ?? "l"}
+            options={(["s", "m", "l"] as const).map((x) => [x, t(`coverx.sizes.${x}`)])}
+            onChange={(v) => set({ size: v })}
+          />
           <Choice
             title={f("height")}
             value={block.height}
@@ -1859,7 +1887,7 @@ export function BlockSettings({
               value={b.ratio}
               onChange={(e) => set({ ratio: e.target.value as BlockOf<"gallery">["ratio"] })}
             >
-              {(["16:9", "4:3", "1:1", "2:3"] as const).map((r) => (
+              {(["16:9", "4:3", "1:1", "4:5", "2:3"] as const).map((r) => (
                 <option key={r} value={r}>
                   {r}
                 </option>
@@ -1913,6 +1941,9 @@ export function BlockSettings({
                 })}
               </div>
               {!!b.lines?.length && <Switch title={t("galleryx.accentRole")} checked={!!b.accentRole} onChange={(v) => set({ accentRole: v })} />}
+              {!!b.lines?.length && (
+                <Switch title={t("galleryx.captionAccent")} checked={b.captionStyle === "accent"} onChange={(v) => set({ captionStyle: v ? "accent" : "plain" })} />
+              )}
             </div>
             <Switch title={g("filter")} checked={b.filter} onChange={(v) => set({ filter: v })} />
             {b.layout === "grid" && (
@@ -2066,6 +2097,13 @@ export function BlockSettings({
           )}
           <Switch title={t("logosx.oneRow")} checked={!!block.oneRow} onChange={(v) => set({ oneRow: v })} />
           <Choice
+            title={t("logosx.size")}
+            value={block.size ?? "m"}
+            options={(["s", "m", "l", "xl"] as const).map((x) => [x, t(`logosx.sizes.${x}`)])}
+            onChange={(v) => set({ size: v })}
+          />
+          {!block.oneRow && <Range title={t("logosx.columns")} value={block.columns ?? 0} min={0} max={8} onChange={(v) => set({ columns: v }, k("lcols"))} />}
+          <Choice
             title={t("logosx.tint")}
             value={block.tint ?? "original"}
             options={(["original", "white", "black"] as const).map((x) => [x, t(`logosx.tints.${x}`)])}
@@ -2094,6 +2132,9 @@ export function BlockSettings({
           <Text title={t("header.badge")} placeholder={t("header.badgeHint")} value={block.badge} onChange={(v) => set({ badge: v }, k("b"))} />
           {mediaField(t("header.logo"), block.logoId, "image", (id) => set({ logoId: id }))}
           <Switch title={t("header.divider")} checked={block.divider} onChange={(v) => set({ divider: v })} />
+          <Switch title={t("header.accent")} checked={!!block.accent} onChange={(v) => set({ accent: v })} />
+          <Switch title={t("header.upper")} checked={!!block.upper} onChange={(v) => set({ upper: v })} />
+          <Switch title={t("header.underline")} checked={!!block.underline} onChange={(v) => set({ underline: v })} />
           <Choice
             title={t("header.size")}
             value={block.size}
@@ -2159,6 +2200,7 @@ export function BlockSettings({
           <Text title={f("heading")} value={block.heading} onChange={(v) => set({ heading: v }, k("h"))} />
           <Area title={f("text")} value={block.text} onChange={(v) => set({ text: v }, k("t"))} />
           {mediaField(t("contactx.image"), block.mediaId ?? null, "image", (id) => set({ mediaId: id }))}
+          <Switch title={t("contactx.flat")} checked={!!block.flat} onChange={(v) => set({ flat: v })} />
           <Choice
             title={c("layout")}
             value={form.layout}
@@ -2579,6 +2621,7 @@ function ImagesSettings({
             ["original", "↕"],
             ["1:1", "1:1"],
             ["4:3", "4:3"],
+            ["4:5", "4:5"],
             ["2:3", "2:3"],
             ["16:9", "16:9"],
           ]}
@@ -2586,6 +2629,15 @@ function ImagesSettings({
         />
       )}
       <Switch title={t("captions")} checked={block.captions} onChange={(v) => set({ captions: v })} />
+      <div className="flex items-center justify-between gap-3 text-[13px]">
+        <span>{t("frame")}</span>
+        <span className="flex items-center gap-2">
+          <Toggle label={t("frame")} hideLabel checked={!!block.frame} onChange={(v) => set({ frame: v ? "#E0261B" : null })} />
+          {block.frame && (
+            <input type="color" aria-label={t("frame")} value={block.frame} onChange={(e) => set({ frame: e.target.value.toUpperCase() }, k("frame"))} className="border-line h-8 w-10 rounded-[8px] border p-0.5" />
+          )}
+        </span>
+      </div>
       <Text title={t("heading")} value={block.heading} onChange={(v) => set({ heading: v }, k("h"))} />
       <div className="border-line flex flex-col gap-2 border-t pt-3" data-testid="images-manage">
         <span className="text-[13px] font-semibold">
@@ -2825,6 +2877,7 @@ function SectionDesign({
               <input type="color" aria-label={d("overlay")} value={bg.overlay} onChange={(e) => setBg({ overlay: e.target.value.toUpperCase() }, "ov")} className="border-line h-8 w-10 rounded-[8px] border p-0.5" />
             </div>
             <Range title={d("overlayOpacity")} value={bg.overlayOpacity} min={0} max={100} unit="%" onChange={(v) => setBg({ overlayOpacity: v }, "ovo")} />
+            <Range title={d("blur")} value={bg.blur ?? 0} min={0} max={40} unit="px" onChange={(v) => setBg({ blur: v }, "blur")} />
           </>
         )}
         {bg.kind === "pattern" && (

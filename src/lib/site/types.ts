@@ -9,7 +9,8 @@ export type ThemePreset = "gallery" | "studio" | "paper" | "lime" | "night" | "s
 export type HeadingFont = string;
 export type BodyFont = string;
 export type ArabicFont = string;
-export type NavLayout = "top" | "centered" | "sidebar" | "split" | "minimal";
+// "inline": the links sit right after the logo; social icons and the button on the far side.
+export type NavLayout = "top" | "centered" | "sidebar" | "split" | "minimal" | "inline";
 
 export interface Theme {
   preset: ThemePreset;
@@ -63,6 +64,8 @@ export interface SectionStyle {
     mediaId: string | null;
     overlay: string;
     overlayOpacity: number;
+    /** Background picture blurred by this many px (0: sharp). */
+    blur?: number;
     pattern: PatternId;
     patternColor: string;
     patternOpacity: number;
@@ -107,7 +110,7 @@ export type ImagesLayout = "grid" | "masonry" | "rows" | "slideshow";
 // Round 13: alternate (tall and short), featured (one big, Pro) and rows (every cover keeps its shape).
 export type GalleryLayout = "grid" | "masonry" | "slider" | "fullscreen" | "alternate" | "featured" | "rows";
 export type ThumbHover = "none" | "zoom" | "title" | "lift";
-export type ThumbRatio = "16:9" | "4:3" | "1:1" | "2:3" | "original";
+export type ThumbRatio = "16:9" | "4:3" | "1:1" | "4:5" | "2:3" | "original";
 
 export type Block =
   | B<
@@ -126,6 +129,8 @@ export type Block =
         link?: string;
         /** Inside the page width with rounded corners, instead of edge to edge. */
         inset?: boolean;
+        /** Heading size: a small line, medium or big. */
+        size?: "s" | "m" | "l";
       }
     >
   | B<
@@ -141,6 +146,10 @@ export type Block =
         badge: string;
         divider: boolean;
         size: "m" | "l";
+        /** Title in the accent colour, in capitals, with a short accent line under it. */
+        accent?: boolean;
+        upper?: boolean;
+        underline?: boolean;
       }
     >
   | B<
@@ -186,6 +195,8 @@ export type Block =
         wideColumns?: number;
         /** Loops on covers: play under the pointer (default) or all the time. */
         loopPlay?: "hover" | "always";
+        /** "accent": the title in the accent colour, the network small in capitals. */
+        captionStyle?: "plain" | "accent";
         filter: boolean;
         /** Round 8: each project's own card size and text, instead of one size for all. */
         cardSizes?: boolean;
@@ -207,6 +218,8 @@ export type Block =
         gap: number;
         ratio: ThumbRatio;
         captions: boolean;
+        /** A coloured frame around each picture (null: none). */
+        frame?: string | null;
       }
     >
   | B<"video", { url: string; caption: string }>
@@ -226,10 +239,13 @@ export type Block =
         tint?: "original" | "white" | "black";
         /** All logos in one even row. */
         oneRow?: boolean;
+        /** How big the logos are, and how many per row (0: as many as fit). */
+        size?: "s" | "m" | "l" | "xl";
+        columns?: number;
       }
     >
   | B<"about", { heading: string; text: string; photoId: string | null; cvId: string | null }>
-  | B<"contact", { heading: string; text: string; button: string; form?: ContactForm; /** An illustration beside the form. */ mediaId?: string | null }>
+  | B<"contact", { heading: string; text: string; button: string; form?: ContactForm; /** An illustration beside the form. */ mediaId?: string | null; /** No panel behind it. */ flat?: boolean }>
   | B<"hire", { text: string }>
   | B<"social", { links: Array<{ network: string; url: string }> }>
   | B<"quote", { text: string; author: string }>
@@ -327,6 +343,11 @@ export interface CardsSection {
   /** One picture for the whole section (press: the book cover). */
   mediaId: string | null;
   tone: string;
+  /** Picture cards without a panel behind them. */
+  flat?: boolean;
+  /** Category tiles: their shape, and the title in a corner or in the middle (in capitals). */
+  tileRatio?: "4/5" | "16/9" | "1/1";
+  tileText?: "corner" | "center";
   items: CardItem[];
 }
 

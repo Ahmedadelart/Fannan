@@ -756,6 +756,13 @@ async function deleteMediaFiles(o: Owner, mediaId: string) {
   await ref.delete();
 }
 
+/** A file in the site library (not in a project): the record and its stored files go. */
+export async function deleteLibraryMedia(o: Owner, mediaId: string) {
+  const { media } = await getMediaRef(o, mediaId);
+  if (media.projectId !== LIBRARY) throw new ProjectError("not-found");
+  await deleteMediaFiles(o, mediaId);
+}
+
 export async function deleteMedia(o: Owner, projectId: string, mediaId: string) {
   const { ref, project } = await getProjectRef(o, projectId);
   if (!project.media.includes(mediaId)) throw new ProjectError("not-found");

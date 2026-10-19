@@ -786,7 +786,8 @@
         "centered": "Centred",
         "sidebar": "Sidebar",
         "split": "Split",
-        "minimal": "Minimal"
+        "minimal": "Minimal",
+        "inline": "Links beside the logo"
       },
       "siteTitle": "Site name",
       "tagline": "Tagline",
@@ -1349,7 +1350,8 @@
         "zoom": "Zoom"
       },
       "animPro": "Animations play on your live site with Pro.",
-      "reset": "Reset the design"
+      "reset": "Reset the design",
+      "blur": "Blur the picture"
     },
     "deco": {
       "words": "Words",
@@ -1669,7 +1671,8 @@
       "up": "Move up",
       "down": "Move down",
       "count": "{n} pictures",
-      "heading": "Heading (optional)"
+      "heading": "Heading (optional)",
+      "frame": "Frame around each picture"
     },
     "pic": {
       "replace": "Replace picture",
@@ -1719,7 +1722,10 @@
         "l": "Large"
       },
       "anchor": "Menu link name",
-      "anchorHint": "Link to this part from the menu with /#name."
+      "anchorHint": "Link to this part from the menu with /#name.",
+      "accent": "Title in the accent colour",
+      "upper": "Title in capitals",
+      "underline": "Short line under the title"
     },
     "feature": {
       "project": "Project",
@@ -1756,16 +1762,31 @@
         "white": "White",
         "black": "Black"
       },
-      "oneRow": "One even row"
+      "oneRow": "One even row",
+      "size": "Logo size",
+      "sizes": {
+        "s": "Small",
+        "m": "Medium",
+        "l": "Large",
+        "xl": "Extra large"
+      },
+      "columns": "Logos per row (0: as many as fit)"
     },
     "coverx": {
       "eyebrow": "Small line above",
       "button": "Button",
       "link": "Button link",
-      "inset": "Inside the page, rounded"
+      "inset": "Inside the page, rounded",
+      "size": "Heading size",
+      "sizes": {
+        "s": "Small",
+        "m": "Medium",
+        "l": "Large"
+      }
     },
     "contactx": {
-      "image": "Illustration beside the form"
+      "image": "Illustration beside the form",
+      "flat": "No panel behind it"
     },
     "galleryx": {
       "tag": "Tag",
@@ -1785,7 +1806,13 @@
       "loopPlays": {
         "hover": "Play on hover",
         "always": "Always play"
-      }
+      },
+      "captionAccent": "Title in the accent colour, network in small capitals"
+    },
+    "cardsx": {
+      "flat": "No panel behind the cards",
+      "tileRatio": "Tile shape",
+      "tileCenter": "Title in the middle, in capitals"
     }
   },
   "inbox": {

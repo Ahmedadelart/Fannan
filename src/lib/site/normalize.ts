@@ -83,7 +83,7 @@ export function normalizeTheme(raw: unknown): Theme {
       ...(fonts.headingScale === "s" || fonts.headingScale === "l" ? { headingScale: fonts.headingScale } : {}),
     },
     radius: num(t.radius, 0, 24, p.radius),
-    nav: pick(oldNav[t.nav as string] ?? t.nav, ["top", "centered", "sidebar", "split", "minimal"], p.nav),
+    nav: pick(oldNav[t.nav as string] ?? t.nav, ["top", "centered", "sidebar", "split", "minimal", "inline"], p.nav),
     logoMediaId: idOrNull(t.logoMediaId),
     faviconMediaId: idOrNull(t.faviconMediaId),
   };
@@ -151,6 +151,7 @@ export function normalizeSectionStyle(raw: unknown): SectionStyle {
       mediaId: idOrNull(bg.mediaId),
       overlay: color(bg.overlay, "#000000"),
       overlayOpacity: num(bg.overlayOpacity, 0, 100, 40),
+      ...(num(bg.blur, 0, 40, 0) ? { blur: num(bg.blur, 0, 40, 0) } : {}),
       pattern: pick(bg.pattern, ["dots", "grid", "waves", "sparkles", "doodles", "custom"], "dots"),
       patternColor: color(bg.patternColor, "#141414"),
       patternOpacity: num(bg.patternOpacity, 0, 100, 12),
@@ -185,6 +186,9 @@ function normalizeCards(id: string, b: Any): Block {
     type: "cards",
     design: typeof b.design === "string" && /^c-[a-z0-9-]{1,30}$/.test(b.design) ? b.design : "c-cards",
     variant: pick(b.variant, CARD_VARIANTS, "images"),
+    ...(b.flat === true ? { flat: true } : {}),
+    ...(["4/5", "16/9", "1/1"].includes(b.tileRatio as string) ? { tileRatio: b.tileRatio as "4/5" } : {}),
+    ...(b.tileText === "center" ? { tileText: "center" as const } : {}),
     heading: str(b.heading, 200),
     intro: str(b.intro, 600),
     columns: num(b.columns, 1, 6, 3),
@@ -229,6 +233,7 @@ function normalizeBlockBody(raw: unknown): Block | null {
         ...(str(b.button, 60) ? { button: str(b.button, 60) } : {}),
         ...(b.link ? { link: safeLink(b.link) } : {}),
         ...(b.inset === true ? { inset: true } : {}),
+        ...(b.size === "s" || b.size === "m" ? { size: b.size as "s" } : {}),
       };
     case "header":
       return {
@@ -241,6 +246,9 @@ function normalizeBlockBody(raw: unknown): Block | null {
         badge: str(b.badge, 40),
         divider: bool(b.divider, true),
         size: pick(b.size, ["m", "l"], "m"),
+        ...(b.accent === true ? { accent: true } : {}),
+        ...(b.upper === true ? { upper: true } : {}),
+        ...(b.underline === true ? { underline: true } : {}),
       };
     case "feature":
       return {
@@ -280,7 +288,7 @@ function normalizeBlockBody(raw: unknown): Block | null {
         source: str(b.source, 40) || "all",
         columns: num(b.columns, 1, 6, 3),
         gap: num(b.gap, 0, 40, 12),
-        ratio: pick(b.ratio, ["16:9", "4:3", "1:1", "2:3", "original"], "4:3"),
+        ratio: pick(b.ratio, ["16:9", "4:3", "1:1", "4:5", "2:3", "original"], "4:3"),
         lightbox: bool(b.lightbox, true),
         captions: bool(b.captions, true),
         credits: bool(b.credits, true),
@@ -292,6 +300,7 @@ function normalizeBlockBody(raw: unknown): Block | null {
         ...(b.accentRole === true ? { accentRole: true } : {}),
         ...(b.split === true ? { split: true, wideColumns: num(b.wideColumns, 1, 4, 2) } : {}),
         ...(b.loopPlay === "always" ? { loopPlay: "always" as const } : {}),
+        ...(b.captionStyle === "accent" ? { captionStyle: "accent" as const } : {}),
         filter: bool(b.filter),
         ...(b.cardSizes === true ? { cardSizes: true } : {}),
         ...(Array.isArray(b.picks) && b.picks.length
@@ -347,8 +356,9 @@ function normalizeBlockBody(raw: unknown): Block | null {
         layout: pick(b.layout, ["grid", "masonry", "rows", "slideshow"], "grid"),
         columns: num(b.columns, 1, 6, 3),
         gap: num(b.gap, 0, 64, 16),
-        ratio: pick(b.ratio, ["16:9", "4:3", "1:1", "2:3", "original"], "4:3"),
+        ratio: pick(b.ratio, ["16:9", "4:3", "1:1", "4:5", "2:3", "original"], "4:3"),
         captions: bool(b.captions),
+        ...(b.frame ? { frame: color(b.frame, "#E0261B") } : {}),
       };
     case "hero-image":
       return {
@@ -404,6 +414,8 @@ function normalizeBlockBody(raw: unknown): Block | null {
         ...(b.band ? { band: color(b.band, "#FF5A1F") } : {}),
         ...(b.tint === "white" || b.tint === "black" ? { tint: b.tint } : {}),
         ...(b.oneRow === true ? { oneRow: true } : {}),
+        ...(["s", "l", "xl"].includes(b.size as string) ? { size: b.size as "l" } : {}),
+        ...(num(b.columns, 0, 8, 0) ? { columns: num(b.columns, 0, 8, 0) } : {}),
       };
     case "about":
       return {
@@ -423,6 +435,7 @@ function normalizeBlockBody(raw: unknown): Block | null {
         button: str(b.button, 60),
         ...(b.form ? { form: normalizeContactForm(b.form) } : {}),
         ...(idOrNull(b.mediaId) ? { mediaId: idOrNull(b.mediaId) } : {}),
+        ...(b.flat === true ? { flat: true } : {}),
       };
     case "hire":
       return { id, type: "hire", text: str(b.text, 300) };

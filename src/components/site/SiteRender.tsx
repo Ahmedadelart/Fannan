@@ -115,6 +115,7 @@ const RATIO_CSS: Record<ThumbRatio, string | undefined> = {
   "16:9": "16 / 9",
   "4:3": "4 / 3",
   "1:1": "1 / 1",
+  "4:5": "4 / 5",
   "2:3": "2 / 3",
   original: undefined,
 };
@@ -191,6 +192,7 @@ function Picture({
   sizes = "(min-width: 1200px) 1200px, 100vw",
   crop,
   pic,
+  frame,
 }: {
   m?: SiteMedia | null;
   base: string;
@@ -207,8 +209,12 @@ function Picture({
   crop?: Crop;
   /** Editor only: "blockId|path" so a dropped file or the hover tools know where the picture goes. */
   pic?: string;
+  /** A coloured frame around the picture. */
+  frame?: string;
 }) {
   // GIFs are stored as muted looping videos; they play wherever the picture is shown (not in "still" places).
+  // A picture asked to fit inside its box (logos) keeps its whole frame.
+  const contain = !!className?.includes("object-contain");
   if (m?.type === "gif" && m.loop && !still) {
     return (
       <video
@@ -219,7 +225,7 @@ function Picture({
         playsInline
         preload="none"
         aria-label={alt ?? m.alt ?? undefined}
-        className={cx("block h-full w-full object-cover", className)}
+        className={cx("block h-full w-full", contain ? "object-contain" : "object-cover", className)}
         style={{
           borderRadius: "var(--site-radius)",
           aspectRatio: ratio ?? (m.width && m.height ? `${m.width} / ${m.height}` : undefined),
@@ -247,7 +253,7 @@ function Picture({
     );
   }
   return (
-    <picture className={cx("block overflow-hidden", className)} style={{ borderRadius: "var(--site-radius)" }} data-pic={pic} data-crop={pic && crop ? `${crop.x},${crop.y},${crop.zoom}` : undefined}>
+    <picture className={cx("block overflow-hidden", className)} style={{ borderRadius: "var(--site-radius)", ...(frame ? { border: `4px solid ${frame}` } : {}) }} data-pic={pic} data-crop={pic && crop ? `${crop.x},${crop.y},${crop.zoom}` : undefined}>
       {src.avifSet && <source type="image/avif" srcSet={src.avifSet} sizes={sizes} />}
       <img
         src={src.src}
@@ -266,6 +272,9 @@ function Picture({
     </picture>
   );
 }
+
+const LOGO_SIZE = { s: "h-8", m: "h-12", l: "h-20", xl: "h-32" } as const;
+const LOGO_WIDTH = { s: "w-24", m: "w-36", l: "w-52", xl: "w-80" } as const;
 
 /* ---------- round 13: Images section (the artist's own pictures, not projects) ---------- */
 
@@ -295,7 +304,8 @@ function ImagesView({ b, ctx }: { b: BlockOf<"images">; ctx: Ctx }) {
         sizes={b.layout === "slideshow" ? "(min-width: 1200px) 1200px, 100vw" : `(min-width: 1200px) ${Math.round(1200 / cols)}px, 50vw`}
         crop={x.it.crop}
         pic={ctx.editing ? `${ctx.blockId}|items.${x.n}.mediaId` : undefined}
-        className={b.layout === "rows" ? "h-full" : undefined}
+        className={cx(b.layout === "rows" && "h-full", b.frame && "!rounded-none")}
+        frame={b.frame ?? undefined}
       />
       {b.captions &&
         (ctx.onText ? (
@@ -338,7 +348,7 @@ function ImagesView({ b, ctx }: { b: BlockOf<"images">; ctx: Ctx }) {
         className={cx("grid", cols > 2 && "@max-2xl:!grid-cols-2", cols > 1 && "@max-md:!grid-cols-1")}
         style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gap: b.gap }}
       >
-        {shown.map((x) => tile(x, fixed ?? "1 / 1"))}
+        {shown.map((x) => tile(x, fixed ?? `${natural(x)}`))}
       </div>
     );
   }
@@ -517,13 +527,25 @@ function GalleryView({ b, ctx }: { b: BlockOf<"gallery">; ctx: Ctx }) {
         </div>
         {b.lines?.length && t.p && hover !== "title" ? (
           <figcaption className="flex flex-col gap-0.5 text-[14px]" style={fullscreen ? { padding: "0 12px" } : undefined}>
-            {showTitle && <span className="text-[16px] font-semibold">{t.title}</span>}
+            {showTitle && (
+              <span className="text-[16px] font-semibold" style={b.captionStyle === "accent" ? { color: "var(--site-accent-ink)", fontWeight: 700, lineHeight: 1.2 } : undefined}>
+                {t.title}
+              </span>
+            )}
             {b.lines.map((line) => {
               const v = captionLine(t.p!, line);
               if (!v) return null;
               const accent = line === "role" && b.accentRole;
+              const small = b.captionStyle === "accent";
               return (
-                <span key={line} style={{ color: accent ? "var(--site-accent-ink)" : "var(--site-muted)", fontWeight: accent ? 500 : undefined }}>
+                <span
+                  key={line}
+                  style={{
+                    color: accent ? "var(--site-accent-ink)" : "var(--site-muted)",
+                    fontWeight: accent ? 500 : undefined,
+                    ...(small ? { fontSize: line === "network" ? 11 : 12, textTransform: line === "network" ? ("uppercase" as const) : undefined, letterSpacing: line === "network" ? ".04em" : undefined } : {}),
+                  }}
+                >
                   {v}
                 </span>
               );
@@ -1543,19 +1565,27 @@ function CardsView({ b, ctx }: { b: BlockOf<"cards">; ctx: Ctx }) {
                   m={m(it.mediaId)}
                   base={ctx.base}
                   tone={it.tone}
-                  ratio="4 / 5"
+                  ratio={(b.tileRatio ?? "4/5").replace("/", " / ")}
                   want={800}
                   className="absolute inset-0 h-full !rounded-none"
                   alt=""
                   pic={ctx.editing ? `${ctx.blockId}|items.${n}.mediaId` : undefined}
                 />
-                <span aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "linear-gradient(0deg, rgba(10,8,6,.7) 0%, rgba(10,8,6,0) 50%)" }} />
-                <span className="pointer-events-none absolute inset-x-5 bottom-[18px] flex items-baseline justify-between gap-3" style={{ color: "#FFFFFF" }}>
-                  <span className="pointer-events-auto">{tx(n, "title", { style: { fontSize: 20, fontWeight: 700 } })}</span>
+                <span aria-hidden className="pointer-events-none absolute inset-0" style={{ background: b.tileText === "center" ? "rgba(10,8,6,.3)" : "linear-gradient(0deg, rgba(10,8,6,.7) 0%, rgba(10,8,6,0) 50%)" }} />
+                <span
+                  className={cx(
+                    "pointer-events-none absolute flex gap-3",
+                    b.tileText === "center" ? "inset-0 items-center justify-center text-center" : "inset-x-5 bottom-[18px] items-baseline justify-between",
+                  )}
+                  style={{ color: "#FFFFFF", textShadow: b.tileText === "center" ? "0 2px 12px rgba(0,0,0,.45)" : undefined }}
+                >
+                  <span className="pointer-events-auto">
+                    {tx(n, "title", { style: b.tileText === "center" ? { fontSize: 24, fontWeight: 700, textTransform: "uppercase", lineHeight: 1.1 } : { fontSize: 20, fontWeight: 700 } })}
+                  </span>
                   {(it.meta || ctx.onText) && <span className="pointer-events-auto text-[13px] opacity-85">{tx(n, "meta")}</span>}
                 </span>
               </>,
-              "site-tile relative block aspect-[4/5] overflow-hidden",
+              cx("site-tile relative block overflow-hidden", b.tileRatio === "16/9" ? "aspect-[16/9]" : b.tileRatio === "1/1" ? "aspect-square" : "aspect-[4/5]"),
               { borderRadius: "calc(var(--site-radius) * 1.3)", color: "#FFFFFF" },
               )}
             </div>
@@ -1582,10 +1612,17 @@ function CardsView({ b, ctx }: { b: BlockOf<"cards">; ctx: Ctx }) {
       body = (
         <div className="site-cards-grid grid gap-6" style={grid}>
           {b.items.map((it, n) => (
-            <div key={n} className="flex flex-col overflow-hidden" style={card}>
-              <Picture m={m(it.mediaId)} base={ctx.base} tone={it.tone} ratio="4 / 3" className="!rounded-none" pic={ctx.editing ? `${ctx.blockId}|items.${n}.mediaId` : undefined} />
-              <div className="flex flex-1 flex-col items-start gap-2 p-6">
-                {tx(n, "title", { as: "h3", style: heading(26) })}
+            <div key={n} className={cx("flex flex-col overflow-hidden", b.flat && "gap-3")} style={b.flat ? undefined : card}>
+              <Picture
+                m={m(it.mediaId)}
+                base={ctx.base}
+                tone={it.tone}
+                ratio={b.flat ? "1 / 1" : "4 / 3"}
+                className={b.flat ? undefined : "!rounded-none"}
+                pic={ctx.editing ? `${ctx.blockId}|items.${n}.mediaId` : undefined}
+              />
+              <div className={cx("flex flex-1 flex-col items-start gap-2", b.flat ? "gap-1" : "p-6")}>
+                {tx(n, "title", { as: "h3", style: heading(b.flat ? 18 : 26) })}
                 {tx(n, "text", { as: "p", className: "m-0 text-[16px] leading-[1.6]", style: { color: "var(--site-muted)" }, multiline: true })}
                 {(it.button || ctx.onText) && link(it.link, tx(n, "button"), "site-button mt-auto text-[14px]")}
               </div>
@@ -1893,7 +1930,14 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
               {(b.eyebrow || (ctx.onText && ctx.selectedBlockId === ctx.blockId)) && (
                 <T ctx={ctx} path="eyebrow" value={b.eyebrow ?? ""} className="text-[13px] font-medium tracking-[.14em] uppercase opacity-85" />
               )}
-              <T ctx={ctx} path="heading" value={b.heading} as="h1" style={{ ...heading(56), lineHeight: 1.02 }} className="@max-2xl:!text-[34px]" />
+              <T
+                ctx={ctx}
+                path="heading"
+                value={b.heading}
+                as="h1"
+                style={{ ...heading(b.size === "s" ? 22 : b.size === "m" ? 40 : 56), lineHeight: b.size === "s" ? 1.3 : 1.02 }}
+                className={b.size === "s" ? undefined : "@max-2xl:!text-[34px]"}
+              />
               <T ctx={ctx} path="subheading" value={b.subheading} as="p" className="m-0 text-[18px] opacity-85" />
             </div>
             {(b.button || (ctx.onText && ctx.selectedBlockId === ctx.blockId)) && (
@@ -2119,11 +2163,11 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
           <T ctx={ctx} path="heading" value={b.heading} as="h2" style={{ ...heading(20), color: "var(--site-muted)" }} />
           <div
             className={cx(
-              b.oneRow ? "grid items-center gap-9 @max-xl:!grid-cols-3 @max-xl:gap-6" : cx("flex flex-wrap items-center gap-x-10 gap-y-5", alignRow(ctx.align)),
+              b.oneRow || b.columns ? "grid items-center justify-items-center gap-9 @max-xl:!grid-cols-3 @max-xl:gap-6" : cx("flex flex-wrap items-center gap-x-10 gap-y-5", alignRow(ctx.align)),
               b.band && "px-12 py-8 @max-xl:px-6",
             )}
             style={{
-              ...(b.oneRow ? { gridTemplateColumns: `repeat(${Math.max(1, b.items.length)}, minmax(0, 1fr))` } : {}),
+              ...(b.oneRow || b.columns ? { gridTemplateColumns: `repeat(${Math.max(1, b.columns || b.items.length)}, minmax(0, 1fr))` } : {}),
               ...(b.band ? { background: b.band, borderRadius: "calc(var(--site-radius) * 1.6)" } : {}),
             }}
             data-testid="logo-wall"
@@ -2131,7 +2175,11 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
             {b.items.map((l, i) => {
               const logo = m(l.mediaId);
               return logo ? (
-                <span key={i} className={cx("block", b.oneRow ? "h-12 w-full" : "h-14 w-36")} style={tint ? { filter: tint } : undefined}>
+                <span
+                  key={i}
+                  className={cx("block", LOGO_SIZE[b.size ?? "m"], b.oneRow || b.columns ? "w-full" : LOGO_WIDTH[b.size ?? "m"])}
+                  style={tint ? { filter: tint } : undefined}
+                >
                   <Picture
                     m={logo}
                     base={ctx.base}
@@ -2157,13 +2205,22 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
     }
     case "header": {
       const logo = m(b.logoId);
+      const centred = ctx.align === "center";
       return (
         <div
-          className="flex flex-wrap items-baseline justify-between gap-4"
+          className={cx("flex flex-wrap gap-4", centred ? "flex-col items-center text-center" : "items-baseline justify-between", ctx.align === "end" && "flex-row-reverse")}
           style={b.divider ? { borderBottom: "1px solid var(--site-line)", paddingBottom: 18 } : undefined}
           data-testid="section-header"
         >
-          <h2 className="m-0 flex flex-wrap items-center gap-4" style={heading(b.size === "l" ? 44 : 30)}>
+          <h2
+            className={cx("m-0 flex flex-wrap items-center gap-4", centred && "justify-center")}
+            style={{
+              ...heading(b.size === "l" ? 44 : 30),
+              ...(b.accent ? { color: "var(--site-accent-ink)" } : {}),
+              ...(b.upper ? { textTransform: "uppercase" as const } : {}),
+              ...(b.underline ? { paddingBottom: 10, backgroundImage: "linear-gradient(var(--site-accent), var(--site-accent))", backgroundSize: "64px 2px", backgroundRepeat: "no-repeat", backgroundPosition: centred ? "center bottom" : "left bottom" } : {}),
+            }}
+          >
             {(b.number || (ctx.onText && ctx.selectedBlockId === ctx.blockId)) && (
               <T ctx={ctx} path="number" value={b.number} style={{ fontSize: 15, fontWeight: 600, color: "var(--site-accent-ink)", fontFamily: "var(--site-body)" }} />
             )}
@@ -2271,7 +2328,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
             "gap-8 p-10 @max-xl:p-6",
             art ? "grid grid-cols-[minmax(0,320px)_1fr] items-center gap-14 p-14 @max-2xl:grid-cols-1" : split ? "grid grid-cols-2 items-start @max-2xl:grid-cols-1" : "flex flex-col items-start gap-3",
           )}
-          style={{ background: "var(--site-surface)", borderRadius: "calc(var(--site-radius) * 2.3)" }}
+          style={b.flat ? { padding: 0 } : { background: "var(--site-surface)", borderRadius: "calc(var(--site-radius) * 2.3)" }}
         >
           {art ? (
             <>
@@ -2573,7 +2630,15 @@ function SectionBand({
     >
       {bg.kind === "image" && media && (
         <div className="absolute inset-0 overflow-hidden" aria-hidden>
-          <Picture m={media} base={ctx.base} want={2560} ratio="auto" className="h-full w-full !rounded-none" />
+          <Picture
+            m={media}
+            base={ctx.base}
+            want={bg.blur ? 800 : 2560}
+            ratio="auto"
+            className="h-full w-full !rounded-none"
+            still={!!bg.blur}
+          />
+          {!!bg.blur && <div className="absolute inset-0" style={{ backdropFilter: `blur(${bg.blur}px)` }} />}
           <div className="absolute inset-0" style={{ background: bg.overlay, opacity: bg.overlayOpacity / 100 }} />
         </div>
       )}
@@ -3031,6 +3096,20 @@ function Nav({ site, page, ctx }: { site: SiteDraft; page: PageDraft; ctx: Ctx }
         {linkList}
         {socialIcons}
         {hire}
+      </header>
+    );
+  }
+  if (theme.nav === "inline") {
+    return (
+      <header {...part} className={cx("flex flex-wrap items-center justify-between gap-4", partClass)}>
+        <span className="flex flex-wrap items-center gap-x-8 gap-y-2">
+          {brand}
+          <span className="text-[13px]">{linkList}</span>
+        </span>
+        <span className="flex items-center gap-4">
+          {socialIcons}
+          {hire}
+        </span>
       </header>
     );
   }
