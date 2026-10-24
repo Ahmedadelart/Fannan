@@ -129,7 +129,7 @@ test("the editor is the app: home, projects, messages, stats and settings open i
   await openEditor(page);
 
   const frame = page.frameLocator('[data-testid="panel-frame"]');
-  await page.getByRole("navigation", { name: "Editor" }).getByRole("button", { name: "Home", exact: true }).last().click();
+  await page.getByRole("navigation", { name: "Editor" }).getByRole("button", { name: "Dashboard", exact: true }).last().click();
   await expect(frame.getByRole("heading", { level: 1, name: "Your site" })).toBeVisible({ timeout: 15_000 });
   // Inside the panel the page drops its own sidebar.
   await expect(frame.getByRole("navigation", { name: "App" })).toBeHidden();
@@ -168,8 +168,10 @@ test("full-width canvas and a settings card you can move", async ({ page }, info
   await first.click({ position: { x: 10, y: 10 } });
   await expect(page.getByRole("button", { name: "Add section" })).toHaveCount(0);
 
-  // The settings card moves by its top bar.
+  // Settings open in the side panel (round 17); popped out, the card moves by its top bar.
   await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await expect(page.getByTestId("left-panel").getByTestId("block-settings")).toBeVisible();
+  await page.getByTestId("settings-float").click();
   const card = page.getByTestId("block-settings");
   const a = (await card.boundingBox())!;
   const handle = (await page.getByTestId("settings-handle").boundingBox())!;
@@ -229,12 +231,8 @@ test("items: layers restack and hide, new kinds, quick toolbar first", async ({ 
   await expect(page.getByTestId("free-toolbar")).toBeVisible();
   await page.getByTestId("item-edit").click();
   await expect(page.getByTestId("block-settings").getByRole("tab", { name: "Design" })).toBeVisible();
-  // The item's card opens right beside the item.
-  const itemBox = (await items.first().boundingBox())!;
-  const cardBox = (await page.getByTestId("block-settings").boundingBox())!;
-  const besideAfter = Math.abs(cardBox.x - (itemBox.x + itemBox.width)) < 40;
-  const besideBefore = Math.abs(cardBox.x + cardBox.width - itemBox.x) < 40;
-  expect(besideAfter || besideBefore).toBe(true);
+  // The item's settings open in the side panel, so the item stays in view (round 17).
+  await expect(page.getByTestId("left-panel").getByTestId("block-settings")).toBeVisible();
   await page.screenshot({ path: `test-results/r5-item-${info.project.name}.png` });
 });
 

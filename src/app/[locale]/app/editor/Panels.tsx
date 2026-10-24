@@ -495,7 +495,7 @@ export function BlocksTab({
   const match = (k: BlockKind) => !q || t(`blocks.${k.key}`).toLowerCase().includes(q.toLowerCase());
   const chip = (on: boolean) =>
     cx(
-      "h-8 flex-none rounded-pill px-3 text-[12px] font-semibold transition-colors",
+      "h-7 flex-none rounded-pill px-2.5 text-[12px] font-semibold transition-colors",
       on ? "bg-lime text-on-lime" : "bg-mist text-ink-soft hover:text-ink",
     );
   return (
@@ -510,8 +510,8 @@ export function BlocksTab({
           onChange={(e) => setQ(e.target.value)}
         />
       </label>
-      {/* Categories: one tap shows just that kind of section. */}
-      <div className="-mx-3 flex gap-1.5 overflow-x-auto px-3 pb-1" role="group" aria-label={t("library.label")}>
+      {/* Categories (round 17: wrapped, so none runs off the edge). One tap shows just that kind of section. */}
+      <div className="flex flex-wrap gap-1.5" role="group" aria-label={t("library.label")}>
         <button type="button" aria-pressed={only === "all"} className={chip(only === "all")} onClick={() => setOnly("all")}>
           {t("library.all")}
         </button>
@@ -521,15 +521,14 @@ export function BlocksTab({
           </button>
         ))}
       </div>
-      {!compact && <p className="text-muted -mt-2 text-[12px]">{t("dragHint")}</p>}
       {LIBRARY.filter(({ group }) => only === "all" || only === group).map(({ group, keys }) => {
         const items = keys.map(kindByKey).filter((k): k is BlockKind => !!k && match(k));
         if (!items.length) return null;
         return (
-          <section key={group} className={cx("gap-2.5", compact ? "grid grid-cols-2" : "flex flex-col")} aria-label={t(`library.${group}`)}>
-            <h3 className={cx("bg-paper text-ink col-span-2 -mx-3 flex items-baseline justify-between px-3 pt-3 pb-2 text-[14px] font-semibold", !compact && "sticky top-0 z-10")}>
+          // Round 17: two small thumbnails a row (like Carbonmade), the name in one short line under each.
+          <section key={group} className="grid grid-cols-2 gap-2" aria-label={t(`library.${group}`)}>
+            <h3 className={cx("bg-paper text-muted col-span-2 -mx-3 px-3 pt-3 pb-1.5 text-[11px] font-semibold tracking-[0.08em] uppercase", !compact && "sticky top-0 z-10")}>
               {t(`library.${group}`)}
-              <span className="text-muted text-[12px] font-medium">{items.length}</span>
             </h3>
             {items.map((k) => (
               <button
@@ -546,16 +545,14 @@ export function BlocksTab({
                 onClick={() => onAdd(k)}
                 // In the picker on the canvas, pressing doesn't scroll the button away before the click lands.
                 onMouseDown={compact ? (e) => e.preventDefault() : undefined}
-                className="group border-line hover:border-lime relative flex w-full cursor-grab flex-col overflow-hidden rounded-[12px] border bg-[#141414] text-start transition-colors active:cursor-grabbing"
-                style={{ contentVisibility: "auto", containIntrinsicSize: "auto 160px" }}
+                title={compact ? undefined : t("dragHint")}
+                className="group border-line hover:border-lime relative flex w-full min-w-0 cursor-grab flex-col overflow-hidden rounded-[10px] border bg-[#141414] text-start transition-colors active:cursor-grabbing"
+                style={{ contentVisibility: "auto", containIntrinsicSize: "auto 110px" }}
               >
                 <BlockPreview kind={k} draft={draft} media={media} projects={projects} />
-                <span className="text-ink flex items-center justify-between gap-2 px-3 py-2 text-[12px] font-semibold">
-                  {t(`blocks.${k.key}`)}
-                  <Icon name="add" size={16} className="opacity-0 transition-opacity group-hover:opacity-100" />
-                </span>
+                <span className="text-ink block truncate px-2 py-1.5 text-[11px] font-semibold">{t(`blocks.${k.key}`)}</span>
                 {k.pro && (
-                  <span className="bg-lime text-on-lime absolute end-2 top-2 rounded-pill px-2 py-0.5 text-[10px] font-bold tracking-[0.06em]">
+                  <span className="bg-lime text-on-lime absolute end-1.5 top-1.5 rounded-pill px-1.5 text-[9px] leading-[16px] font-bold tracking-[0.06em]">
                     PRO
                   </span>
                 )}

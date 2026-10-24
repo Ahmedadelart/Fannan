@@ -151,6 +151,8 @@ test("the published site: pages, projects, lightbox, contact form, sitemap, draf
   await page.getByTestId("add-quote").click();
   await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
   await page.getByTestId("block-settings").getByRole("textbox", { name: "Text" }).fill("Draft-only words");
+  // Back from the settings to the sections (they share the side panel since round 17).
+  await page.getByTestId("settings-back").click();
   await page.getByTestId("add-d-image-caption").click();
   const picture = page.getByTestId("canvas").locator('[data-testid="free-item"][data-kind="image"]').last();
   await picture.scrollIntoViewIfNeeded();

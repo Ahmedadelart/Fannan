@@ -63,7 +63,19 @@ const inputCls =
 const areaCls =
   "min-h-[76px] w-full resize-y rounded-[10px] border border-line bg-paper px-3 py-2.5 text-[14px] font-normal text-ink outline-none focus:border-primary";
 
-function Panel({ title, children, aside }: { title: ReactNode; children: ReactNode; aside?: ReactNode }) {
+function Panel({ title, children, aside, fold }: { title: ReactNode; children: ReactNode; aside?: ReactNode; fold?: { open: boolean } }) {
+  if (fold) {
+    // Round 17: less to read. Secondary groups start folded (open when they already hold something).
+    return (
+      <details open={fold.open} className="border-line bg-paper group rounded-lg border">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5 [&::-webkit-details-marker]:hidden">
+          <h2 className="font-heading font-heading-weight text-[18px] leading-tight">{title}</h2>
+          <Icon name="chevron-down" size={18} className="text-muted transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="flex flex-col gap-3.5 px-5 pb-5">{children}</div>
+      </details>
+    );
+  }
   return (
     <section className="border-line bg-paper flex flex-col gap-3.5 rounded-lg border p-5">
       <div className="flex items-center justify-between gap-3">
@@ -483,14 +495,7 @@ export function ProjectEditor({
               <Icon name="upload" size={24} />
             </span>
             <div className="font-heading font-heading-weight text-[22px]">{t("drop.title")}</div>
-            <p className="text-muted max-w-[520px]">{t("drop.text")}</p>
-            <div className="flex flex-wrap justify-center gap-1.5">
-              {formats.map((f) => (
-                <span key={f} className="rounded-pill bg-mist px-2.5 py-1 text-[12px] font-semibold">
-                  {f}
-                </span>
-              ))}
-            </div>
+            <p className="text-muted max-w-[520px] text-[13px]">{formats.join(" · ")}</p>
             <div className="mt-1.5 flex flex-wrap justify-center gap-2">
               <button type="button" className={buttonClasses("lime", "md")} onClick={() => fileInput.current?.click()}>
                 <Icon name="upload" size={18} />
@@ -538,11 +543,10 @@ export function ProjectEditor({
                 <Button type="submit">{t("add")}</Button>
               </form>
             )}
-            <p className="text-muted text-[12px]">{t("drop.longVideo")}</p>
             {problem && <Problem>{problem}</Problem>}
           </div>
 
-          <Panel title={t("media")} aside={<span className="text-muted text-[13px]">{t("mediaHint")}</span>}>
+          <Panel title={t("media")} aside={<span className="text-muted text-[13px] max-md:hidden">{t("mediaHint")}</span>}>
             {items.length === 0 ? (
               <p className="text-muted">{t("nothingSelected")}</p>
             ) : (
@@ -823,7 +827,7 @@ export function ProjectEditor({
 
         {/* Right: credits and settings */}
         <div className="flex min-w-0 flex-[2_1_340px] flex-col gap-4">
-          <Panel title={t("credits")}>
+          <Panel title={t("basics")}>
             {fieldProblem && <Problem>{fieldProblem}</Problem>}
             <Field label={t("fields.title")}>
               <input
@@ -886,6 +890,24 @@ export function ProjectEditor({
                 />
               </Field>
             </div>
+            <Field label={t("fields.description")}>
+              <textarea
+                className={areaCls}
+                value={p.description}
+                onChange={(e) => setField("description", e.target.value, { description: e.target.value })}
+              />
+            </Field>
+            <Field label={t("fields.tags")}>
+              <input
+                className={inputCls}
+                placeholder={t("fields.tagsPlaceholder")}
+                defaultValue={p.tags.join(", ")}
+                onChange={(e) => save("tags", { tags: e.target.value })}
+              />
+            </Field>
+          </Panel>
+
+          <Panel title={t("extra.title")} fold={{ open: !!(p.studio || p.team || p.network || p.video || p.details?.length || p.credits?.length || p.thanks?.length || p.tools?.length) }}>
             <Field label={t("fields.studio")}>
               <input
                 className={inputCls}
@@ -901,49 +923,31 @@ export function ProjectEditor({
                 onChange={(e) => setField("team", e.target.value, { team: e.target.value })}
               />
             </Field>
-            <Field label={t("fields.description")}>
-              <textarea
-                className={areaCls}
-                value={p.description}
-                onChange={(e) => setField("description", e.target.value, { description: e.target.value })}
-              />
-            </Field>
-            <Field label={t("fields.tags")} hint={t("fields.tagsHint")}>
-              <input
-                className={inputCls}
-                defaultValue={p.tags.join(", ")}
-                onChange={(e) => save("tags", { tags: e.target.value })}
-              />
-            </Field>
-          </Panel>
-
-          <Panel title={t("extra.title")}>
-            <p className="text-muted m-0 text-[12px]">{t("extra.hint")}</p>
             <div className="grid grid-cols-2 gap-2.5">
               <Field label={t("extra.network")}>
                 <input className={inputCls} defaultValue={p.network ?? ""} maxLength={120} onChange={(e) => save("network", { network: e.target.value })} data-testid="project-network" />
               </Field>
-              <Field label={t("extra.video")} hint={t("extra.videoHint")}>
+              <Field label={t("extra.video")}>
                 <input className={inputCls} dir="ltr" placeholder="https://vimeo.com/…" defaultValue={p.video ?? ""} onChange={(e) => save("video", { video: e.target.value })} data-testid="project-video" />
               </Field>
             </div>
             {(["details", "credits", "thanks"] as const).map((k) => (
-              <Field key={k} label={t(`extra.${k}`)} hint={t(`extra.${k}Hint`)}>
+              <Field key={k} label={t(`extra.${k}`)}>
                 <textarea
                   className={cx(areaCls, "min-h-[84px]")}
+                  placeholder={t(`extra.${k}Placeholder`)}
                   defaultValue={rowsText(p[k])}
                   onChange={(e) => save(k, { [k]: e.target.value })}
                   data-testid={`project-${k}`}
                 />
               </Field>
             ))}
-            <Field label={t("extra.tools")} hint={t("fields.tagsHint")}>
-              <input className={inputCls} defaultValue={(p.tools ?? []).join(", ")} onChange={(e) => save("tools", { tools: e.target.value })} data-testid="project-tools" />
+            <Field label={t("extra.tools")}>
+              <input className={inputCls} placeholder={t("extra.toolsPlaceholder")} defaultValue={(p.tools ?? []).join(", ")} onChange={(e) => save("tools", { tools: e.target.value })} data-testid="project-tools" />
             </Field>
           </Panel>
 
-          <Panel title={t("card.title")}>
-            <p className="text-muted m-0 text-[12px]">{t("card.hint")}</p>
+          <Panel title={t("card.title")} fold={{ open: false }}>
             {(
               [
                 ["size", ["m", "l", "wide"]],
@@ -1054,8 +1058,8 @@ export function ProjectEditor({
             </div>
           </Panel>
 
-          <Panel title={t("seo.title")}>
-            <Field label={t("seo.pageTitle")} hint={t("seo.pageTitleHint")}>
+          <Panel title={t("seo.title")} fold={{ open: !!(p.seo.title || p.seo.description) }}>
+            <Field label={t("seo.pageTitle")}>
               <input
                 className={inputCls}
                 value={p.seo.title}

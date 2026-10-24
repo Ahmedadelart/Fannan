@@ -67,6 +67,8 @@ test("a full project: uploads, embeds, credits, order, crop and cover", async ({
   await page.getByRole("textbox", { name: "Project title" }).fill("Fever Dreams");
   await page.getByRole("combobox", { name: "Category" }).selectOption("character-design");
   await page.getByRole("textbox", { name: "Your role" }).fill("Lead character designer");
+  // Studio and the rest live in "More about the project", folded until wanted (round 17).
+  await page.getByText("More about the project").click();
   await page.getByRole("textbox", { name: "Studio" }).fill("Big Cat Animation");
   await page.getByRole("textbox", { name: "Description" }).first().fill("A boy who walks into other people’s dreams.");
 
@@ -100,6 +102,7 @@ test("a full project: uploads, embeds, credits, order, crop and cover", async ({
   await page.reload();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Fever Dreams");
   await expect(page.getByRole("textbox", { name: "Your role" })).toHaveValue("Lead character designer");
+  await page.getByText("Search & sharing").click();
   await expect(page.getByRole("textbox", { name: "Project link" })).toHaveValue("fever-dreams");
   await expect(page.getByTestId("media-item")).toHaveCount(5);
   await expect(page.getByTestId("media-item").first()).toContainText("anim.gif");

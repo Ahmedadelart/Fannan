@@ -584,6 +584,26 @@ _Last updated: 10 Oct 2026, phase 8 (Editor 2.0) under way; round 8 (guided setu
   - both turn servers away (403) on most project pages, so a link often falls back to "type the title yourself" and the link is still kept.
 - Test: `tests/e2e/import.spec.ts`.
 
+### Round 17: editor review against Carbonmade (25 Oct 2026)
+- **Settings in the side panel:** a section's or item's settings now open in the side panel (Carbonmade-style), so they no longer cover the section being changed.
+  - "Back" returns to the sections; Escape and the rail close them too.
+  - A button pops them out as the movable card (Ahmed's round 4 wish); that choice is remembered.
+- **Section library:**
+  - two small thumbnails a row with one-line names;
+  - category chips wrap instead of running off the edge;
+  - no instruction sentence (it's a tooltip now) and no counts;
+  - the page switcher without its "Currently editing" label.
+- **Top bar:** the status is a small line beside Publish instead of a wide empty pill; Reorder is an icon.
+- **Names:** the rail's "Home" is now "Dashboard", like the dashboard menu.
+- **Project page:**
+  - "Credits" (which held title, category and year) is now "The basics";
+  - "Title" (the gallery card) is now "Card in galleries";
+  - Studio and Team credits moved into "More about the project";
+  - More about the project, Card in galleries and Search & sharing start folded (open when they hold something);
+  - helper sentences became example text in the boxes;
+  - the upload area lists formats in one line.
+- Next.js updated 16.4.0 → 16.4.3 (security patch; builds refused to run on 16.4.0).
+
 ## Not done yet from the phase 6 "done when"
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).
 

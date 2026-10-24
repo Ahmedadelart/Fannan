@@ -88,7 +88,10 @@ function Canvas({
   onCloseSettings,
   onAddElement,
   itemId,
+  onDock,
 }: {
+  /** Round 17: puts the floating card back into the side panel. */
+  onDock?: () => void;
   /** The free-form item whose settings are open: the card opens beside it. */
   itemId?: string | null;
   width: number;
@@ -498,14 +501,28 @@ function Canvas({
                 <Icon name="drag" size={16} className="text-muted" />
                 {t("settings")}
               </span>
-              <button
-                type="button"
-                aria-label={t("close")}
-                className="text-muted hover:text-ink hover:bg-mist flex size-7 items-center justify-center rounded-full"
-                onClick={onCloseSettings}
-              >
-                <Icon name="close" size={16} />
-              </button>
+              <span className="flex items-center">
+                {onDock && (
+                  <button
+                    type="button"
+                    aria-label={t("dock")}
+                    title={t("dock")}
+                    className="text-muted hover:text-ink hover:bg-mist flex size-7 items-center justify-center rounded-full"
+                    onClick={onDock}
+                    data-testid="settings-dock"
+                  >
+                    <Icon name="send-back" size={16} />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  aria-label={t("close")}
+                  className="text-muted hover:text-ink hover:bg-mist flex size-7 items-center justify-center rounded-full"
+                  onClick={onCloseSettings}
+                >
+                  <Icon name="close" size={16} />
+                </button>
+              </span>
             </div>
             <div className="fannan-compact overflow-y-auto p-3">{settings}</div>
           </div>
@@ -746,6 +763,35 @@ export function Editor({
   const [designOpen, setDesignOpen] = useState<DesignSection | null>("styles");
   const [panelOpen, setPanelOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  // Round 17 (Carbonmade-style): a section's settings open in the side panel, so they never cover
+  // the section being changed. The artist can pop them out as a card they move (and that choice stays).
+  const [cardFloat, setCardFloat] = useState(false);
+  const [wide, setWide] = useState(true);
+  useEffect(() => {
+    const q = window.matchMedia("(min-width: 1024px)");
+    const on = () => setWide(q.matches);
+    const frame = requestAnimationFrame(() => {
+      on();
+      try {
+        setCardFloat(localStorage.getItem("fannan.cardFloat") === "1");
+      } catch {
+        /* storage blocked: docked */
+      }
+    });
+    q.addEventListener("change", on);
+    return () => {
+      cancelAnimationFrame(frame);
+      q.removeEventListener("change", on);
+    };
+  }, []);
+  const floatCard = (v: boolean) => {
+    setCardFloat(v);
+    try {
+      localStorage.setItem("fannan.cardFloat", v ? "1" : "0");
+    } catch {
+      /* fine */
+    }
+  };
   const [device, setDevice] = useState<Device>("desktop");
   const small = () => window.matchMedia("(max-width: 1023px)").matches;
   // On a phone, start with the phone preview.
@@ -927,6 +973,12 @@ export function Editor({
   }
 
   sectionKeys.current = (e: KeyboardEvent) => {
+    // Escape inside the side panel's settings closes them, even from a text box (round 17).
+    if (e.key === "Escape" && settingsOpen && (e.target as HTMLElement | null)?.closest?.('[data-testid="left-panel"]')) {
+      setSettingsOpen(false);
+      setFreeItem(null);
+      return;
+    }
     // Nothing on the page changes from the keyboard while the preview is open.
     if (typing(e) || preview) return;
     const k = e.key.toLowerCase();
@@ -1236,6 +1288,14 @@ export function Editor({
     { id: "settings", icon: "settings", label: t("rail.settings"), short: t("rail.settings") },
   ] as const;
   const openRail = (id: Rail) => {
+    // Settings shown in the panel give way to whatever the rail opens.
+    if (docked) {
+      setSettingsOpen(false);
+      setFreeItem(null);
+      setRail(id);
+      setPanelOpen(true);
+      return;
+    }
     if (rail === id && panelOpen && !(id === "projects" && projectId)) return setPanelOpen(false);
     setRail(id);
     if (id === "projects") setProjectId(null);
@@ -1288,6 +1348,11 @@ export function Editor({
       onDrawItem={(itemId) => beginDoodle(block.id, itemId)}
     />
   ) : null);
+  const docked = settingsOpen && !!blockSettings && !reorder && !doodleSession && wide && !cardFloat;
+  const closeSettings = () => {
+    setSettingsOpen(false);
+    setFreeItem(null);
+  };
 
   return (
     <div className="text-ink bg-surface relative flex h-dvh">
@@ -1413,7 +1478,7 @@ export function Editor({
           onClick={() => setPanelOpen(false)}
         />
       )}
-      {panelOpen && (
+      {(panelOpen || docked) && (
         <aside
           className={cx(
             "border-line flex flex-none flex-col border-e",
@@ -1423,9 +1488,36 @@ export function Editor({
             "max-lg:shadow-float max-lg:absolute max-lg:inset-y-0 max-lg:start-20 max-lg:z-30",
           )}
           data-testid="left-panel"
-          data-panel={rail}
+          data-panel={docked ? "settings" : rail}
         >
-          {embed && (
+          {docked && (
+            // The selected section's (or item's) settings, in the panel: back to the sections, pop out, close.
+            <div role="region" aria-label={t("section.settings")} data-testid="block-settings" className="flex min-h-0 flex-1 flex-col">
+              <div className="border-line flex h-12 flex-none items-center justify-between gap-1 border-b ps-2 pe-2">
+                <button
+                  type="button"
+                  onClick={closeSettings}
+                  className="hover:bg-mist flex h-9 items-center gap-1.5 rounded-pill ps-2 pe-3 text-[13px] font-semibold"
+                  data-testid="settings-back"
+                >
+                  <Icon name="arrow-left" size={18} className="rtl:-scale-x-100" />
+                  {panelOpen && rail === "blocks" ? t("panelTabs.blocks") : t("section.done")}
+                </button>
+                <button
+                  type="button"
+                  aria-label={t("section.float")}
+                  title={t("section.float")}
+                  onClick={() => floatCard(true)}
+                  className="text-muted hover:text-ink hover:bg-mist flex size-9 items-center justify-center rounded-full"
+                  data-testid="settings-float"
+                >
+                  <Icon name="bring-front" size={18} />
+                </button>
+              </div>
+              <div className="fannan-compact min-h-0 flex-1 overflow-y-auto p-4">{blockSettings}</div>
+            </div>
+          )}
+          {!docked && embed && (
             <>
               {/* Home, projects, messages, stats, settings and Pro, opened right here. */}
               <div className="bg-paper border-line flex h-12 flex-none items-center justify-between gap-2 border-b ps-4 pe-2">
@@ -1460,19 +1552,18 @@ export function Editor({
               />
             </>
           )}
-          {rail === "blocks" && (
+          {!docked && rail === "blocks" && (
             <>
               <div className="px-3 pt-3">
                 <button
                   type="button"
                   aria-expanded={pagesOpen}
                   onClick={() => setPagesOpen(!pagesOpen)}
-                  className="bg-surface flex w-full items-center justify-between rounded-[16px] px-4 py-2.5 text-start"
+                  className="bg-surface flex h-11 w-full items-center justify-between rounded-[14px] px-4 text-start"
                   data-testid="page-switcher"
                 >
-                  <span className="flex min-w-0 flex-col">
-                    <span className="text-muted text-[10px] font-semibold tracking-[0.1em] uppercase">{t("currentlyEditing")}</span>
-                    <span className="truncate text-[15px] font-semibold">{page.title}</span>
+                  <span className="truncate text-[15px] font-semibold" title={t("currentlyEditing")}>
+                    {page.title}
                   </span>
                   <Icon name="chevron-down" size={18} className={cx("transition-transform", pagesOpen && "rotate-180")} />
                 </button>
@@ -1537,7 +1628,7 @@ export function Editor({
             </>
           )}
 
-          {rail === "doodle" && (
+          {!docked && rail === "doodle" && (
             <DoodlePanel
               session={doodleSession}
               tools={doodleTools}
@@ -1556,7 +1647,7 @@ export function Editor({
             />
           )}
 
-          {rail === "design" && (
+          {!docked && rail === "design" && (
             <div className="flex flex-col">
               <h2 className="text-muted px-4 pt-4 pb-2 text-[11px] font-semibold tracking-[0.1em] uppercase">{t("rail.design")}</h2>
               {(["logo", "nav", "styles", "fonts", "footer", "lock"] as DesignSection[]).map((sec) => (
@@ -1601,7 +1692,7 @@ export function Editor({
             </div>
           )}
 
-          {rail === "projects" && !projectId && (
+          {!docked && rail === "projects" && !projectId && (
             <ProjectsPanel
               projects={projects}
               media={media}
@@ -1626,16 +1717,9 @@ export function Editor({
             {td("deletionPending")}
           </button>
         )}
-        {/* Three columns, so the status sits centred over the site, not the whole window. */}
-        <header className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 px-3 py-2.5 md:grid-cols-[1fr_minmax(0,420px)_1fr] md:px-4">
-          <span
-            className="bg-paper text-muted col-span-2 flex h-8 min-w-0 items-center justify-center gap-2 truncate rounded-pill px-3 text-[12px] md:col-span-1 md:col-start-2 md:row-start-1"
-            role="status"
-            data-testid="editor-status"
-          >
-            {status}
-          </span>
-          <div className="flex items-center gap-1.5 md:col-start-1 md:row-start-1">
+        {/* A slim bar: undo, redo and reorder on one side; screen size, preview, status and Publish on the other. */}
+        <header className="flex items-center justify-between gap-2 px-3 py-2.5 md:px-4">
+          <div className="flex items-center gap-1.5">
             <IconButton icon="undo" label={t("undo")} size="sm" disabled={historySize.past === 0} onClick={undo} />
             <IconButton icon="redo" label={t("redo")} size="sm" disabled={historySize.future === 0} onClick={redo} />
             <button
@@ -1649,15 +1733,15 @@ export function Editor({
                 setSettingsOpen(false);
               }}
               className={cx(
-                "flex h-9 items-center gap-1.5 rounded-pill px-3 text-[13px] font-semibold",
-                reorder ? "bg-secondary-container text-on-secondary-container" : "bg-paper text-ink hover:bg-white",
+                "flex h-9 min-w-9 items-center justify-center gap-1.5 rounded-pill text-[13px] font-semibold",
+                reorder ? "bg-secondary-container text-on-secondary-container px-3" : "bg-paper text-ink hover:bg-white",
               )}
             >
               <Icon name="reorder" size={16} />
-              <span className={reorder ? undefined : "max-lg:sr-only"}>{reorder ? t("reorderDone") : t("reorder")}</span>
+              {reorder && <span>{t("reorderDone")}</span>}
             </button>
           </div>
-          <div className="flex items-center justify-end gap-1.5 md:col-start-3 md:row-start-1">
+          <div className="flex min-w-0 items-center justify-end gap-1.5">
             <div className="bg-paper flex gap-0.5 rounded-pill p-[3px]" role="radiogroup" aria-label={t("device")}>
               {(["desktop", "tablet", "phone"] as Device[]).map((d) => (
                 <button
@@ -1691,6 +1775,9 @@ export function Editor({
             >
               <Icon name="preview" size={18} />
             </button>
+            <span className="text-muted min-w-0 truncate px-1.5 text-[12px] max-md:hidden" role="status" data-testid="editor-status">
+              {status}
+            </span>
             <span data-tip="publish">
               <button
                 type="button"
@@ -1734,8 +1821,9 @@ export function Editor({
           reorder={reorder}
           actions={sectionActions}
           version={page.blocks}
-          settings={blockSettings}
+          settings={docked ? null : blockSettings}
           settingsOpen={settingsOpen}
+          onDock={wide ? () => floatCard(false) : undefined}
           itemId={block?.type === "free" && settingsOpen ? freeItem : null}
           onAddElement={
             block?.type === "free"

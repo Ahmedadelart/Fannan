@@ -506,7 +506,8 @@
       "teamPlaceholder": "Photographer: Name · Styling: Name",
       "description": "Description",
       "tags": "Tags",
-      "tagsHint": "Separate with commas."
+      "tagsHint": "Separate with commas.",
+      "tagsPlaceholder": "broadcast, character design"
     },
     "categories": {
       "": "Choose a category",
@@ -595,7 +596,7 @@
     "partTitle": "Headline",
     "partHint": "A headline starts a new part of the project, like “Sketches” or “Final frames”.",
     "card": {
-      "title": "Title",
+      "title": "Card in galleries",
       "hint": "How this project looks in galleries that use each project's own card size.",
       "size": "Size",
       "text": "Text",
@@ -628,7 +629,11 @@
       "creditsHint": "One per line, like “Directed by: Name”.",
       "thanks": "Special thanks",
       "thanksHint": "One per line, like “Name: for the sound design”.",
-      "tools": "Tools"
+      "tools": "Tools",
+      "detailsPlaceholder": "Episodes: 26\nDates: 2020 – 2022",
+      "creditsPlaceholder": "Directed by: Name",
+      "thanksPlaceholder": "Name: for the sound design",
+      "toolsPlaceholder": "Photoshop, Toon Boom"
     },
     "use": {
       "label": "Shows as",
@@ -670,7 +675,8 @@
       "linkKept": "The project page will link back to it on {site}.",
       "create": "Create project",
       "cancel": "Cancel"
-    }
+    },
+    "basics": "The basics"
   },
   "editor": {
     "metaTitle": "Site editor",
@@ -1008,7 +1014,10 @@
       "close": "Close",
       "addSection": "Add section",
       "moveCard": "Drag to move · double-click to put it back",
-      "customize": "Customize"
+      "customize": "Customize",
+      "float": "Pop out as a card you can move",
+      "dock": "Back into the side panel",
+      "done": "Done"
     },
     "free": {
       "item": "Item",
@@ -1136,7 +1145,7 @@
       "stats": "Stats",
       "help": "Help",
       "settings": "Settings",
-      "home": "Home",
+      "home": "Dashboard",
       "messages": "Messages",
       "upgrade": "Fannan Pro",
       "pages": "Pages",

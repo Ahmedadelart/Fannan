@@ -90,7 +90,8 @@ test("build, preview on phone size, publish, then edit without changing the live
   await expect(page.getByRole("dialog", { name: "Choose media" })).toBeHidden({ timeout: 60_000 });
   await expect(canvas(page).locator("img[src*='/api/media/variants/']").first()).toBeVisible();
 
-  // Pages: add a custom page from the page switcher and name it in Page settings.
+  // Pages: back from the item's settings, add a custom page from the page switcher and name it in Page settings.
+  await page.getByTestId("settings-back").click();
   await page.getByTestId("page-switcher").click();
   await page.getByRole("button", { name: "Custom page", exact: true }).click();
   await page.getByRole("tab", { name: "Page settings" }).click();

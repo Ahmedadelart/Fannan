@@ -34,6 +34,7 @@ test("project fields, section header, grid by tag and project feature reach the 
   await page.waitForLoadState("networkidle");
   await page.getByLabel("Your role").fill("Animation Supervisor");
   await page.getByLabel("Tags").fill("broadcast");
+  await page.getByText("More about the project").click();
   await page.getByTestId("project-network").fill("Majid TV");
   await page.getByTestId("project-details").fill("Episodes: 26\nDates: 2020 – 2022");
   await page.getByTestId("project-credits").fill("Directed by: Ahmed Gamal");
