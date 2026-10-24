@@ -565,7 +565,24 @@ _Last updated: 10 Oct 2026, phase 8 (Editor 2.0) under way; round 8 (guided setu
     - gallery spacing up to 120px;
     - the logo wall in the section library.
   - Fix for everyone: see-through GIFs now become animated WebP (MP4 has no transparency); large ones stay videos.
-  - **Waiting on Ahmed:** the home page's top video file (the Long Night art stands in); YouTube/Vimeo links for the reels on 2D Animation and Storyboard.
+  - **Waiting on Ahmed (round 15):** the home page's top video file (the Long Night art stands in); YouTube/Vimeo links for the reels on 2D Animation and Storyboard.
+
+### Round 16: "Bring your work in" (24 Oct 2026)
+- Projects page has a new **Bring your work in** button.
+- **From a folder:**
+  - each subfolder becomes a project, named after the folder ("02_fever-dreams" becomes "Fever dreams");
+  - files come in at full quality, in name order, 3 at a time; the first one is the cover;
+  - non-pictures are skipped;
+  - Free plans only tick as many projects as they have room for.
+- **From a link:**
+  - for Behance, ArtStation or Dribbble, Fannan reads only the preview tags the site publishes (title, description, picture), from those sites alone, with each redirect checked again;
+  - the project page shows a "Behance: link" detail, which now renders as a link.
+- Both ways ask the artist to confirm the work is theirs.
+- **Why not a full import:**
+  - Behance closed its developer access in 2021;
+  - ArtStation has no public access for other apps and objects to automated copying;
+  - both turn servers away (403) on most project pages, so a link often falls back to "type the title yourself" and the link is still kept.
+- Test: `tests/e2e/import.spec.ts`.
 
 ## Not done yet from the phase 6 "done when"
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).

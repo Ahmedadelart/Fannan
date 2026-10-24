@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui/Surfaces";
 import type { Locale } from "@/i18n/locales";
 import { listProjects } from "@/lib/server/projects";
 import { loadDashboard, priceLabel } from "../load";
+import { ImportButton } from "./ImportButton";
 import { NewProjectButton } from "./NewProjectButton";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/app/projects">): Promise<Metadata> {
@@ -45,7 +46,12 @@ export default async function ProjectsPage({ params, searchParams }: PageProps<"
           </h1>
           <p className="text-muted mt-1">{t("sub")}</p>
         </div>
-        {!atLimit && <NewProjectButton label={t("new")} title={t("newTitle")} size="lg" />}
+        {!atLimit && (
+          <div className="flex flex-wrap gap-2">
+            <ImportButton label={t("import.button")} remaining={limit === null ? null : Math.max(0, limit - all.length)} size="lg" />
+            <NewProjectButton label={t("new")} title={t("newTitle")} size="lg" />
+          </div>
+        )}
       </div>
 
       {(atLimit || sp.limit) && limit !== null && (

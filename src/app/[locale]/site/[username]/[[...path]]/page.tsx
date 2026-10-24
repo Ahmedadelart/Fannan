@@ -423,7 +423,16 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
                 <dt className="text-[13px]" style={{ color: "var(--site-muted)" }}>
                   {k}
                 </dt>
-                <dd className="m-0 font-semibold">{v}</dd>
+                <dd className="m-0 font-semibold">
+                  {/* A detail that is a web address (say "Behance: https://…") is a link, shown by its site name. */}
+                  {/^https:\/\/[^\s]+$/.test(v) ? (
+                    <a href={v} target="_blank" rel="noopener nofollow" style={{ color: "inherit" }}>
+                      {new URL(v).hostname.replace(/^www\./, "")}
+                    </a>
+                  ) : (
+                    v
+                  )}
+                </dd>
               </div>
             ))}
           </dl>

@@ -2,6 +2,7 @@
 
 import { requireSession } from "@/lib/server/session";
 import { rateLimit } from "@/lib/server/rate-limit";
+import { linkPreview, siteOf, type LinkPreview } from "@/lib/server/linkPreview";
 import {
   addEmbed,
   addText,
@@ -11,6 +12,7 @@ import {
   deleteProject,
   duplicateProject,
   finishUpload,
+  importPreviewImage,
   ownerOf,
   ProjectError,
   reorderMedia,
@@ -114,5 +116,33 @@ export async function removeItem(projectId: string, mediaId: string) {
   return attempt(async () => {
     await deleteMedia(await owner(), projectId, mediaId);
     return {};
+  });
+}
+
+/** "Bring your work in": what a Behance / ArtStation / Dribbble project link says about itself. */
+export async function previewLink(url: string): Promise<{ ok: true; preview: LinkPreview } | { ok: false; error: "bad-link" | "error" }> {
+  const { uid } = await requireSession();
+  if (!rateLimit(`preview:${uid}`, 60, 60 * 60 * 1000)) return { ok: false, error: "error" };
+  const preview = await linkPreview(String(url ?? "")).catch(() => null);
+  return preview ? { ok: true, preview } : { ok: false, error: "bad-link" };
+}
+
+/**
+ * A project from a link: its title and words, a "Behance: <link>" line on the project page, and,
+ * when the artist wants it, the link's preview picture as a first cover. The artist adds the full
+ * pictures from their own files.
+ */
+export async function projectFromLink(input: { url: string; title: string; description: string; image?: string }): Promise<Result<{ id: string }>> {
+  const site = siteOf(String(input?.url ?? ""));
+  if (!site) return { ok: false, error: "bad-link" };
+  return attempt(async () => {
+    const o = await owner();
+    const id = await createProject(o, String(input.title ?? "").slice(0, 120));
+    await updateProject(o, id, {
+      description: String(input.description ?? "").slice(0, 4000),
+      details: `${site.name}: ${site.url.toString()}`.slice(0, 260),
+    });
+    if (input.image && siteOf(input.image)) await importPreviewImage(o, id, input.image).catch(() => null);
+    return { id };
   });
 }

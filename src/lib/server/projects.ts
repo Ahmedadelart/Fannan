@@ -11,7 +11,8 @@ import { parseVideoLink } from "@/lib/video";
 import { getUser, userPlan, type SiteDoc } from "./data";
 import { processMedia, type ProcessKind, type ProcessResult, type Variants } from "./processor";
 import { checkPassword, scryptHash } from "./passwords";
-import { deleteObject, deletePrefix, objectSize, readHead, signedUploadUrl } from "./storage";
+import { deleteObject, deletePrefix, objectSize, readHead, signedUploadUrl, writeObject } from "./storage";
+import { fetchPreviewImage } from "./linkPreview";
 
 /* ---------- shapes ---------- */
 
@@ -516,6 +517,21 @@ export async function startUpload(
 type Pending = MediaDoc & { pendingOriginal?: string; pendingGen?: number; pendingSize?: number };
 
 /** After the browser finished uploading: check the file and make the web versions. */
+/**
+ * "Bring your work in" (round 16): a project link's preview picture, fetched from the portfolio site's
+ * picture host, goes through the same checks and processing as a file the artist uploads.
+ */
+export async function importPreviewImage(o: Owner, projectId: string, imageUrl: string): Promise<MediaDoc & { id: string }> {
+  const data = await fetchPreviewImage(imageUrl);
+  if (!data) throw new ProjectError("unreadable");
+  const type = sniff(data.subarray(0, 64));
+  if (!type || !type.startsWith("image/")) throw new ProjectError("bad-type");
+  const { mediaId } = await startUpload(o, projectId, { name: "preview", type, size: data.length }, undefined, { link: false });
+  const media = (await mediaCol(o.siteId).doc(mediaId).get()).data() as MediaDoc & { pendingOriginal: string };
+  await writeObject(media.pendingOriginal, data, type);
+  return finishUpload(o, mediaId);
+}
+
 export async function finishUpload(o: Owner, mediaId: string): Promise<MediaDoc & { id: string }> {
   const { ref, media } = (await getMediaRef(o, mediaId)) as { ref: DocumentReference; media: Pending };
   const path = media.pendingOriginal;
