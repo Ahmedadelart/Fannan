@@ -1,22 +1,9 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { at, signUp } from "./helpers";
+import { openEditor } from "./editor-helpers";
 
 // Showcase blocks (for portfolios like ahmedadel.art, available to everyone): project fields for rich
 // project pages, a section header, project grids by tag with role captions, and the project feature.
-
-async function openEditor(page: Page) {
-  await page.goto(at("app", "/editor"));
-  const dialog = page.getByRole("dialog");
-  await dialog.waitFor({ timeout: 3000 }).catch(() => {});
-  for (let i = 0; i < 6 && (await dialog.isVisible().catch(() => false)); i++) {
-    const before = await dialog.getAttribute("aria-label");
-    await page.getByRole("button", { name: /^(Next|Got it)$/ }).click();
-    await expect
-      .poll(async () => ((await dialog.isVisible()) ? await dialog.getAttribute("aria-label") : "closed"))
-      .not.toBe(before);
-  }
-  await page.waitForLoadState("networkidle");
-}
 
 test("project fields, section header, grid by tag and project feature reach the live site", async ({ page, browser }, info) => {
   test.skip(info.project.name !== "desktop");

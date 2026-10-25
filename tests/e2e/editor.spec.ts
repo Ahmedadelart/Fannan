@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { at, signUp } from "./helpers";
+import { closeTips } from "./editor-helpers";
 
 // Phase 3 main flow: build the site in the editor, preview on phone size, publish, then keep
 // editing without the live (published) copy changing until the next publish.
@@ -17,18 +18,6 @@ async function firestore(path: string) {
 async function siteIdFor(username: string) {
   const doc = await firestore(`usernames/${username}`);
   return (doc!.fields.siteId as { stringValue: string }).stringValue;
-}
-
-async function closeTips(page: Page) {
-  const tips = page.getByRole("dialog");
-  // Click through the tips one at a time, waiting for each to change before the next click.
-  for (let i = 0; i < 6 && (await tips.isVisible().catch(() => false)); i++) {
-    const before = await tips.getAttribute("aria-label");
-    await page.getByRole("button", { name: /^(Next|Got it|التالي|فهمت)$/ }).click();
-    await expect
-      .poll(async () => ((await tips.isVisible()) ? await tips.getAttribute("aria-label") : "closed"))
-      .not.toBe(before);
-  }
 }
 
 const canvas = (page: Page) => page.getByTestId("canvas");

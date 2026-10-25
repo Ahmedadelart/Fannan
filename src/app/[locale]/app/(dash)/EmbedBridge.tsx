@@ -17,6 +17,13 @@ export function goTop(url: string) {
   else window.location.href = url;
 }
 
+/** Round 18: Settings tells the editor around it what changed (language, social links, CV), so the
+ *  editor shows it at once and never saves an older copy over it. Outside the editor it does nothing. */
+export function tellEditor(changed: { language?: "en" | "ar"; social?: Array<{ network: string; url: string }>; cvMediaId?: string | null }) {
+  if (window.top === window.self) return;
+  window.parent.postMessage({ fannan: "changed", ...changed }, window.location.origin);
+}
+
 export function EmbedBridge() {
   useEffect(() => {
     if (window.top === window.self) return;
@@ -27,6 +34,13 @@ export function EmbedBridge() {
       if (url.origin !== window.location.origin) {
         a.target = "_blank";
         a.rel = "noopener";
+        return;
+      }
+      // A link to one of the editor's own panels (Settings → "Change in Design") just opens that panel.
+      const panel = url.searchParams.get("panel");
+      if (panel && /^(\/ar)?\/editor\/?$/.test(url.pathname)) {
+        e.preventDefault();
+        window.parent.postMessage({ fannan: "open", panel }, window.location.origin);
         return;
       }
       if (TOP.some((r) => r.test(url.pathname))) {

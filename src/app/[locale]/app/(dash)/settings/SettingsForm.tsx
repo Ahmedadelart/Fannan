@@ -14,6 +14,7 @@ import { cx } from "@/lib/cx";
 import { imageSources } from "@/lib/media";
 import type { DomainInfo } from "@/lib/server/domains";
 import type { SiteSettings } from "@/lib/server/settings";
+import { tellEditor } from "../EmbedBridge";
 import { beginUpload, completeUpload } from "../projects/actions";
 import {
   changeEmail,
@@ -148,7 +149,6 @@ export function SettingsForm({ data }: { data: SettingsData }) {
 
   const [s, setS] = useState<SiteSettings>(data.settings);
   const [language, setLanguage] = useState(data.language);
-  const [favicon, setFavicon] = useState(data.favicon);
   const [shareImage, setShareImage] = useState(data.shareImage);
   const [cv, setCv] = useState(data.cv);
   const [social, setSocial] = useState<string[]>(() => {
@@ -157,6 +157,9 @@ export function SettingsForm({ data }: { data: SettingsData }) {
   });
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  // What the server last had. Only changed fields are sent, so the editor (open beside this page)
+  // never gets its own social links or CV overwritten by an older copy.
+  const base = useRef({ language: data.language, social: JSON.stringify(data.settings.social), cv: data.cv?.id ?? null });
   const [askCustom, setAskCustom] = useState(!!data.settings.contact.customQuestion);
 
   const update = <K extends keyof SiteSettings>(key: K, value: SiteSettings[K]) => {
@@ -170,21 +173,28 @@ export function SettingsForm({ data }: { data: SettingsData }) {
     if (gaBad || pixelBad) return toast(t("fixErrors"));
     setSaving(true);
     const contact = { ...s.contact, customQuestion: askCustom ? s.contact.customQuestion : "" };
+    const links = social.map((u) => u.trim()).filter(Boolean).map((url) => ({ network: networkOf(url), url }));
+    const changed: { language?: "en" | "ar"; social?: typeof links; cvMediaId?: string | null } = {};
+    if (language !== base.current.language) changed.language = language;
+    if (JSON.stringify(links) !== base.current.social) changed.social = links;
+    if ((cv?.id ?? null) !== base.current.cv) changed.cvMediaId = cv?.id ?? null;
     const [a, b] = await Promise.all([
       saveSiteSettings({
         privacy: s.privacy,
         contact,
-        social: social.map((u) => u.trim()).filter(Boolean).map((url) => ({ network: networkOf(url), url })),
-        cvMediaId: cv?.id ?? null,
+        ...(changed.social ? { social: changed.social } : {}),
+        ...("cvMediaId" in changed ? { cvMediaId: changed.cvMediaId } : {}),
         seo: { ...s.seo, shareImageId: shareImage?.id ?? null },
         integrations: s.integrations,
       }),
-      saveBasics({ language, faviconMediaId: favicon?.id ?? null }),
+      changed.language ? saveBasics({ language: changed.language }) : Promise.resolve({ ok: true as const }),
     ]);
     setSaving(false);
     if (!a.ok || !b.ok) return toast(t("error"));
+    base.current = { language, social: JSON.stringify(links), cv: cv?.id ?? null };
     setDirty(false);
-    toast(language !== data.language || favicon?.id !== data.favicon?.id ? t("savedPublish") : t("saved"), "check");
+    if (Object.keys(changed).length) tellEditor(changed);
+    toast(changed.language ? t("savedPublish") : t("saved"), "check");
   }
 
   /* uploads go to the site library, like images picked in the editor */
@@ -424,22 +434,21 @@ export function SettingsForm({ data }: { data: SettingsData }) {
                 setDirty(true);
               }}
             />
-            <ImagePick
-              label={t("seo.favicon")}
-              hint={t("seo.faviconHint")}
-              img={favicon}
-              fallback={(data.defaults.title || data.username).slice(0, 1).toUpperCase()}
-              button={favicon ? t("replace") : t("upload")}
-              removeLabel={t("remove")}
-              onFile={async (f) => {
-                const r = await upload(f, "image");
-                if (r) setFavicon({ id: r.id, src: r.src });
-              }}
-              onRemove={() => {
-                setFavicon(null);
-                setDirty(true);
-              }}
-            />
+            <div className="flex flex-none flex-col gap-1.5">
+              <span className="text-ink-soft text-[12px] font-semibold">{t("seo.favicon")}</span>
+              <div className="font-heading font-heading-weight bg-lime flex size-16 items-center justify-center overflow-hidden rounded-[14px] text-[30px]">
+                {data.favicon ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={data.favicon.src} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span>{(data.defaults.title || data.username).slice(0, 1).toUpperCase()}</span>
+                )}
+              </div>
+              <a href="/editor?panel=design" data-testid="favicon-in-design" className={buttonClasses("outline", "sm")}>
+                {t("seo.faviconChange")}
+              </a>
+              <span className="text-muted max-w-[220px] text-[12px]">{t("seo.faviconHint")}</span>
+            </div>
           </div>
         </Section>
 
@@ -556,7 +565,7 @@ export function SettingsForm({ data }: { data: SettingsData }) {
       >
         <span className="text-[14px] font-medium">{t("unsaved")}</span>
         <Button onClick={save} disabled={saving || !dirty}>
-          <Icon name="publish" size={18} className="rtl:-scale-x-100" />
+          <Icon name="publish" size={18} />
           {saving ? t("saving") : t("save")}
         </Button>
       </div>

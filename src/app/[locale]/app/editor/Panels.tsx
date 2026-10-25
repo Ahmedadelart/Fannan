@@ -643,12 +643,15 @@ export function StyleTab({
   section,
   credit,
   onFontPreview,
+  onOpenSettings,
 }: {
   draft: SiteDraft;
   media: Record<string, SiteMedia>;
   setDraft: (fn: (d: SiteDraft) => SiteDraft, key?: string) => void;
   openPicker: (kind: MediaKind, done: (id: string) => void) => void;
   section: DesignSection;
+  /** The site language lives in Settings (round 18): this opens it. */
+  onOpenSettings?: () => void;
   credit?: boolean;
   /** Round 12: shows fonts on the page while pointing at them in the picker. */
   onFontPreview?: (fonts: Theme["fonts"] | null) => void;
@@ -801,15 +804,18 @@ export function StyleTab({
         </div>
       </div>
       <Range title={t("radius")} value={th.radius} min={0} max={24} unit="px" onChange={(v) => setTheme({ radius: v }, "radius")} />
-      <Choice
-        title={t("language")}
-        value={draft.language}
-        options={[
-          ["en", t("languages.en")],
-          ["ar", t("languages.ar")],
-        ]}
-        onChange={(v) => setDraft((d) => ({ ...d, language: v }))}
-      />
+      <button
+        type="button"
+        data-testid="site-language"
+        onClick={onOpenSettings}
+        className="hover:bg-mist -mx-2 flex h-9 items-center justify-between rounded-[10px] px-2 text-[13px]"
+      >
+        {t("language")}
+        <span className="text-muted flex items-center gap-1">
+          {t(`languages.${draft.language}`)}
+          <Icon name="chevron-down" size={16} className="-rotate-90 rtl:rotate-90" />
+        </span>
+      </button>
     </div>
   );
 }

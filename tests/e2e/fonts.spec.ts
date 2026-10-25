@@ -1,21 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 import { at, signUp } from "./helpers";
+import { openEditor } from "./editor-helpers";
 
 // Round 12: 60 fonts and a picker with pairs, live preview on hover, search and keyboard.
-
-async function openEditor(page: Page) {
-  await page.goto(at("app", "/editor"));
-  const dialog = page.getByRole("dialog");
-  await dialog.waitFor({ timeout: 3000 }).catch(() => {});
-  for (let i = 0; i < 6 && (await dialog.isVisible().catch(() => false)); i++) {
-    const before = await dialog.getAttribute("aria-label");
-    await page.getByRole("button", { name: /^(Next|Got it)$/ }).click();
-    await expect
-      .poll(async () => ((await dialog.isVisible()) ? await dialog.getAttribute("aria-label") : "closed"))
-      .not.toBe(before);
-  }
-  await page.waitForLoadState("networkidle");
-}
 
 const headingVar = (page: Page) =>
   page.getByTestId("canvas").locator(".site-root").first().evaluate((el) => getComputedStyle(el).getPropertyValue("--site-heading"));

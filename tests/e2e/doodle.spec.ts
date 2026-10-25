@@ -1,22 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
 import { at, signUp } from "./helpers";
+import { openEditor } from "./editor-helpers";
 
 // Round 11: doodles. A drawing board with pressure, brushes, an eraser, undo and boiling lines;
 // the drawing is vector and shows on the live site.
-
-async function openEditor(page: Page) {
-  await page.goto(at("app", "/editor"));
-  const dialog = page.getByRole("dialog");
-  await dialog.waitFor({ timeout: 3000 }).catch(() => {});
-  for (let i = 0; i < 6 && (await dialog.isVisible().catch(() => false)); i++) {
-    const before = await dialog.getAttribute("aria-label");
-    await page.getByRole("button", { name: /^(Next|Got it)$/ }).click();
-    await expect
-      .poll(async () => ((await dialog.isVisible()) ? await dialog.getAttribute("aria-label") : "closed"))
-      .not.toBe(before);
-  }
-  await page.waitForLoadState("networkidle");
-}
 
 /** One stroke across the board, as a pen with growing pressure. */
 async function scribble(page: Page, from: [number, number], to: [number, number]) {

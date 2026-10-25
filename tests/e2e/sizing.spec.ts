@@ -1,22 +1,9 @@
-import { expect, test, type Page } from "@playwright/test";
-import { signUp, at } from "./helpers";
+import { expect, test } from "@playwright/test";
+import { signUp } from "./helpers";
+import { openEditor } from "./editor-helpers";
 
 // Round 14 (matching ahmedadel.art): the header's height, grids that follow the section's alignment
 // (a short last row sits in the middle), and masonry that keeps the pictures in reading order.
-
-async function openEditor(page: Page) {
-  await page.goto(at("app", "/editor"));
-  const dialog = page.getByRole("dialog");
-  await dialog.waitFor({ timeout: 3000 }).catch(() => {});
-  for (let i = 0; i < 6 && (await dialog.isVisible().catch(() => false)); i++) {
-    const before = await dialog.getAttribute("aria-label");
-    await page.getByRole("button", { name: /^(Next|Got it)$/ }).click();
-    await expect
-      .poll(async () => ((await dialog.isVisible()) ? await dialog.getAttribute("aria-label") : "closed"))
-      .not.toBe(before);
-  }
-  await page.waitForLoadState("networkidle");
-}
 
 test("header height, centred grid rows and masonry in reading order", async ({ page }, info) => {
   test.skip(info.project.name !== "desktop");

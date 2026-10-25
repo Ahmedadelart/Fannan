@@ -1,6 +1,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 import { at, signUp } from "./helpers";
+import { openEditor, setSiteLanguage } from "./editor-helpers";
 
 // Phase 4 main flow: the published site at {username}.fannan.net — pages, project pages, lightbox,
 // contact form to inbox + email, password protection that holds even for guessed image addresses,
@@ -35,19 +36,6 @@ const get = (page: Page, path: string) =>
     const r = await fetch(p);
     return { status: r.status, text: await r.text() };
   }, path);
-
-async function openEditor(page: Page) {
-  await page.goto(at("app", "/editor"));
-  const dialog = page.getByRole("dialog");
-  await dialog.waitFor({ timeout: 3000 }).catch(() => {});
-  for (let i = 0; i < 6 && (await dialog.isVisible().catch(() => false)); i++) {
-    const before = await dialog.getAttribute("aria-label");
-    await page.getByRole("button", { name: /^(Next|Got it)$/ }).click();
-    await expect
-      .poll(async () => ((await dialog.isVisible()) ? await dialog.getAttribute("aria-label") : "closed"))
-      .not.toBe(before);
-  }
-}
 
 async function publish(page: Page) {
   await page.getByRole("button", { name: "Publish" }).click();
@@ -240,9 +228,9 @@ test("password projects can't be opened without the password, even by guessing i
 test("an Arabic site is served right to left, and it fits a phone", async ({ page, browser }, info) => {
   test.setTimeout(180_000);
   const { username } = await signUp(page);
+  await setSiteLanguage(page, "ar");
   await openEditor(page);
   await page.getByRole("button", { name: "Design" }).click();
-  await page.getByRole("radio", { name: "Arabic", exact: true }).click();
   await page.getByRole("button", { name: "Logo & title" }).click();
   await page.getByRole("textbox", { name: "Site name" }).fill("نور عادل");
   // On a phone the panel floats over the page: tap outside to close it.

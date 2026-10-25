@@ -5,7 +5,7 @@ export type { IconName };
 export const iconNames = Object.keys(iconBodies) as IconName[];
 
 // Icons that point somewhere get flipped in Arabic. Objects (image, reel, lock, globe) don't.
-const DIRECTIONAL = new Set<IconName>(["undo", "redo", "publish"]);
+const DIRECTIONAL = new Set<IconName>(["undo", "redo", "publish", "arrow-left"]);
 
 export type IconSize = 12 | 16 | 18 | 20 | 24 | 40;
 

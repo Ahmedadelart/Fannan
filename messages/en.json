@@ -1970,7 +1970,7 @@
     "error": "That didn’t work. Please try again.",
     "slowDown": "That’s a lot of changes. Please wait a bit and try again.",
     "saved": "Saved. Your live site is updated.",
-    "savedPublish": "Saved. Language and favicon change on your site the next time you publish.",
+    "savedPublish": "Saved. The new language shows on your site the next time you publish.",
     "unsaved": "You have unsaved changes",
     "saving": "Saving…",
     "save": "Save changes",
@@ -2056,7 +2056,8 @@
       "shareImage": "Share image",
       "shareImageHint": "Shown when your link is shared. 1200 × 630 works best.",
       "favicon": "Favicon",
-      "faviconHint": "The small icon in the browser tab. Square works best."
+      "faviconHint": "The small icon in the browser tab. Square works best.",
+      "faviconChange": "Change in Design"
     },
     "integrations": {
       "title": "Integrations",

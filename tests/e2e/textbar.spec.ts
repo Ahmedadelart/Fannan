@@ -1,21 +1,8 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 import { at, signUp } from "./helpers";
+import { openEditor } from "./editor-helpers";
 
 // Round 13 (C): select words on the canvas, format them with the toolbar, and see it on the live site.
-
-async function openEditor(page: Page) {
-  await page.goto(at("app", "/editor"));
-  const dialog = page.getByRole("dialog");
-  await dialog.waitFor({ timeout: 3000 }).catch(() => {});
-  for (let i = 0; i < 6 && (await dialog.isVisible().catch(() => false)); i++) {
-    const before = await dialog.getAttribute("aria-label");
-    await page.getByRole("button", { name: /^(Next|Got it)$/ }).click();
-    await expect
-      .poll(async () => ((await dialog.isVisible()) ? await dialog.getAttribute("aria-label") : "closed"))
-      .not.toBe(before);
-  }
-  await page.waitForLoadState("networkidle");
-}
 
 /** Select the first `n` letters of an editable text. */
 async function selectStart(field: Locator, n: number) {

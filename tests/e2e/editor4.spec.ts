@@ -1,25 +1,12 @@
 import { expect, test, type Page } from "@playwright/test";
 import { at, signUp } from "./helpers";
+import { openEditor } from "./editor-helpers";
 
 // Phase 8, round 4: the header and footer are clicked and edited on the page, the contact form
 // is shaped from its section, sample drawings replace dark tiles, the Arabic font always applies,
 // the preview fills the screen, and lime always carries dark text.
 
 test.describe.configure({ mode: "serial" });
-
-async function openEditor(page: Page) {
-  await page.goto(at("app", "/editor"));
-  const dialog = page.getByRole("dialog");
-  await dialog.waitFor({ timeout: 3000 }).catch(() => {});
-  for (let i = 0; i < 6 && (await dialog.isVisible().catch(() => false)); i++) {
-    const before = await dialog.getAttribute("aria-label");
-    await page.getByRole("button", { name: /^(Next|Got it)$/ }).click();
-    await expect
-      .poll(async () => ((await dialog.isVisible()) ? await dialog.getAttribute("aria-label") : "closed"))
-      .not.toBe(before);
-  }
-  await page.waitForLoadState("networkidle");
-}
 
 const canvas = (page: Page) => page.getByTestId("canvas");
 

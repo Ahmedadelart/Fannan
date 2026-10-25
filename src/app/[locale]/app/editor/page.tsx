@@ -29,7 +29,8 @@ export default async function EditorPage({ params }: PageProps<"/[locale]/app/ed
 
   const settings = settingsFrom(site as Parameters<typeof settingsFrom>[0]);
   // Short links live on the main domain: fannan.net/l/{code} (round 9).
-  const shortBase = (await surfaceUrls()).marketing("/l/").replace(/^\/__surface.*$/, `https://${DISPLAY_DOMAIN}/l/`);
+  const urls = await surfaceUrls();
+  const shortBase = urls.marketing("/l/").replace(/^\/__surface.*$/, `https://${DISPLAY_DOMAIN}/l/`);
 
   return (
     <Editor
@@ -41,6 +42,8 @@ export default async function EditorPage({ params }: PageProps<"/[locale]/app/ed
         deletionPending: !!(user as { deletion?: unknown }).deletion,
         siteUrl,
         shortBase,
+        // The help pages on this same deployment (staging links to staging help).
+        helpUrl: urls.marketing(locale === "ar" ? "/ar/help" : "/help"),
       }}
       initialSettings={{ social: settings.social, cvMediaId: settings.cvMediaId, contact: settings.contact }}
       initialDraft={draft}

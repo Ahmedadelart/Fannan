@@ -1,24 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
 import { at, signUp, uniq } from "./helpers";
+import { openEditor } from "./editor-helpers";
 
 // Round 9: a link page (like Linktree) on the artist's own site, with a QR code and short links.
 
 const DB = "http://127.0.0.1:8080/v1/projects/demo-fannan/databases/(default)/documents";
 const admin = { Authorization: "Bearer owner", "Content-Type": "application/json" };
-
-async function openEditor(page: Page) {
-  await page.goto(at("app", "/editor"));
-  const dialog = page.getByRole("dialog");
-  await dialog.waitFor({ timeout: 3000 }).catch(() => {});
-  for (let i = 0; i < 6 && (await dialog.isVisible().catch(() => false)); i++) {
-    const before = await dialog.getAttribute("aria-label");
-    await page.getByRole("button", { name: /^(Next|Got it)$/ }).click();
-    await expect
-      .poll(async () => ((await dialog.isVisible()) ? await dialog.getAttribute("aria-label") : "closed"))
-      .not.toBe(before);
-  }
-  await page.waitForLoadState("networkidle");
-}
 
 async function publish(page: Page) {
   await page.getByRole("button", { name: "Publish" }).click();

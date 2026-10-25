@@ -127,7 +127,7 @@ export async function saveDraft(o: Owner, raw: unknown): Promise<{ savedAt: numb
     header: draft.header ?? null,
     footer: draft.footer ?? null,
     lock: draft.lock ?? null,
-    language: draft.language,
+    // Not the language: Settings owns it (round 18), so an open editor can't undo a change made there.
     aboutWritten: aboutWritten(draft.pages),
     draftUpdatedAt: FieldValue.serverTimestamp(),
   });

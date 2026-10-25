@@ -604,6 +604,22 @@ _Last updated: 10 Oct 2026, phase 8 (Editor 2.0) under way; round 8 (guided setu
   - the upload area lists formats in one line.
 - Next.js updated 16.4.0 → 16.4.3 (security patch; builds refused to run on 16.4.0).
 
+### Round 18: the editor, reorganised (in progress, started 25 Oct 2026)
+- Plan: `C:\Users\PC\.claude\plans\greedy-chasing-lynx.md` (P0 mockup, then P1–P9).
+- **P0 mockup approved** (https://claude.ai/artifact/VynLPu5gBbCcqxzRGEtWWy). Ahmed's answers:
+  - clicking another section while Edit section is open **closes** the panel;
+  - after adding a section from the library, its Edit section opens;
+  - phones get a bottom sheet of actions and a bottom tab bar;
+  - free-form "Add element" and "Layers" stay under the section.
+- **P1 (fixes, no new look):**
+  - **Site language** belongs to Settings. The editor's autosave no longer writes it back, so a change made in Settings while the editor is open is kept. Settings tells the open editor at once (language, social links, CV), and sends only fields that changed.
+  - **Favicon** belongs to the editor (Design). Settings shows it with "Change in Design", which opens the Design panel.
+  - The editor's Design panel shows "Site language · English ›", which opens Settings.
+  - The Publish plane and the Back arrows are no longer flipped twice in Arabic.
+  - Undo and redo are off while previewing.
+  - The Help link follows the deployment (staging links to staging help).
+  - Tests: one shared set of editor test steps (`tests/e2e/editor-helpers.ts`) and a new `settings-sync` test.
+
 ## Not done yet from the phase 6 "done when"
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).
 

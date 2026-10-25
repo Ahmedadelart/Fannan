@@ -52,7 +52,7 @@ export async function saveSiteSettings(patch: Partial<SiteSettings>) {
   });
 }
 
-export async function saveBasics(patch: { language?: string; faviconMediaId?: string | null }) {
+export async function saveBasics(patch: { language?: string }) {
   return attempt(async () => {
     await saveSiteBasics(await owner(), patch);
     return {};

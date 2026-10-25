@@ -105,19 +105,14 @@ export async function saveSettings(o: Owner, raw: Partial<SiteSettings>) {
   await refresh(o);
 }
 
-/** Site language and favicon belong to the draft: they change the live site on the next publish. */
-export async function saveSiteBasics(o: Owner, raw: { language?: string; faviconMediaId?: string | null }) {
-  const u: Record<string, unknown> = { draftUpdatedAt: FieldValue.serverTimestamp() };
-  if (raw.language === "en" || raw.language === "ar") u.language = raw.language;
-  if (raw.faviconMediaId !== undefined) {
-    const mid = id(raw.faviconMediaId);
-    if (mid) {
-      const m = (await adminDb().collection("sites").doc(o.siteId).collection("media").doc(mid).get()).data();
-      if (m?.type !== "image" || m.status !== "ready") throw new ProjectError("not-found");
-    }
-    u["theme.faviconMediaId"] = mid;
-  }
-  await adminDb().collection("sites").doc(o.siteId).update(u);
+/** The site language belongs to the draft: it changes the live site on the next publish. The favicon
+ *  is edited in the editor (Design), which saves it with the rest of the theme. */
+export async function saveSiteBasics(o: Owner, raw: { language?: string }) {
+  if (raw.language !== "en" && raw.language !== "ar") return;
+  await adminDb()
+    .collection("sites")
+    .doc(o.siteId)
+    .update({ language: raw.language, draftUpdatedAt: FieldValue.serverTimestamp() });
 }
 
 /** Whole-site password (Pro). Empty removes it. */

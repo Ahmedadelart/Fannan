@@ -691,7 +691,7 @@ export function Editor({
   account,
 }: {
   /** The account menu and the Messages dot. */
-  account: { name: string; admin: boolean; pro: boolean; unread: number; deletionPending: boolean; siteUrl: string; shortBase: string };
+  account: { name: string; admin: boolean; pro: boolean; unread: number; deletionPending: boolean; siteUrl: string; shortBase: string; helpUrl: string };
   /** Social links, CV and older contact settings, edited from the footer and contact sections. */
   initialSettings: EditorSiteSettings;
   /** Pro sites can publish the showpiece blocks. */
@@ -808,6 +808,11 @@ export function Editor({
   const [version, setVersion] = useState(published.version);
   const [publishing, setPublishing] = useState(false);
   const [preview, setPreview] = useState(false);
+  // Undo and redo stay off while previewing: the preview shows the site as visitors see it.
+  const previewing = useRef(false);
+  useEffect(() => {
+    previewing.current = preview;
+  }, [preview]);
   // The page shown in the preview (its links switch it without changing the page being edited).
   const [previewPage, setPreviewPage] = useState(initialDraft.pages[0].id);
   // Zoomed-out view where whole sections are dragged into a new order.
@@ -895,7 +900,7 @@ export function Editor({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (typing(e) || !mod(e)) return;
+      if (typing(e) || !mod(e) || previewing.current) return;
       const k = e.key.toLowerCase();
       // Undo: Ctrl+Z. Redo: Ctrl+Shift+Z or Ctrl+Y.
       if (k === "z") {
@@ -918,6 +923,39 @@ export function Editor({
     };
     // undo/redo read refs only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Round 18: Settings (open in the wide panel) says what it changed. The editor follows without making
+  // it an undo step, and the autosave never writes the language back (Settings owns it).
+  useEffect(() => {
+    const onMessage = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin) return;
+      const m = e.data as { fannan?: string; panel?: string; language?: string; social?: EditorSiteSettings["social"]; cvMediaId?: string | null };
+      if (m?.fannan === "changed") {
+        if (m.language === "en" || m.language === "ar") {
+          const language: Locale = m.language;
+          const fix = (d: SiteDraft): SiteDraft => ({ ...d, language });
+          past.current = past.current.map(fix);
+          future.current = future.current.map(fix);
+          latest.current = fix(latest.current);
+          setDraftState(latest.current);
+          setDirty(true);
+        }
+        if (m.social || "cvMediaId" in m)
+          setSiteSettings((cur) => ({
+            ...cur,
+            ...(m.social ? { social: m.social } : {}),
+            ...("cvMediaId" in m ? { cvMediaId: m.cvMediaId ?? null } : {}),
+          }));
+      } else if (m?.fannan === "open" && RAILS.includes(m.panel as Rail)) {
+        setSettingsOpen(false);
+        setFreeItem(null);
+        setRail(m.panel as Rail);
+        setPanelOpen(true);
+      }
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
   }, []);
 
   /* ---------- keyboard shortcuts for sections, saving and help ---------- */
@@ -1392,7 +1430,7 @@ export function Editor({
           </button>
         ))}
         <span className="flex-1" />
-        <a href={locale === "ar" ? "https://fannan.net/ar/help" : "https://fannan.net/help"} target="_blank" rel="noreferrer" className={railTool} aria-label={t("rail.help")}>
+        <a href={account.helpUrl} target="_blank" rel="noreferrer" className={railTool} aria-label={t("rail.help")}>
           <span className={railPill(false)}>
             <Icon name="help" size={20} />
           </span>
@@ -1502,7 +1540,7 @@ export function Editor({
                   className="hover:bg-mist flex h-9 items-center gap-1.5 rounded-pill ps-2 pe-3 text-[13px] font-semibold"
                   data-testid="settings-back"
                 >
-                  <Icon name="arrow-left" size={18} className="rtl:-scale-x-100" />
+                  <Icon name="arrow-left" size={18} />
                   {panelOpen && rail === "blocks" ? t("panelTabs.blocks") : t("section.done")}
                 </button>
                 <button
@@ -1531,7 +1569,7 @@ export function Editor({
                       onClick={() => setProjectId(null)}
                       className="hover:bg-mist -ms-2 flex size-8 items-center justify-center rounded-full"
                     >
-                      <Icon name="arrow-left" size={18} className="rtl:-scale-x-100" />
+                      <Icon name="arrow-left" size={18} />
                     </button>
                   )}
                   <span className="truncate">{rail === "projects" ? t("rail.projects") : t(`rail.${rail}`)}</span>
@@ -1685,6 +1723,7 @@ export function Editor({
                           media={media}
                           setDraft={setDraft}
                           openPicker={(kind, done) => setPicker({ kind, done })}
+                          onOpenSettings={() => openRail("settings")}
                         />
                       )}
                     </div>
@@ -1787,7 +1826,7 @@ export function Editor({
                 disabled={publishing || (!dirty && version !== null)}
                 className="bg-lime text-on-lime flex h-9 items-center gap-2 rounded-pill px-3 text-[13px] font-semibold tracking-[0.04em] uppercase hover:brightness-95 disabled:opacity-50 sm:px-4"
               >
-                <Icon name="publish" size={16} className="rtl:-scale-x-100" />
+                <Icon name="publish" size={16} />
                 <span className="max-sm:sr-only">{publishing ? t("publishing") : t("publish")}</span>
               </button>
             </span>

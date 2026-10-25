@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { at, signUp } from "./helpers";
+import { openEditor, setSiteLanguage } from "./editor-helpers";
 
 // Phase 8C: free-form sections — blocks anywhere on a grid, moved, resized, turned and layered,
 // text typed in place, stacked on phones, mirrored in Arabic.
@@ -18,20 +19,6 @@ async function makePro(username: string) {
     headers: admin,
     body: JSON.stringify({ fields: { plan: { stringValue: "pro" } } }),
   });
-}
-
-async function openEditor(page: Page) {
-  await page.goto(at("app", "/editor"));
-  const dialog = page.getByRole("dialog");
-  await dialog.waitFor({ timeout: 3000 }).catch(() => {});
-  for (let i = 0; i < 6 && (await dialog.isVisible().catch(() => false)); i++) {
-    const before = await dialog.getAttribute("aria-label");
-    await page.getByRole("button", { name: /^(Next|Got it)$/ }).click();
-    await expect
-      .poll(async () => ((await dialog.isVisible()) ? await dialog.getAttribute("aria-label") : "closed"))
-      .not.toBe(before);
-  }
-  await page.waitForLoadState("networkidle");
 }
 
 const vars = (page: Page, nth: number) =>
@@ -139,9 +126,8 @@ test("a free-form section: place, resize, turn, layer, type, publish", async ({ 
   expect(overflow).toBeLessThanOrEqual(0);
 
   // In Arabic the grid mirrors: the reading start is on the right.
+  await setSiteLanguage(page, "ar");
   await openEditor(page);
-  await page.getByRole("button", { name: "Design" }).click();
-  await page.getByRole("radio", { name: "Arabic", exact: true }).click();
   await page.getByRole("button", { name: "Publish" }).click();
   await expect(page.getByTestId("editor-status")).toHaveText("Live site is up to date", { timeout: 20_000 });
   await visitor.goto(at(username));
