@@ -248,7 +248,7 @@ function Canvas({
   const tool = "flex size-8 items-center justify-center rounded-full text-ink hover:bg-mist";
 
   return (
-    <div ref={outer} className={cx("bg-mist flex-1 overflow-auto", fluid ? "pt-12 pb-20" : "px-6 py-6")} data-tip="canvas">
+    <div ref={outer} className={cx("bg-mist flex-1 overflow-auto overscroll-contain", fluid ? "pt-12 pb-20" : "px-6 py-6")} data-tip="canvas">
       {reorder && (
         <p role="status" className="bg-ink sticky top-0 z-30 mx-auto mb-4 w-fit rounded-pill px-4 py-2 text-[13px] font-semibold text-white">
           {t("reorderHint")}
@@ -1355,7 +1355,8 @@ export function Editor({
   };
 
   return (
-    <div className="text-ink bg-surface relative flex h-dvh">
+    // Pinned to the window (round 17 fix): nothing on the page can scroll the editor away.
+    <div className="text-ink bg-surface fixed inset-0 flex overscroll-none">
       {/* Navigation rail (Material 3, dark like Carbonmade). */}
       <nav
         aria-label={t("rail.label")}
@@ -1481,10 +1482,11 @@ export function Editor({
       {(panelOpen || docked) && (
         <aside
           className={cx(
-            "border-line flex flex-none flex-col border-e",
+            // "relative": hidden screen-reader labels inside stay within the panel's own scrolling.
+            "border-line relative flex flex-none flex-col border-e",
             embed
               ? "bg-mist w-[min(780px,60vw)] max-lg:w-[calc(100vw-80px)]"
-              : "fannan-dark bg-paper text-ink w-[300px] overflow-y-auto max-lg:w-[min(320px,calc(100vw-80px))]",
+              : "fannan-dark bg-paper text-ink w-[300px] overflow-y-auto overscroll-contain max-lg:w-[min(320px,calc(100vw-80px))]",
             "max-lg:shadow-float max-lg:absolute max-lg:inset-y-0 max-lg:start-20 max-lg:z-30",
           )}
           data-testid="left-panel"
@@ -1514,7 +1516,7 @@ export function Editor({
                   <Icon name="bring-front" size={18} />
                 </button>
               </div>
-              <div className="fannan-compact min-h-0 flex-1 overflow-y-auto p-4">{blockSettings}</div>
+              <div className="fannan-compact relative min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">{blockSettings}</div>
             </div>
           )}
           {!docked && embed && (

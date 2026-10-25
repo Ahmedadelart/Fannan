@@ -97,4 +97,12 @@ test("logos can glide in an endless row", async ({ page }, info) => {
   const n = await track.locator(":scope > span").count();
   expect(n % 2).toBe(0);
   expect(n).toBeGreaterThanOrEqual(2);
+
+  // Scrolling the side panel to its end never scrolls the editor itself away (Ahmed's report, 25 Oct).
+  const panel = (await page.getByTestId("left-panel").boundingBox())!;
+  await page.mouse.move(panel.x + panel.width / 2, panel.y + panel.height / 2);
+  for (let i = 0; i < 20; i++) await page.mouse.wheel(0, 500);
+  await page.waitForTimeout(500);
+  expect(await page.getByTestId("left-panel").evaluate((el) => el.parentElement!.getBoundingClientRect().top)).toBe(0);
+  expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1)).toBe(true);
 });
