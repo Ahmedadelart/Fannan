@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { at, signUp } from "./helpers";
-import { openEditor } from "./editor-helpers";
+import { addSection, editSection, openEditor } from "./editor-helpers";
 
 // Showcase blocks (for portfolios like ahmedadel.art, available to everyone): project fields for rich
 // project pages, a section header, project grids by tag with role captions, and the project feature.
@@ -38,25 +38,25 @@ test("project fields, section header, grid by tag and project feature reach the 
   await openEditor(page);
   // The first click can land while the editor is still waking up: try again until the header is there.
   await expect(async () => {
-    if (!(await page.getByTestId("canvas").getByTestId("section-header").count())) await page.getByTestId("add-header").click();
+    if (!(await page.getByTestId("canvas").getByTestId("section-header").count())) await addSection(page, "header");
     await expect(page.getByTestId("canvas").getByTestId("section-header").last()).toContainText("01", { timeout: 3000 });
   }).toPass({ timeout: 20_000 });
-  await page.getByTestId("add-grid").click();
+  await addSection(page, "grid");
   const grid = page.getByTestId("canvas").locator("[data-block-id]").filter({ has: page.locator(".site-grid") }).last();
   await grid.scrollIntoViewIfNeeded();
   await grid.click({ position: { x: 10, y: 10 } });
-  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await editSection(page);
   await page.getByLabel("Shows projects from").selectOption("tag:broadcast");
   const lines = page.getByTestId("gallery-lines");
   await lines.getByRole("button", { name: "Network or client" }).click();
   await lines.getByRole("button", { name: "Role" }).click();
   await page.getByRole("switch", { name: "Role in the accent colour" }).or(page.getByLabel("Role in the accent colour")).first().click();
   await page.keyboard.press("Escape");
-  await page.getByTestId("add-feature").click();
+  await addSection(page, "feature");
   const feature = page.getByTestId("canvas").locator("[data-block-id]").last();
   await feature.scrollIntoViewIfNeeded();
   await feature.click({ position: { x: 10, y: 10 } });
-  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await editSection(page);
   await page.getByTestId("feature-project").selectOption({ label: "Zakia Al Zakia" });
   await expect(page.getByTestId("canvas").getByTestId("project-feature")).toContainText("Animation Supervisor");
   await expect(page.getByTestId("canvas").getByTestId("video-soon")).toBeVisible();

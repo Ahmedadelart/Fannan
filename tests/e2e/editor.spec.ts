@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { at, signUp } from "./helpers";
-import { closeTips } from "./editor-helpers";
+import { addSection, closeTips, editSection } from "./editor-helpers";
 
 // Phase 3 main flow: build the site in the editor, preview on phone size, publish, then keep
 // editing without the live (published) copy changing until the next publish.
@@ -24,7 +24,7 @@ const canvas = (page: Page) => page.getByTestId("canvas");
 const settings = (page: Page) => page.getByTestId("block-settings");
 /** The gear on the selected section opens its settings next to it. */
 async function openSettings(page: Page) {
-  if (!(await settings(page).isVisible())) await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  if (!(await settings(page).isVisible())) await editSection(page);
   await expect(settings(page)).toBeVisible();
 }
 async function switchPage(page: Page, name: string) {
@@ -48,7 +48,7 @@ test("build, preview on phone size, publish, then edit without changing the live
   await expect(canvas(page)).toContainText("Nour Adel");
 
   // Add a quote from the library and write in it (settings open from the gear).
-  await page.getByTestId("add-quote").click();
+  await addSection(page, "quote");
   await openSettings(page);
   const text = settings(page).getByRole("textbox", { name: "Text" });
   await text.fill("Characters people remember.");
@@ -68,7 +68,7 @@ test("build, preview on phone size, publish, then edit without changing the live
 
   // A design block with a picture: click the picture, upload through the media picker.
   await page.getByRole("button", { name: "Pages & sections" }).click();
-  await page.getByTestId("add-d-image-caption").click();
+  await addSection(page, "d-image-caption");
   const picture = canvas(page).locator('[data-testid="free-item"][data-kind="image"]').last();
   await picture.scrollIntoViewIfNeeded();
   await picture.click();
@@ -139,8 +139,8 @@ test("the editor works on a phone in Arabic", async ({ page }, info) => {
   // On a phone the panel opens from the rail.
   await expect(page.getByTestId("left-panel")).toBeHidden();
   await page.getByRole("button", { name: "الصفحات والأقسام" }).click();
-  await page.getByTestId("add-quote").click();
-  await page.getByTestId("section-toolbar").getByRole("button", { name: "الإعدادات" }).click();
+  await addSection(page, "quote");
+  await editSection(page);
   await expect(settings(page)).toBeVisible();
   await expect(settings(page)).toContainText("اقتباس");
   await page.getByRole("button", { name: "نشر" }).click();

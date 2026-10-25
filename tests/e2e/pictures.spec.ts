@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Locator } from "@playwright/test";
 import { at, signUp } from "./helpers";
-import { openEditor } from "./editor-helpers";
+import { addSection, editSection, openEditor } from "./editor-helpers";
 
 // Round 13 (B + D): pictures straight on the canvas: drop files, replace and crop on hover, the Images section.
 
@@ -30,7 +30,7 @@ test("drop pictures on an Images section, crop one, replace one, and publish", a
   const { username } = await signUp(page);
   await openEditor(page);
 
-  await page.getByTestId("add-img-grid").click();
+  await addSection(page, "img-grid");
   const section = page.getByTestId("canvas").getByTestId("images-section").last();
   await section.scrollIntoViewIfNeeded();
   await expect(section.locator("[data-pic]")).toHaveCount(6);
@@ -60,7 +60,7 @@ test("drop pictures on an Images section, crop one, replace one, and publish", a
 
   // Settings: layout tiles and the image list.
   await section.click({ position: { x: 10, y: 10 } });
-  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await editSection(page);
   await expect(page.getByTestId("images-row")).toHaveCount(6);
   await page.getByTestId("images-layout-masonry").click();
   await expect(page.getByTestId("quick-bg")).toBeVisible();
@@ -83,7 +83,7 @@ test("a picture dropped on an image item replaces it", async ({ page }, info) =>
   await page.setViewportSize({ width: 1440, height: 900 });
   await signUp(page);
   await openEditor(page);
-  await page.getByTestId("add-d-split-left").click();
+  await addSection(page, "d-split-left");
   const item = page.getByTestId("canvas").locator('[data-kind="image"]').last();
   await item.scrollIntoViewIfNeeded();
   await expect(item.locator("img")).toHaveCount(0);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type DragEvent, type MouseEvent } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { SiteRender, type GalleryProject, type SiteMedia } from "@/components/site/SiteRender";
@@ -10,37 +10,33 @@ import { Icon } from "@/components/ui/Icon";
 import { useToast } from "@/components/ui/Toast";
 import type { Locale } from "@/i18n/locales";
 import { cx } from "@/lib/cx";
-import { blockKinds, imagesBlock, networkName, newId, type BlockKind } from "@/lib/site/blocks";
+import { blockKinds, imagesBlock, kindOf, networkName, newId, type BlockKind } from "@/lib/site/blocks";
 import { sampleTone } from "@/lib/site/samples";
 import { setPath } from "@/lib/site/fields";
 import { hasOwnPage } from "@/lib/site/pages";
 import { normalizeFooter } from "@/lib/site/normalize";
-import { moveTo, startSortDrag } from "@/components/editor/sortDrag";
+import { moveTo } from "@/components/editor/sortDrag";
 import { getClip, mod, setClip, typing } from "@/components/editor/clipboard";
-import type { Block, BlockOf, Crop, DrawStroke, FreeKind, SiteDraft } from "@/lib/site/types";
-import { addFreeItem, freeItem, ITEM_GROUPS } from "@/lib/site/free";
-import { DecoSvg } from "@/components/site/deco";
+import type { Block, BlockOf, Crop, DrawStroke, SiteDraft } from "@/lib/site/types";
+import { addFreeItem } from "@/lib/site/free";
 import { DoodlePanel, defaultTools, finishSession, startSession, type DoodleSession, type DoodleTools } from "@/components/editor/doodle";
-import { FreeEditor, KIND_ICONS } from "@/components/editor/FreeEditor";
+import { FreeEditor } from "@/components/editor/FreeEditor";
 import { PicTools, type PicTarget } from "@/components/editor/PicTools";
 import { TextToolbar } from "@/components/editor/TextToolbar";
 import { watchLoops } from "@/components/site/loops";
 import { LanguageButton, LogoutButton } from "../(dash)/DashClient";
 import { SiteEnhancer } from "@/components/site/live/SiteEnhancer";
-import { CONTACT_WORDS, contactFormOf, type LegacyContactFields } from "@/lib/site/contact";
 import { editorTipsSeen, publishSite, savePagePassword, saveSiteDraft } from "./actions";
-import {
-  BlockSettings,
-  BlocksTab,
-  MediaPicker,
-  PagesTab,
-  ProjectsPanel,
-  SitePartSettings,
-  StyleTab,
-  type DesignSection,
-  type EditorSiteSettings,
-  type MediaKind,
-} from "./Panels";
+import { StyleTab, type DesignSection } from "./_design/StyleTab";
+import { BlockSettings } from "./_inspector/BlockSettings";
+import { SitePartSettings, type EditorSiteSettings } from "./_inspector/SitePartSettings";
+import { BlocksTab } from "./_library/BlocksTab";
+import { PagesTab } from "./_pages/PagesTab";
+import { ProjectsPanel } from "./_projects/ProjectsPanel";
+import { MediaPicker, type MediaKind } from "./_ui/media";
+import { Canvas, type SectionActions } from "./_canvas/Canvas";
+import { PreviewContact } from "./_canvas/PreviewContact";
+import { Tips } from "./_shell/Tips";
 
 type Device = "desktop" | "tablet" | "phone";
 
@@ -55,624 +51,6 @@ function embedPath(rail: Rail, projectId: string | null): string | null {
 }
 const WIDTHS: Record<Device, number> = { desktop: 1200, tablet: 820, phone: 390 };
 const HISTORY = 60;
-
-/* ---------- canvas: the real site at device width, shrunk to fit ---------- */
-
-/** Sections carry data-block-id; the header and footer are "__header" / "__footer". */
-const isPart = (id: string | null) => !!id && id.startsWith("__");
-const partSelector = (id: string) =>
-  isPart(id) ? `[data-site-part="${id.slice(2)}"]` : `[data-block-id="${id}"]`;
-
-export interface SectionActions {
-  /** Moves a section to `index` among the others (drag on the canvas or in the reorder view). */
-  move: (id: string, index: number) => void;
-  settings: () => void;
-  add: () => void;
-  duplicate: () => void;
-  remove: () => void;
-}
-
-function Canvas({
-  width: deviceWidth,
-  fluid,
-  children,
-  onPick,
-  onDropBlock,
-  dropLabel,
-  selectedId,
-  reorder,
-  actions,
-  version,
-  settings,
-  settingsOpen,
-  onCloseSettings,
-  onAddElement,
-  itemId,
-  onDock,
-}: {
-  /** Round 17: puts the floating card back into the side panel. */
-  onDock?: () => void;
-  /** The free-form item whose settings are open: the card opens beside it. */
-  itemId?: string | null;
-  width: number;
-  /** Desktop: the site fills the whole width of the canvas (no grey gaps beside it). */
-  fluid?: boolean;
-  children: React.ReactNode;
-  onPick: (blockId: string | null, onFreeItem: boolean) => void;
-  onDropBlock: (kindKey: string, index: number) => void;
-  dropLabel: string;
-  selectedId: string | null;
-  reorder: boolean;
-  actions: SectionActions;
-  /** Changes whenever the page content changes, so the toolbar follows the section. */
-  version: unknown;
-  settings?: React.ReactNode;
-  settingsOpen: boolean;
-  onCloseSettings: () => void;
-  /** Set when the selected section is free-form: adds an element inside it. */
-  onAddElement?: (kind: FreeKind) => void;
-}) {
-  const t = useTranslations("editor.section");
-  const tf = useTranslations("editor.free");
-  const [elementMenu, setElementMenu] = useState(false);
-  const [itemQuery, setItemQuery] = useState("");
-  const outer = useRef<HTMLDivElement>(null);
-  const frame = useRef<HTMLDivElement>(null);
-  const inner = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  const [height, setHeight] = useState(600);
-  const [width, setWidth] = useState(deviceWidth);
-  // The settings card can be dragged out of the way (Squarespace-style); it keeps its place.
-  const [cardShift, setCardShift] = useState({ x: 0, y: 0 });
-  const [dropAt, setDropAt] = useState<{ index: number; y: number } | null>(null);
-  const [mark, setMark] = useState<{ y: number } | null>(null);
-  const [dragging, setDragging] = useState<string | null>(null);
-  const [box, setBox] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
-  const [itemBox, setItemBox] = useState<typeof box>(null);
-  const rtl = typeof document !== "undefined" && document.documentElement.dir === "rtl";
-  // Squarespace-style: the section's tools sit just above its top end corner (inside it when
-  // there's no room above), and "Add section" just under its bottom start corner.
-  const toolsTop = (b: NonNullable<typeof box>) => (b.top >= 48 ? b.top - 46 : b.top + 8);
-  const endAnchor = (b: NonNullable<typeof box>) =>
-    rtl ? { left: b.left } : { left: b.left + b.width, transform: "translateX(-100%)" };
-  const startAnchor = (b: NonNullable<typeof box>) =>
-    rtl ? { left: b.left + b.width, transform: "translateX(-100%)" } : { left: b.left };
-  /** An item's settings open right beside it: after it in reading order, or before it when there's no room. */
-  const besideItem = (b: NonNullable<typeof box>) => {
-    const w = 288;
-    const gap = 16;
-    const frameW = width * scale;
-    const after = rtl ? b.left - gap - w : b.left + b.width + gap;
-    const before = rtl ? b.left + b.width + gap : b.left - gap - w;
-    const fits = (x: number) => x >= 0 && x + w <= frameW;
-    return fits(after) ? after : fits(before) ? before : after;
-  };
-  const popLeft = (b: NonNullable<typeof box>) => {
-    const w = 288;
-    const frameW = width * scale;
-    const x = rtl ? b.left : b.left + b.width - w;
-    return Math.max(0, Math.min(x, frameW - w));
-  };
-  // A new selection closes the element menu.
-  const [menuFor, setMenuFor] = useState(selectedId);
-  if (menuFor !== selectedId) {
-    setMenuFor(selectedId);
-    setElementMenu(false);
-    // The settings card opens in its usual place for each new selection.
-    setCardShift({ x: 0, y: 0 });
-  }
-  const [cardFor, setCardFor] = useState(itemId);
-  if (cardFor !== itemId) {
-    setCardFor(itemId);
-    setCardShift({ x: 0, y: 0 });
-  }
-
-  useLayoutEffect(() => {
-    const o = outer.current;
-    const i = inner.current;
-    if (!o || !i) return;
-    const update = () => {
-      const room = o.clientWidth - (fluid ? 0 : 48);
-      // Desktop fills the canvas (at least 1024px wide, shrunk below that); tablet and phone keep their width.
-      const w = fluid ? Math.max(1024, room) : deviceWidth;
-      const fit = Math.min(1, room / w);
-      // The reorder view shows the whole page small, so long pages fit on screen.
-      const s = reorder ? Math.min(fit, 0.34) : fit;
-      setWidth(w);
-      setScale(s);
-      setHeight(i.scrollHeight * s);
-    };
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(o);
-    ro.observe(i);
-    return () => ro.disconnect();
-  }, [deviceWidth, fluid, reorder]);
-
-  // Where the selected section is, in the frame's (scaled) coordinates.
-  useLayoutEffect(() => {
-    const measure = () => {
-      const el = selectedId ? inner.current?.querySelector<HTMLElement>(partSelector(selectedId)) : null;
-      const f = frame.current?.getBoundingClientRect();
-      if (!el || !f) return setBox(null);
-      const r = el.getBoundingClientRect();
-      setBox({ top: r.top - f.top, left: r.left - f.left, width: r.width, height: r.height });
-      const item = itemId ? el.querySelector<HTMLElement>(`[data-testid="free-item"][data-free-item="${itemId}"]`) : null;
-      const ir = item?.getBoundingClientRect();
-      setItemBox(ir ? { top: ir.top - f.top, left: ir.left - f.left, width: ir.width, height: ir.height } : null);
-    };
-    measure();
-    const i = inner.current;
-    const ro = i ? new ResizeObserver(measure) : null;
-    if (i) ro!.observe(i);
-    return () => ro?.disconnect();
-  }, [selectedId, scale, version, reorder, itemId]);
-
-  const sections = () =>
-    [...(inner.current?.querySelectorAll<HTMLElement>("[data-block-id]") ?? [])].map((el) => ({
-      id: el.dataset.blockId!,
-      el,
-    }));
-
-  function drag(e: React.PointerEvent, id: string) {
-    setDragging(id);
-    startSortDrag(e, {
-      dragId: id,
-      items: sections,
-      scroller: outer.current,
-      onMark: (m) => {
-        const f = frame.current?.getBoundingClientRect();
-        setMark(m && f ? { y: m.y - f.top } : null);
-        if (!m) setDragging(null);
-      },
-      onDrop: (index) => actions.move(id, index),
-    });
-  }
-
-  function insertionPoint(e: DragEvent) {
-    const blocks = [...(inner.current?.querySelectorAll<HTMLElement>("[data-block-id]") ?? [])];
-    const rect = inner.current!.getBoundingClientRect();
-    let index = blocks.length;
-    let y = blocks.length ? blocks[blocks.length - 1].getBoundingClientRect().bottom : rect.top + 40;
-    for (let n = 0; n < blocks.length; n++) {
-      const r = blocks[n].getBoundingClientRect();
-      if (e.clientY < r.top + r.height / 2) {
-        index = n;
-        y = r.top;
-        break;
-      }
-    }
-    return { index, y: (y - rect.top) / scale };
-  }
-
-  const tool = "flex size-8 items-center justify-center rounded-full text-ink hover:bg-mist";
-
-  return (
-    <div ref={outer} className={cx("bg-mist flex-1 overflow-auto overscroll-contain", fluid ? "pt-12 pb-20" : "px-6 py-6")} data-tip="canvas">
-      {reorder && (
-        <p role="status" className="bg-ink sticky top-0 z-30 mx-auto mb-4 w-fit rounded-pill px-4 py-2 text-[13px] font-semibold text-white">
-          {t("reorderHint")}
-        </p>
-      )}
-      <div
-        ref={frame}
-        className={cx("relative mx-auto", reorder && "fannan-reorder")}
-        style={{ width: width * scale, height }}
-        onDragOver={(e) => {
-          if (!e.dataTransfer.types.includes("application/x-fannan-block")) return;
-          e.preventDefault();
-          setDropAt(insertionPoint(e));
-        }}
-        onDragLeave={() => setDropAt(null)}
-        onDrop={(e) => {
-          const key = e.dataTransfer.getData("application/x-fannan-block");
-          const at = insertionPoint(e);
-          setDropAt(null);
-          if (key) onDropBlock(key, at.index);
-        }}
-        onPointerDown={(e) => {
-          if (!reorder) return;
-          const el = (e.target as HTMLElement).closest<HTMLElement>("[data-block-id]");
-          if (el) drag(e, el.dataset.blockId!);
-        }}
-      >
-        <div
-          ref={inner}
-          data-testid="canvas"
-          className={cx(
-            "absolute start-0 top-0 origin-top-left overflow-hidden bg-white rtl:origin-top-right",
-            !fluid && "rounded-[6px] shadow-[0_1px_3px_rgba(20,20,20,.08)]",
-          )}
-          style={{ width, transform: `scale(${scale})`, minHeight: 600 }}
-          onClick={(e: MouseEvent) => {
-            if (reorder) return;
-            const target = e.target as HTMLElement;
-            const el = target.closest<HTMLElement>("[data-block-id]");
-            const part = target.closest<HTMLElement>("[data-site-part]")?.dataset.sitePart;
-            onPick(
-              el?.dataset.blockId ?? (part ? `__${part}` : null),
-              !!target.closest("[data-free-item], [role=menu], [role=toolbar]"),
-            );
-          }}
-        >
-          {children}
-          {dropAt && (
-            <div
-              className="pointer-events-none absolute inset-x-6 z-10 flex items-center gap-2"
-              style={{ top: dropAt.y - 2 }}
-            >
-              <span className="bg-ink h-1 flex-1 rounded" />
-              <span className="bg-lime text-ink rounded-[6px] px-2 py-0.5 text-[12px] font-semibold">{dropLabel}</span>
-              <span className="bg-ink h-1 flex-1 rounded" />
-            </div>
-          )}
-        </div>
-
-        {/* While dragging a section: where it will land. */}
-        {mark && (
-          <div className="pointer-events-none absolute inset-x-0 z-20 flex items-center gap-2" style={{ top: mark.y - 3 }}>
-            <span className="bg-ink h-1.5 flex-1 rounded" />
-            <span className="bg-lime text-ink rounded-[6px] px-2 py-0.5 text-[12px] font-semibold">{dropLabel}</span>
-            <span className="bg-ink h-1.5 flex-1 rounded" />
-          </div>
-        )}
-
-        {/* The selected section's tools: drag, settings, duplicate, delete. */}
-        {box && !reorder && !dragging && (
-          <div
-            role="toolbar"
-            aria-label={t("toolbar")}
-            data-testid="section-toolbar"
-            className="border-line shadow-float absolute z-20 flex items-center gap-0.5 rounded-pill border bg-white p-1"
-            style={{ top: toolsTop(box), ...endAnchor(box) }}
-          >
-            {!isPart(selectedId) && (
-            <button
-              type="button"
-              aria-label={t("drag")}
-              title={t("drag")}
-              className={cx(tool, "cursor-grab touch-none")}
-              onPointerDown={(e) => drag(e, selectedId!)}
-              onKeyDown={(e) => {
-                const list = sections().map((x) => x.id);
-                const i = list.indexOf(selectedId!);
-                if (e.key === "ArrowUp" && i > 0) {
-                  e.preventDefault();
-                  actions.move(selectedId!, i - 1);
-                }
-                if (e.key === "ArrowDown" && i < list.length - 1) {
-                  e.preventDefault();
-                  actions.move(selectedId!, i + 1);
-                }
-              }}
-            >
-              <Icon name="reorder" size={18} />
-            </button>
-            )}
-            <button
-              type="button"
-              aria-label={t("settings")}
-              title={t("settings")}
-              aria-expanded={settingsOpen}
-              className={cx(tool, "w-auto gap-1.5 px-3 text-[13px] font-semibold", settingsOpen && "bg-lime text-on-lime hover:bg-lime")}
-              onClick={actions.settings}
-            >
-              {/* Round 13: the main action says what it does (Carbonmade's "Customize block"). */}
-              <Icon name="settings" size={18} />
-              {t("customize")}
-            </button>
-            {!isPart(selectedId) && (
-              <>
-                <button type="button" aria-label={t("duplicate")} title={t("duplicate")} className={tool} onClick={actions.duplicate}>
-                  <Icon name="duplicate" size={18} />
-                </button>
-                <button type="button" aria-label={t("remove")} title={t("remove")} className={tool} onClick={actions.remove}>
-                  <Icon name="delete" size={18} />
-                </button>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Under a selected free-form section: Layers (drawn by the section itself), then Add item. */}
-        {box && !reorder && !dragging && onAddElement && (
-          <div
-            className="absolute z-20 flex items-start gap-1.5"
-            style={{ top: box.top + box.height + 10, ...startAnchor(box) }}
-          >
-            {/* The free-form section puts its Layers button here. */}
-            <span data-layers-slot className="block min-h-9 min-w-9" />
-            {onAddElement && (
-              <div className="relative">
-                <button
-                  type="button"
-                  aria-expanded={elementMenu}
-                  className="bg-ink shadow-float flex h-9 items-center gap-1.5 rounded-pill px-3.5 text-[13px] font-semibold text-white"
-                  onClick={() => setElementMenu(!elementMenu)}
-                >
-                  <Icon name="add" size={16} />
-                  {tf("addBlock")}
-                </button>
-                {elementMenu && (
-                  <div
-                    role="menu"
-                    aria-label={tf("addBlock")}
-                    className="bg-paper text-ink shadow-float border-line absolute start-0 top-11 flex max-h-[420px] w-[300px] flex-col gap-1 overflow-y-auto rounded-[16px] border p-2"
-                  >
-                    <label className="border-line text-muted mb-1 flex h-9 items-center gap-2 rounded-[10px] border px-2.5">
-                      <Icon name="search" size={16} />
-                      <input
-                        autoFocus
-                        className="text-ink min-w-0 flex-1 bg-transparent text-[13px] outline-none"
-                        placeholder={tf("searchItems")}
-                        aria-label={tf("searchItems")}
-                        value={itemQuery}
-                        onChange={(e) => setItemQuery(e.target.value)}
-                      />
-                    </label>
-                    {ITEM_GROUPS.map(({ group, kinds }) => {
-                      const shown = kinds.filter((k) => tf(`kinds.${k}`).toLowerCase().includes(itemQuery.toLowerCase()));
-                      if (!shown.length) return null;
-                      return (
-                        <div key={group} className="flex flex-col">
-                          <span className="text-muted px-2 pt-2 pb-1 text-[11px] font-semibold tracking-[0.06em] uppercase">
-                            {tf(`groups.${group}`)}
-                          </span>
-                          <div className={cx("grid gap-0.5", group === "decorations" ? "grid-cols-4" : "grid-cols-2")}>
-                            {shown.map((k) =>
-                              group === "decorations" ? (
-                                // Decorations show as little pictures of themselves.
-                                <button
-                                  key={k}
-                                  type="button"
-                                  role="menuitem"
-                                  aria-label={tf(`kinds.${k}`)}
-                                  title={tf(`kinds.${k}`)}
-                                  className="hover:bg-mist flex flex-col items-center gap-1 rounded-[10px] p-1.5 text-[10px] font-medium"
-                                  onClick={() => {
-                                    setElementMenu(false);
-                                    setItemQuery("");
-                                    onAddElement(k);
-                                  }}
-                                >
-                                  <DecoTile kind={k} />
-                                  <span className="w-full truncate text-center">{tf(`kinds.${k}`)}</span>
-                                </button>
-                              ) : (
-                                <button
-                                  key={k}
-                                  type="button"
-                                  role="menuitem"
-                                  className="hover:bg-mist flex h-10 items-center gap-2 rounded-[10px] px-2.5 text-start text-[13px] font-medium"
-                                  onClick={() => {
-                                    setElementMenu(false);
-                                    setItemQuery("");
-                                    onAddElement(k);
-                                  }}
-                                >
-                                  <Icon name={KIND_ICONS[k]} size={18} />
-                                  {tf(`kinds.${k}`)}
-                                </button>
-                              ),
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* The section's settings, right next to it. Drag its top bar to move it out of the way. */}
-        {box && settingsOpen && settings && !reorder && (
-          <div
-            role="dialog"
-            aria-label={t("settings")}
-            data-testid="block-settings"
-            className="bg-paper text-ink shadow-float border-line absolute z-30 flex max-h-[62vh] w-[288px] flex-col overflow-hidden rounded-[16px] border text-[13px]"
-            style={{
-              top: Math.max(0, Math.min((itemBox ? itemBox.top : toolsTop(box) + 48) + cardShift.y, height - 120)),
-              left: Math.max(0, Math.min((itemBox ? besideItem(itemBox) : popLeft(box)) + cardShift.x, width * scale - 288)),
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              className="border-line flex cursor-move touch-none items-center justify-between border-b py-1.5 ps-3 pe-1.5 select-none"
-              title={t("moveCard")}
-              data-testid="settings-handle"
-              onPointerDown={(e) => {
-                if ((e.target as HTMLElement).closest("button")) return;
-                const from = { pointerX: e.clientX, pointerY: e.clientY, x: cardShift.x, y: cardShift.y };
-                const move = (ev: PointerEvent) =>
-                  setCardShift({ x: from.x + ev.clientX - from.pointerX, y: from.y + ev.clientY - from.pointerY });
-                const up = () => {
-                  window.removeEventListener("pointermove", move);
-                  window.removeEventListener("pointerup", up);
-                };
-                window.addEventListener("pointermove", move);
-                window.addEventListener("pointerup", up);
-              }}
-              onDoubleClick={() => setCardShift({ x: 0, y: 0 })}
-            >
-              <span className="flex items-center gap-1.5 text-[12px] font-semibold">
-                <Icon name="drag" size={16} className="text-muted" />
-                {t("settings")}
-              </span>
-              <span className="flex items-center">
-                {onDock && (
-                  <button
-                    type="button"
-                    aria-label={t("dock")}
-                    title={t("dock")}
-                    className="text-muted hover:text-ink hover:bg-mist flex size-7 items-center justify-center rounded-full"
-                    onClick={onDock}
-                    data-testid="settings-dock"
-                  >
-                    <Icon name="send-back" size={16} />
-                  </button>
-                )}
-                <button
-                  type="button"
-                  aria-label={t("close")}
-                  className="text-muted hover:text-ink hover:bg-mist flex size-7 items-center justify-center rounded-full"
-                  onClick={onCloseSettings}
-                >
-                  <Icon name="close" size={16} />
-                </button>
-              </span>
-            </div>
-            <div className="fannan-compact overflow-y-auto p-3">{settings}</div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/** A small picture of a decoration, for the add-item menu. */
-function DecoTile({ kind }: { kind: FreeKind }) {
-  const sample = { ...freeItem(kind, "en", { x: 0, y: 0, w: 3, h: 2 }), id: `tile-${kind}` };
-  return (
-    <span className="text-primary flex h-9 w-14 items-center justify-center">
-      {kind === "drawing" ? (
-        // The doodle tool: a pen and a scribble.
-        <svg viewBox="0 0 56 36" className="h-9 w-14" aria-hidden>
-          <path d="M6 26c6-12 12-14 16-6s10 8 14-4 10-10 14-2" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-        </svg>
-      ) : kind === "badge" ? (
-        <span className="bg-lime text-on-lime rounded-pill px-2 py-0.5 text-[9px] font-bold">NEW</span>
-      ) : kind === "panel" ? (
-        <span className="bg-secondary-container block h-7 w-11 rounded-[8px] shadow-sm" />
-      ) : kind === "highlight" ? (
-        <span className="block h-4 w-11 -skew-x-6 rounded-[2px] bg-[#F5E663]" />
-      ) : (
-        <span className="block h-full w-full">
-          <DecoSvg it={sample} color="currentColor" />
-        </span>
-      )}
-    </span>
-  );
-}
-
-/* ---------- the contact form in the preview: looks real, sends nothing ---------- */
-
-function PreviewContact({
-  block,
-  language,
-  fallback,
-}: {
-  block: BlockOf<"contact">;
-  language: Locale;
-  fallback: LegacyContactFields;
-}) {
-  const t = useTranslations("editor");
-  const toast = useToast();
-  const form = contactFormOf(block, fallback);
-  const w = CONTACT_WORDS[language];
-  const box = {
-    border: "1px solid var(--site-line)",
-    borderRadius: "var(--site-radius)",
-    background: "var(--site-bg)",
-    color: "var(--site-text)",
-  };
-  const field = (label: string, tall?: boolean) => (
-    <label key={label} className="grid gap-1.5 text-[14px] font-semibold">
-      {label}
-      {tall ? (
-        <textarea rows={4} className="w-full px-3.5 py-3 text-[16px] outline-none" style={box} />
-      ) : (
-        <input className="w-full px-3.5 py-3 text-[16px] outline-none" style={box} />
-      )}
-    </label>
-  );
-  return (
-    <form
-      className="site-form mt-2 grid w-full max-w-[560px] gap-3"
-      onSubmit={(e) => {
-        e.preventDefault();
-        toast(t("previewSend"), "messages");
-      }}
-    >
-      {field(form.labels.name || w.name)}
-      {field(form.labels.email || w.email)}
-      {form.projectType && field(w.projectType)}
-      {form.budget && field(w.budget)}
-      {form.deadline && field(w.deadline)}
-      {form.custom && field(form.custom)}
-      {field(form.labels.message || w.message, true)}
-      <button type="submit" className="site-button justify-self-start border-0" style={{ cursor: "pointer", font: "inherit", fontWeight: 600 }}>
-        {block.button}
-      </button>
-    </form>
-  );
-}
-
-/* ---------- first-run tips (3 max, ONBOARDING.md) ---------- */
-
-function Tips({ onDone }: { onDone: () => void }) {
-  const t = useTranslations("editor.tips");
-  const [n, setN] = useState(1);
-  const [rect, setRect] = useState<DOMRect | null>(null);
-  const target = ["blocks", "canvas", "publish"][n - 1];
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => {
-      const el =
-        document.querySelector<HTMLElement>(`[data-tip="${target}"]`) ??
-        (target === "blocks" ? document.querySelector<HTMLElement>('[data-tip="rail-blocks"]') : null);
-      setRect(el?.getBoundingClientRect() ?? null);
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [target]);
-  const bold = { b: (c: React.ReactNode) => <b>{c}</b> };
-  return (
-    <div
-      className="fixed inset-0 z-50"
-      role="dialog"
-      aria-modal="true"
-      aria-label={(t.raw(String(n)) as string).replace(/<\/?b>/g, "")}
-    >
-      <div className="bg-ink/45 absolute inset-0" />
-      {rect && (
-        <div
-          className="pointer-events-none absolute rounded-md shadow-[0_0_0_2px_var(--color-ink),0_0_0_6px_var(--color-lime)]"
-          style={{
-            left: rect.left - 4,
-            top: rect.top - 4,
-            width: rect.width + 8,
-            height: Math.min(rect.height + 8, 360),
-          }}
-        />
-      )}
-      <div
-        className="bg-paper text-ink shadow-float absolute flex w-[min(300px,calc(100vw-32px))] flex-col gap-3 rounded-lg p-4"
-        style={(() => {
-          // Keep the card on screen, even on a phone.
-          if (typeof document === "undefined") return { left: 16, top: 80 };
-          const vw = document.documentElement.clientWidth;
-          const vh = document.documentElement.clientHeight;
-          const w = Math.min(300, vw - 32);
-          if (!rect) return { left: 16, top: 80 };
-          const want =
-            rect.left + (target === "publish" ? rect.width - w : target === "canvas" ? 40 : rect.width + 16);
-          const left = Math.max(16, Math.min(want, vw - w - 16));
-          const top = Math.max(16, Math.min(target === "publish" ? rect.bottom + 16 : rect.top + 40, vh - 180));
-          return { left, top };
-        })()}
-      >
-        <p className="text-[15px]">{t.rich(String(n) as "1", bold)}</p>
-        <div className="flex items-center justify-between">
-          <span className="text-muted text-[12px]">{t("count", { n })}</span>
-          <Button size="sm" onClick={() => (n < 3 ? setN(n + 1) : onDone())}>
-            {n < 3 ? t("next") : t("done")}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 /* ---------- the editor ---------- */
 
@@ -767,9 +145,15 @@ export function Editor({
   // the section being changed. The artist can pop them out as a card they move (and that choice stays).
   const [cardFloat, setCardFloat] = useState(false);
   const [wide, setWide] = useState(true);
+  // Phones: a tapped section's actions slide up from the bottom (round 18).
+  const [phone, setPhone] = useState(false);
   useEffect(() => {
     const q = window.matchMedia("(min-width: 1024px)");
-    const on = () => setWide(q.matches);
+    const p = window.matchMedia("(max-width: 640px)");
+    const on = () => {
+      setWide(q.matches);
+      setPhone(p.matches);
+    };
     const frame = requestAnimationFrame(() => {
       on();
       try {
@@ -779,9 +163,11 @@ export function Editor({
       }
     });
     q.addEventListener("change", on);
+    p.addEventListener("change", on);
     return () => {
       cancelAnimationFrame(frame);
       q.removeEventListener("change", on);
+      p.removeEventListener("change", on);
     };
   }, []);
   const floatCard = (v: boolean) => {
@@ -979,24 +365,34 @@ export function Editor({
   // A Free artist picking a Pro showpiece block: explain first, let them try it.
   const [upsell, setUpsell] = useState<{ kind: BlockKind; at?: number } | null>(null);
 
+  // Round 18: "Add section" above or below a section: the library opens and a line shows the spot.
+  const [insertAt, setInsertAt] = useState<number | null>(null);
+
   function addBlock(kind: BlockKind, at?: number, confirmed = false) {
-    if (kind.pro && !isPro && !confirmed) return setUpsell({ kind, at });
+    const spot = at ?? insertAt ?? undefined;
+    if (kind.pro && !isPro && !confirmed) return setUpsell({ kind, at: spot });
     const b = kind.make(draft.language);
     setBlocks((blocks) => {
-      const i = at ?? (selected ? blocks.findIndex((x) => x.id === selected) + 1 : blocks.length);
+      const i = spot ?? (selected ? blocks.findIndex((x) => x.id === selected) + 1 : blocks.length);
       const next = [...blocks];
       next.splice(i < 0 ? blocks.length : i, 0, b);
       return next;
     });
+    setInsertAt(null);
+    // Ahmed (round 18): a new section opens straight into Edit section.
     setSelected(b.id);
+    setFreeItem(null);
+    setSettingsOpen(true);
     if (small()) setPanelOpen(false);
   }
 
-  function duplicateBlock() {
-    if (!block) return;
-    const copy = { ...structuredClone(block), id: newId() };
+  function duplicateBlock(id = block?.id) {
+    const original = page.blocks.find((b) => b.id === id);
+    if (!original) return;
+    const copy = { ...structuredClone(original), id: newId() };
+    if (copy.type === "free") copy.items = copy.items.map((i) => ({ ...i, id: newId() }));
     setBlocks((blocks) => {
-      const i = blocks.findIndex((x) => x.id === block.id);
+      const i = blocks.findIndex((x) => x.id === original.id);
       const next = [...blocks];
       next.splice(i + 1, 0, copy);
       return next;
@@ -1004,10 +400,31 @@ export function Editor({
     setSelected(copy.id);
   }
 
-  function removeBlock() {
-    if (!block) return;
-    setBlocks((blocks) => blocks.filter((b) => b.id !== block.id));
-    setSelected(null);
+  /** Removes a section; the message that follows has an Undo button (Ctrl+Z works too). */
+  function removeBlock(id = block?.id, quiet = false) {
+    const at = page.blocks.findIndex((b) => b.id === id);
+    if (at < 0) return;
+    const gone = page.blocks[at];
+    const pageOf = page.id;
+    setBlocks((blocks) => blocks.filter((b) => b.id !== gone.id));
+    if (selected === gone.id) {
+      setSelected(null);
+      setSettingsOpen(false);
+      setFreeItem(null);
+    }
+    if (quiet) return;
+    toast(t("section.removed"), "delete", {
+      label: t("section.undo"),
+      run: () =>
+        setDraft((d) => ({
+          ...d,
+          pages: d.pages.map((p) =>
+            p.id !== pageOf || p.blocks.some((b) => b.id === gone.id)
+              ? p
+              : { ...p, blocks: [...p.blocks.slice(0, at), gone, ...p.blocks.slice(at)] },
+          ),
+        })),
+    });
   }
 
   sectionKeys.current = (e: KeyboardEvent) => {
@@ -1058,7 +475,7 @@ export function Editor({
     if (mod(e) && (k === "c" || k === "x")) {
       e.preventDefault();
       setClip({ kind: "section", block });
-      if (k === "x") removeBlock();
+      if (k === "x") removeBlock(block.id, true);
       toast(k === "x" ? t("cut") : t("copied"), "duplicate");
     } else if (mod(e) && k === "d") {
       e.preventDefault();
@@ -1069,16 +486,32 @@ export function Editor({
     }
   };
 
-  const sectionActions = {
-    move: (id: string, index: number) => setBlocks((blocks) => moveTo(blocks, id, index)),
-    settings: () => setSettingsOpen((o) => !o),
-    add: () => {
+  const sectionActions: SectionActions = {
+    move: (id, index) => setBlocks((blocks) => moveTo(blocks, id, index)),
+    edit: (id) => {
+      setSelected(id);
+      setFreeItem(null);
+      setInsertAt(null);
+      setSettingsOpen(true);
+    },
+    addAt: (index) => {
+      setInsertAt(index);
+      setSettingsOpen(false);
+      setFreeItem(null);
       setRail("blocks");
       setPanelTab("blocks");
       setPanelOpen(true);
     },
-    duplicate: duplicateBlock,
-    remove: removeBlock,
+    duplicate: (id) => duplicateBlock(id),
+    remove: (id) => removeBlock(id),
+  };
+  // The line only shows while the library is open to fill it.
+  const insertShown = insertAt !== null && panelOpen && rail === "blocks" && panelTab === "blocks" && !settingsOpen ? insertAt : null;
+  const sectionName = (id: string) => {
+    if (id === "__header") return t("parts.header");
+    if (id === "__footer") return t("parts.footer");
+    const b = page.blocks.find((x) => x.id === id);
+    return b ? t(`blocks.${kindOf(b).key}`) : "";
   };
 
   /** Round 12: fonts shown on the page while pointing at them in the font picker. */
@@ -1861,6 +1294,11 @@ export function Editor({
           selectedId={selected}
           reorder={reorder}
           actions={sectionActions}
+          order={page.blocks.map((b) => b.id)}
+          nameOf={sectionName}
+          insertAt={insertShown}
+          quiet={!!freeItem || !!doodleSession}
+          sheet={phone}
           version={page.blocks}
           settings={docked ? null : blockSettings}
           settingsOpen={settingsOpen}

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { signUp } from "./helpers";
-import { openEditor } from "./editor-helpers";
+import { addSection, editSection, openEditor } from "./editor-helpers";
 
 // Round 14 (matching ahmedadel.art): the header's height, grids that follow the section's alignment
 // (a short last row sits in the middle), and masonry that keeps the pictures in reading order.
@@ -21,20 +21,20 @@ test("header height, centred grid rows and masonry in reading order", async ({ p
   };
   const tall = await firstTop();
   await header.click({ position: { x: 4, y: 4 } });
-  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await editSection(page);
   await page.getByTestId("header-settings").getByRole("slider", { name: /^Height/ }).fill("4");
   await expect.poll(firstTop).toBeLessThan(tall - 60);
   await page.keyboard.press("Escape");
 
   // Six pictures in four columns, centred: the two left over sit in the middle of the last row.
-  await page.getByTestId("add-img-grid").click();
+  await addSection(page, "img-grid");
   const section = canvas.getByTestId("images-section").last();
   await section.scrollIntoViewIfNeeded();
   await section.click({ position: { x: 10, y: 10 } });
   // A new section may open its settings by itself; the button toggles them.
   const columns = page.getByRole("slider", { name: /^Columns/ });
   await expect(async () => {
-    if (!(await columns.isVisible())) await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+    if (!(await columns.isVisible())) await editSection(page);
     await expect(columns).toBeVisible({ timeout: 2000 });
   }).toPass({ timeout: 15_000 });
   await columns.fill("4");
@@ -67,13 +67,13 @@ test("logos can glide in an endless row", async ({ page }, info) => {
   await signUp(page);
   await openEditor(page);
   const canvas = page.getByTestId("canvas");
-  await page.getByTestId("add-logos").click();
+  await addSection(page, "logos");
   const wall = canvas.getByTestId("logo-wall").last();
   await wall.scrollIntoViewIfNeeded();
   await wall.click();
   const moving = page.getByRole("switch", { name: /^Moving/ });
   await expect(async () => {
-    if (!(await moving.isVisible())) await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+    if (!(await moving.isVisible())) await editSection(page);
     await expect(moving).toBeVisible({ timeout: 2000 });
   }).toPass({ timeout: 15_000 });
   await moving.click();

@@ -14,7 +14,8 @@ import { SOCIAL_NETWORKS, networkName } from "@/lib/site/blocks";
 import { linkItem, networkOf } from "@/lib/site/links";
 import type { BlockOf, LinkItem, LinkKind, PageDraft } from "@/lib/site/types";
 import { clicksPerLink, moveShortLink, newShortLink, removeShortLink, shortLinks } from "./actions";
-import { Choice, ColorField, inputCls, Switch, Text, Area, type MediaKind } from "./Panels";
+import { Area, Choice, ColorField, inputCls, Switch, Text } from "./_ui/controls";
+import type { MediaKind } from "./_ui/media";
 
 type LinksBlock = BlockOf<"links">;
 

@@ -1,7 +1,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 import { at, signUp } from "./helpers";
-import { openEditor, setSiteLanguage } from "./editor-helpers";
+import { addSection, editSection, openEditor, setSiteLanguage } from "./editor-helpers";
 
 // Phase 4 main flow: the published site at {username}.fannan.net — pages, project pages, lightbox,
 // contact form to inbox + email, password protection that holds even for guessed image addresses,
@@ -136,12 +136,12 @@ test("the published site: pages, projects, lightbox, contact form, sitemap, draf
 
   // Drafts never leak: an unpublished change and its media stay off the live site.
   await openEditor(page);
-  await page.getByTestId("add-quote").click();
-  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await addSection(page, "quote");
+  await editSection(page);
   await page.getByTestId("block-settings").getByRole("textbox", { name: "Text" }).fill("Draft-only words");
   // Back from the settings to the sections (they share the side panel since round 17).
   await page.getByTestId("settings-back").click();
-  await page.getByTestId("add-d-image-caption").click();
+  await addSection(page, "d-image-caption");
   const picture = page.getByTestId("canvas").locator('[data-testid="free-item"][data-kind="image"]').last();
   await picture.scrollIntoViewIfNeeded();
   await picture.click();

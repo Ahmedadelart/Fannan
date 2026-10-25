@@ -619,6 +619,18 @@ _Last updated: 10 Oct 2026, phase 8 (Editor 2.0) under way; round 8 (guided setu
   - Undo and redo are off while previewing.
   - The Help link follows the deployment (staging links to staging help).
   - Tests: one shared set of editor test steps (`tests/e2e/editor-helpers.ts`) and a new `settings-sync` test.
+- **P2 (tidy-up, no new look):** the editor's two giant files are split into small ones.
+  - `Panels.tsx` (3,650 lines) became `_ui/` (controls, media), `_library/`, `_design/`, `_pages/`, `_inspector/` (block settings, header/footer, gallery, section design, items) and `_projects/`.
+  - `Editor.tsx` lost the canvas (`_canvas/Canvas.tsx`), the preview contact form and the tips (`_shell/Tips.tsx`).
+  - The hooks (history, panel navigation) move out when P4 rewrites the shell.
+- **P3 (the section card):**
+  - Pointing at a section shows a thin outline, its name (drag it to move the section) and a white card: **Edit section · Duplicate · Move up · Move down · Remove**. The header and footer get only "Edit header" / "Edit footer".
+  - **Add section** buttons sit on the section's top and bottom edges. The library opens, an ink line with a lime label shows where the new section will go, and the new section opens in Edit section (Ahmed: 2B).
+  - **Remove** shows a message with **Undo**.
+  - Clicking another section while Edit section is open closes it (Ahmed: 1B; it already worked that way).
+  - **Phones:** a tapped section's actions slide up from the bottom (Ahmed: 3A), with "Add section below".
+  - New icons: arrow-up, arrow-down, more (⋯), drawn to ICONS.md.
+  - Messages can carry one button (`Toast` action), used for Undo.
 
 ## Not done yet from the phase 6 "done when"
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).

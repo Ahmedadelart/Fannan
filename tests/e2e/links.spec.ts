@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { at, signUp, uniq } from "./helpers";
-import { openEditor } from "./editor-helpers";
+import { editSection, openEditor } from "./editor-helpers";
 
 // Round 9: a link page (like Linktree) on the artist's own site, with a QR code and short links.
 
@@ -41,7 +41,7 @@ test("a link page with buttons, a QR code and short links; Pro extras", async ({
 
   // Its settings: add a link that pulses.
   await canvas.locator("[data-block-id]").first().click({ position: { x: 20, y: 300 } });
-  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await editSection(page);
   const settings = page.getByTestId("links-settings");
   await expect(settings).toBeVisible();
   await settings.getByTestId("links-add").click();
@@ -80,7 +80,7 @@ test("a link page with buttons, a QR code and short links; Pro extras", async ({
   await page.getByTestId("page-switcher").click();
   await page.getByRole("button", { name: "Links Link page" }).click();
   await canvas.locator("[data-block-id]").first().click({ position: { x: 20, y: 300 } });
-  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await editSection(page);
   const word = `n${uniq()}`.slice(0, 20);
   await settings.getByTestId("short-custom").fill(word);
   await settings.getByRole("button", { name: "Create" }).click();
@@ -100,7 +100,7 @@ test("a link page with buttons, a QR code and short links; Pro extras", async ({
   await page.getByTestId("page-switcher").click();
   await page.getByRole("button", { name: "Links Link page" }).click();
   await canvas.locator("[data-block-id]").first().click({ position: { x: 20, y: 300 } });
-  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await editSection(page);
   await expect(settings.getByText("1 click")).toBeVisible({ timeout: 15_000 });
 
   // The Stats page shows the clicks per button and the short links' visits.

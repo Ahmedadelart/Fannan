@@ -55,12 +55,13 @@ test("type on the page, drag sections and pages, toolbar actions", async ({ page
   await expect(toolbar).toBeVisible();
   await page.screenshot({ path: `test-results/editor2-toolbar-${info.project.name}.png` });
   const gallery = canvas(page).locator(`[data-block-id="${before[1]}"]`);
-  await dragAbove(page, toolbar.getByRole("button", { name: /Drag to move/ }), gallery);
+  // The section's name tag is its drag handle.
+  await dragAbove(page, page.getByRole("button", { name: /: Drag to move/ }), gallery);
   await expect.poll(() => sectionIds(page)).toEqual([before[0], aboutId, ...before.filter((id) => id !== before[0] && id !== aboutId)]);
 
   // Keyboard: the handle moves the section with the arrow keys.
   await canvas(page).locator(`[data-block-id="${aboutId}"]`).click({ position: { x: 10, y: 10 } });
-  await toolbar.getByRole("button", { name: /Drag to move/ }).focus();
+  await page.getByRole("button", { name: /: Drag to move/ }).focus();
   await page.keyboard.press("ArrowUp");
   await expect.poll(async () => (await sectionIds(page))[0]).toBe(aboutId);
 
@@ -69,7 +70,7 @@ test("type on the page, drag sections and pages, toolbar actions", async ({ page
   const count = (await sectionIds(page)).length;
   await toolbar.getByRole("button", { name: "Duplicate" }).click();
   await expect.poll(async () => (await sectionIds(page)).length).toBe(count + 1);
-  await page.getByTestId("section-toolbar").getByRole("button", { name: "Delete" }).click();
+  await toolbar.getByTestId("section-remove").click();
   await expect.poll(async () => (await sectionIds(page)).length).toBe(count);
 
   /* ---------- the reorder view: whole sections, dragged ---------- */

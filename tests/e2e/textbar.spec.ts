@@ -1,6 +1,6 @@
 import { expect, test, type Locator } from "@playwright/test";
 import { at, signUp } from "./helpers";
-import { openEditor } from "./editor-helpers";
+import { addSection, openEditor } from "./editor-helpers";
 
 // Round 13 (C): select words on the canvas, format them with the toolbar, and see it on the live site.
 
@@ -25,7 +25,7 @@ test("bold, link and colour on selected words reach the live site; pasted code i
   await page.setViewportSize({ width: 1440, height: 900 });
   const { username } = await signUp(page);
   await openEditor(page);
-  await page.getByTestId("add-d-split-left").click();
+  await addSection(page, "d-split-left");
   const heading = page.getByTestId("canvas").locator('[data-kind="text"]').last();
   await heading.scrollIntoViewIfNeeded();
   await heading.click();

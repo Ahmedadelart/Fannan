@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { at, signUp } from "./helpers";
-import { openEditor } from "./editor-helpers";
+import { addSection, openEditor } from "./editor-helpers";
 
 // Round 11: doodles. A drawing board with pressure, brushes, an eraser, undo and boiling lines;
 // the drawing is vector and shows on the live site.
@@ -25,7 +25,7 @@ test("draw a doodle with brushes, erase, undo, boil, and see it on the live site
   await page.setViewportSize({ width: 1440, height: 900 });
   const { username } = await signUp(page);
   await openEditor(page);
-  await page.getByTestId("add-free-blank").click();
+  await addSection(page, "free-blank");
   await page.getByRole("button", { name: "Add item" }).click();
   await page.getByRole("menuitem", { name: "Doodle", exact: true }).click();
 
@@ -87,7 +87,7 @@ test("Layers and Add item sit side by side under any free-form section, and a do
   await signUp(page);
   await openEditor(page);
   // A designed section with its own padding and background.
-  await page.getByTestId("add-d-statement").click();
+  await addSection(page, "d-statement");
   const layers = page.getByTestId("layers-button");
   const add = page.getByRole("button", { name: "Add item" });
   await expect(layers).toBeVisible();

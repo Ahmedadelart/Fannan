@@ -45,3 +45,20 @@ export async function publishAndWait(page: Page) {
   await page.getByRole("button", { name: "Publish" }).click();
   await expect(page.getByTestId("editor-status")).toHaveText("Live site is up to date", { timeout: 20_000 });
 }
+
+/** Opens the selected (or hovered) section's settings from its action card ("Edit section"). */
+export async function editSection(page: Page) {
+  const settings = page.getByTestId("block-settings");
+  if (!(await settings.isVisible())) await page.getByTestId("section-toolbar").getByTestId("section-edit").click();
+  await expect(settings).toBeVisible();
+}
+
+/** Adds a section from the library. A new section opens in Edit section (round 18), so this goes
+ *  back to the library first when settings fill the side panel. */
+export async function addSection(page: Page, key: string) {
+  const back = page.getByTestId("settings-back");
+  if (await back.isVisible()) await back.click();
+  const tile = page.getByTestId(`add-${key}`);
+  await tile.scrollIntoViewIfNeeded();
+  await tile.click();
+}

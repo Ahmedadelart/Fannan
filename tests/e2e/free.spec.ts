@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { at, signUp } from "./helpers";
-import { openEditor, setSiteLanguage } from "./editor-helpers";
+import { addSection, openEditor, setSiteLanguage } from "./editor-helpers";
 
 // Phase 8C: free-form sections — blocks anywhere on a grid, moved, resized, turned and layered,
 // text typed in place, stacked on phones, mirrored in Arabic.
@@ -45,7 +45,7 @@ test("a free-form section: place, resize, turn, layer, type, publish", async ({ 
 
   // Add a ready-made collage from the library.
   // Collage is a Pro showpiece: a Free artist is told, and can still try it in the editor.
-  await page.getByTestId("add-d-collage").click();
+  await addSection(page, "d-collage");
   await expect(page.getByRole("dialog", { name: "A Pro section" })).toBeVisible();
   await page.getByRole("button", { name: "Try it here" }).click();
   const grid = page.getByTestId("free-grid");

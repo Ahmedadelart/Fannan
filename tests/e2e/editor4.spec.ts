@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { at, signUp } from "./helpers";
-import { openEditor } from "./editor-helpers";
+import { addSection, editSection, openEditor } from "./editor-helpers";
 
 // Phase 8, round 4: the header and footer are clicked and edited on the page, the contact form
 // is shaped from its section, sample drawings replace dark tiles, the Arabic font always applies,
@@ -25,11 +25,11 @@ test("header, footer and contact form are edited on the page and reach the live 
 
   /* ---------- header ---------- */
   await canvas(page).locator('[data-site-part="header"]').click({ position: { x: 4, y: 4 } });
-  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  // Only Edit for the header: it can't be dragged, copied or removed.
+  await expect(page.getByTestId("section-toolbar").getByRole("button")).toHaveCount(1);
+  await editSection(page);
   const header = page.getByTestId("header-settings");
   await expect(header).toBeVisible();
-  // Only settings for the header: it can't be dragged, copied or deleted.
-  await expect(page.getByTestId("section-toolbar").getByRole("button")).toHaveCount(1);
   await header.getByRole("tab", { name: "Items" }).click();
   await header.getByRole("radio", { name: "Always" }).click();
   await header.getByRole("textbox", { name: "Button words" }).fill("Work with me");
@@ -44,7 +44,7 @@ test("header, footer and contact form are edited on the page and reach the live 
   const footer = canvas(page).locator('[data-site-part="footer"]');
   await footer.scrollIntoViewIfNeeded();
   await footer.click({ position: { x: 4, y: 4 } });
-  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await editSection(page);
   await expect(page.getByTestId("footer-settings")).toBeVisible();
   await footer.locator("[data-inline-text]").click();
   await page.keyboard.type("© Nour Adel. Cairo.");
@@ -55,7 +55,7 @@ test("header, footer and contact form are edited on the page and reach the live 
   /* ---------- contact form ---------- */
   const contact = canvas(page).locator("[data-block-id]").filter({ has: page.getByTestId("contact-preview") });
   await contact.click({ position: { x: 10, y: 10 } });
-  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await editSection(page);
   const card = page.getByTestId("block-settings");
   await card.getByRole("switch", { name: "Budget" }).click();
   await card.getByRole("textbox", { name: "Your own question" }).fill("How did you find me?");
@@ -150,13 +150,14 @@ test("full-width canvas and a settings card you can move", async ({ page }, info
   const siteBox = (await canvas(page).boundingBox())!;
   expect(Math.abs(siteBox.width - canvasBox.width)).toBeLessThan(24);
 
-  // No "Add section" under sections (it lives in the side panel).
+  // Round 18 (Ahmed): "Add section" sits on the section's top and bottom edges.
   const first = canvas(page).locator("[data-block-id]").first();
   await first.click({ position: { x: 10, y: 10 } });
-  await expect(page.getByRole("button", { name: "Add section" })).toHaveCount(0);
+  await expect(page.getByTestId("add-section-above")).toBeVisible();
+  await expect(page.getByTestId("add-section-below")).toBeVisible();
 
   // Settings open in the side panel (round 17); popped out, the card moves by its top bar.
-  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await editSection(page);
   await expect(page.getByTestId("left-panel").getByTestId("block-settings")).toBeVisible();
   await page.getByTestId("settings-float").click();
   const card = page.getByTestId("block-settings");
@@ -171,7 +172,7 @@ test("full-width canvas and a settings card you can move", async ({ page }, info
   expect(b.y - a.y).toBeGreaterThan(80);
   // A new selection puts the card back in its usual place.
   await canvas(page).locator("[data-block-id]").nth(1).click({ position: { x: 10, y: 10 } });
-  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await editSection(page);
   const c = (await card.boundingBox())!;
   expect(Math.abs(c.x - a.x)).toBeLessThan(40);
   await page.screenshot({ path: `test-results/r4d-card-${info.project.name}.png` });
@@ -183,7 +184,7 @@ test("items: layers restack and hide, new kinds, quick toolbar first", async ({ 
   await page.setViewportSize({ width: 1440, height: 900 });
   await signUp(page);
   await openEditor(page);
-  await page.getByTestId("add-free-blank").click();
+  await addSection(page, "free-blank");
   const items = page.getByTestId("free-item");
   await expect(items).toHaveCount(2);
 
@@ -230,7 +231,7 @@ test("header and footer: more settings in tabs", async ({ page }, info) => {
   await signUp(page);
   await openEditor(page);
   await canvas(page).locator('[data-site-part="header"]').click({ position: { x: 4, y: 4 } });
-  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await editSection(page);
   const header = page.getByTestId("header-settings");
   await header.getByRole("tab", { name: "Items" }).click();
   await header.getByRole("switch", { name: "Social links in the header" }).click();
@@ -242,7 +243,7 @@ test("header and footer: more settings in tabs", async ({ page }, info) => {
   const footer = canvas(page).locator('[data-site-part="footer"]');
   await footer.scrollIntoViewIfNeeded();
   await footer.click({ position: { x: 4, y: 4 } });
-  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await editSection(page);
   const fs = page.getByTestId("footer-settings");
   await fs.getByRole("radio", { name: "Three columns" }).click();
   await fs.getByRole("tab", { name: "Items" }).click();
@@ -258,7 +259,7 @@ test("the pencil opens and closes settings; a box picks several items to move to
   await page.setViewportSize({ width: 1440, height: 900 });
   await signUp(page);
   await openEditor(page);
-  await page.getByTestId("add-free-blank").click();
+  await addSection(page, "free-blank");
   const items = page.getByTestId("free-item");
   await expect(items).toHaveCount(2);
   const card = page.getByTestId("block-settings");
@@ -332,7 +333,7 @@ test("keyboard shortcuts: undo, redo, copy, paste, duplicate, delete, select all
   await expect(sections).toHaveCount(n + 1);
 
   // Items: copy, paste, select all.
-  await page.getByTestId("add-free-blank").click();
+  await addSection(page, "free-blank");
   const items = page.getByTestId("free-item");
   await items.first().click();
   await page.keyboard.press("Control+c");
@@ -407,7 +408,7 @@ test("section design: gradient, wave edge, pattern and card reach the live site"
   await openEditor(page);
   const about = canvas(page).locator("[data-block-id]").nth(1);
   await about.click({ position: { x: 10, y: 10 } });
-  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await editSection(page);
   const card = page.getByTestId("block-settings");
   await card.getByRole("tab", { name: "Design" }).click();
   const design = page.getByTestId("section-design");
@@ -421,7 +422,7 @@ test("section design: gradient, wave edge, pattern and card reach the live site"
   // A second section with a pattern.
   const contact = canvas(page).locator("[data-block-id]").last();
   await contact.click({ position: { x: 10, y: 10 } });
-  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await editSection(page);
   await card.getByRole("tab", { name: "Design" }).click();
   await design.getByRole("radio", { name: "Pattern" }).click();
   await design.getByRole("radio", { name: "Doodles" }).click();
@@ -448,7 +449,7 @@ test("decorations: underline, arrow, doodle, badge, icon and their controls", as
   await page.setViewportSize({ width: 1440, height: 900 });
   await signUp(page);
   await openEditor(page);
-  await page.getByTestId("add-free-blank").click();
+  await addSection(page, "free-blank");
   const add = async (name: string) => {
     await page.getByRole("button", { name: "Add item" }).click();
     await page.getByRole("menuitem", { name, exact: true }).click();
@@ -489,8 +490,7 @@ test("new sections publish; Pro ones hide on Free sites; footer link columns", a
     await page.getByRole("button", { name: "Pages & sections" }).click();
   }
   for (const key of ["d-hero-split", "c-icons", "c-stats", "c-faq", "c-cards", "c-testimonials"]) {
-    await page.getByTestId(`add-${key}`).scrollIntoViewIfNeeded();
-    await page.getByTestId(`add-${key}`).click();
+    await addSection(page, key);
     const tryIt = page.getByRole("button", { name: "Try it here" });
     if (await tryIt.isVisible({ timeout: 800 }).catch(() => false)) await tryIt.click();
     if (info.project.name === "mobile" && !(await page.getByTestId("left-panel").isVisible())) {
@@ -505,7 +505,7 @@ test("new sections publish; Pro ones hide on Free sites; footer link columns", a
     const footer = canvas(page).locator('[data-site-part="footer"]');
     await footer.scrollIntoViewIfNeeded();
     await footer.click({ position: { x: 4, y: 4 } });
-    await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+    await editSection(page);
     await page.getByTestId("footer-settings").getByRole("radio", { name: "Link columns" }).click();
     await expect(canvas(page).getByTestId("footer-groups")).toBeVisible();
     // The password page design is in Design.

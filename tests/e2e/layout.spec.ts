@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { at, signUp } from "./helpers";
-import { openEditor } from "./editor-helpers";
+import { addSection, editSection, openEditor } from "./editor-helpers";
 
 // Round 13: "show, not tell": image-first sections, left by default, alignment, full width, flip.
 
@@ -10,7 +10,7 @@ test("image-first sections: flip, align and full width from the top of the setti
   await page.setViewportSize({ width: 1440, height: 900 });
   const { username } = await signUp(page);
   await openEditor(page);
-  await page.getByTestId("add-d-split-left").click();
+  await addSection(page, "d-split-left");
   const canvas = page.getByTestId("canvas");
   const section = canvas.locator("[data-block-id]").filter({ has: page.locator('[data-kind="image"]') }).last();
   await section.scrollIntoViewIfNeeded();
@@ -21,7 +21,7 @@ test("image-first sections: flip, align and full width from the top of the setti
   expect(await head.evaluate((el) => getComputedStyle(el.querySelector(".site-free-text") ?? el).textAlign)).toMatch(/start|left/);
 
   await section.click({ position: { x: 900, y: 20 } });
-  await page.getByTestId("section-toolbar").getByRole("button", { name: "Settings" }).click();
+  await editSection(page);
   await expect(page.getByTestId("quick-layout")).toBeVisible();
   await page.getByTestId("mirror-layout").click();
   await expect.poll(async () => (await img.boundingBox())!.x > (await head.boundingBox())!.x).toBe(true);

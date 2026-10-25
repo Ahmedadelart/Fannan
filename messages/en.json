@@ -1008,7 +1008,7 @@
       "settings": "Settings",
       "add": "Add a section below",
       "duplicate": "Duplicate",
-      "remove": "Delete",
+      "remove": "Remove",
       "hint": "Tip: click any text on the page to type in it. Drag the ⠿ handle on the section to move it.",
       "reorderHint": "Drag sections to change their order, then press Done.",
       "close": "Close",
@@ -1017,7 +1017,17 @@
       "customize": "Customize",
       "float": "Pop out as a card you can move",
       "dock": "Back into the side panel",
-      "done": "Done"
+      "done": "Done",
+      "edit": "Edit section",
+      "editHeader": "Edit header",
+      "editFooter": "Edit footer",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "removed": "Section removed",
+      "undo": "Undo",
+      "insertHere": "New section goes here",
+      "addAbove": "Add section above",
+      "addBelow": "Add section below"
     },
     "free": {
       "item": "Item",
