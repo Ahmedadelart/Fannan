@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { at, signUp } from "./helpers";
-import { addSection, editSection, openEditor } from "./editor-helpers";
+import { addSection, contentMore, editSection, openEditor } from "./editor-helpers";
 
 // Showcase blocks (for portfolios like ahmedadel.art, available to everyone): project fields for rich
 // project pages, a section header, project grids by tag with role captions, and the project feature.
@@ -50,6 +50,7 @@ test("project fields, section header, grid by tag and project feature reach the 
   const lines = page.getByTestId("gallery-lines");
   await lines.getByRole("button", { name: "Network or client" }).click();
   await lines.getByRole("button", { name: "Role" }).click();
+  await contentMore(page);
   await page.getByRole("switch", { name: "Role in the accent colour" }).or(page.getByLabel("Role in the accent colour")).first().click();
   await page.keyboard.press("Escape");
   await addSection(page, "feature");

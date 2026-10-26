@@ -75,3 +75,9 @@ export async function addSection(page: Page, key: string) {
 export async function settingsTab(page: Page, name: "Content" | "Style") {
   await page.getByTestId("block-settings").getByRole("tab", { name, exact: true }).click();
 }
+
+/** Opens "More options" in a section's Content tab (round 18), if it isn't open already. */
+export async function contentMore(page: Page) {
+  const more = page.getByTestId("block-settings").getByTestId("content-more");
+  if ((await more.getAttribute("aria-expanded")) !== "true") await more.click();
+}

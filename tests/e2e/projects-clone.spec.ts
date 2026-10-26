@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { at, signUp } from "./helpers";
-import { addSection, editSection, openEditor } from "./editor-helpers";
+import { addSection, contentMore, editSection, openEditor } from "./editor-helpers";
 
 // Round 13 (E): "Create your new project" with a thumbnail, clone and delete on the card, project grid looks.
 
@@ -56,6 +56,7 @@ test("project grid looks: alternate and rows, titles on hover, featured is Pro",
   await expect(page.getByTestId("gallery-look-featured")).toContainText("PRO");
   await page.getByTestId("gallery-look-alternate").click();
   await expect(page.getByTestId("canvas").locator('[data-layout="alternate"]')).toBeVisible();
+  await contentMore(page);
   await page.getByTestId("gallery-hover").selectOption("title");
   await expect(page.getByTestId("canvas").locator(".site-hover-title").first()).toBeVisible();
   await page.getByTestId("gallery-look-rows").click();

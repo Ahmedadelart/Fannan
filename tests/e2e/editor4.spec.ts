@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { at, signUp } from "./helpers";
-import { addSection, editSection, openEditor } from "./editor-helpers";
+import { addSection, contentMore, editSection, openEditor } from "./editor-helpers";
 
 // Phase 8, round 4: the header and footer are clicked and edited on the page, the contact form
 // is shaped from its section, sample drawings replace dark tiles, the Arabic font always applies,
@@ -58,6 +58,7 @@ test("header, footer and contact form are edited on the page and reach the live 
   await editSection(page);
   const card = page.getByTestId("block-settings");
   await card.getByRole("switch", { name: "Budget" }).click();
+  await contentMore(page);
   await card.getByRole("textbox", { name: "Your own question" }).fill("How did you find me?");
   await card.getByRole("radio", { name: "Side by side" }).click();
   await expect(canvas(page).getByTestId("contact-preview")).toContainText("How did you find me?");

@@ -1,7 +1,9 @@
 "use client";
 
-import { type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { Toggle } from "@/components/ui/Controls";
+import { Icon } from "@/components/ui/Icon";
 import { cx } from "@/lib/cx";
 
 /* ---------- small form pieces (Editor.dc.html right panel) ---------- */
@@ -189,5 +191,26 @@ export function ColorField({
         />
       </div>
     </div>
+  );
+}
+
+/** Round 18: settings used less often, folded under "More options" (about 8 stay in view). */
+export function More({ children, testId = "content-more" }: { children: ReactNode; testId?: string }) {
+  const t = useTranslations("editor.design2");
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
+        className="border-line hover:bg-mist flex h-10 items-center justify-between rounded-[12px] border px-3 text-[13px] font-semibold"
+        data-testid={testId}
+      >
+        {open ? t("fewer") : t("more")}
+        <Icon name="chevron-down" size={16} className={cx("transition-transform", open && "rotate-180")} />
+      </button>
+      {open && <div className="flex flex-col gap-3">{children}</div>}
+    </>
   );
 }
