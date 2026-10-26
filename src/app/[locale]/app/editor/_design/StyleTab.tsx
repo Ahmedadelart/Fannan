@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl";
 import { type SiteMedia } from "@/components/site/SiteRender";
-import { Icon } from "@/components/ui/Icon";
 import { cx } from "@/lib/cx";
 import { defaultSectionStyle } from "@/lib/site/normalize";
 import { presetIds, themes } from "@/lib/site/starter";
@@ -91,15 +90,12 @@ export function StyleTab({
   section,
   credit,
   onFontPreview,
-  onOpenSettings,
 }: {
   draft: SiteDraft;
   media: Record<string, SiteMedia>;
   setDraft: (fn: (d: SiteDraft) => SiteDraft, key?: string) => void;
   openPicker: (kind: MediaKind, done: (id: string) => void) => void;
   section: DesignSection;
-  /** The site language lives in Settings (round 18): this opens it. */
-  onOpenSettings?: () => void;
   credit?: boolean;
   /** Round 12: shows fonts on the page while pointing at them in the picker. */
   onFontPreview?: (fonts: Theme["fonts"] | null) => void;
@@ -159,7 +155,7 @@ export function StyleTab({
               onClick={() => setTheme({ nav: n })}
               className={cx(
                 "bg-paper flex flex-col items-stretch gap-2 rounded-[10px] p-2.5 text-[11px] font-semibold",
-                th.nav === n ? "border-lime border-2" : "border-line border",
+                th.nav === n ? "border-ink border-2" : "border-line border",
               )}
             >
               <span className="bg-mist flex h-10 items-center rounded-[6px] px-2">
@@ -252,18 +248,6 @@ export function StyleTab({
         </div>
       </div>
       <Range title={t("radius")} value={th.radius} min={0} max={24} unit="px" onChange={(v) => setTheme({ radius: v }, "radius")} />
-      <button
-        type="button"
-        data-testid="site-language"
-        onClick={onOpenSettings}
-        className="hover:bg-mist -mx-2 flex h-9 items-center justify-between rounded-[10px] px-2 text-[13px]"
-      >
-        {t("language")}
-        <span className="text-muted flex items-center gap-1">
-          {t(`languages.${draft.language}`)}
-          <Icon name="chevron-down" size={16} className="-rotate-90 rtl:rotate-90" />
-        </span>
-      </button>
     </div>
   );
 }

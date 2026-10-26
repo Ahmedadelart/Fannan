@@ -1171,11 +1171,12 @@
     },
     "design": {
       "logo": "Logo & title",
-      "nav": "Site navigation",
-      "styles": "Global styles",
+      "nav": "Menu",
+      "styles": "Theme",
       "footer": "Footer",
       "lock": "Password page",
-      "fonts": "Fonts"
+      "fonts": "Fonts",
+      "sampleButton": "Button"
     },
     "statsText": "See who visits your site, which projects they look at and where they come from.",
     "openStats": "Open stats",

@@ -36,7 +36,10 @@ export function SitePartSettings({
   credit,
   siteSettings,
   onSiteSettings,
+  bare = false,
 }: {
+  /** Inside Design ▸ Menu / Footer, which already shows the title. */
+  bare?: boolean;
   part: "header" | "footer";
   draft: SiteDraft;
   setDraft: (fn: (d: SiteDraft) => SiteDraft, key?: string) => void;
@@ -148,7 +151,7 @@ export function SitePartSettings({
     const bg = header.background;
     return (
       <div className="flex flex-col gap-5" data-testid="header-settings">
-        <h3 className="text-[15px] font-semibold">{t("header")}</h3>
+        {!bare && <h3 className="text-[15px] font-semibold">{t("header")}</h3>}
         {tabs}
         {tab === "layout" && (
           <>
@@ -301,7 +304,7 @@ export function SitePartSettings({
 
   return (
     <div className="flex flex-col gap-5" data-testid="footer-settings">
-      <h3 className="text-[15px] font-semibold">{t("footer")}</h3>
+      {!bare && <h3 className="text-[15px] font-semibold">{t("footer")}</h3>}
       {tabs}
       {tab === "layout" && (
         <>

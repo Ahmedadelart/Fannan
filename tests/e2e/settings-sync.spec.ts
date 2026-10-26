@@ -29,6 +29,7 @@ test("a language set in Settings survives the editor's autosave", async ({ page 
   await expect(page.getByTestId("site-language")).toContainText("Arabic");
 
   // A change in the editor saves the whole draft: the language must stay Arabic.
+  await page.getByTestId("design-card-styles").click();
   const radius = page.getByRole("slider", { name: "Corner radius" });
   await radius.focus();
   await page.keyboard.press("ArrowRight");

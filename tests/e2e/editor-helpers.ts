@@ -48,8 +48,10 @@ export async function publishAndWait(page: Page) {
 
 /** Opens the selected (or hovered) section's settings from its action card ("Edit section"). */
 export async function editSection(page: Page) {
-  const settings = page.getByTestId("block-settings");
-  if (!(await settings.isVisible())) await page.getByTestId("section-toolbar").getByTestId("section-edit").click();
+  // The header and footer open in Design ▸ Menu / Footer (round 18).
+  const settings = page.locator('[data-testid="block-settings"], [data-testid="header-settings"], [data-testid="footer-settings"]').first();
+  const card = page.getByTestId("section-toolbar");
+  if ((await card.isVisible()) || !(await settings.isVisible())) await card.getByTestId("section-edit").click();
   await expect(settings).toBeVisible();
 }
 
@@ -58,6 +60,10 @@ export async function editSection(page: Page) {
 export async function addSection(page: Page, key: string) {
   const back = page.getByTestId("settings-back");
   if (await back.isVisible()) await back.click();
+  // The library is in the Pages panel (another panel may be open, e.g. Design after Edit header).
+  const panel = page.getByTestId("left-panel");
+  if ((await panel.getAttribute("data-panel").catch(() => null)) !== "blocks" || !(await panel.isVisible()))
+    await page.getByRole("navigation", { name: "Editor" }).getByRole("button", { name: "Pages", exact: true }).click();
   // Round 18: the library lists kinds of sections first; open the one that holds this section.
   const pagesBack = page.getByTestId("pages-back");
   if (await pagesBack.isVisible()) await pagesBack.click();

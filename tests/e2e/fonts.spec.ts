@@ -13,7 +13,7 @@ test("fonts: preview on hover, pick a pair, search, keyboard, and the live site 
   await page.setViewportSize({ width: 1440, height: 900 });
   const { username } = await signUp(page);
   await openEditor(page);
-  await page.getByRole("button", { name: "Design" }).click();
+  await page.getByRole("navigation", { name: "Editor" }).getByRole("button", { name: "Design", exact: true }).click();
   await page.getByRole("button", { name: "Fonts", exact: true }).click();
   const picker = page.getByTestId("font-picker");
   await expect(picker).toBeVisible();

@@ -96,7 +96,7 @@ test("the Arabic font applies on any site, and lime keeps dark text in the dark 
   expect(await badge.evaluate((el) => getComputedStyle(el).color)).toBe("rgb(20, 31, 0)");
 
   // English site: picking Marhey puts it in the font stack for Arabic words.
-  await page.getByRole("button", { name: "Design" }).click();
+  await page.getByRole("navigation", { name: "Editor" }).getByRole("button", { name: "Design", exact: true }).click();
   await page.getByRole("button", { name: "Fonts", exact: true }).click();
   await page.getByTestId("fonts-tab-arabicBody").click();
   await page.getByTestId("font-search").fill("marhey");
@@ -515,7 +515,7 @@ test("new sections publish; Pro ones hide on Free sites; footer link columns", a
     await page.getByTestId("footer-settings").getByRole("radio", { name: "Link columns" }).click();
     await expect(canvas(page).getByTestId("footer-groups")).toBeVisible();
     // The password page design is in Design.
-    await page.getByRole("button", { name: "Design" }).click();
+    await page.getByRole("navigation", { name: "Editor" }).getByRole("button", { name: "Design", exact: true }).click();
     await page.getByRole("button", { name: "Password page" }).click();
     await expect(page.getByTestId("lock-settings")).toBeVisible();
   } else if (await page.getByTestId("panel-backdrop").isVisible()) {

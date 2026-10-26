@@ -61,8 +61,9 @@ test("build, preview on phone size, publish, then edit without changing the live
   await page.getByRole("button", { name: "Redo" }).click();
   await expect(canvas(page)).toContainText("Characters people remember.");
 
-  // Design → Global styles: the Paper preset changes the page colour.
-  await page.getByRole("button", { name: "Design" }).click();
+  // Design → Theme: the Paper preset changes the page colour.
+  await page.getByRole("navigation", { name: "Editor" }).getByRole("button", { name: "Design", exact: true }).click();
+  await page.getByTestId("design-card-styles").click();
   await page.getByRole("radio", { name: "Paper" }).click();
   await expect(canvas(page).locator(".site-root")).toHaveCSS("background-color", "rgb(245, 241, 232)");
 

@@ -648,6 +648,11 @@ _Last updated: 10 Oct 2026, phase 8 (Editor 2.0) under way; round 8 (guided setu
   - Style: **Arrangement** (one alignment, flip layout for free-form, one width), **Background** (one picker), **Spacing**, then **More options** (exact width, edges, card, text colour, link name, scroll animation, reset). The old quick row (alignment, full width, 5 colours) at the top is gone: one place per setting.
   - The selected section's outline is ink on a thin white band (no lime line).
 - **P7 (Content tabs, about 8 settings in view):** a shared "More options" fold. Gallery keeps source, layout, columns, spacing, thumbnail shape, project titles, caption lines and the category filter in view (lightbox, logo on cover, hover, credits, loops, two widths, caption looks, card sizes and picked projects fold away). Cover, logos, section header, project feature, contact and cards are trimmed the same way. The other sections already had 8 or fewer.
+- **P8 (Design as preview cards):** Theme (colours, heading font, a sample button), Fonts, Logo & title, Menu, Footer and Password page, each drawn from the site's own theme; "Site language ›" under them. Each card opens its own page with "‹ Design".
+  - The header's settings live in Design ▸ Menu, the footer's in Design ▸ Footer: "Edit header" / "Edit footer" on the page open them (one place each).
+  - "Global styles" is now "Theme", "Site navigation" is now "Menu".
+  - Pressing an open panel's icon again goes back to its first page, then closes it (like a phone's tab bar).
+  - The chosen menu layout is framed in ink, not lime.
 
 ## Not done yet from the phase 6 "done when"
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).

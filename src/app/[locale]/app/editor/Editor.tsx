@@ -28,6 +28,7 @@ import { watchLoops } from "@/components/site/loops";
 import { LanguageButton, LogoutButton } from "../(dash)/DashClient";
 import { SiteEnhancer } from "@/components/site/live/SiteEnhancer";
 import { editorTipsSeen, publishSite, savePagePassword, saveSiteDraft } from "./actions";
+import { DesignHome } from "./_design/DesignHome";
 import { StyleTab, type DesignSection } from "./_design/StyleTab";
 import { BlockSettings } from "./_inspector/BlockSettings";
 import { SitePartSettings, type EditorSiteSettings } from "./_inspector/SitePartSettings";
@@ -139,7 +140,7 @@ export function Editor({
   }, []);
   const [panelTab, setPanelTab] = useState<"blocks" | "page">("blocks");
   const [pagesOpen, setPagesOpen] = useState(false);
-  const [designOpen, setDesignOpen] = useState<DesignSection | null>("styles");
+  const [designOpen, setDesignOpen] = useState<DesignSection | null>(null);
   const [panelOpen, setPanelOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   // Round 17 (Carbonmade-style): a section's settings open in the side panel, so they never cover
@@ -490,6 +491,17 @@ export function Editor({
   const sectionActions: SectionActions = {
     move: (id, index) => setBlocks((blocks) => moveTo(blocks, id, index)),
     edit: (id) => {
+      // The header and footer are edited in Design (Menu, Footer): one place for each (round 18).
+      if (id === "__header" || id === "__footer") {
+        setSelected(id);
+        setSettingsOpen(false);
+        setFreeItem(null);
+        setInsertAt(null);
+        setRail("design");
+        setDesignOpen(id === "__header" ? "nav" : "footer");
+        setPanelOpen(true);
+        return;
+      }
       setSelected(id);
       setFreeItem(null);
       setInsertAt(null);
@@ -765,6 +777,13 @@ export function Editor({
       setFreeItem(null);
       setRail(id);
       setPanelOpen(true);
+      return;
+    }
+    // Pressing the open panel's icon again goes back to its first page (like a phone's tab bar), then closes it.
+    if (rail === id && panelOpen && id === "design" && designOpen) return setDesignOpen(null);
+    if (rail === id && panelOpen && id === "blocks" && (pagesOpen || panelTab === "page")) {
+      setPagesOpen(false);
+      setPanelTab("blocks");
       return;
     }
     if (rail === id && panelOpen && !(id === "projects" && projectId)) return embedPath(id, projectId) ? wideBack() : setPanelOpen(false);
@@ -1245,49 +1264,59 @@ export function Editor({
           )}
 
           {!docked && rail === "design" && (
-            <div className="flex flex-col">
-              <h2 className="text-muted px-4 pt-4 pb-2 text-[11px] font-semibold tracking-[0.1em] uppercase">{t("rail.design")}</h2>
-              {(["logo", "nav", "styles", "fonts", "footer", "lock"] as DesignSection[]).map((sec) => (
-                <div key={sec} className="border-line border-b">
+            // Round 18: preview cards; each opens its own page with "‹ Design".
+            !designOpen ? (
+              <DesignHome
+                draft={draft}
+                media={media}
+                onOpen={setDesignOpen}
+                onOpenSettings={() => openRail("settings")}
+                canPassword={canPassword}
+              />
+            ) : (
+              <div className="flex flex-col">
+                <div className="border-line flex h-12 flex-none items-center border-b px-2">
                   <button
                     type="button"
-                    aria-expanded={designOpen === sec}
-                    onClick={() => setDesignOpen(designOpen === sec ? null : sec)}
-                    className="flex h-12 w-full items-center justify-between px-4 text-[15px] font-semibold"
+                    onClick={() => setDesignOpen(null)}
+                    className="hover:bg-mist flex h-9 items-center gap-1.5 rounded-pill ps-2 pe-3 text-[13px] font-semibold"
+                    data-testid="design-back"
                   >
-                    {t(`design.${sec}`)}
-                    <Icon name="chevron-down" size={18} className={cx("transition-transform", designOpen === sec && "rotate-180")} />
+                    <Icon name="arrow-left" size={18} />
+                    {t("rail.design")}
                   </button>
-                  {designOpen === sec && (
-                    <div className="px-4 pb-5">
-                      {sec === "footer" ? (
-                        <SitePartSettings
-                          part="footer"
-                          draft={draft}
-                          setDraft={setDraft}
-                          media={media}
-                          openPicker={(kind, done) => setPicker({ kind, done })}
-                          credit={credit}
-                          siteSettings={siteSettings}
-                          onSiteSettings={setSiteSettings}
-                        />
-                      ) : (
-                        <StyleTab
-                          section={sec}
-                          onFontPreview={setFontPreview}
-                          credit={credit}
-                          draft={draft}
-                          media={media}
-                          setDraft={setDraft}
-                          openPicker={(kind, done) => setPicker({ kind, done })}
-                          onOpenSettings={() => openRail("settings")}
-                        />
-                      )}
-                    </div>
+                </div>
+                <h2 className="px-4 pt-3 text-[15px] font-semibold">{t(`design.${designOpen}`)}</h2>
+                <div className="flex flex-col gap-5 px-4 pt-3 pb-6">
+                  {designOpen !== "footer" && designOpen !== "nav" && (
+                    <StyleTab
+                      section={designOpen}
+                      onFontPreview={setFontPreview}
+                      credit={credit}
+                      draft={draft}
+                      media={media}
+                      setDraft={setDraft}
+                      openPicker={(kind, done) => setPicker({ kind, done })}
+                    />
+                  )}
+                  {/* The header's settings live with the menu, the footer's on its own page: one place each. */}
+                  {(designOpen === "nav" || designOpen === "footer") && (
+                    <SitePartSettings
+                      key={designOpen}
+                      bare
+                      part={designOpen === "nav" ? "header" : "footer"}
+                      draft={draft}
+                      setDraft={setDraft}
+                      media={media}
+                      openPicker={(kind, done) => setPicker({ kind, done })}
+                      credit={credit}
+                      siteSettings={siteSettings}
+                      onSiteSettings={setSiteSettings}
+                    />
                   )}
                 </div>
-              ))}
-            </div>
+              </div>
+            )
           )}
 
           {!docked && rail === "projects" && !projectId && (

@@ -230,11 +230,13 @@ test("an Arabic site is served right to left, and it fits a phone", async ({ pag
   const { username } = await signUp(page);
   await setSiteLanguage(page, "ar");
   await openEditor(page);
-  await page.getByRole("button", { name: "Design" }).click();
+  await page.getByRole("navigation", { name: "Editor" }).getByRole("button", { name: "Design", exact: true }).click();
   await page.getByRole("button", { name: "Logo & title" }).click();
   await page.getByRole("textbox", { name: "Site name" }).fill("نور عادل");
   // On a phone the panel covers the page: its button in the bottom bar closes it again.
   if (info.project.name === "mobile") {
+    // Once back to the Design cards, once more to close.
+    await page.getByRole("navigation", { name: "Editor" }).getByRole("button", { name: "Design" }).click();
     await page.getByRole("navigation", { name: "Editor" }).getByRole("button", { name: "Design" }).click();
     await expect(page.getByTestId("left-panel")).toBeHidden();
   }
