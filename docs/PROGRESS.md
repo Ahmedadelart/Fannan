@@ -637,6 +637,11 @@ _Last updated: 10 Oct 2026, phase 8 (Editor 2.0) under way; round 8 (guided setu
   - **Top bar:** undo and redo · the page name and status in the middle · reorder, screen size, preview, **Publish** (greyed with a tick when the live site is up to date).
   - **Wide panels** (dashboard, project, messages, stats, settings, Pro) open over the editor with the site dimmed; "‹ Back to your site" returns to Pages. Up to 4 stay loaded and keep their place.
   - "Pages & sections" is now "Pages".
+- **P5 (Pages panel):**
+  - **Page card:** the page being edited ("Home ▾", opens the page list) and ⚙ for its settings. The list and the settings open as their own views with "‹ Sections".
+  - **Library:** kinds of sections as rows with a small picture and a count; a row opens its sections one readable picture a row, with "‹ All sections". Search looks in every kind. "Blank section" sits under the rows.
+  - A lime "New section goes here" note (with ✕) shows at the top while Add section is waiting.
+  - Phones: the section sheet hides while a panel is open.
 
 ## Not done yet from the phase 6 "done when"
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).

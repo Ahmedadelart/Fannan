@@ -88,7 +88,8 @@ test("the Arabic font applies on any site, and lime keeps dark text in the dark 
   await signUp(page);
   await openEditor(page);
 
-  // A Pro badge in the dark section list: dark words on lime.
+  // A Pro badge in the dark section list: dark words on lime ("Your work" holds a Pro section).
+  await page.getByTestId("library-cat-work").click();
   const badge = page.getByTestId("left-panel").getByText("PRO", { exact: true }).first();
   await badge.scrollIntoViewIfNeeded();
   expect(await badge.evaluate((el) => getComputedStyle(el).color)).toBe("rgb(20, 31, 0)");
@@ -358,11 +359,12 @@ test("dropdown menus: pages inside a menu item open from the header", async ({ p
   // A dropdown called Artwork, and a Sketches page inside it.
   await page.getByTestId("page-switcher").click();
   await page.getByRole("button", { name: "Dropdown", exact: true }).click();
-  await page.getByRole("tab", { name: "Page settings" }).click();
+  await page.getByTestId("page-settings-button").click();
   await page.getByRole("textbox", { name: "Page name" }).fill("Artwork");
+  await page.getByTestId("pages-back").click();
   await page.getByTestId("page-switcher").click();
   await page.getByRole("button", { name: "Gallery page", exact: true }).click();
-  await page.getByRole("tab", { name: "Page settings" }).click();
+  await page.getByTestId("page-settings-button").click();
   await page.getByRole("textbox", { name: "Page name" }).fill("Sketches");
   await page.getByTestId("page-parent").selectOption({ label: "Artwork" });
 

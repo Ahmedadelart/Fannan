@@ -83,8 +83,9 @@ test("build, preview on phone size, publish, then edit without changing the live
   await page.getByTestId("settings-back").click();
   await page.getByTestId("page-switcher").click();
   await page.getByRole("button", { name: "Custom page", exact: true }).click();
-  await page.getByRole("tab", { name: "Page settings" }).click();
+  await page.getByTestId("page-settings-button").click();
   await page.getByRole("textbox", { name: "Page name" }).fill("Process");
+  await page.getByTestId("pages-back").click();
   await expect(page.getByTestId("page-switcher")).toContainText("Process");
 
   // Phone size: the canvas becomes 390 px wide and the grid collapses.

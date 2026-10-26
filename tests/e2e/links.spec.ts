@@ -32,7 +32,7 @@ test("a link page with buttons, a QR code and short links; Pro extras", async ({
   // Pages → Link page, at /links.
   await page.getByTestId("page-switcher").click();
   await page.getByRole("button", { name: "Link page", exact: true }).click();
-  await page.getByRole("tab", { name: "Page settings" }).click();
+  await page.getByTestId("page-settings-button").click();
   await page.getByRole("textbox", { name: "Address" }).fill("links");
   const canvas = page.getByTestId("canvas");
   await expect(canvas.getByTestId("link-page")).toBeVisible();

@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { ScaledSite } from "@/components/site/ScaledSite";
 import { SiteRender, type GalleryProject, type SiteMedia } from "@/components/site/SiteRender";
 import { Icon } from "@/components/ui/Icon";
-import { cx } from "@/lib/cx";
 import { kindByKey, LIBRARY, type BlockKind, type LibraryGroup } from "@/lib/site/blocks";
 import type { Block, SiteDraft } from "@/lib/site/types";
 
@@ -64,6 +63,8 @@ export function BlocksTab({
   media,
   projects,
   compact = false,
+  adding = false,
+  onCancelAdding,
 }: {
   /** The small picker under "Add section" on the canvas: two columns, click to add. */
   compact?: boolean;
@@ -71,79 +72,135 @@ export function BlocksTab({
   draft: SiteDraft;
   media: Record<string, SiteMedia>;
   projects: GalleryProject[];
+  /** "Add section" was pressed on the page: the new section goes where the line shows. */
+  adding?: boolean;
+  onCancelAdding?: () => void;
 }) {
   const t = useTranslations("editor");
   const [q, setQ] = useState("");
-  const [only, setOnly] = useState<LibraryGroup | "all">("all");
+  // Round 18: kinds of sections as rows first; one kind opens its sections, one readable picture a row.
+  const [open, setOpen] = useState<LibraryGroup | null>(null);
   const match = (k: BlockKind) => !q || t(`blocks.${k.key}`).toLowerCase().includes(q.toLowerCase());
-  const chip = (on: boolean) =>
-    cx(
-      "h-7 flex-none rounded-pill px-2.5 text-[12px] font-semibold transition-colors",
-      on ? "bg-lime text-on-lime" : "bg-mist text-ink-soft hover:text-ink",
-    );
+  const kinds = (keys: string[]) => keys.map(kindByKey).filter((k): k is BlockKind => !!k && match(k));
+  const blank = kindByKey("free-blank");
+
+  const tile = (k: BlockKind) => (
+    <button
+      key={k.key}
+      type="button"
+      draggable={!compact}
+      data-block-key={k.key}
+      data-testid={compact ? `pick-${k.key}` : `add-${k.key}`}
+      aria-label={`${t(`blocks.${k.key}`)}${k.pro ? " (Pro)" : ""}`}
+      onDragStart={(e: DragEvent) => {
+        e.dataTransfer.setData("application/x-fannan-block", k.key);
+        e.dataTransfer.effectAllowed = "copy";
+      }}
+      onClick={() => onAdd(k)}
+      // In the picker on the canvas, pressing doesn't scroll the button away before the click lands.
+      onMouseDown={compact ? (e) => e.preventDefault() : undefined}
+      title={compact ? undefined : t("dragHint")}
+      className="group border-line relative flex w-full min-w-0 cursor-grab flex-col overflow-hidden rounded-[12px] border bg-[#141414] text-start transition-colors hover:border-[#C6C8BA] active:cursor-grabbing"
+      style={{ contentVisibility: "auto", containIntrinsicSize: "auto 180px" }}
+    >
+      <BlockPreview kind={k} draft={draft} media={media} projects={projects} />
+      <span className="text-ink block truncate px-3 py-2 text-[12px] font-semibold">{t(`blocks.${k.key}`)}</span>
+      {k.pro && (
+        <span className="bg-lime text-on-lime absolute end-2 top-2 rounded-pill px-1.5 text-[9px] leading-[16px] font-bold tracking-[0.06em]">
+          PRO
+        </span>
+      )}
+    </button>
+  );
+
   return (
-    <div className="flex flex-col gap-4 px-3 pt-3 pb-6" data-tip={compact ? undefined : "blocks"}>
-      <label className="border-line text-muted flex h-10 items-center gap-2 rounded-[10px] border px-3">
-        <Icon name="search" size={18} />
-        <input
-          className="text-ink min-w-0 flex-1 bg-transparent outline-none focus-visible:shadow-none"
-          placeholder={t("searchBlocks")}
-          aria-label={t("searchBlocks")}
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
-      </label>
-      {/* Categories (round 17: wrapped, so none runs off the edge). One tap shows just that kind of section. */}
-      <div className="flex flex-wrap gap-1.5" role="group" aria-label={t("library.label")}>
-        <button type="button" aria-pressed={only === "all"} className={chip(only === "all")} onClick={() => setOnly("all")}>
-          {t("library.all")}
-        </button>
-        {LIBRARY.map(({ group }) => (
-          <button key={group} type="button" aria-pressed={only === group} className={chip(only === group)} onClick={() => setOnly(group)}>
-            {t(`library.${group}`)}
+    <div className="flex flex-col gap-3 px-3 pt-3 pb-6" data-tip={compact ? undefined : "blocks"}>
+      {adding && (
+        <div className="bg-lime text-on-lime flex items-center justify-between gap-2 rounded-[12px] py-1.5 ps-3 pe-1.5 text-[12px] font-semibold">
+          {t("section.insertHere")}
+          <button
+            type="button"
+            aria-label={t("section.close")}
+            onClick={onCancelAdding}
+            className="flex size-7 items-center justify-center rounded-full hover:bg-black/10"
+          >
+            <Icon name="close" size={16} />
           </button>
-        ))}
-      </div>
-      {LIBRARY.filter(({ group }) => only === "all" || only === group).map(({ group, keys }) => {
-        const items = keys.map(kindByKey).filter((k): k is BlockKind => !!k && match(k));
-        if (!items.length) return null;
-        return (
-          // Round 17: two small thumbnails a row (like Carbonmade), the name in one short line under each.
-          <section key={group} className="grid grid-cols-2 gap-2" aria-label={t(`library.${group}`)}>
-            <h3 className={cx("bg-paper text-muted col-span-2 -mx-3 px-3 pt-3 pb-1.5 text-[11px] font-semibold tracking-[0.08em] uppercase", !compact && "sticky top-0 z-10")}>
-              {t(`library.${group}`)}
-            </h3>
-            {items.map((k) => (
-              <button
-                key={k.key}
-                type="button"
-                draggable={!compact}
-                data-block-key={k.key}
-                data-testid={compact ? `pick-${k.key}` : `add-${k.key}`}
-                aria-label={`${t(`blocks.${k.key}`)}${k.pro ? " (Pro)" : ""}`}
-                onDragStart={(e: DragEvent) => {
-                  e.dataTransfer.setData("application/x-fannan-block", k.key);
-                  e.dataTransfer.effectAllowed = "copy";
-                }}
-                onClick={() => onAdd(k)}
-                // In the picker on the canvas, pressing doesn't scroll the button away before the click lands.
-                onMouseDown={compact ? (e) => e.preventDefault() : undefined}
-                title={compact ? undefined : t("dragHint")}
-                className="group border-line hover:border-lime relative flex w-full min-w-0 cursor-grab flex-col overflow-hidden rounded-[10px] border bg-[#141414] text-start transition-colors active:cursor-grabbing"
-                style={{ contentVisibility: "auto", containIntrinsicSize: "auto 110px" }}
-              >
-                <BlockPreview kind={k} draft={draft} media={media} projects={projects} />
-                <span className="text-ink block truncate px-2 py-1.5 text-[11px] font-semibold">{t(`blocks.${k.key}`)}</span>
-                {k.pro && (
-                  <span className="bg-lime text-on-lime absolute end-1.5 top-1.5 rounded-pill px-1.5 text-[9px] leading-[16px] font-bold tracking-[0.06em]">
-                    PRO
-                  </span>
-                )}
-              </button>
-            ))}
+        </div>
+      )}
+      {open && !q ? (
+        <>
+          <button
+            type="button"
+            onClick={() => setOpen(null)}
+            className="hover:bg-mist -ms-1 flex h-9 w-fit items-center gap-1.5 rounded-pill ps-1.5 pe-3 text-[13px] font-semibold"
+            data-testid="library-back"
+          >
+            <Icon name="arrow-left" size={18} />
+            {t("library.back")}
+          </button>
+          <h3 className="px-1 text-[15px] font-semibold">{t(`library.${open}`)}</h3>
+          <section className="flex flex-col gap-3" aria-label={t(`library.${open}`)}>
+            {kinds(LIBRARY.find((g) => g.group === open)?.keys ?? []).map(tile)}
           </section>
-        );
-      })}
+        </>
+      ) : (
+        <>
+          <label className="border-line text-muted flex h-10 items-center gap-2 rounded-[12px] border px-3">
+            <Icon name="search" size={18} />
+            <input
+              className="text-ink min-w-0 flex-1 bg-transparent outline-none focus-visible:shadow-none"
+              placeholder={t("searchBlocks")}
+              aria-label={t("searchBlocks")}
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
+          </label>
+          {q ? (
+            <section className="flex flex-col gap-3" aria-label={t("searchBlocks")}>
+              {LIBRARY.flatMap(({ keys }) => kinds(keys)).map(tile)}
+            </section>
+          ) : (
+            <>
+              <div className="flex flex-col gap-0.5" role="list" aria-label={t("library.label")}>
+                {LIBRARY.filter(({ group }) => group !== "blank").map(({ group, keys }) => {
+                  const first = kindByKey(keys[0]);
+                  return (
+                    <button
+                      key={group}
+                      type="button"
+                      role="listitem"
+                      onClick={() => setOpen(group)}
+                      data-testid={`library-cat-${group}`}
+                      data-library-keys={keys.join(" ")}
+                      className="hover:bg-mist flex h-[52px] items-center gap-3 rounded-[12px] px-2 text-start"
+                    >
+                      <span aria-hidden className="pointer-events-none h-9 w-[52px] flex-none overflow-hidden rounded-[6px] bg-[#141414]">
+                        {first && <BlockPreview kind={first} draft={draft} media={media} projects={projects} />}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-[14px] font-medium">{t(`library.${group}`)}</span>
+                      <span className="text-muted text-[12px] tabular-nums">{keys.length}</span>
+                      <Icon name="chevron-down" size={16} className="text-muted -rotate-90 rtl:rotate-90" />
+                    </button>
+                  );
+                })}
+              </div>
+              {blank && (
+                <button
+                  type="button"
+                  onClick={() => onAdd(blank)}
+                  data-testid="add-free-blank"
+                  data-block-key="free-blank"
+                  className="border-line hover:bg-mist flex h-10 items-center justify-center gap-1.5 rounded-pill border text-[13px] font-semibold"
+                >
+                  <Icon name="add" size={16} />
+                  {t("library.blankSection")}
+                </button>
+              )}
+            </>
+          )}
+        </>
+      )}
     </div>
   );
 }

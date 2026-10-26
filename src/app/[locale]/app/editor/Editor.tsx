@@ -1063,75 +1063,76 @@ export function Editor({
           )}
           {!docked && rail === "blocks" && (
             <>
-              <div className="px-3 pt-3">
-                <button
-                  type="button"
-                  aria-expanded={pagesOpen}
-                  onClick={() => setPagesOpen(!pagesOpen)}
-                  className="bg-surface flex h-11 w-full items-center justify-between rounded-[14px] px-4 text-start"
-                  data-testid="page-switcher"
-                >
-                  <span className="truncate text-[15px] font-semibold" title={t("currentlyEditing")}>
-                    {page.title}
-                  </span>
-                  <Icon name="chevron-down" size={18} className={cx("transition-transform", pagesOpen && "rotate-180")} />
-                </button>
-              </div>
-              {pagesOpen ? (
-                <div className="px-0.5">
-                  <PagesTab
-                    part="list"
-                    draft={draft}
-                    pageId={page.id}
-                    setPageId={(id) => {
-                      setPageId(id);
-                      setSelected(null);
-                      setPagesOpen(false);
-                    }}
-                    setDraft={setDraft}
-                    canPassword={canPassword}
-                    onPassword={pagePassword}
-                    projects={projects}
-                  />
-                </div>
+              {pagesOpen || panelTab === "page" ? (
+                // Round 18: the page list and the page's settings open as their own views, with Back.
+                <>
+                  <div className="border-line flex h-12 flex-none items-center gap-1 border-b px-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPagesOpen(false);
+                        setPanelTab("blocks");
+                      }}
+                      className="hover:bg-mist flex h-9 items-center gap-1.5 rounded-pill ps-2 pe-3 text-[13px] font-semibold"
+                      data-testid="pages-back"
+                    >
+                      <Icon name="arrow-left" size={18} />
+                      {t("panelTabs.blocks")}
+                    </button>
+                  </div>
+                  <h2 className="px-4 pt-3 text-[15px] font-semibold">{pagesOpen ? t("rail.pages") : t("panelTabs.page")}</h2>
+                  <div className="px-0.5">
+                    <PagesTab
+                      part={pagesOpen ? "list" : "settings"}
+                      draft={draft}
+                      pageId={page.id}
+                      setPageId={(id) => {
+                        setPageId(id);
+                        setSelected(null);
+                        setPagesOpen(false);
+                      }}
+                      setDraft={setDraft}
+                      canPassword={canPassword}
+                      onPassword={pagePassword}
+                      projects={projects}
+                    />
+                  </div>
+                </>
               ) : (
                 <>
-                  <nav className="border-line mx-3 mt-3 grid grid-cols-2 border-b" role="tablist" aria-label={t("tabs.blocks")}>
-                    {(["blocks", "page"] as const).map((x) => (
-                      <button
-                        key={x}
-                        type="button"
-                        role="tab"
-                        aria-selected={panelTab === x}
-                        onClick={() => setPanelTab(x)}
-                        className={cx(
-                          "h-10 border-b-2 text-[13px]",
-                          panelTab === x ? "border-lime text-ink font-semibold" : "text-muted border-transparent font-medium",
-                        )}
-                      >
-                        {t(`panelTabs.${x}`)}
-                      </button>
-                    ))}
-                  </nav>
-                  {panelTab === "blocks" ? (
-                    <BlocksTab onAdd={(k) => addBlock(k)} draft={draft} media={media} projects={projects} />
-                  ) : (
-                    <div className="px-0.5">
-                      <PagesTab
-                        part="settings"
-                        draft={draft}
-                        pageId={page.id}
-                        setPageId={(id) => {
-                          setPageId(id);
-                          setSelected(null);
-                        }}
-                        setDraft={setDraft}
-                        canPassword={canPassword}
-                        onPassword={pagePassword}
-                        projects={projects}
-                      />
-                    </div>
-                  )}
+                  {/* The page card: which page is being edited (opens the list) and its settings. */}
+                  <div className="flex gap-2 px-3 pt-3">
+                    <button
+                      type="button"
+                      aria-expanded={pagesOpen}
+                      onClick={() => setPagesOpen(true)}
+                      className="bg-surface flex h-11 min-w-0 flex-1 items-center justify-between rounded-[14px] px-4 text-start"
+                      data-testid="page-switcher"
+                    >
+                      <span className="truncate text-[15px] font-semibold" title={t("currentlyEditing")}>
+                        {page.title}
+                      </span>
+                      <Icon name="chevron-down" size={18} />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={t("panelTabs.page")}
+                      title={t("panelTabs.page")}
+                      onClick={() => setPanelTab("page")}
+                      className="bg-surface flex size-11 flex-none items-center justify-center rounded-[14px]"
+                      data-testid="page-settings-button"
+                    >
+                      <Icon name="settings" size={18} />
+                    </button>
+                  </div>
+                  <BlocksTab
+                    onAdd={(k) => addBlock(k)}
+                    draft={draft}
+                    media={media}
+                    projects={projects}
+                    adding={insertShown !== null}
+                    onCancelAdding={() => setInsertAt(null)}
+                  />
                 </>
               )}
             </>
@@ -1379,7 +1380,7 @@ export function Editor({
           order={page.blocks.map((b) => b.id)}
           nameOf={sectionName}
           insertAt={insertShown}
-          quiet={!!freeItem || !!doodleSession}
+          quiet={!!freeItem || !!doodleSession || (phone && panelOpen)}
           sheet={phone}
           version={page.blocks}
           settings={docked ? null : blockSettings}

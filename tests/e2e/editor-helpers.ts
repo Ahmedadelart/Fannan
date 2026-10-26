@@ -58,7 +58,15 @@ export async function editSection(page: Page) {
 export async function addSection(page: Page, key: string) {
   const back = page.getByTestId("settings-back");
   if (await back.isVisible()) await back.click();
+  // Round 18: the library lists kinds of sections first; open the one that holds this section.
+  const pagesBack = page.getByTestId("pages-back");
+  if (await pagesBack.isVisible()) await pagesBack.click();
   const tile = page.getByTestId(`add-${key}`);
+  if (!(await tile.isVisible())) {
+    const libraryBack = page.getByTestId("library-back");
+    if (await libraryBack.isVisible()) await libraryBack.click();
+    await page.locator(`[data-library-keys~="${key}"]`).click();
+  }
   await tile.scrollIntoViewIfNeeded();
   await tile.click();
 }

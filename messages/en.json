@@ -1179,6 +1179,8 @@
     "openStats": "Open stats",
     "dragHint": "Drag a section onto your page, or click it to add it below the selected one.",
     "library": {
+      "back": "All sections",
+      "blankSection": "Blank section",
       "intro": "Intro",
       "work": "Your work",
       "images": "Images",
