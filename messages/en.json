@@ -849,6 +849,7 @@
       "lockText": "Text"
     },
     "pages": {
+      "inNavFor": "Show {page} in the menu",
       "title": "Pages",
       "add": "Add a page",
       "types": {
@@ -937,7 +938,7 @@
       "link": "Link",
       "author": "Who said it",
       "hireNote": "Only shows while “Available for work” is on in your dashboard.",
-      "contactNote": "Messages go to your Fannan inbox and your email (the form works on the live site from phase 4).",
+      "contactNote": "Messages go to your Fannan inbox and your email.",
       "colour": "Colour"
     },
     "gallery": {
@@ -1201,6 +1202,7 @@
       "upgrade": "See Pro"
     },
     "projectsPanel": {
+      "untitled": "Untitled project",
       "title": "Projects",
       "create": "Create your new project",
       "createHint": "Focus on your best work. Give it a title; you’ll add pictures and credits next.",
@@ -1224,6 +1226,7 @@
       "success": "Message after sending"
     },
     "parts": {
+      "editLinks": "Edit links and CV in Settings",
       "header": "Header",
       "footer": "Footer",
       "showTagline": "Show the tagline",
@@ -1530,7 +1533,7 @@
       "lines": "What's included (one per line)",
       "stars": "Stars",
       "video": "YouTube or Vimeo link",
-      "navHint": "Links go to a section's link name (#name), set in that section's Design tab."
+      "navHint": "Links go to a section's link name (#name), set in its Style tab under More options."
     },
     "guideReady": "Your site is ready. Change anything you like.",
     "links": {
@@ -1651,7 +1654,7 @@
       "clear": "Clear everything",
       "clearConfirm": "Clear the whole drawing?",
       "discard": "Leave without saving this drawing?",
-      "keys": "Ctrl+Z undo · Ctrl+Shift+Z redo · E eraser · [ ] size. Pens with pressure (Apple Pencil, S Pen, Wacom) draw thicker when you press harder.",
+      "keys": "Ctrl+Z undo · Ctrl+Shift+Z redo · [ ] size. Pens with pressure (Apple Pencil, S Pen, Wacom) draw thicker when you press harder.",
       "points": "{used} / {max} points",
       "start": "Draw on this section",
       "startHint": "Pick a free-form section on your page, then draw right on it. When you're done, the drawing becomes an item you can move.",
@@ -2017,6 +2020,7 @@
       "customText": "Connecting your own domain comes with Pro, which arrives in the next update. Your Fannan address keeps working either way."
     },
     "privacy": {
+      "designLock": "Design the password page",
       "title": "Privacy",
       "password": "Password-protect the whole site",
       "passwordHint": "Visitors need a password to see anything",

@@ -6,16 +6,26 @@ import { moveTo, startSortDrag } from "@/components/editor/sortDrag";
 import { type GalleryProject } from "@/components/site/SiteRender";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Icon } from "@/components/ui/Icon";
+import { Icon, type IconName } from "@/components/ui/Icon";
 import type { Locale } from "@/i18n/locales";
 import { cx } from "@/lib/cx";
 import { newId } from "@/lib/site/blocks";
 import { hasOwnPage } from "@/lib/site/pages";
 import { linksBlock } from "@/lib/site/links";
 import type { PageDraft, PageType, SiteDraft } from "@/lib/site/types";
-import { Label, Switch, Text, inputCls } from "../_ui/controls";
+import { Label, Text, inputCls } from "../_ui/controls";
 
 /* ---------- Pages tab ---------- */
+
+const PAGE_ICONS: Record<PageType, IconName> = {
+  gallery: "grid",
+  custom: "text",
+  about: "about-cv",
+  links: "link",
+  link: "embed",
+  folder: "list",
+  project: "projects",
+};
 
 export function PagesTab({
   draft,
@@ -152,6 +162,18 @@ export function PagesTab({
                   {i === 0 ? t("home") : p.hasPassword ? "🔒" : t(`types.${p.type}`)}
                 </span>
               </button>
+              {/* Round 18: the one place to choose which pages the menu shows. */}
+              <button
+                type="button"
+                aria-pressed={p.showInNav}
+                aria-label={t("inNavFor", { page: p.title })}
+                title={t("inNav")}
+                onClick={() => setDraft((d) => ({ ...d, pages: d.pages.map((x) => (x.id === p.id ? { ...x, showInNav: !x.showInNav } : x)) }))}
+                className={cx("hover:bg-mist flex size-9 flex-none items-center justify-center rounded-full", p.showInNav ? "text-ink" : "text-muted")}
+                data-testid="page-in-menu"
+              >
+                <Icon name={p.showInNav ? "preview" : "hidden"} size={18} />
+              </button>
             </li>
           ))}
           {mark !== null && (
@@ -203,7 +225,6 @@ export function PagesTab({
               onChange={(v) => setPage({ url: v }, `page-url-${page.id}`)}
             />
           )}
-          <Switch title={t("inNav")} checked={page.showInNav} onChange={(v) => setPage({ showInNav: v })} />
           {index > 0 && (
             <Label
               title={t("inside")}
@@ -299,9 +320,16 @@ export function PagesTab({
             {(["gallery", "custom", "about", "links", "link", "folder", "project"] as PageType[])
               .filter((type) => type !== "project" || projects.length > 0)
               .map((type) => (
-              <Button key={type} size="sm" variant="outline" onClick={() => add(type)}>
-                {t(`types.${type}`)}
-              </Button>
+              // Round 18: little tiles with a picture of each kind (no lime words on the dark panel).
+              <button
+                key={type}
+                type="button"
+                onClick={() => add(type)}
+                className="border-line hover:bg-mist flex h-11 items-center gap-2 rounded-[12px] border px-2.5 text-start text-[13px] font-semibold"
+              >
+                <Icon name={PAGE_ICONS[type]} size={18} className="text-muted flex-none" />
+                <span className="truncate">{t(`types.${type}`)}</span>
+              </button>
             ))}
           </div>
         </>

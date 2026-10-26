@@ -653,6 +653,19 @@ _Last updated: 10 Oct 2026, phase 8 (Editor 2.0) under way; round 8 (guided setu
   - "Global styles" is now "Theme", "Site navigation" is now "Menu".
   - Pressing an open panel's icon again goes back to its first page, then closes it (like a phone's tab bar).
   - The chosen menu layout is framed in ink, not lime.
+- **P9 (one place per setting, words):**
+  - **Social links and CV:** edited in Settings only. Header and footer keep their show/hide switches and an "Edit links and CV in Settings" button.
+  - **Pages in the menu:** an eye on each page in the Pages list (the switches in header settings and page settings are gone).
+  - **Logo, name and favicon:** Design ▸ Logo & title only (no longer repeated in the header's Style tab).
+  - **New project:** the editor's Projects panel uses the dashboard's "New project" dialog (picture + title) and shows projects as pictures in two columns.
+  - **Password page:** Settings ▸ Privacy has "Design the password page", which opens Design ▸ Password page in the editor (`/editor?panel=design&detail=lock`).
+  - **Words:** the out-of-date "from phase 4" contact note and the "E eraser" doodle shortcut (there's no such key) are fixed; the menu-link hint points at Style ▸ More options; a few helper sentences are gone (sticky header, footer text, new project).
+  - "Add a page" is a set of small tiles with a picture of each kind (no lime words).
+
+### Round 18: not done / follow-ups
+- The editor's hooks (history, panel navigation) still live in Editor.tsx; they move out when the shell changes again.
+- Unused message keys are not deleted yet (some are built from names at run time, so they need a careful pass).
+- The section card on touch tablets (wider than a phone) follows the tapped section as a card, not a sheet.
 
 ## Not done yet from the phase 6 "done when"
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).

@@ -241,6 +241,9 @@ export function SettingsForm({ data }: { data: SettingsData }) {
 
         <Section id="privacy" title={t("privacy.title")}>
           <SitePassword data={data} on={s.hasSitePassword} onChange={(v) => setS((c) => ({ ...c, hasSitePassword: v }))} />
+          <a href="/editor?panel=design&detail=lock" className={cx(buttonClasses("outline", "sm"), "self-start")} data-testid="lock-in-design">
+            {t("privacy.designLock")}
+          </a>
           <Row title={t("privacy.protect")} hint={t("privacy.protectHint")}>
             <Toggle
               hideLabel

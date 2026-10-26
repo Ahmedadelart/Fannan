@@ -134,8 +134,10 @@ test("the editor is the app: home, projects, messages, stats and settings open i
 
   // A new project opens right here; the site preview picks it up.
   await page.getByRole("navigation", { name: "Editor" }).getByRole("button", { name: "Projects", exact: true }).click();
-  await page.getByRole("textbox", { name: "Project title" }).fill("Night market");
-  await page.getByRole("button", { name: "Create project" }).click();
+  // Round 18: the same "New project" dialog as the dashboard.
+  await page.getByTestId("left-panel").getByTestId("new-project").click();
+  await page.getByTestId("new-project-name").fill("Night market");
+  await page.getByTestId("new-project-save").click();
   await expect(frame.getByRole("heading", { level: 1, name: "Night market" })).toBeVisible({ timeout: 15_000 });
   await expect(page).toHaveURL(/\/editor/);
 });

@@ -40,7 +40,7 @@ export function EmbedBridge() {
       const panel = url.searchParams.get("panel");
       if (panel && /^(\/ar)?\/editor\/?$/.test(url.pathname)) {
         e.preventDefault();
-        window.parent.postMessage({ fannan: "open", panel }, window.location.origin);
+        window.parent.postMessage({ fannan: "open", panel, detail: url.searchParams.get("detail") }, window.location.origin);
         return;
       }
       if (TOP.some((r) => r.test(url.pathname))) {

@@ -27,6 +27,7 @@ test("a language set in Settings survives the editor's autosave", async ({ page 
   // "Change in Design" (favicon) opens the editor's Design panel, which already shows Arabic.
   await frame.getByTestId("favicon-in-design").click();
   await expect(page.getByTestId("site-language")).toContainText("Arabic");
+  await page.screenshot({ path: "test-results/design-home-desktop.png" });
 
   // A change in the editor saves the whole draft: the language must stay Arabic.
   await page.getByTestId("design-card-styles").click();

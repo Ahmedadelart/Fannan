@@ -6,17 +6,13 @@ import { type SiteMedia } from "@/components/site/SiteRender";
 import { arabicFonts, headingFonts } from "@/components/site/fonts";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
-import { useToast } from "@/components/ui/Toast";
 import { cx } from "@/lib/cx";
-import { networkName, SOCIAL_NETWORKS } from "@/lib/site/blocks";
 import { type LegacyContactFields } from "@/lib/site/contact";
 import { normalizeFooter, normalizeHeader } from "@/lib/site/normalize";
-import { socialPath } from "@/components/site/socialIcons";
 import type { FooterSettings, HeaderSettings, SiteDraft } from "@/lib/site/types";
-import { saveSiteSettings } from "../../(dash)/settings/actions";
 import { StyleTab } from "../_design/StyleTab";
 import { Area, Choice, ColorField, Label, Range, Switch, Text, inputCls } from "../_ui/controls";
-import { MediaField, type MediaKind } from "../_ui/media";
+import { type MediaKind } from "../_ui/media";
 
 /* ---------- the header and footer, clicked on the canvas (round 4) ---------- */
 
@@ -34,10 +30,11 @@ export function SitePartSettings({
   media,
   openPicker,
   credit,
-  siteSettings,
-  onSiteSettings,
   bare = false,
+  onOpenSettings,
 }: {
+  /** Opens Settings, where social links and the CV live. */
+  onOpenSettings?: () => void;
   /** Inside Design ▸ Menu / Footer, which already shows the title. */
   bare?: boolean;
   part: "header" | "footer";
@@ -46,27 +43,18 @@ export function SitePartSettings({
   media: Record<string, SiteMedia>;
   openPicker: (kind: MediaKind, done: (id: string) => void) => void;
   credit: boolean;
-  siteSettings: EditorSiteSettings;
-  onSiteSettings: (s: EditorSiteSettings) => void;
+  /** Kept for callers; social links and the CV are shown from here but edited in Settings. */
+  siteSettings?: EditorSiteSettings;
+  onSiteSettings?: (s: EditorSiteSettings) => void;
 }) {
   const t = useTranslations("editor.parts");
   const st = useTranslations("editor.style");
-  const toast = useToast();
   const header = draft.header ?? normalizeHeader(null);
   const footer = draft.footer ?? normalizeFooter(null);
   const setHeader = (patch: Partial<HeaderSettings>, key?: string) =>
     setDraft((d) => ({ ...d, header: { ...(d.header ?? normalizeHeader(null)), ...patch } }), key);
   const setFooter = (patch: Partial<FooterSettings>, key?: string) =>
     setDraft((d) => ({ ...d, footer: { ...(d.footer ?? normalizeFooter(null)), ...patch } }), key);
-
-  // Social links and the CV apply straight away (they're site settings, not part of the draft).
-  const [social, setSocial] = useState(siteSettings.social);
-  async function saveSettings(patch: Pick<Partial<EditorSiteSettings>, "social" | "cvMediaId">) {
-    const next = { ...siteSettings, ...patch };
-    onSiteSettings(next);
-    const r = await saveSiteSettings(patch).catch(() => ({ ok: false as const }));
-    if (!r.ok) toast(t("notSaved"), "close");
-  }
 
   const [tab, setTab] = useState<"layout" | "style" | "items">("layout");
   const tabs = (
@@ -89,62 +77,17 @@ export function SitePartSettings({
     </div>
   );
 
-  // Social links: icon, address, remove; saved straight away (they're site settings).
-  const socialEditor = (
-    <div className="flex flex-col gap-2">
-      {social.map((l, i) => (
-        <div key={i} className="flex items-center gap-1.5">
-          <span className="bg-mist text-ink flex size-9 flex-none items-center justify-center rounded-[10px]">
-            <svg viewBox="0 0 24 24" aria-hidden className="size-[18px]" style={{ fill: "currentColor" }}>
-              <path d={socialPath(l.network)} />
-            </svg>
-          </span>
-          <select
-            aria-label={t("network")}
-            className={cx(inputCls, "w-[38%] flex-none px-2")}
-            value={l.network}
-            onChange={(e) => {
-              const next = social.map((x, j) => (j === i ? { ...x, network: e.target.value } : x));
-              setSocial(next);
-              void saveSettings({ social: next });
-            }}
-          >
-            {SOCIAL_NETWORKS.map((n) => (
-              <option key={n} value={n}>
-                {networkName(n, "https://" + n)}
-              </option>
-            ))}
-          </select>
-          <input
-            aria-label={t("linkUrl")}
-            className={inputCls}
-            dir="ltr"
-            placeholder="https://"
-            value={l.url}
-            onChange={(e) => setSocial(social.map((x, j) => (j === i ? { ...x, url: e.target.value } : x)))}
-            onBlur={() => void saveSettings({ social })}
-          />
-          <button
-            type="button"
-            aria-label={t("removeLink")}
-            className="text-muted hover:text-ink flex size-8 flex-none items-center justify-center"
-            onClick={() => {
-              const next = social.filter((_, j) => j !== i);
-              setSocial(next);
-              void saveSettings({ social: next });
-            }}
-          >
-            <Icon name="close" size={16} />
-          </button>
-        </div>
-      ))}
-      {social.length < 12 && (
-        <Button size="sm" variant="outline" icon="add" onClick={() => setSocial([...social, { network: "instagram", url: "" }])}>
-          {t("addLink")}
-        </Button>
-      )}
-      <p className="text-muted text-[12px]">{t("rightAway")}</p>
-    </div>
+  // Round 18: social links and the CV have one home, Settings. Here: show or hide, and a way there.
+  const inSettings = (
+    <button
+      type="button"
+      onClick={onOpenSettings}
+      className="border-line hover:bg-mist flex h-10 items-center justify-between rounded-[12px] border px-3 text-start text-[13px] font-semibold"
+      data-testid="links-in-settings"
+    >
+      {t("editLinks")}
+      <Icon name="chevron-down" size={16} className="text-muted -rotate-90 rtl:rotate-90" />
+    </button>
   );
 
   if (part === "header") {
@@ -175,26 +118,10 @@ export function SitePartSettings({
               onChange={(v) => setHeader({ space: v }, "h-pad")}
             />
             <Switch title={t("sticky")} checked={header.sticky} onChange={(v) => setHeader({ sticky: v })} />
-            <p className="text-muted -mt-3 text-[12px]">{t("stickyHint")}</p>
-            <div className="border-line flex flex-col gap-3 border-t pt-4">
-              <span className="text-[13px] font-semibold">{t("menu")}</span>
-              {draft.pages.map((pg) => (
-                <Switch
-                  key={pg.id}
-                  title={(pg.parentId ? "↳ " : "") + (pg.title || "—")}
-                  checked={pg.showInNav}
-                  onChange={(v) =>
-                    setDraft((d) => ({ ...d, pages: d.pages.map((x) => (x.id === pg.id ? { ...x, showInNav: v } : x)) }))
-                  }
-                />
-              ))}
-              <p className="text-muted text-[12px]">{t("menuHint")}</p>
-            </div>
           </>
         )}
         {tab === "style" && (
           <>
-            <StyleTab section="logo" draft={draft} media={media} setDraft={setDraft} openPicker={openPicker} />
             <Range title={t("logoSize")} value={header.logoSize} min={20} max={140} unit="px" onChange={(v) => setHeader({ logoSize: v }, "h-logo")} />
             <Range title={t("titleSize")} value={header.titleSize} min={14} max={72} unit="px" onChange={(v) => setHeader({ titleSize: v }, "h-title")} />
             {!draft.theme.logoMediaId && (
@@ -259,7 +186,7 @@ export function SitePartSettings({
             <Switch title={t("showTagline")} checked={header.tagline} onChange={(v) => setHeader({ tagline: v })} />
             <div className="border-line flex flex-col gap-3 border-t pt-4">
               <Switch title={t("socialInHeader")} checked={header.social} onChange={(v) => setHeader({ social: v })} />
-              {header.social && socialEditor}
+              {header.social && inSettings}
             </div>
             <div className="border-line flex flex-col gap-3 border-t pt-4">
               <span className="text-[13px] font-semibold">{t("hire")}</span>
@@ -399,7 +326,7 @@ export function SitePartSettings({
             />
           )}
           <Range title={t("spacing")} value={footer.padding} min={0} max={120} unit="px" onChange={(v) => setFooter({ padding: v }, "f-pad")} />
-          <Area title={t("footerText")} value={footer.text} onChange={(v) => setFooter({ text: v }, "footer-text")} hint={t("footerTextHint")} />
+          <Area title={t("footerText")} value={footer.text} onChange={(v) => setFooter({ text: v }, "footer-text")} />
         </>
       )}
       {tab === "style" && (
@@ -437,18 +364,8 @@ export function SitePartSettings({
           <Switch title={t("footerBig")} checked={!!footer.big} onChange={(v) => setFooter({ big: v })} />
           <div className="border-line flex flex-col gap-3 border-t pt-4">
             <Switch title={t("showSocial")} checked={footer.social} onChange={(v) => setFooter({ social: v })} />
-            {socialEditor}
-          </div>
-          <div className="border-line flex flex-col gap-3 border-t pt-4">
             <Switch title={t("showCv")} checked={footer.cv} onChange={(v) => setFooter({ cv: v })} />
-            <MediaField
-              title={t("cv")}
-              id={siteSettings.cvMediaId}
-              kind="pdf"
-              media={media}
-              onChange={(id) => void saveSettings({ cvMediaId: id })}
-              openPicker={openPicker}
-            />
+            {inSettings}
           </div>
         </>
       )}

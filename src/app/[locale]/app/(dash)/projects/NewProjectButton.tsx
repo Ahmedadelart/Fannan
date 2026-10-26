@@ -23,7 +23,16 @@ export function NewProjectButton({ label, title, size = "md" }: { label: string;
   );
 }
 
-function NewProjectDialog({ fallbackTitle, onClose }: { fallbackTitle: string; onClose: () => void }) {
+/** Round 18: also used by the editor's Projects panel, which opens the new project itself (onCreated). */
+export function NewProjectDialog({
+  fallbackTitle,
+  onClose,
+  onCreated,
+}: {
+  fallbackTitle: string;
+  onClose: () => void;
+  onCreated?: (id: string) => void;
+}) {
   const t = useTranslations("projects.create");
   const ref = useRef<HTMLDialogElement>(null);
   const input = useRef<HTMLInputElement>(null);
@@ -48,7 +57,10 @@ function NewProjectDialog({ fallbackTitle, onClose }: { fallbackTitle: string; o
     if (!r?.ok) return window.location.assign("/projects?limit=1");
     // The first picture in a project becomes its cover.
     if (file) await uploadFile(r.id, file).catch(() => null);
-    window.location.assign(`/projects/${r.id}`);
+    if (onCreated) {
+      onCreated(r.id);
+      onClose();
+    } else window.location.assign(`/projects/${r.id}`);
   }
   return (
     <dialog

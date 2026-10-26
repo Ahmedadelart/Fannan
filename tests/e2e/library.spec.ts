@@ -35,6 +35,15 @@ test("the library: page card, kinds of sections, one kind, search, blank section
   await panel.getByTestId("pages-back").click();
   await expect(panel.getByTestId("library-cat-intro")).toBeVisible();
 
+  // Pages in the menu: the eye in the page list (one place).
+  await panel.getByTestId("page-switcher").click();
+  const eye = panel.getByTestId("page-in-menu").nth(1);
+  const was = await eye.getAttribute("aria-pressed");
+  await eye.click();
+  await expect(eye).toHaveAttribute("aria-pressed", was === "true" ? "false" : "true");
+  await page.screenshot({ path: "test-results/pages-list-desktop.png" });
+  await panel.getByTestId("pages-back").click();
+
   // A blank section, straight from the panel.
   const before = await page.getByTestId("canvas").locator("[data-block-id]").count();
   await panel.getByTestId("add-free-blank").click();

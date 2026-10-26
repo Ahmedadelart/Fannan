@@ -51,6 +51,7 @@ function embedPath(rail: Rail, projectId: string | null): string | null {
     rail as "home"
   ] ?? null;
 }
+const DESIGN_PAGES: DesignSection[] = ["styles", "fonts", "logo", "nav", "footer", "lock"];
 const WIDTHS: Record<Device, number> = { desktop: 1200, tablet: 820, phone: 390 };
 const HISTORY = 60;
 
@@ -128,6 +129,7 @@ export function Editor({
         setRail(panel);
         setPanelOpen(true);
         if (panel === "projects" && q.get("id")) setProjectId(q.get("id"));
+        if (panel === "design" && DESIGN_PAGES.includes(q.get("detail") as DesignSection)) setDesignOpen(q.get("detail") as DesignSection);
       }
       // Just built by the guided setup (round 8).
       if (q.get("ready")) {
@@ -318,7 +320,7 @@ export function Editor({
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== window.location.origin) return;
-      const m = e.data as { fannan?: string; panel?: string; language?: string; social?: EditorSiteSettings["social"]; cvMediaId?: string | null };
+      const m = e.data as { fannan?: string; panel?: string; detail?: string; language?: string; social?: EditorSiteSettings["social"]; cvMediaId?: string | null };
       if (m?.fannan === "changed") {
         if (m.language === "en" || m.language === "ar") {
           const language: Locale = m.language;
@@ -340,6 +342,7 @@ export function Editor({
         setFreeItem(null);
         setRail(m.panel as Rail);
         setPanelOpen(true);
+        if (m.panel === "design") setDesignOpen(DESIGN_PAGES.includes(m.detail as DesignSection) ? (m.detail as DesignSection) : null);
       }
     };
     window.addEventListener("message", onMessage);
@@ -1310,8 +1313,7 @@ export function Editor({
                       media={media}
                       openPicker={(kind, done) => setPicker({ kind, done })}
                       credit={credit}
-                      siteSettings={siteSettings}
-                      onSiteSettings={setSiteSettings}
+                      onOpenSettings={() => openRail("settings")}
                     />
                   )}
                 </div>
