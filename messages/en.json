@@ -1003,6 +1003,8 @@
     "reorder": "Reorder",
     "reorderDone": "Done",
     "section": {
+      "back": "Back",
+      "moreActions": "More actions",
       "toolbar": "Section",
       "drag": "Drag to move (or use the arrow keys)",
       "settings": "Settings",
@@ -1102,7 +1104,7 @@
       },
       "tabs": {
         "content": "Content",
-        "design": "Design"
+        "design": "Style"
       },
       "author": "Who said it",
       "caption": "Caption",
@@ -1338,6 +1340,9 @@
     "previewProject": "Projects open on your published site. Publish to try them.",
     "previewSend": "Messages are sent from your live site. Nothing was sent from the preview.",
     "design2": {
+      "arrangement": "Arrangement",
+      "more": "More options",
+      "fewer": "Fewer options",
       "background": "Background",
       "bg": {
         "none": "None",

@@ -70,3 +70,8 @@ export async function addSection(page: Page, key: string) {
   await tile.scrollIntoViewIfNeeded();
   await tile.click();
 }
+
+/** Switches the open settings to a tab: "Content" or "Style" (round 18). */
+export async function settingsTab(page: Page, name: "Content" | "Style") {
+  await page.getByTestId("block-settings").getByRole("tab", { name, exact: true }).click();
+}

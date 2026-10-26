@@ -324,10 +324,12 @@
 .site-root .site-block:hover {
   outline-color: color-mix(in srgb, #141414 25%, transparent);
 }
+/* Round 18: an ink line on a thin white band (no lime lines; shows on dark sections too). */
 .site-root .site-block-selected,
 .site-root .site-block-selected:hover {
-  outline: 2px solid #141414;
-  box-shadow: 0 0 0 8px #c6f432;
+  outline: 2px solid #1a1c16;
+  outline-offset: 4px;
+  box-shadow: 0 0 0 4px #ffffff;
 }
 
 /* The settings card on the canvas is compact (Ahmed: smaller, movable). */

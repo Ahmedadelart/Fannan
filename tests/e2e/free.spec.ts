@@ -83,7 +83,7 @@ test("a free-form section: place, resize, turn, layer, type, publish", async ({ 
 
   // Turn it from its settings (pencil → Design).
   await page.getByTestId("item-edit").click();
-  await page.getByTestId("block-settings").getByRole("tab", { name: "Design" }).click();
+  await page.getByTestId("block-settings").getByRole("tab", { name: "Style" }).click();
   await page.getByRole("slider", { name: "Turn" }).fill("30");
   await expect.poll(async () => (await vars(page, 0)).rotate).toBe("rotate(30deg)");
 

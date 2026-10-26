@@ -19,6 +19,7 @@ import { moveTo } from "@/components/editor/sortDrag";
 import { getClip, mod, setClip, typing } from "@/components/editor/clipboard";
 import type { Block, BlockOf, Crop, DrawStroke, SiteDraft } from "@/lib/site/types";
 import { addFreeItem } from "@/lib/site/free";
+import { defaultSectionStyle } from "@/lib/site/normalize";
 import { DoodlePanel, defaultTools, finishSession, startSession, type DoodleSession, type DoodleTools } from "@/components/editor/doodle";
 import { FreeEditor } from "@/components/editor/FreeEditor";
 import { PicTools, type PicTarget } from "@/components/editor/PicTools";
@@ -829,6 +830,19 @@ export function Editor({
     />
   ) : null);
   const docked = settingsOpen && !!blockSettings && !reorder && !doodleSession && wide && !cardFloat;
+  // The settings' header: the section's picture and name (round 18).
+  const settingsName =
+    selected === "__header"
+      ? t("parts.header")
+      : selected === "__footer"
+        ? t("parts.footer")
+        : block
+          ? block.type === "gallery"
+            ? t("gallery.title")
+            : t(`blocks.${kindOf(block).key}`)
+          : "";
+  const settingsIcon = block ? kindOf(block).icon : "site-editor";
+  const [settingsMenu, setSettingsMenu] = useState(false);
   const closeSettings = () => {
     setSettingsOpen(false);
     setFreeItem(null);
@@ -1037,26 +1051,99 @@ export function Editor({
           {docked && (
             // The selected section's (or item's) settings, in the panel: back to the sections, pop out, close.
             <div role="region" aria-label={t("section.settings")} data-testid="block-settings" className="flex min-h-0 flex-1 flex-col">
-              <div className="border-line flex h-12 flex-none items-center justify-between gap-1 border-b ps-2 pe-2">
+              <div className="border-line relative flex h-12 flex-none items-center gap-2 border-b px-2">
                 <button
                   type="button"
+                  aria-label={t("section.back")}
+                  title={t("section.back")}
                   onClick={closeSettings}
-                  className="hover:bg-mist flex h-9 items-center gap-1.5 rounded-pill ps-2 pe-3 text-[13px] font-semibold"
+                  className="hover:bg-mist flex size-9 flex-none items-center justify-center rounded-full"
                   data-testid="settings-back"
                 >
                   <Icon name="arrow-left" size={18} />
-                  {panelOpen && rail === "blocks" ? t("panelTabs.blocks") : t("section.done")}
                 </button>
+                <span className="bg-lime text-on-lime flex size-7 flex-none items-center justify-center rounded-[8px]">
+                  <Icon name={settingsIcon} size={16} />
+                </span>
+                <span className="min-w-0 flex-1 truncate text-[15px] font-semibold" data-testid="settings-title">
+                  {settingsName}
+                </span>
                 <button
                   type="button"
-                  aria-label={t("section.float")}
-                  title={t("section.float")}
-                  onClick={() => floatCard(true)}
-                  className="text-muted hover:text-ink hover:bg-mist flex size-9 items-center justify-center rounded-full"
-                  data-testid="settings-float"
+                  aria-label={t("section.moreActions")}
+                  title={t("section.moreActions")}
+                  aria-expanded={settingsMenu}
+                  onClick={() => setSettingsMenu(!settingsMenu)}
+                  className="hover:bg-mist flex size-9 flex-none items-center justify-center rounded-full"
+                  data-testid="inspector-menu"
                 >
-                  <Icon name="bring-front" size={18} />
+                  <Icon name="more" size={18} />
                 </button>
+                {settingsMenu && (
+                  <>
+                    <button type="button" aria-hidden tabIndex={-1} className="fixed inset-0 z-40 cursor-default" onClick={() => setSettingsMenu(false)} />
+                    <div
+                      role="menu"
+                      className="bg-paper border-line shadow-float absolute end-2 top-11 z-50 flex w-[210px] flex-col rounded-[14px] border p-1.5"
+                    >
+                      {block && !selected?.startsWith("__") && (
+                        <>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="hover:bg-mist flex h-9 items-center gap-2.5 rounded-[10px] px-2.5 text-start text-[13px]"
+                            onClick={() => {
+                              setSettingsMenu(false);
+                              duplicateBlock(block.id);
+                            }}
+                          >
+                            <Icon name="duplicate" size={16} />
+                            {t("section.duplicate")}
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="hover:bg-mist flex h-9 items-center gap-2.5 rounded-[10px] px-2.5 text-start text-[13px]"
+                            onClick={() => {
+                              setSettingsMenu(false);
+                              removeBlock(block.id);
+                            }}
+                          >
+                            <Icon name="delete" size={16} />
+                            {t("section.remove")}
+                          </button>
+                        </>
+                      )}
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="hover:bg-mist flex h-9 items-center gap-2.5 rounded-[10px] px-2.5 text-start text-[13px]"
+                        onClick={() => {
+                          setSettingsMenu(false);
+                          floatCard(true);
+                        }}
+                        data-testid="settings-float"
+                      >
+                        <Icon name="bring-front" size={16} />
+                        {t("section.float")}
+                      </button>
+                      {block && !selected?.startsWith("__") && block.style && (
+                        <button
+                          type="button"
+                          role="menuitem"
+                          className="hover:bg-mist flex h-9 items-center gap-2.5 rounded-[10px] px-2.5 text-start text-[13px]"
+                          onClick={() => {
+                            setSettingsMenu(false);
+                            setBlocks((blocks) => blocks.map((b) => (b.id === block.id ? ({ ...b, style: defaultSectionStyle() } as Block) : b)));
+                          }}
+                        >
+                          <Icon name="undo" size={16} />
+                          {t("design2.reset")}
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
               <div className="fannan-compact relative min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">{blockSettings}</div>
             </div>
@@ -1386,6 +1473,7 @@ export function Editor({
           settings={docked ? null : blockSettings}
           settingsOpen={settingsOpen}
           onDock={wide ? () => floatCard(false) : undefined}
+          settingsTitle={settingsName}
           itemId={block?.type === "free" && settingsOpen ? freeItem : null}
           onAddElement={
             block?.type === "free"

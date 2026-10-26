@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { at, signUp } from "./helpers";
-import { addSection, editSection, openEditor } from "./editor-helpers";
+import { addSection, editSection, openEditor, settingsTab } from "./editor-helpers";
 
 // Round 13: "show, not tell": image-first sections, left by default, alignment, full width, flip.
 
@@ -22,6 +22,8 @@ test("image-first sections: flip, align and full width from the top of the setti
 
   await section.click({ position: { x: 900, y: 20 } });
   await editSection(page);
+  // Round 18: alignment and the mirror button live in Style ▸ Arrangement.
+  await settingsTab(page, "Style");
   await expect(page.getByTestId("quick-layout")).toBeVisible();
   await page.getByTestId("mirror-layout").click();
   await expect.poll(async () => (await img.boundingBox())!.x > (await head.boundingBox())!.x).toBe(true);

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { signUp } from "./helpers";
-import { addSection, editSection, openEditor } from "./editor-helpers";
+import { addSection, editSection, openEditor, settingsTab } from "./editor-helpers";
 
 // Round 14 (matching ahmedadel.art): the header's height, grids that follow the section's alignment
 // (a short last row sits in the middle), and masonry that keeps the pictures in reading order.
@@ -38,7 +38,9 @@ test("header height, centred grid rows and masonry in reading order", async ({ p
     await expect(columns).toBeVisible({ timeout: 2000 });
   }).toPass({ timeout: 15_000 });
   await columns.fill("4");
+  await settingsTab(page, "Style");
   await page.getByTestId("align-center").click();
+  await settingsTab(page, "Content");
   const tiles = section.locator("figure");
   await expect(tiles).toHaveCount(6);
   await expect(section.locator('[data-layout="flow"]')).toBeVisible();

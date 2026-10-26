@@ -867,20 +867,11 @@ export function BlockSettings({
   // An item's own settings replace the section's (they have their own Content | Design tabs).
   const itemOpen = block.type === "free" && !!freeItem && block.items.some((i) => i.id === freeItem);
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2.5">
-        <span className="bg-lime flex rounded-sm p-1">
-          <Icon name={kind.icon} size={20} />
-        </span>
-        <div className="font-heading font-heading-weight text-[18px]">
-          {block.type === "gallery" ? g("title") : t(`blocks.${kind.key}`)}
-        </div>
-      </div>
+    // Round 18: the panel's header names the section; here only Content | Style.
+    <div className="flex flex-col gap-4" data-kind={kind.key}>
       {itemOpen ? (
         body
       ) : (
-        <>
-        <QuickLayout block={block} update={update} />
         <SectionTabs
           content={body}
           design={
@@ -890,20 +881,20 @@ export function BlockSettings({
               theme={theme}
               isPro={isPro}
               mediaField={mediaField}
+              arrangement={<Arrangement block={block} update={update} />}
             />
           }
         />
-        </>
       )}
     </div>
   );
 }
 
 /**
- * Round 13 (Carbonmade-style): alignment dots and full width at the top of every section's
- * settings; free-form sections can also flip their layout (picture left ↔ right).
+ * Round 13 alignment dots, in Style ▸ Arrangement since round 18 (the width sits under them);
+ * free-form sections can also flip their layout (picture left ↔ right).
  */
-export function QuickLayout({ block, update }: { block: Block; update: (patch: Partial<Block>, key?: string) => void }) {
+export function Arrangement({ block, update }: { block: Block; update: (patch: Partial<Block>, key?: string) => void }) {
   const t = useTranslations("editor.layout");
   const st = block.style ?? defaultSectionStyle();
   const align = st.align ?? "start";
@@ -925,7 +916,7 @@ export function QuickLayout({ block, update }: { block: Block; update: (patch: P
     </svg>
   );
   return (
-    <div className="border-line flex flex-wrap items-center gap-3 border-b pb-3" data-testid="quick-layout">
+    <div className="flex flex-wrap items-center gap-3">
       <div role="radiogroup" aria-label={t("align")} className="bg-mist flex rounded-[10px] p-0.5">
         {(["start", "center", "end"] as const).map((a) => (
           <button
@@ -943,11 +934,6 @@ export function QuickLayout({ block, update }: { block: Block; update: (patch: P
           </button>
         ))}
       </div>
-      <label className="flex items-center gap-2 text-[12px] font-semibold">
-        <Toggle label={t("full")} hideLabel checked={st.width === "full"} onChange={(v) => update({ style: { ...st, width: v ? "full" : "normal" } } as Partial<Block>)} />
-        {t("full")}
-      </label>
-      <QuickBackground block={block} update={update} />
       {block.type === "free" && (
         <button
           type="button"
@@ -964,47 +950,3 @@ export function QuickLayout({ block, update }: { block: Block; update: (patch: P
   );
 }
 
-/** Round 13: a few background colours one click away (the Design tab keeps the full set). */
-export function QuickBackground({ block, update }: { block: Block; update: (patch: Partial<Block>, key?: string) => void }) {
-  const t = useTranslations("editor.pic");
-  const st = block.style ?? defaultSectionStyle();
-  const current = st.bg.kind === "color" ? st.bg.color.toUpperCase() : null;
-  const set = (color: string | null) =>
-    update({ style: { ...st, bg: color ? { ...st.bg, kind: "color", color } : { ...st.bg, kind: "none" } } } as Partial<Block>, "quick-bg");
-  const swatch = "size-6 rounded-full ring-1 ring-black/15";
-  return (
-    <div role="radiogroup" aria-label={t("background")} className="flex items-center gap-1.5" data-testid="quick-bg">
-      <button
-        type="button"
-        role="radio"
-        aria-checked={st.bg.kind === "none"}
-        title={t("bgNone")}
-        aria-label={t("bgNone")}
-        onClick={() => set(null)}
-        className={cx(swatch, "bg-white bg-[linear-gradient(135deg,transparent_45%,#C0392B_45%,#C0392B_55%,transparent_55%)]", st.bg.kind === "none" && "outline-ink outline-2 outline-offset-2")}
-      />
-      {["#FFFFFF", "#F4F1E6", "#E9E4D8", "#141414"].map((c) => (
-        <button
-          key={c}
-          type="button"
-          role="radio"
-          aria-checked={current === c}
-          aria-label={c}
-          title={c}
-          onClick={() => set(c)}
-          className={cx(swatch, current === c && "outline-ink outline-2 outline-offset-2")}
-          style={{ background: c }}
-        />
-      ))}
-      <label className={cx(swatch, "relative cursor-pointer overflow-hidden bg-[conic-gradient(#e66,#ec6,#6c6,#6ce,#c6e,#e66)]")} title={t("background")}>
-        <input
-          type="color"
-          className="absolute inset-0 cursor-pointer opacity-0"
-          aria-label={t("background")}
-          value={st.bg.kind === "color" ? st.bg.color : "#FFFFFF"}
-          onChange={(e) => set(e.target.value.toUpperCase())}
-        />
-      </label>
-    </div>
-  );
-}

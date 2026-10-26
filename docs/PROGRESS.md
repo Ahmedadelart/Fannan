@@ -642,6 +642,11 @@ _Last updated: 10 Oct 2026, phase 8 (Editor 2.0) under way; round 8 (guided setu
   - **Library:** kinds of sections as rows with a small picture and a count; a row opens its sections one readable picture a row, with "‹ All sections". Search looks in every kind. "Blank section" sits under the rows.
   - A lime "New section goes here" note (with ✕) shows at the top while Add section is waiting.
   - Phones: the section sheet hides while a panel is open.
+- **P6 (Edit section):**
+  - Header: ‹ Back · the section's picture and name · ⋯ (Duplicate, Remove, Pop out as a card, Reset style). The floating card is titled with the name too.
+  - Tabs **Content | Style** (elements too: "Design" is now "Style").
+  - Style: **Arrangement** (one alignment, flip layout for free-form, one width), **Background** (one picker), **Spacing**, then **More options** (exact width, edges, card, text colour, link name, scroll animation, reset). The old quick row (alignment, full width, 5 colours) at the top is gone: one place per setting.
+  - The selected section's outline is ink on a thin white band (no lime line).
 
 ## Not done yet from the phase 6 "done when"
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).

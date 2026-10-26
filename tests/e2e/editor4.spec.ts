@@ -160,6 +160,7 @@ test("full-width canvas and a settings card you can move", async ({ page }, info
   // Settings open in the side panel (round 17); popped out, the card moves by its top bar.
   await editSection(page);
   await expect(page.getByTestId("left-panel").getByTestId("block-settings")).toBeVisible();
+  await page.getByTestId("inspector-menu").click();
   await page.getByTestId("settings-float").click();
   const card = page.getByTestId("block-settings");
   const a = (await card.boundingBox())!;
@@ -219,7 +220,7 @@ test("items: layers restack and hide, new kinds, quick toolbar first", async ({ 
   await items.first().click({ force: true });
   await expect(page.getByTestId("free-toolbar")).toBeVisible();
   await page.getByTestId("item-edit").click();
-  await expect(page.getByTestId("block-settings").getByRole("tab", { name: "Design" })).toBeVisible();
+  await expect(page.getByTestId("block-settings").getByRole("tab", { name: "Style" })).toBeVisible();
   // The item's settings open in the side panel, so the item stays in view (round 17).
   await expect(page.getByTestId("left-panel").getByTestId("block-settings")).toBeVisible();
   await page.screenshot({ path: `test-results/r5-item-${info.project.name}.png` });
@@ -412,9 +413,11 @@ test("section design: gradient, wave edge, pattern and card reach the live site"
   await about.click({ position: { x: 10, y: 10 } });
   await editSection(page);
   const card = page.getByTestId("block-settings");
-  await card.getByRole("tab", { name: "Design" }).click();
+  await card.getByRole("tab", { name: "Style" }).click();
   const design = page.getByTestId("section-design");
   await design.getByRole("radio", { name: "Gradient" }).click();
+  // Edges and the card are under "More options" (round 18).
+  await design.getByTestId("inspector-more").click();
   await design.getByRole("radiogroup", { name: "Top edge" }).getByRole("radio", { name: "Wave" }).click();
   await design.getByRole("radiogroup", { name: "Bottom edge" }).getByRole("radio", { name: "Torn paper" }).click();
   await expect(about).toHaveAttribute("data-band", "true");
@@ -425,7 +428,7 @@ test("section design: gradient, wave edge, pattern and card reach the live site"
   const contact = canvas(page).locator("[data-block-id]").last();
   await contact.click({ position: { x: 10, y: 10 } });
   await editSection(page);
-  await card.getByRole("tab", { name: "Design" }).click();
+  await card.getByRole("tab", { name: "Style" }).click();
   await design.getByRole("radio", { name: "Pattern" }).click();
   await design.getByRole("radio", { name: "Doodles" }).click();
   await expect(contact.getByTestId("section-pattern")).toBeVisible();
@@ -465,7 +468,7 @@ test("decorations: underline, arrow, doodle, badge, icon and their controls", as
   await arrow.click();
   await page.getByTestId("item-edit").click();
   const card = page.getByTestId("block-settings");
-  await card.getByRole("tab", { name: "Design" }).click();
+  await card.getByRole("tab", { name: "Style" }).click();
   const before = await arrow.locator("path").first().getAttribute("d");
   await card.getByRole("slider", { name: "Curve" }).fill("-80");
   await expect.poll(() => arrow.locator("path").first().getAttribute("d")).not.toBe(before);
@@ -476,7 +479,7 @@ test("decorations: underline, arrow, doodle, badge, icon and their controls", as
   const underline = canvas(page).locator('[data-kind="underline"]').last();
   await underline.click({ force: true });
   await page.getByTestId("item-edit").click();
-  await card.getByRole("tab", { name: "Design" }).click();
+  await card.getByRole("tab", { name: "Style" }).click();
   const wave = await underline.locator("path").first().getAttribute("d");
   await card.getByRole("radio", { name: "Zigzag" }).click();
   await expect.poll(() => underline.locator("path").first().getAttribute("d")).not.toBe(wave);

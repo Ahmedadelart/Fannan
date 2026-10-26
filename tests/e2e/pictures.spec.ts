@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Locator } from "@playwright/test";
 import { at, signUp } from "./helpers";
-import { addSection, editSection, openEditor } from "./editor-helpers";
+import { addSection, editSection, openEditor, settingsTab } from "./editor-helpers";
 
 // Round 13 (B + D): pictures straight on the canvas: drop files, replace and crop on hover, the Images section.
 
@@ -63,7 +63,8 @@ test("drop pictures on an Images section, crop one, replace one, and publish", a
   await editSection(page);
   await expect(page.getByTestId("images-row")).toHaveCount(6);
   await page.getByTestId("images-layout-masonry").click();
-  await expect(page.getByTestId("quick-bg")).toBeVisible();
+  await settingsTab(page, "Style");
+  await expect(page.getByTestId("section-design")).toBeVisible();
   await page.screenshot({ path: "test-results/r13-images.png" });
 
   await page.getByRole("button", { name: "Publish" }).click();

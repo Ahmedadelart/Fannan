@@ -50,7 +50,10 @@ export function Canvas({
   insertAt = null,
   quiet = false,
   sheet = false,
+  settingsTitle,
 }: {
+  /** The open settings' section name (the card's title). */
+  settingsTitle?: string;
   /** Phones (Ahmed, round 18): the actions slide up from the bottom instead of the card. */
   sheet?: boolean;
   /** The page's sections, top to bottom (for Move up / Move down). */
@@ -660,7 +663,7 @@ export function Canvas({
             >
               <span className="flex items-center gap-1.5 text-[12px] font-semibold">
                 <Icon name="drag" size={16} className="text-muted" />
-                {t("settings")}
+                {settingsTitle || t("settings")}
               </span>
               <span className="flex items-center">
                 {onDock && (
