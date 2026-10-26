@@ -631,6 +631,12 @@ _Last updated: 10 Oct 2026, phase 8 (Editor 2.0) under way; round 8 (guided setu
   - **Phones:** a tapped section's actions slide up from the bottom (Ahmed: 3A), with "Add section below".
   - New icons: arrow-up, arrow-down, more (⋯), drawn to ICONS.md.
   - Messages can carry one button (`Toast` action), used for Undo.
+- **P4 (the shell):**
+  - **Left bar:** 56px, icons only, names on hover (Carbonmade). Top: Pages, Design, Projects | Messages, Stats. Bottom: Help, Settings, account. The "f" opens the dashboard. Doodle left the bar (it opens from Add item).
+  - **Phones:** the bar becomes a bottom bar (Pages, Design, Projects, Messages, More); More holds the dashboard, stats, settings and help.
+  - **Top bar:** undo and redo · the page name and status in the middle · reorder, screen size, preview, **Publish** (greyed with a tick when the live site is up to date).
+  - **Wide panels** (dashboard, project, messages, stats, settings, Pro) open over the editor with the site dimmed; "‹ Back to your site" returns to Pages. Up to 4 stay loaded and keep their place.
+  - "Pages & sections" is now "Pages".
 
 ## Not done yet from the phase 6 "done when"
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).

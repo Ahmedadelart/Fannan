@@ -61,12 +61,12 @@ test("draw a doodle with brushes, erase, undo, boil, and see it on the live site
   await expect(item).toBeVisible();
   await expect(item.locator(".dw-frame")).toHaveCount(3);
 
-  // The panel stays open, ready for another drawing; the Doodle button in the rail closes and opens it.
+  // The panel stays open, ready for another drawing. Round 18: Doodle is no longer in the rail
+  // (it opens from Add item); Pages goes back to the sections.
   await expect(panel.getByTestId("doodle-start")).toBeVisible();
-  await page.getByRole("button", { name: "Doodle" }).click();
+  await expect(page.getByRole("navigation", { name: "Editor" }).getByRole("button", { name: "Doodle" })).toHaveCount(0);
+  await page.getByRole("navigation", { name: "Editor" }).getByRole("button", { name: "Pages", exact: true }).click();
   await expect(panel).toBeHidden();
-  await page.getByRole("button", { name: "Doodle" }).click();
-  await expect(panel.getByTestId("doodle-start")).toBeVisible();
 
   await page.getByRole("button", { name: "Publish" }).click();
   await expect(page.getByTestId("editor-status")).toHaveText("Live site is up to date", { timeout: 20_000 });

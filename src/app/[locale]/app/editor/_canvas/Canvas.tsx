@@ -452,7 +452,7 @@ export function Canvas({
                 data-testid="section-toolbar"
                 data-canvas-tools
                 data-section={shownId}
-                className="shadow-float fixed inset-x-0 bottom-0 z-40 flex flex-col gap-2 rounded-t-[28px] bg-white px-3 pt-2 pb-4"
+                className="shadow-float fixed inset-x-0 bottom-16 z-40 flex flex-col gap-2 rounded-t-[28px] bg-white px-3 pt-2 pb-4"
               >
                 <span aria-hidden className="bg-line mx-auto mb-1 h-1 w-9 rounded" />
                 <span className="flex items-center justify-between ps-2">

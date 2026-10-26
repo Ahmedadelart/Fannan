@@ -22,6 +22,7 @@ test("a language set in Settings survives the editor's autosave", async ({ page 
   }).toPass({ timeout: 15_000 });
   await frame.getByRole("button", { name: "Save changes" }).click();
   await expect(frame.getByText(/^Saved\./)).toBeVisible({ timeout: 10_000 });
+  await page.screenshot({ path: "test-results/wide-panel-desktop.png" });
 
   // "Change in Design" (favicon) opens the editor's Design panel, which already shows Arabic.
   await frame.getByTestId("favicon-in-design").click();

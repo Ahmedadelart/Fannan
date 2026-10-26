@@ -1147,9 +1147,10 @@
       "boilSpeed": "Speed",
       "draw": "Draw"
     },
+    "wideBack": "Back to your site",
     "rail": {
       "label": "Editor",
-      "blocks": "Pages & sections",
+      "blocks": "Pages",
       "projects": "Projects",
       "design": "Design",
       "stats": "Stats",
@@ -1304,6 +1305,7 @@
       "footerBig": "Big name and email, in the heading font"
     },
     "account": {
+      "more": "More",
       "label": "Your account",
       "goPro": "Go Pro",
       "addTime": "Add Pro time",

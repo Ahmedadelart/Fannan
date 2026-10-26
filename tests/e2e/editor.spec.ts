@@ -67,7 +67,7 @@ test("build, preview on phone size, publish, then edit without changing the live
   await expect(canvas(page).locator(".site-root")).toHaveCSS("background-color", "rgb(245, 241, 232)");
 
   // A design block with a picture: click the picture, upload through the media picker.
-  await page.getByRole("button", { name: "Pages & sections" }).click();
+  await page.getByRole("button", { name: "Pages", exact: true }).click();
   await addSection(page, "d-image-caption");
   const picture = canvas(page).locator('[data-testid="free-item"][data-kind="image"]').last();
   await picture.scrollIntoViewIfNeeded();
@@ -138,7 +138,7 @@ test("the editor works on a phone in Arabic", async ({ page }, info) => {
   await closeTips(page);
   // On a phone the panel opens from the rail.
   await expect(page.getByTestId("left-panel")).toBeHidden();
-  await page.getByRole("button", { name: "الصفحات والأقسام" }).click();
+  await page.getByRole("button", { name: "الصفحات", exact: true }).click();
   await addSection(page, "quote");
   await editSection(page);
   await expect(settings(page)).toBeVisible();

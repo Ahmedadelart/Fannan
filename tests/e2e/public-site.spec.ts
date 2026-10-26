@@ -233,10 +233,10 @@ test("an Arabic site is served right to left, and it fits a phone", async ({ pag
   await page.getByRole("button", { name: "Design" }).click();
   await page.getByRole("button", { name: "Logo & title" }).click();
   await page.getByRole("textbox", { name: "Site name" }).fill("نور عادل");
-  // On a phone the panel floats over the page: tap outside to close it.
+  // On a phone the panel covers the page: its button in the bottom bar closes it again.
   if (info.project.name === "mobile") {
-    const box = (await page.getByTestId("panel-backdrop").boundingBox())!;
-    await page.mouse.click(box.x + box.width - 12, box.y + box.height / 2);
+    await page.getByRole("navigation", { name: "Editor" }).getByRole("button", { name: "Design" }).click();
+    await expect(page.getByTestId("left-panel")).toBeHidden();
   }
   await publish(page);
 

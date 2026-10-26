@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { SiteRender, type GalleryProject, type SiteMedia } from "@/components/site/SiteRender";
-import { Button, buttonClasses, IconButton } from "@/components/ui/Button";
+import { Button, buttonClasses } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Overlays";
 import { Icon } from "@/components/ui/Icon";
 import { useToast } from "@/components/ui/Toast";
@@ -748,15 +748,14 @@ export function Editor({
           : t("upToDate");
 
   /* ---------- render ---------- */
+  // Round 18: Pages, Design, Projects | Messages, Stats. Doodle left the rail (Add item → Doodle);
+  // Settings and Help sit at the bottom; the "f" opens the dashboard.
   const railItems = [
-    { id: "home", icon: "dashboard", label: t("rail.home"), short: t("rail.home") },
-    { id: "blocks", icon: "site-editor", label: t("rail.blocks"), short: t("rail.pages") },
-    { id: "projects", icon: "projects", label: t("rail.projects"), short: t("rail.projects") },
-    { id: "design", icon: "palette", label: t("rail.design"), short: t("rail.design") },
-    { id: "doodle", icon: "pen", label: t("rail.doodle"), short: t("rail.doodle") },
-    { id: "messages", icon: "messages", label: t("rail.messages"), short: t("rail.messages") },
-    { id: "stats", icon: "stats", label: t("rail.stats"), short: t("rail.stats") },
-    { id: "settings", icon: "settings", label: t("rail.settings"), short: t("rail.settings") },
+    { id: "blocks", icon: "site-editor", label: t("rail.blocks") },
+    { id: "design", icon: "palette", label: t("rail.design") },
+    { id: "projects", icon: "projects", label: t("rail.projects") },
+    { id: "messages", icon: "messages", label: t("rail.messages") },
+    { id: "stats", icon: "stats", label: t("rail.stats") },
   ] as const;
   const openRail = (id: Rail) => {
     // Settings shown in the panel give way to whatever the rail opens.
@@ -767,20 +766,30 @@ export function Editor({
       setPanelOpen(true);
       return;
     }
-    if (rail === id && panelOpen && !(id === "projects" && projectId)) return setPanelOpen(false);
+    if (rail === id && panelOpen && !(id === "projects" && projectId)) return embedPath(id, projectId) ? wideBack() : setPanelOpen(false);
     setRail(id);
     if (id === "projects") setProjectId(null);
     setPanelOpen(true);
   };
-  // Material 3 navigation rail: an icon in a pill (lime when active) with a short label under it.
-  const railTool = "group relative flex w-full flex-col items-center gap-1 py-0.5 text-[#C6C8BA] hover:text-[#E3E4D9]";
+  const railOn = (id: Rail) => rail === id && panelOpen;
+  const railTool = "group relative flex flex-none flex-col items-center gap-0.5 text-[#C6C8BA] hover:text-[#E3E4D9]";
   const railPill = (on: boolean) =>
     cx(
-      "flex h-8 w-14 items-center justify-center rounded-pill transition-colors",
+      "flex size-10 items-center justify-center rounded-full transition-colors max-sm:h-8 max-sm:w-14 max-sm:rounded-pill",
       on ? "bg-lime text-on-lime" : "group-hover:bg-white/8",
     );
-  const railLabel = (on: boolean) =>
-    cx("max-w-[76px] truncate text-[11px] leading-tight", on ? "font-semibold text-[#E3E4D9]" : "font-medium");
+  /** The name beside a rail icon, on hover or keyboard focus (desktop). */
+  const railTip = (label: string) => (
+    <span
+      aria-hidden
+      className="shadow-float pointer-events-none absolute start-[52px] top-1/2 z-50 -translate-y-1/2 rounded-[8px] bg-[#1A1C16] px-2.5 py-1.5 text-[12px] font-semibold whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 max-sm:hidden"
+    >
+      {label}
+    </span>
+  );
+  const barTool =
+    "flex size-9 flex-none items-center justify-center rounded-full text-ink hover:bg-paper disabled:opacity-40 disabled:hover:bg-transparent";
+  const upToDate = !dirty && version !== null;
   const partSettings =
     selected === "__header" || selected === "__footer" ? (
       <SitePartSettings
@@ -824,71 +833,135 @@ export function Editor({
     setSettingsOpen(false);
     setFreeItem(null);
   };
+  const wideOn = panelOpen && !docked && !!embed;
+  const [frames, setFrames] = useState<string[]>([]);
+  if (wideOn && embed && frames[frames.length - 1] !== embed) setFrames([...frames.filter((f) => f !== embed), embed].slice(wide ? -4 : -2));
+  /** Back from a wide panel: a project goes back to the list, anything else back to the site. */
+  function wideBack() {
+    if (rail === "projects" && projectId) return setProjectId(null);
+    setRail("blocks");
+    if (!wide) setPanelOpen(false);
+  }
 
   return (
     // Pinned to the window (round 17 fix): nothing on the page can scroll the editor away.
     <div className="text-ink bg-surface fixed inset-0 flex overscroll-none">
-      {/* Navigation rail (Material 3, dark like Carbonmade). */}
+      {/* Round 18: a slim icon rail (Carbonmade). Names show on hover; on phones it is a bottom bar. */}
       <nav
         aria-label={t("rail.label")}
-        className="relative z-40 flex w-20 flex-none flex-col items-center gap-2.5 bg-[#12140E] py-3"
+        className="relative z-40 flex w-14 flex-none flex-col items-center gap-1.5 bg-[#12140E] py-2.5 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:h-16 max-sm:w-full max-sm:flex-row max-sm:justify-around max-sm:py-0"
       >
         <button
           type="button"
           onClick={() => openRail("home")}
           aria-label={t("rail.home")}
-          className="mb-2 flex size-11 items-center justify-center rounded-[14px] bg-white/10"
+          className="group relative mb-2.5 flex size-9 flex-none items-center justify-center rounded-[12px] bg-white/10 max-sm:hidden"
         >
           <span className="font-heading font-heading-weight text-lime text-[18px] leading-none">{locale === "ar" ? "ف" : "f"}</span>
+          {railTip(t("rail.home"))}
         </button>
-        {railItems.map((r) => (
-          <button
-            key={r.id}
-            type="button"
-            aria-label={r.label}
-            aria-pressed={rail === r.id && panelOpen}
-            data-tip={r.id === "blocks" ? "rail-blocks" : undefined}
-            className={railTool}
-            onClick={() => openRail(r.id)}
-          >
-            <span className={railPill(rail === r.id && panelOpen)}>
-              <Icon name={r.icon} size={20} />
-            </span>
-            {r.id === "messages" && account.unread > 0 && (
-              <span className="bg-lime absolute end-4 top-0 size-2.5 rounded-full ring-2 ring-[#12140E]" data-testid="unread-dot" />
-            )}
-            <span aria-hidden className={railLabel(rail === r.id && panelOpen)}>
-              {r.short}
-            </span>
-          </button>
+        {railItems.map((r, i) => (
+          <Fragment key={r.id}>
+            {i === 3 && <span aria-hidden className="my-1.5 h-px w-6 flex-none bg-[#3A3D33] max-sm:hidden" />}
+            <button
+              type="button"
+              aria-label={r.label}
+              aria-pressed={railOn(r.id)}
+              data-tip={r.id === "blocks" ? "rail-blocks" : undefined}
+              className={cx(railTool, r.id === "stats" && "max-sm:hidden")}
+              onClick={() => openRail(r.id)}
+            >
+              <span className={railPill(railOn(r.id))}>
+                <Icon name={r.icon} size={20} />
+              </span>
+              {r.id === "messages" && account.unread > 0 && (
+                <span
+                  className="bg-lime absolute end-2 top-1.5 size-2 rounded-full ring-2 ring-[#12140E] max-sm:end-3 max-sm:top-1"
+                  data-testid="unread-dot"
+                />
+              )}
+              <span aria-hidden className="hidden text-[10px] font-semibold max-sm:block">
+                {r.label}
+              </span>
+              {railTip(r.label)}
+            </button>
+          </Fragment>
         ))}
-        <span className="flex-1" />
-        <a href={account.helpUrl} target="_blank" rel="noreferrer" className={railTool} aria-label={t("rail.help")}>
+        <span className="flex-1 max-sm:hidden" />
+        <a href={account.helpUrl} target="_blank" rel="noreferrer" className={cx(railTool, "max-sm:hidden")} aria-label={t("rail.help")}>
           <span className={railPill(false)}>
             <Icon name="help" size={20} />
           </span>
-          <span aria-hidden className={railLabel(false)}>
-            {t("rail.help")}
-          </span>
+          {railTip(t("rail.help"))}
         </a>
-        {/* The account: plan, language, admin (admins only), sign out. */}
-        <div className="relative">
+        <button
+          type="button"
+          aria-label={t("rail.settings")}
+          aria-pressed={railOn("settings")}
+          className={cx(railTool, "max-sm:hidden")}
+          onClick={() => openRail("settings")}
+        >
+          <span className={railPill(railOn("settings"))}>
+            <Icon name="settings" size={20} />
+          </span>
+          {railTip(t("rail.settings"))}
+        </button>
+        {/* The account: plan, language, admin (admins only), sign out. On phones also the rest of the rail. */}
+        <div className="relative max-sm:flex max-sm:flex-col max-sm:items-center">
           <button
             type="button"
             aria-label={t("account.label")}
             aria-expanded={accountOpen}
             onClick={() => setAccountOpen(!accountOpen)}
-            className="bg-lime text-on-lime mt-1 flex size-9 items-center justify-center rounded-full text-[14px] font-bold"
+            className="group relative mt-1 flex flex-col items-center gap-0.5 max-sm:mt-0"
             data-testid="account-button"
           >
-            {(account.name || "?").trim().charAt(0).toUpperCase()}
+            <span className="bg-lime text-on-lime flex size-8 items-center justify-center rounded-full text-[14px] font-bold">
+              {(account.name || "?").trim().charAt(0).toUpperCase()}
+            </span>
+            <span aria-hidden className="hidden text-[10px] font-semibold text-[#C6C8BA] max-sm:block">
+              {t("account.more")}
+            </span>
+            {railTip(t("account.label"))}
           </button>
           {accountOpen && (
             <div
               role="menu"
-              className="bg-paper text-ink shadow-float border-line absolute bottom-0 start-12 z-50 flex w-[240px] flex-col gap-1 rounded-[14px] border p-2"
+              className="bg-paper text-ink shadow-float border-line absolute bottom-0 start-12 z-50 flex w-[240px] flex-col gap-1 rounded-[14px] border p-2 max-sm:start-auto max-sm:end-0 max-sm:bottom-full max-sm:mb-2"
             >
               <span className="text-muted truncate px-2.5 pt-1 pb-2 text-[12px]">{account.name}</span>
+              {/* Phones: what the bottom bar has no room for. */}
+              {(
+                [
+                  ["home", "dashboard", t("rail.home")],
+                  ["stats", "stats", t("rail.stats")],
+                  ["settings", "settings", t("rail.settings")],
+                ] as const
+              ).map(([id, icon, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="menuitem"
+                  className="hover:bg-mist flex h-10 items-center gap-2.5 rounded-[10px] px-2.5 text-start text-[14px] font-semibold sm:hidden"
+                  onClick={() => {
+                    setAccountOpen(false);
+                    openRail(id);
+                  }}
+                >
+                  <Icon name={icon} size={18} />
+                  {label}
+                </button>
+              ))}
+              <a
+                role="menuitem"
+                href={account.helpUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="hover:bg-mist flex h-10 items-center gap-2.5 rounded-[10px] px-2.5 text-[14px] font-semibold sm:hidden"
+              >
+                <Icon name="help" size={18} />
+                {t("rail.help")}
+              </a>
               <button
                 type="button"
                 role="menuitem"
@@ -942,23 +1015,21 @@ export function Editor({
       </nav>
 
       {/* The panel next to the rail (dark). On small screens it floats; tapping outside closes it. */}
-      {panelOpen && (
+      {panelOpen && !wideOn && (
         <div
           aria-hidden
           data-testid="panel-backdrop"
-          className="bg-ink/30 absolute inset-y-0 start-20 end-0 z-20 lg:hidden"
+          className="bg-ink/30 absolute inset-y-0 start-14 end-0 z-20 max-sm:hidden lg:hidden"
           onClick={() => setPanelOpen(false)}
         />
       )}
-      {(panelOpen || docked) && (
+      {((panelOpen && !embed) || docked) && (
         <aside
           className={cx(
             // "relative": hidden screen-reader labels inside stay within the panel's own scrolling.
-            "border-line relative flex flex-none flex-col border-e",
-            embed
-              ? "bg-mist w-[min(780px,60vw)] max-lg:w-[calc(100vw-80px)]"
-              : "fannan-dark bg-paper text-ink w-[300px] overflow-y-auto overscroll-contain max-lg:w-[min(320px,calc(100vw-80px))]",
-            "max-lg:shadow-float max-lg:absolute max-lg:inset-y-0 max-lg:start-20 max-lg:z-30",
+            "border-line fannan-dark bg-paper text-ink relative flex w-[300px] flex-none flex-col overflow-y-auto overscroll-contain border-e",
+            "max-lg:shadow-float max-lg:absolute max-lg:inset-y-0 max-lg:start-14 max-lg:z-30 max-lg:w-[min(320px,calc(100vw-56px))]",
+            "max-sm:start-0 max-sm:top-14 max-sm:bottom-16 max-sm:w-full",
           )}
           data-testid="left-panel"
           data-panel={docked ? "settings" : rail}
@@ -989,41 +1060,6 @@ export function Editor({
               </div>
               <div className="fannan-compact relative min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">{blockSettings}</div>
             </div>
-          )}
-          {!docked && embed && (
-            <>
-              {/* Home, projects, messages, stats, settings and Pro, opened right here. */}
-              <div className="bg-paper border-line flex h-12 flex-none items-center justify-between gap-2 border-b ps-4 pe-2">
-                <span className="flex min-w-0 items-center gap-2 text-[14px] font-semibold">
-                  {rail === "projects" && projectId && (
-                    <button
-                      type="button"
-                      aria-label={t("projectsPanel.back")}
-                      onClick={() => setProjectId(null)}
-                      className="hover:bg-mist -ms-2 flex size-8 items-center justify-center rounded-full"
-                    >
-                      <Icon name="arrow-left" size={18} />
-                    </button>
-                  )}
-                  <span className="truncate">{rail === "projects" ? t("rail.projects") : t(`rail.${rail}`)}</span>
-                </span>
-                <button
-                  type="button"
-                  aria-label={t("section.close")}
-                  onClick={() => setPanelOpen(false)}
-                  className="hover:bg-mist flex size-8 items-center justify-center rounded-full"
-                >
-                  <Icon name="close" size={18} />
-                </button>
-              </div>
-              <iframe
-                key={embed}
-                src={embed}
-                title={t(`rail.${rail}`)}
-                className="min-h-0 w-full flex-1 border-0"
-                data-testid="panel-frame"
-              />
-            </>
           )}
           {!docked && rail === "blocks" && (
             <>
@@ -1179,8 +1215,40 @@ export function Editor({
         </aside>
       )}
 
+      {/* Round 18: Home, Projects, Messages, Stats, Settings and Pro open wide over the editor, the site
+          dimmed behind (Carbonmade). Up to 4 stay loaded, so each keeps its place when opened again. */}
+      <div
+        className={cx("absolute inset-y-0 start-14 end-0 z-30 flex max-sm:start-0 max-sm:bottom-16", !wideOn && "hidden")}
+        data-testid="wide-panel"
+      >
+        <div className="bg-mist shadow-float flex w-[min(760px,100%)] flex-none flex-col">
+          <div className="bg-surface border-line flex h-14 flex-none items-center border-b px-2">
+            <button
+              type="button"
+              onClick={wideBack}
+              className="hover:bg-mist flex h-9 items-center gap-1.5 rounded-pill ps-2 pe-3 text-[13px] font-semibold"
+              data-testid="wide-back"
+            >
+              <Icon name="arrow-left" size={18} />
+              {rail === "projects" && projectId ? t("rail.projects") : t("wideBack")}
+            </button>
+          </div>
+          {frames.map((path) => (
+            <iframe
+              key={path}
+              src={path}
+              title={t(`rail.${rail}`)}
+              hidden={path !== embed}
+              className="min-h-0 w-full flex-1 border-0"
+              data-testid={path === embed ? "panel-frame" : undefined}
+            />
+          ))}
+        </div>
+        <button type="button" tabIndex={-1} aria-label={t("wideBack")} onClick={wideBack} className="bg-ink/55 min-w-0 flex-1 max-sm:hidden" />
+      </div>
+
       {/* The preview, with a slim bar on top. */}
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden max-sm:pb-16">
         {account.deletionPending && (
           <button
             type="button"
@@ -1191,11 +1259,26 @@ export function Editor({
             {td("deletionPending")}
           </button>
         )}
-        {/* A slim bar: undo, redo and reorder on one side; screen size, preview, status and Publish on the other. */}
-        <header className="flex items-center justify-between gap-2 px-3 py-2.5 md:px-4">
-          <div className="flex items-center gap-1.5">
-            <IconButton icon="undo" label={t("undo")} size="sm" disabled={historySize.past === 0} onClick={undo} />
-            <IconButton icon="redo" label={t("redo")} size="sm" disabled={historySize.future === 0} onClick={redo} />
+        {/* Round 18 top bar: undo and redo · the page and its status in the middle · reorder, screen
+            size, preview and Publish. */}
+        <header className="bg-surface border-line grid h-14 flex-none grid-cols-[1fr_auto_1fr] items-center gap-2 border-b px-2 md:px-3">
+          <div className="flex items-center gap-1">
+            <button type="button" aria-label={t("undo")} title={t("undo")} disabled={historySize.past === 0} onClick={undo} className={barTool}>
+              <Icon name="undo" size={18} />
+            </button>
+            <button type="button" aria-label={t("redo")} title={t("redo")} disabled={historySize.future === 0} onClick={redo} className={barTool}>
+              <Icon name="redo" size={18} />
+            </button>
+          </div>
+          <div className="flex min-w-0 flex-col items-center leading-tight">
+            <span className="max-w-[220px] truncate text-[13px] font-semibold max-sm:max-w-[110px]" data-testid="top-page">
+              {page.title}
+            </span>
+            <span className="text-muted max-w-[220px] truncate text-[12px] max-sm:hidden" role="status" data-testid="editor-status">
+              {status}
+            </span>
+          </div>
+          <div className="flex min-w-0 items-center justify-end gap-1">
             <button
               type="button"
               aria-pressed={reorder}
@@ -1207,16 +1290,15 @@ export function Editor({
                 setSettingsOpen(false);
               }}
               className={cx(
-                "flex h-9 min-w-9 items-center justify-center gap-1.5 rounded-pill text-[13px] font-semibold",
-                reorder ? "bg-secondary-container text-on-secondary-container px-3" : "bg-paper text-ink hover:bg-white",
+                barTool,
+                "w-auto min-w-9 gap-1.5 text-[13px] font-semibold",
+                reorder && "bg-secondary-container text-on-secondary-container hover:bg-secondary-container px-3",
               )}
             >
-              <Icon name="reorder" size={16} />
+              <Icon name="reorder" size={18} />
               {reorder && <span>{t("reorderDone")}</span>}
             </button>
-          </div>
-          <div className="flex min-w-0 items-center justify-end gap-1.5">
-            <div className="bg-paper flex gap-0.5 rounded-pill p-[3px]" role="radiogroup" aria-label={t("device")}>
+            <div className="bg-paper flex gap-0.5 rounded-pill p-[3px] max-sm:hidden" role="radiogroup" aria-label={t("device")}>
               {(["desktop", "tablet", "phone"] as Device[]).map((d) => (
                 <button
                   key={d}
@@ -1227,8 +1309,7 @@ export function Editor({
                   title={t(d)}
                   onClick={() => setDevice(d)}
                   className={cx(
-                    "flex size-8 items-center justify-center rounded-full",
-                    d === "tablet" && "max-sm:hidden",
+                    "flex size-[30px] items-center justify-center rounded-full",
                     device === d ? "bg-secondary-container text-on-secondary-container" : "text-muted hover:text-ink",
                   )}
                 >
@@ -1245,21 +1326,22 @@ export function Editor({
                 setPreviewPage(page.id);
                 setPreview(true);
               }}
-              className="bg-paper text-ink flex size-9 items-center justify-center rounded-full hover:bg-white"
+              className={barTool}
             >
               <Icon name="preview" size={18} />
             </button>
-            <span className="text-muted min-w-0 truncate px-1.5 text-[12px] max-md:hidden" role="status" data-testid="editor-status">
-              {status}
-            </span>
             <span data-tip="publish">
+              {/* Greyed with a tick once the live site has everything. */}
               <button
                 type="button"
                 onClick={doPublish}
-                disabled={publishing || (!dirty && version !== null)}
-                className="bg-lime text-on-lime flex h-9 items-center gap-2 rounded-pill px-3 text-[13px] font-semibold tracking-[0.04em] uppercase hover:brightness-95 disabled:opacity-50 sm:px-4"
+                disabled={publishing || upToDate}
+                className={cx(
+                  "flex h-9 items-center gap-2 rounded-pill px-3 text-[13px] font-semibold sm:px-4",
+                  upToDate ? "bg-[#E8E9DF] text-muted" : "bg-lime text-on-lime hover:brightness-95 disabled:opacity-60",
+                )}
               >
-                <Icon name="publish" size={16} />
+                <Icon name={upToDate ? "check" : "publish"} size={16} />
                 <span className="max-sm:sr-only">{publishing ? t("publishing") : t("publish")}</span>
               </button>
             </span>

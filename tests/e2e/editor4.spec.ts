@@ -487,14 +487,14 @@ test("new sections publish; Pro ones hide on Free sites; footer link columns", a
   const { username } = await signUp(page);
   await openEditor(page);
   if (info.project.name === "mobile") {
-    await page.getByRole("button", { name: "Pages & sections" }).click();
+    await page.getByRole("button", { name: "Pages", exact: true }).click();
   }
   for (const key of ["d-hero-split", "c-icons", "c-stats", "c-faq", "c-cards", "c-testimonials"]) {
     await addSection(page, key);
     const tryIt = page.getByRole("button", { name: "Try it here" });
     if (await tryIt.isVisible({ timeout: 800 }).catch(() => false)) await tryIt.click();
     if (info.project.name === "mobile" && !(await page.getByTestId("left-panel").isVisible())) {
-      await page.getByRole("button", { name: "Pages & sections" }).click();
+      await page.getByRole("button", { name: "Pages", exact: true }).click();
     }
   }
   await expect(canvas(page).getByTestId("cards-icons")).toBeVisible();
