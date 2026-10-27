@@ -246,7 +246,8 @@ async function homeBlocks(): Promise<Block[]> {
     slides: (data.hero as Any[]).slice(1).map((h, i) => ({ mediaId: heroes[i + 1], caption: h.cap, crop: pos(h.pos) })),
     interval: 6.5,
     stats: c.hero.stats,
-    style: plain({ anchor: "top", padTop: 48, padBottom: 0 }),
+    // Normal space after it: the logo strip sits just under the picture instead of over its edge.
+    style: plain({ anchor: "top", padTop: 48, padBottom: 48 }),
   });
 
   // 2. Client logo strip.
