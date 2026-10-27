@@ -685,6 +685,7 @@ Ahmed asked for Eslam's reference site (C:\Users\PC\Downloads\Eslam\website) reb
 - Buying through **Paymob test mode** from Egypt (EGP) and abroad (USD): waiting for Ahmed's go-ahead (he asked to build and test the whole experience first with the practice checkout).
 
 ## Blocked on Ahmed
+- **Eslam's site on production** (round 19): the code is live, the seed is ready, but it needs Google's application sign-in on this PC first: run `gcloud auth application-default login` in a terminal, sign in as contact@bigcatanimation.com, then say "seed Eslam". The site then appears at eslamaboshady.fannan.net under shop.eslamaboshady@gmail.com with Pro for 12 months.
 - **Paymob (when he's ready):** test-mode Secret key + HMAC (into Secret Manager as `paymob-secret-key`, `paymob-hmac-secret`), Public key and integration IDs (card, wallet/Fawry if any), and whether the account can charge USD.
 - Billing on `fannan-staging` (needed before phase 2): Google refused to link it because the billing account already has its 5-project limit (fannan, zareef, feshar, artgym, klaket). Ahmed to request a higher limit or free a slot.
 
