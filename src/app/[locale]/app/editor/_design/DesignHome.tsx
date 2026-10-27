@@ -31,7 +31,8 @@ export function DesignHome({
   const { background, text, accent } = th.colors;
   const logo = th.logoMediaId ? imageSources(media[th.logoMediaId], 400)?.src : null;
   const label = "text-muted text-[11px] font-semibold tracking-[0.08em] uppercase";
-  const card = "border-line hover:bg-mist flex min-w-0 flex-col gap-2.5 rounded-[14px] border p-3 text-start transition-colors";
+  const card =
+    "border-line hover:bg-mist flex min-w-0 flex-col gap-2.5 rounded-[14px] border p-3 text-start transition-colors";
   const open = (section: DesignSection) => ({
     type: "button" as const,
     onClick: () => onOpen(section),
@@ -91,7 +92,10 @@ export function DesignHome({
         </button>
         <button {...open("footer")} className={card}>
           <span className={label}>{t("design.footer")}</span>
-          <span className="flex h-8 items-center justify-between rounded-[8px] px-2" style={{ background: text, color: background }}>
+          <span
+            className="flex h-8 items-center justify-between rounded-[8px] px-2"
+            style={{ background: text, color: background }}
+          >
             <span className="h-1.5 w-7 rounded-[2px] bg-current" />
             <span className="flex gap-1">
               {[0, 1, 2].map((i) => (
@@ -104,7 +108,9 @@ export function DesignHome({
       <button {...open("lock")} className={`${card} flex-row items-center`}>
         <Icon name="password" size={18} />
         <span className="flex-1 text-[13px] font-semibold">{t("design.lock")}</span>
-        {!canPassword && <span className="bg-lime text-on-lime rounded-pill px-2 py-0.5 text-[10px] font-bold">PRO</span>}
+        {!canPassword && (
+          <span className="bg-lime text-on-lime rounded-pill px-2 py-0.5 text-[10px] font-bold">PRO</span>
+        )}
       </button>
       <button
         type="button"

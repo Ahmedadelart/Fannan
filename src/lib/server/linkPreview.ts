@@ -110,7 +110,10 @@ export function previewFrom(url: string, site: string, tags: Record<string, stri
   let title = tags["og:title"] || tags["twitter:title"] || tags["html:title"] || "";
   // ArtStation: "Title, Artist name"; page titles: "ArtStation - Title" or "Title :: Behance".
   if (site === "ArtStation" && title.includes(", ")) title = title.slice(0, title.lastIndexOf(", "));
-  title = title.replace(/^ArtStation\s*-\s*/i, "").replace(/\s*(::|\|)\s*Behance\s*$/i, "").replace(/\s+on Behance$/i, "");
+  title = title
+    .replace(/^ArtStation\s*-\s*/i, "")
+    .replace(/\s*(::|\|)\s*Behance\s*$/i, "")
+    .replace(/\s+on Behance$/i, "");
   const image = tags["og:image"] || tags["twitter:image"] || "";
   const imageSite = image ? siteOf(image) : null;
   return {

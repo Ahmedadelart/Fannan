@@ -237,6 +237,11 @@ export function SectionDesign({
               unit="px"
               onChange={(v) => setBg({ blur: v }, "blur")}
             />
+            <Switch
+              title={d("blend")}
+              checked={bg.blend === "luminosity"}
+              onChange={(v) => setBg({ blend: v ? "luminosity" : "normal" })}
+            />
           </>
         )}
         {bg.kind === "pattern" && (
@@ -468,6 +473,14 @@ export function SectionDesign({
                       value={st.anchor}
                       onChange={(v) => set({ anchor: v.toLowerCase().replace(/[^a-z0-9-]/g, "") }, "anchor")}
                     />
+                    {/* Round 19: the page index rail (header setting) lists sections by these. */}
+                    <Text
+                      title={d("railLabel")}
+                      placeholder={d("railLabelHint")}
+                      value={st.railLabel ?? ""}
+                      onChange={(v) => set({ railLabel: v }, "rail")}
+                    />
+                    <Switch title={d("railHide")} checked={!!st.railHide} onChange={(v) => set({ railHide: v })} />
                     <div className="flex flex-col gap-1.5">
                       <span className="flex items-center gap-2 text-[12px] font-semibold">
                         {d("animate")} {!isPro && <Badge variant="brand">Pro</Badge>}

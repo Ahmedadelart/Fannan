@@ -760,7 +760,7 @@ export function ProjectEditor({
                       e.target.value = "";
                     }}
                   />
-                  {selected.type !== "text" && selected.type !== "embed" && (
+                  {selected.type !== "embed" && (
                     <label className="flex items-center gap-2 text-[13px]">
                       {t("use.label")}
                       <select
@@ -775,6 +775,26 @@ export function ProjectEditor({
                         {(["gallery", "logo", "laurel"] as const).map((u) => (
                           <option key={u} value={u}>
                             {t(`use.${u}`)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+                  {selected.display.use === "logo" && selected.type !== "text" && (
+                    <label className="flex items-center gap-2 text-[13px]">
+                      {t("use.look")}
+                      <select
+                        className={cx(inputCls, "h-9 w-auto")}
+                        value={selected.display.look ?? "white"}
+                        onChange={(e) => {
+                          const look = e.target.value as "white" | "original" | "chip";
+                          editItem(selected.id, { display: { look } }, { display: { ...selected.display, look } });
+                        }}
+                        data-testid="media-look"
+                      >
+                        {(["white", "original", "chip"] as const).map((u) => (
+                          <option key={u} value={u}>
+                            {t(`use.looks.${u}`)}
                           </option>
                         ))}
                       </select>
@@ -913,6 +933,14 @@ export function ProjectEditor({
                 className={inputCls}
                 value={p.studio}
                 onChange={(e) => setField("studio", e.target.value, { studio: e.target.value })}
+              />
+            </Field>
+            <Field label={t("fields.unit")}>
+              <input
+                className={inputCls}
+                placeholder={t("fields.unitPlaceholder")}
+                value={p.unit ?? ""}
+                onChange={(e) => setField("unit", e.target.value, { unit: e.target.value })}
               />
             </Field>
             <Field label={t("fields.team")}>

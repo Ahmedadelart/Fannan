@@ -26,7 +26,8 @@ import type {
 export type GuidePageKind = "home" | "work" | "about" | "contact" | "page" | "folder" | "links";
 
 /** Sections people can tick on a page; each asks only for what it needs. */
-export type ExtraKey = "about" | "contact" | "social" | "logos" | "testimonials" | "cv" | "offers" | "faq" | "stats" | "cta";
+export type ExtraKey =
+  "about" | "contact" | "social" | "logos" | "testimonials" | "cv" | "offers" | "faq" | "stats" | "cta";
 
 export interface GuideItem {
   title: string;
@@ -72,7 +73,13 @@ export interface GuideProject {
 
 export interface GuideAnswers {
   discipline: string;
-  logo: { mode: "name" | "image"; mediaId: string | null; name: string; font: HeaderSettings["logoFont"]; tagline: string };
+  logo: {
+    mode: "name" | "image";
+    mediaId: string | null;
+    name: string;
+    font: HeaderSettings["logoFont"];
+    tagline: string;
+  };
   preset: ThemePreset;
   /** Changes the theme's accent colour; null keeps the theme's own. */
   accent: string | null;
@@ -164,7 +171,20 @@ export function pageSuggestions(discipline: string): SuggestionKey[] {
     writing: ["writing", "press"],
     fineart: ["shop", "press"],
   };
-  const all: SuggestionKey[] = ["work", "sketchbook", "showreel", "films", "shop", "services", "press", "cv", "teaching", "personal", "photos", "writing"];
+  const all: SuggestionKey[] = [
+    "work",
+    "sketchbook",
+    "showreel",
+    "films",
+    "shop",
+    "services",
+    "press",
+    "cv",
+    "teaching",
+    "personal",
+    "photos",
+    "writing",
+  ];
   const first = lead[kind] ?? ["sketchbook", "services"];
   return [...new Set<SuggestionKey>(["work", "links", ...first, ...all])];
 }
@@ -203,18 +223,19 @@ export function folderTitle(l: Locale) {
 }
 
 /** First answers: what sign-up already knows, and the essential pages. */
-export function defaultGuide(input: { name: string; discipline: string; language: Locale; preset?: ThemePreset }): GuideAnswers {
+export function defaultGuide(input: {
+  name: string;
+  discipline: string;
+  language: Locale;
+  preset?: ThemePreset;
+}): GuideAnswers {
   const w = WORDS[input.language];
   return {
     discipline: input.discipline,
     logo: { mode: "name", mediaId: null, name: input.name, font: null, tagline: "" },
     preset: input.preset ?? "gallery",
     accent: null,
-    pages: [
-      newGuidePage(w.home, "home"),
-      newGuidePage(w.about, "about"),
-      newGuidePage(w.contact, "contact"),
-    ],
+    pages: [newGuidePage(w.home, "home"), newGuidePage(w.about, "about"), newGuidePage(w.contact, "contact")],
     projects: [],
     groupProjects: true,
     social: [],
@@ -380,7 +401,8 @@ function extraBlock(key: ExtraKey, e: GuideExtra, l: Locale, id: string): Block 
       mediaId: i.mediaId ?? like?.mediaId ?? null,
     }));
   }
-  if (b.type === "logos" && items.length) b.items = items.slice(0, 24).map((i) => ({ name: i.title, mediaId: i.mediaId }));
+  if (b.type === "logos" && items.length)
+    b.items = items.slice(0, 24).map((i) => ({ name: i.title, mediaId: i.mediaId }));
   if (b.type === "credits" && items.length)
     b.items = items.slice(0, 40).map((i) => ({ year: i.meta, title: i.title, role: i.text, studio: "" }));
   if (b.type === "contact" && e.text.trim()) b.text = e.text;
@@ -483,7 +505,15 @@ export function buildFromGuide(
   let parentId: string | null = null;
   if (a.groupProjects && inMenu.length > 1) {
     parentId = "projects-menu";
-    pages.push({ id: parentId, slug: `menu-${pages.length}`, title: WORDS[l].projects, type: "folder", showInNav: true, parentId: null, blocks: [] });
+    pages.push({
+      id: parentId,
+      slug: `menu-${pages.length}`,
+      title: WORDS[l].projects,
+      type: "folder",
+      showInNav: true,
+      parentId: null,
+      blocks: [],
+    });
   }
   for (const p of inMenu) {
     const project = ctx.projects.find((x) => x.id === p.id)!;
@@ -505,7 +535,11 @@ export function buildFromGuide(
     tagline: a.logo.tagline,
     theme,
     pages,
-    header: { ...(ctx.header ?? normalizeHeader(null)), tagline: !!a.logo.tagline, logoFont: a.logo.mode === "name" ? a.logo.font : null },
+    header: {
+      ...(ctx.header ?? normalizeHeader(null)),
+      tagline: !!a.logo.tagline,
+      logoFont: a.logo.mode === "name" ? a.logo.font : null,
+    },
     footer: normalizeFooter(null),
   };
 }

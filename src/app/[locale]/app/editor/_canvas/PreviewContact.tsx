@@ -52,7 +52,11 @@ export function PreviewContact({
       {form.deadline && field(w.deadline)}
       {form.custom && field(form.custom)}
       {field(form.labels.message || w.message, true)}
-      <button type="submit" className="site-button justify-self-start border-0" style={{ cursor: "pointer", font: "inherit", fontWeight: 600 }}>
+      <button
+        type="submit"
+        className="site-button justify-self-start border-0"
+        style={{ cursor: "pointer", font: "inherit", fontWeight: 600 }}
+      >
         {block.button}
       </button>
     </form>

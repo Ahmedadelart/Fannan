@@ -70,15 +70,23 @@ export async function findUsers(q: string): Promise<AdminUser[]> {
   const db = adminDb();
   const term = q.trim().toLowerCase();
   if (!term) {
-    const snap = await db.collection("users").where("isAnonymous", "==", false).orderBy("createdAt", "desc").limit(50).get();
+    const snap = await db
+      .collection("users")
+      .where("isAnonymous", "==", false)
+      .orderBy("createdAt", "desc")
+      .limit(50)
+      .get();
     return withSites(snap.docs.map((d) => ({ id: d.id, data: d.data() as UserDoc })));
   }
   const found = new Map<string, UserDoc>();
   const byEmail = await db.collection("users").where("email", "==", term).limit(10).get();
   byEmail.docs.forEach((d) => found.set(d.id, d.data() as UserDoc));
-  const name = (await db.collection("usernames").doc(term.replace(/\.fannan\.net$/, "")).get()).data() as
-    | { uid?: string }
-    | undefined;
+  const name = (
+    await db
+      .collection("usernames")
+      .doc(term.replace(/\.fannan\.net$/, ""))
+      .get()
+  ).data() as { uid?: string } | undefined;
   if (name?.uid && !found.has(name.uid)) {
     const u = await db.collection("users").doc(name.uid).get();
     if (u.exists) found.set(u.id, u.data() as UserDoc);
@@ -123,7 +131,9 @@ export async function setSuspended(uid: string, suspended: boolean) {
   const user = (await db.collection("users").doc(uid).get()).data() as UserDoc | undefined;
   if (!user?.siteId) throw new Error("not-found");
   const ref = db.collection("sites").doc(user.siteId);
-  await ref.update(suspended ? { suspended: true, suspendedReason: "admin" } : { suspended: false, suspendedReason: null });
+  await ref.update(
+    suspended ? { suspended: true, suspendedReason: "admin" } : { suspended: false, suspendedReason: null },
+  );
   const username = (await ref.get()).data()?.username as string | undefined;
   if (username) {
     forgetLiveSite(username);
@@ -152,7 +162,12 @@ export interface Report {
 }
 
 export async function listReports(status: "open" | "done" = "open"): Promise<Report[]> {
-  const snap = await adminDb().collection("reports").where("status", "==", status).orderBy("createdAt", "desc").limit(100).get();
+  const snap = await adminDb()
+    .collection("reports")
+    .where("status", "==", status)
+    .orderBy("createdAt", "desc")
+    .limit(100)
+    .get();
   return snap.docs.map((d) => {
     const r = d.data();
     // Only plain values reach the admin page (handled reports also carry actedAt).
@@ -196,7 +211,12 @@ export async function actOnReport(id: string, action: ModerationAction, note: st
     if (action === "hide-project") {
       const slug = (() => {
         try {
-          return new URL(report.url).pathname.split("/").filter(Boolean).filter((s) => s !== "ar" && s !== "en")[0] ?? "";
+          return (
+            new URL(report.url).pathname
+              .split("/")
+              .filter(Boolean)
+              .filter((s) => s !== "ar" && s !== "en")[0] ?? ""
+          );
         } catch {
           return "";
         }
@@ -212,7 +232,9 @@ export async function actOnReport(id: string, action: ModerationAction, note: st
     if (action === "suspend" || action === "ban") await setSuspended(uid, true);
     if (action === "ban") {
       await db.collection("users").doc(uid).set({ banned: true }, { merge: true });
-      await adminAuth().updateUser(uid, { disabled: true }).catch(() => {});
+      await adminAuth()
+        .updateUser(uid, { disabled: true })
+        .catch(() => {});
     }
     if (site?.username) {
       forgetLiveSite(site.username);
@@ -221,7 +243,13 @@ export async function actOnReport(id: string, action: ModerationAction, note: st
     const user = (await db.collection("users").doc(uid).get()).data() as UserDoc | undefined;
     if (user?.email) await sendEmail(moderationEmail(user, action, report.reason, note));
   }
-  await ref.update({ status: "done", action, note: note.slice(0, 500), actedBy: by, actedAt: FieldValue.serverTimestamp() });
+  await ref.update({
+    status: "done",
+    action,
+    note: note.slice(0, 500),
+    actedBy: by,
+    actedAt: FieldValue.serverTimestamp(),
+  });
 }
 
 function moderationEmail(user: UserDoc, action: ModerationAction, reason: string, note: string) {

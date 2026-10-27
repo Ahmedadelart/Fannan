@@ -96,7 +96,9 @@ export function Choice<T extends string>({
             onClick={() => onChange(v)}
             className={cx(
               "h-9 rounded-[8px] px-2 text-[12px] font-semibold",
-              v === value ? "bg-secondary-container text-on-secondary-container" : "border-line bg-paper text-ink hover:bg-mist border",
+              v === value
+                ? "bg-secondary-container text-on-secondary-container"
+                : "border-line bg-paper text-ink hover:bg-mist border",
             )}
           >
             {label}
@@ -147,7 +149,15 @@ export function Range({
   );
 }
 
-export function Switch({ title, checked, onChange }: { title: string; checked: boolean; onChange: (v: boolean) => void }) {
+export function Switch({
+  title,
+  checked,
+  onChange,
+}: {
+  title: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
   return (
     <div className="flex items-center justify-between gap-3 text-[13px]">
       <span>{title}</span>
@@ -177,7 +187,9 @@ export function ColorField({
           onClick={() => onChange(null)}
           className={cx(
             "h-9 rounded-[8px] px-3 text-[12px] font-semibold",
-            value === null ? "bg-secondary-container text-on-secondary-container" : "border-line bg-paper hover:bg-mist border",
+            value === null
+              ? "bg-secondary-container text-on-secondary-container"
+              : "border-line bg-paper hover:bg-mist border",
           )}
         >
           {themeLabel}

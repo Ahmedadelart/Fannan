@@ -80,7 +80,9 @@ export function PagesTab({
     const id = newId();
     // A project menu item starts with a project that isn't in the menu yet.
     const project =
-      type === "project" ? (projects.find((x) => !draft.pages.some((p) => p.projectId === x.id)) ?? projects[0]) : undefined;
+      type === "project"
+        ? (projects.find((x) => !draft.pages.some((p) => p.projectId === x.id)) ?? projects[0])
+        : undefined;
     const title = project?.title.slice(0, 60) || t(`newTitles.${type}`);
     void locale;
     setDraft((d) => ({
@@ -168,8 +170,16 @@ export function PagesTab({
                 aria-pressed={p.showInNav}
                 aria-label={t("inNavFor", { page: p.title })}
                 title={t("inNav")}
-                onClick={() => setDraft((d) => ({ ...d, pages: d.pages.map((x) => (x.id === p.id ? { ...x, showInNav: !x.showInNav } : x)) }))}
-                className={cx("hover:bg-mist flex size-9 flex-none items-center justify-center rounded-full", p.showInNav ? "text-ink" : "text-muted")}
+                onClick={() =>
+                  setDraft((d) => ({
+                    ...d,
+                    pages: d.pages.map((x) => (x.id === p.id ? { ...x, showInNav: !x.showInNav } : x)),
+                  }))
+                }
+                className={cx(
+                  "hover:bg-mist flex size-9 flex-none items-center justify-center rounded-full",
+                  p.showInNav ? "text-ink" : "text-muted",
+                )}
                 data-testid="page-in-menu"
               >
                 <Icon name={p.showInNav ? "preview" : "hidden"} size={18} />
@@ -244,7 +254,8 @@ export function PagesTab({
                 data-testid="page-parent"
               >
                 <option value="">{t("topLevel")}</option>
-                {draft.pages.slice(1)
+                {draft.pages
+                  .slice(1)
                   .filter((x) => x.id !== page.id && !x.parentId)
                   .map((x) => (
                     <option key={x.id} value={x.id}>
@@ -320,17 +331,17 @@ export function PagesTab({
             {(["gallery", "custom", "about", "links", "link", "folder", "project"] as PageType[])
               .filter((type) => type !== "project" || projects.length > 0)
               .map((type) => (
-              // Round 18: little tiles with a picture of each kind (no lime words on the dark panel).
-              <button
-                key={type}
-                type="button"
-                onClick={() => add(type)}
-                className="border-line hover:bg-mist flex h-11 items-center gap-2 rounded-[12px] border px-2.5 text-start text-[13px] font-semibold"
-              >
-                <Icon name={PAGE_ICONS[type]} size={18} className="text-muted flex-none" />
-                <span className="truncate">{t(`types.${type}`)}</span>
-              </button>
-            ))}
+                // Round 18: little tiles with a picture of each kind (no lime words on the dark panel).
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => add(type)}
+                  className="border-line hover:bg-mist flex h-11 items-center gap-2 rounded-[12px] border px-2.5 text-start text-[13px] font-semibold"
+                >
+                  <Icon name={PAGE_ICONS[type]} size={18} className="text-muted flex-none" />
+                  <span className="truncate">{t(`types.${type}`)}</span>
+                </button>
+              ))}
           </div>
         </>
       )}

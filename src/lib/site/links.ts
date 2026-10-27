@@ -8,12 +8,38 @@ import { sectionStyle } from "./style";
 import type { Block, LinkItem } from "./types";
 
 export function linkItem(extra: Partial<LinkItem> = {}): LinkItem {
-  return { id: newId(), kind: "link", title: "", url: "", mediaId: null, icon: "", hidden: false, highlight: "none", from: "", until: "", ...extra };
+  return {
+    id: newId(),
+    kind: "link",
+    title: "",
+    url: "",
+    mediaId: null,
+    icon: "",
+    hidden: false,
+    highlight: "none",
+    from: "",
+    until: "",
+    ...extra,
+  };
 }
 
 const WORDS = {
-  en: { bio: "Animator and illustrator. Here's everything in one place.", portfolio: "My portfolio", reel: "Watch my showreel", shop: "Prints shop", contact: "Work with me", social: "Find me online" },
-  ar: { bio: "رسّام ومحرّك. كل روابطي في مكان واحد.", portfolio: "معرض أعمالي", reel: "شاهد الشوريل", shop: "متجر المطبوعات", contact: "اشتغل معي", social: "تابعني" },
+  en: {
+    bio: "Animator and illustrator. Here's everything in one place.",
+    portfolio: "My portfolio",
+    reel: "Watch my showreel",
+    shop: "Prints shop",
+    contact: "Work with me",
+    social: "Find me online",
+  },
+  ar: {
+    bio: "رسّام ومحرّك. كل روابطي في مكان واحد.",
+    portfolio: "معرض أعمالي",
+    reel: "شاهد الشوريل",
+    shop: "متجر المطبوعات",
+    contact: "اشتغل معي",
+    social: "تابعني",
+  },
 };
 
 export function linksBlock(l: Locale, name = ""): Extract<Block, { type: "links" }> {
@@ -69,7 +95,10 @@ export function embedSrc(raw: string): { src: string; height: number } | null {
   const v = parseVideoLink(raw);
   if (v)
     return {
-      src: v.provider === "youtube" ? `https://www.youtube-nocookie.com/embed/${v.id}?rel=0` : `https://player.vimeo.com/video/${v.id}${v.hash ? `?h=${v.hash}` : ""}`,
+      src:
+        v.provider === "youtube"
+          ? `https://www.youtube-nocookie.com/embed/${v.id}?rel=0`
+          : `https://player.vimeo.com/video/${v.id}${v.hash ? `?h=${v.hash}` : ""}`,
       height: 0,
     };
   let url: URL;
@@ -80,11 +109,21 @@ export function embedSrc(raw: string): { src: string; height: number } | null {
   }
   const host = url.hostname.replace(/^www\./, "");
   if (host === "open.spotify.com") {
-    const m = url.pathname.match(/^\/(?:intl-[a-z-]+\/)?(track|album|playlist|episode|show|artist)\/([A-Za-z0-9]{10,40})/);
-    return m ? { src: `https://open.spotify.com/embed/${m[1]}/${m[2]}`, height: m[1] === "track" || m[1] === "episode" ? 152 : 352 } : null;
+    const m = url.pathname.match(
+      /^\/(?:intl-[a-z-]+\/)?(track|album|playlist|episode|show|artist)\/([A-Za-z0-9]{10,40})/,
+    );
+    return m
+      ? {
+          src: `https://open.spotify.com/embed/${m[1]}/${m[2]}`,
+          height: m[1] === "track" || m[1] === "episode" ? 152 : 352,
+        }
+      : null;
   }
   if (host === "soundcloud.com")
-    return { src: `https://w.soundcloud.com/player/?url=${encodeURIComponent(url.toString())}&color=%23141414&visual=false`, height: 166 };
+    return {
+      src: `https://w.soundcloud.com/player/?url=${encodeURIComponent(url.toString())}&color=%23141414&visual=false`,
+      height: 166,
+    };
   return null;
 }
 

@@ -61,3 +61,7 @@ ui-debug.log
 # local stand-in for cloud storage (dev and tests)
 /.local-storage/
 /functions/*/node_modules/
+
+# local screenshots and the desktop app's launch config
+/shots-final/
+/.claude/

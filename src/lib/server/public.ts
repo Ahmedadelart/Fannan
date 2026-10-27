@@ -48,14 +48,26 @@ export function applyPlan(snap: PublishedSite, plan: "free" | "pro"): PublishedS
       ...p,
       blocks: p.blocks
         .filter((b) => !isProBlock(b))
-        .map((b) => (b.style && b.style.animate !== "none" ? { ...b, style: { ...b.style, animate: "none" as const } } : b))
+        .map((b) =>
+          b.style && b.style.animate !== "none" ? { ...b, style: { ...b.style, animate: "none" as const } } : b,
+        )
         // Doodles: the Pro brushes draw as a plain pen on Free (round 11).
         .map((b) =>
           b.type === "free" && b.items.some((it) => it.drawing?.strokes.some((s) => isProBrush(s.brush)))
             ? {
                 ...b,
                 items: b.items.map((it) =>
-                  it.drawing ? { ...it, drawing: { ...it.drawing, strokes: it.drawing.strokes.map((s) => (isProBrush(s.brush) ? { ...s, brush: "pen" as const } : s)) } } : it,
+                  it.drawing
+                    ? {
+                        ...it,
+                        drawing: {
+                          ...it.drawing,
+                          strokes: it.drawing.strokes.map((s) =>
+                            isProBrush(s.brush) ? { ...s, brush: "pen" as const } : s,
+                          ),
+                        },
+                      }
+                    : it,
                 ),
               }
             : b,
@@ -64,7 +76,9 @@ export function applyPlan(snap: PublishedSite, plan: "free" | "pro"): PublishedS
         .map((b) => (b.type === "gallery" && b.layout === "featured" ? { ...b, layout: "grid" as const } : b))
         // Link page: scheduled dates and eye-catching animations are Pro (round 9).
         .map((b) =>
-          b.type === "links" ? { ...b, items: b.items.map((it) => ({ ...it, highlight: "none" as const, from: "", until: "" })) } : b,
+          b.type === "links"
+            ? { ...b, items: b.items.map((it) => ({ ...it, highlight: "none" as const, from: "", until: "" })) }
+            : b,
         ),
     }));
   return { ...snap, plan, projects, pages };
@@ -93,7 +107,9 @@ export async function liveSite(username: string): Promise<LiveSite | null> {
         );
         const media = { ...snap.media };
         if (extra.length) {
-          const docs = await db.getAll(...extra.map((id) => db.collection("sites").doc(name.siteId!).collection("media").doc(id)));
+          const docs = await db.getAll(
+            ...extra.map((id) => db.collection("sites").doc(name.siteId!).collection("media").doc(id)),
+          );
           for (const d of docs) {
             const m = d.data() as MediaDoc | undefined;
             if (m?.status === "ready") media[d.id] = toSiteMedia(d.id, m);
@@ -102,7 +118,9 @@ export async function liveSite(username: string): Promise<LiveSite | null> {
         const owner = (await db.collection("users").doc(site.ownerUid).get()).data() as UserDoc | undefined;
         const plan = userPlan(owner).plan;
         // Projects hidden by moderation are gone from the live site at once, even by direct link.
-        const blocked = new Set((raw as { moderation?: { hiddenProjects?: string[] } }).moderation?.hiddenProjects ?? []);
+        const blocked = new Set(
+          (raw as { moderation?: { hiddenProjects?: string[] } }).moderation?.hiddenProjects ?? [],
+        );
         const shown = applyPlan(snap, plan);
         value = {
           ...shown,

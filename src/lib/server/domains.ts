@@ -15,7 +15,8 @@ import { purgeSiteCache } from "./site";
 // traffic to the app like any other artist site. One domain per site: domains/{hostname}.
 
 const ROOT_DOMAIN = process.env.ROOT_DOMAIN ?? "fannan.net";
-export const DNS_TARGET = process.env.CUSTOM_DOMAIN_TARGET ?? `sites.${ROOT_DOMAIN === "fannan.localhost" ? "fannan.net" : ROOT_DOMAIN}`;
+export const DNS_TARGET =
+  process.env.CUSTOM_DOMAIN_TARGET ?? `sites.${ROOT_DOMAIN === "fannan.localhost" ? "fannan.net" : ROOT_DOMAIN}`;
 const TTL = 60_000;
 
 export type DomainStatus = "pending" | "issuing" | "active" | "failed";
@@ -36,7 +37,9 @@ type StoredRecord = { type: string; name: string; value: string };
 
 // Country domains sold under a second level, e.g. name.com.eg, name.co.uk.
 const SECOND_LEVEL = new Set(
-  "com.eg net.eg org.eg edu.eg sci.eg co.uk org.uk com.sa net.sa com.ae co.ae com.kw com.qa com.bh com.om com.jo com.lb com.tn com.dz co.ma com.ma com.au co.za com.br co.jp com.tr co.nz co.in com.mx".split(" "),
+  "com.eg net.eg org.eg edu.eg sci.eg co.uk org.uk com.sa net.sa com.ae co.ae com.kw com.qa com.bh com.om com.jo com.lb com.tn com.dz co.ma com.ma com.au co.za com.br co.jp com.tr co.nz co.in com.mx".split(
+    " ",
+  ),
 );
 
 /** "www.studio.nour.com.eg" → "nour.com.eg" */
@@ -48,7 +51,8 @@ export function apexOf(host: string): string {
 
 function info(hostname: string, d: Pick<DomainDoc, "status" | "records" | "error">): DomainInfo {
   const apex = apexOf(hostname);
-  const relative = (name: string) => (name === apex ? "@" : name.endsWith(`.${apex}`) ? name.slice(0, -apex.length - 1) : name);
+  const relative = (name: string) =>
+    name === apex ? "@" : name.endsWith(`.${apex}`) ? name.slice(0, -apex.length - 1) : name;
   return {
     hostname,
     apex,
@@ -100,7 +104,11 @@ interface CfHostname {
   id: string;
   hostname: string;
   status: string;
-  ssl?: { status?: string; validation_records?: Array<{ txt_name?: string; txt_value?: string }>; validation_errors?: Array<{ message: string }> };
+  ssl?: {
+    status?: string;
+    validation_records?: Array<{ txt_name?: string; txt_value?: string }>;
+    validation_errors?: Array<{ message: string }>;
+  };
   ownership_verification?: { type?: string; name?: string; value?: string };
   verification_errors?: string[];
 }
@@ -111,11 +119,18 @@ function fromCloudflare(h: CfHostname): Pick<DomainDoc, "status" | "records" | "
     records.push({ type: "TXT", name: h.ownership_verification.name, value: h.ownership_verification.value ?? "" });
   }
   for (const r of h.ssl?.validation_records ?? []) {
-    if (r.txt_name && h.ssl?.status !== "active") records.push({ type: "TXT", name: r.txt_name, value: r.txt_value ?? "" });
+    if (r.txt_name && h.ssl?.status !== "active")
+      records.push({ type: "TXT", name: r.txt_name, value: r.txt_value ?? "" });
   }
   const sslOk = h.ssl?.status === "active";
   const status: DomainStatus =
-    h.status === "active" && sslOk ? "active" : h.status === "active" ? "issuing" : /blocked|moved|deleted/.test(h.status) ? "failed" : "pending";
+    h.status === "active" && sslOk
+      ? "active"
+      : h.status === "active"
+        ? "issuing"
+        : /blocked|moved|deleted/.test(h.status)
+          ? "failed"
+          : "pending";
   const error = h.verification_errors?.[0] ?? h.ssl?.validation_errors?.[0]?.message ?? null;
   return { status, records, error };
 }
@@ -124,8 +139,14 @@ function fromCloudflare(h: CfHostname): Pick<DomainDoc, "status" | "records" | "
 
 /** "https://www.Nour.com/work" → "www.nour.com". Null when it isn't a domain we can connect. */
 export function normalizeDomain(input: string): string | null {
-  let host = String(input ?? "").trim().toLowerCase();
-  host = host.replace(/^[a-z]+:\/\//, "").split(/[/?#]/)[0].replace(/:\d+$/, "").replace(/\.$/, "");
+  let host = String(input ?? "")
+    .trim()
+    .toLowerCase();
+  host = host
+    .replace(/^[a-z]+:\/\//, "")
+    .split(/[/?#]/)[0]
+    .replace(/:\d+$/, "")
+    .replace(/\.$/, "");
   if (host.length > 253 || !host.includes(".")) return null;
   if (!host.split(".").every((l) => /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(l))) return null;
   if (host === ROOT_DOMAIN || host.endsWith(`.${ROOT_DOMAIN}`) || host.endsWith("fannan.net")) return null;
@@ -177,7 +198,9 @@ export async function connectDomain(o: Owner, input: string): Promise<DomainInfo
       error: null,
     };
   }
-  await domains().doc(host).set({ ...doc, createdAt: FieldValue.serverTimestamp() });
+  await domains()
+    .doc(host)
+    .set({ ...doc, createdAt: FieldValue.serverTimestamp() });
   await adminDb().collection("sites").doc(o.siteId).update({ customDomain: host });
   return info(host, doc);
 }
@@ -261,7 +284,8 @@ export async function liveDomainFor(username: string): Promise<string | null> {
   if (hit && Date.now() - hit.at < TTL) return hit.value;
   let value: string | null = null;
   try {
-    const name = (await adminDb().collection("usernames").doc(username).get()).data() as { siteId?: string } | undefined;
+    const name = (await adminDb().collection("usernames").doc(username).get()).data() as
+      { siteId?: string } | undefined;
     const site = name?.siteId ? (await adminDb().collection("sites").doc(name.siteId).get()).data() : undefined;
     const host = site?.customDomain as string | undefined;
     if (host) {

@@ -142,7 +142,9 @@
 }
 /* Round 9: link page buttons, and the Pro ways to make one stand out. */
 .site-root .site-link {
-  transition: transform 0.15s ease, filter 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease;
 }
 .site-root a.site-link:hover,
 .site-root summary.site-link:hover {
@@ -150,26 +152,56 @@
   filter: brightness(1.05);
 }
 @keyframes site-wiggle {
-  0%, 84%, 100% { transform: rotate(0); }
-  88% { transform: rotate(-2deg); }
-  92% { transform: rotate(2deg); }
-  96% { transform: rotate(-1deg); }
+  0%,
+  84%,
+  100% {
+    transform: rotate(0);
+  }
+  88% {
+    transform: rotate(-2deg);
+  }
+  92% {
+    transform: rotate(2deg);
+  }
+  96% {
+    transform: rotate(-1deg);
+  }
 }
 @keyframes site-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.035); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.035);
+  }
 }
 @keyframes site-glow {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--site-accent) 60%, transparent); }
-  50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--site-accent) 0%, transparent); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--site-accent) 60%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--site-accent) 0%, transparent);
+  }
 }
 @keyframes site-shine {
-  from { background-position: -160% 0; }
-  to { background-position: 260% 0; }
+  from {
+    background-position: -160% 0;
+  }
+  to {
+    background-position: 260% 0;
+  }
 }
-.site-root .site-link-wiggle { animation: site-wiggle 3s ease-in-out infinite; }
-.site-root .site-link-pulse { animation: site-pulse 1.8s ease-in-out infinite; }
-.site-root .site-link-glow { animation: site-glow 2s ease-out infinite; }
+.site-root .site-link-wiggle {
+  animation: site-wiggle 3s ease-in-out infinite;
+}
+.site-root .site-link-pulse {
+  animation: site-pulse 1.8s ease-in-out infinite;
+}
+.site-root .site-link-glow {
+  animation: site-glow 2s ease-out infinite;
+}
 .site-root .site-link-shine {
   background-image: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.45) 50%, transparent 65%) !important;
   background-size: 60% 100% !important;
@@ -177,13 +209,19 @@
   animation: site-shine 2.6s linear infinite;
 }
 @media (prefers-reduced-motion: reduce) {
-  .site-root [class*="site-link-"] { animation: none !important; }
+  .site-root [class*="site-link-"] {
+    animation: none !important;
+  }
 }
 
 /* Round 15: logos gliding in an endless row (right to left; left to right on Arabic sites). */
 @keyframes site-marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 .site-root .site-marquee-track {
   animation: site-marquee 40s linear infinite;
@@ -196,7 +234,9 @@
   animation-play-state: paused;
 }
 @media (prefers-reduced-motion: reduce) {
-  .site-root .site-marquee-track { animation: none; }
+  .site-root .site-marquee-track {
+    animation: none;
+  }
 }
 /* Round 14: masonry in reading order on wide screens, plain columns on narrow ones. */
 @container (max-width: 820px) {
@@ -683,7 +723,9 @@ html[data-embed] .dash-main {
 }
 /* Round 13: what a project cover does under the pointer. */
 .site-root .site-tile .site-thumb img {
-  transition: transform 0.45s ease, opacity 0.2s ease;
+  transition:
+    transform 0.45s ease,
+    opacity 0.2s ease;
 }
 .site-root .site-hover-zoom:hover .site-thumb img {
   transform: scale(1.06);
@@ -733,31 +775,781 @@ html[data-embed] .dash-main {
 
 /* fannan.net (round 10): the artists' marquee and the feature tabs' timer. */
 @keyframes mq-slide {
-  to { transform: translateX(-50%); }
+  to {
+    transform: translateX(-50%);
+  }
 }
 @keyframes mq-slide-rtl {
-  to { transform: translateX(50%); }
+  to {
+    transform: translateX(50%);
+  }
 }
-.mq { animation: mq-slide 60s linear infinite; }
-[dir="rtl"] .mq { animation-name: mq-slide-rtl; }
-.mq:hover { animation-play-state: paused; }
+.mq {
+  animation: mq-slide 60s linear infinite;
+}
+[dir="rtl"] .mq {
+  animation-name: mq-slide-rtl;
+}
+.mq:hover {
+  animation-play-state: paused;
+}
 @keyframes ft-progress {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
-.ft-progress { animation: ft-progress 6s linear forwards; }
-[dir="rtl"] .ft-progress { transform-origin: right; }
+.ft-progress {
+  animation: ft-progress 6s linear forwards;
+}
+[dir="rtl"] .ft-progress {
+  transform-origin: right;
+}
 @media (prefers-reduced-motion: reduce) {
-  .mq, .ft-progress { animation: none; }
+  .mq,
+  .ft-progress {
+    animation: none;
+  }
 }
 
 /* Doodles (round 11): "boiling" lines, three copies shown in turn. */
 @keyframes dw-boil {
-  0% { visibility: visible; }
-  33.34%, 100% { visibility: hidden; }
+  0% {
+    visibility: visible;
+  }
+  33.34%,
+  100% {
+    visibility: hidden;
+  }
 }
-.dw-frame { animation: dw-boil calc(var(--dw-step) * 3) step-end infinite; }
+.dw-frame {
+  animation: dw-boil calc(var(--dw-step) * 3) step-end infinite;
+}
 @media (prefers-reduced-motion: reduce) {
-  .dw-frame { animation: none; }
-  .dw-frame + .dw-frame { display: none; }
+  .dw-frame {
+    animation: none;
+  }
+  .dw-frame + .dw-frame {
+    display: none;
+  }
+}
+
+/* ---------- Round 19: project spreads (one project per screen, pictures at true proportions) ---------- */
+.site-root .site-spread-screen {
+  min-height: 100dvh;
+  display: grid;
+  align-items: center;
+  scroll-snap-align: start;
+}
+:root:has(.site-root[data-snap]) {
+  scroll-snap-type: y proximity;
+}
+.site-root .site-spread-wrap {
+  display: grid;
+  gap: 22px;
+  width: 100%;
+}
+.site-root .site-spread-wrap[data-side] {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 48px;
+  align-items: center;
+}
+.site-root .site-spread-art {
+  display: grid;
+  grid-template-columns: var(--lead-w, 1fr) var(--sup-w, 1fr);
+  gap: var(--gap, 14px);
+  justify-content: start;
+  min-width: 0;
+}
+.site-root .site-spread-art.one {
+  grid-template-columns: var(--lead-w, 1fr);
+}
+.site-root .site-spread-art img,
+.site-root .site-spread-art video {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: rgba(0, 0, 0, 0.25);
+  box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.7);
+  border-radius: 0 !important;
+}
+.site-root .site-spread-lead {
+  grid-row: 1 / -1;
+  display: block;
+  position: relative;
+}
+.site-root .site-spread-sup {
+  display: grid;
+  gap: var(--gap, 14px);
+  align-content: start;
+}
+.site-root .site-spread-sheet {
+  display: block;
+  position: relative;
+}
+.site-root .site-spread-art a:hover img {
+  outline: 2px solid var(--site-accent);
+  outline-offset: -2px;
+}
+.site-root .site-spread-plus {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  background: rgba(15, 14, 12, 0.62);
+  color: #ffffff;
+  backdrop-filter: blur(2px);
+  transition: background 0.2s;
+}
+.site-root .site-spread-plus b {
+  font-family: var(--site-heading);
+  font-weight: var(--site-heading-weight);
+  font-size: clamp(34px, 4cqi, 56px);
+  line-height: 1;
+}
+.site-root .site-spread-plus i {
+  font-style: normal;
+  font-size: 12px;
+  opacity: 0.8;
+}
+.site-root .site-spread-art a:hover .site-spread-plus {
+  background: color-mix(in srgb, var(--site-accent) 85%, transparent);
+  color: var(--site-on-accent);
+}
+.site-root .site-spread-plus.mini {
+  inset: auto 14px 14px auto;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(15, 14, 12, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(4px);
+  font-size: 12px;
+}
+.site-root .site-spread-plus.mini b {
+  font-size: 22px;
+}
+.site-root .site-spread-info {
+  display: grid;
+  gap: 14px;
+  align-items: end;
+  min-width: 0;
+}
+.site-root .site-spread-wrap[data-side] .site-spread-info {
+  justify-items: start;
+  padding-bottom: 6px;
+}
+.site-root .site-spread-num {
+  font-family: var(--site-heading);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  color: var(--site-muted);
+  margin-bottom: 6px;
+}
+.site-root .site-spread-title {
+  margin: 0;
+  font-family: var(--site-heading);
+  font-weight: var(--site-heading-weight);
+  font-size: clamp(44px, 6.4cqi, 104px);
+  line-height: 0.86;
+  text-transform: var(--site-heading-case, none);
+  letter-spacing: var(--site-heading-tracking, -0.01em);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.site-root .site-spread-wrap[data-side] .site-spread-title {
+  font-size: clamp(38px, 4.3cqi, 70px);
+}
+.site-root .site-spread-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  color: var(--site-muted);
+}
+.site-root .site-spread-meta b {
+  color: var(--site-text);
+  font-weight: 500;
+}
+.site-root .site-spread-blurb {
+  margin: 10px 0 0;
+  max-width: 64ch;
+  font-size: 15px;
+  opacity: 0.9;
+  text-wrap: pretty;
+}
+.site-root .site-spread-logos {
+  margin-top: 18px;
+}
+.site-root .site-spread-wrap[data-side] .site-spread-logos {
+  justify-content: flex-start;
+}
+@keyframes site-rise {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.site-root [data-spread].is-in .site-spread-art > * {
+  animation: site-rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.site-root [data-spread].is-in .site-spread-art > *:nth-child(2) {
+  animation-delay: 0.12s;
+}
+.site-root [data-spread].is-in .site-spread-info {
+  animation: site-rise 0.7s 0.2s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@container (max-width: 900px) {
+  .site-root .site-spread-screen {
+    min-height: 0;
+  }
+  .site-root .site-spread-art,
+  .site-root .site-spread-art.one {
+    grid-template-columns: 1fr;
+  }
+  .site-root .site-spread-lead {
+    grid-row: auto;
+  }
+  .site-root .site-spread-sup {
+    grid-template-columns: 1fr 1fr;
+  }
+  .site-root .site-spread-sup > :only-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Round 19: the page index rail (wide screens only). It pushes the content in, like a margin column. */
+.site-root .site-rail {
+  display: none;
+}
+@media (min-width: 1180px) {
+  .site-root:has(.site-rail) {
+    --site-rail: 236px;
+  }
+  /* The header and the cover stay full-bleed; everything else moves in beside the rail. */
+  .site-root:has(.site-rail) > div > footer {
+    padding-inline-start: max(var(--site-rail), calc((100% - var(--site-maxw, 100%)) / 2)) !important;
+  }
+  .site-root:has(.site-rail) section:not([data-kind="cover"]) > .site-section-inner {
+    padding-inline-start: calc(var(--site-rail) - var(--site-pad));
+  }
+  .site-root .site-rail {
+    display: block;
+    position: fixed;
+    inset-inline-start: max(16px, env(safe-area-inset-left, 0px));
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 20;
+    width: 190px;
+    font-size: 13px;
+    transition: opacity 0.3s;
+  }
+  .site-root .site-rail[data-off] {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .site-root .site-rail ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 2px;
+  }
+  .site-root .site-rail li[data-divider] {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--site-line);
+    margin-inline-start: 24px;
+  }
+  .site-root .site-rail li[data-divider] a {
+    margin-inline-start: -24px;
+  }
+  .site-root .site-rail a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--site-muted);
+    padding: 3px 0;
+    transition: color 0.2s;
+  }
+  .site-root .site-rail a::before {
+    content: "";
+    width: 14px;
+    height: 2px;
+    background: currentColor;
+    opacity: 0.5;
+    flex: none;
+    transition:
+      width 0.25s,
+      opacity 0.25s;
+  }
+  .site-root .site-rail a:hover,
+  .site-root .site-rail a[aria-current] {
+    color: var(--site-text);
+  }
+  .site-root .site-rail a[aria-current]::before {
+    width: 26px;
+    background: var(--site-accent);
+    opacity: 1;
+  }
+  .site-root .site-rail[data-light] a {
+    color: #6b655b;
+  }
+  .site-root .site-rail[data-light] a:hover,
+  .site-root .site-rail[data-light] a[aria-current] {
+    color: #16140f;
+  }
+  .site-root .site-rail[data-light] li[data-divider] {
+    border-color: rgba(0, 0, 0, 0.15);
+  }
+}
+/* Round 19: a wider page on very wide screens (1520 → 1760, like a printed spread). */
+@media (min-width: 1700px) {
+  .site-root[data-maxw] {
+    --site-maxw: var(--site-maxw-xl);
+  }
+}
+
+/* Round 19: justified rows pack tighter on narrow screens (300 → 240 → 190 like a magazine grid). */
+@container (max-width: 1000px) {
+  .site-root [data-layout="rows"] {
+    --site-row-k: 0.8;
+  }
+}
+@container (max-width: 600px) {
+  .site-root [data-layout="rows"] {
+    --site-row-k: 0.63;
+  }
+}
+
+/* Round 19: on phones the top header stays one row: the name, then the links, the button and the
+   icons in a row that scrolls sideways (nothing stacks under the name). */
+@container (max-width: 760px) {
+  .site-root .site-nav-top {
+    flex-wrap: nowrap;
+    gap: 12px;
+  }
+  .site-root .site-nav-top .site-nav-brand {
+    flex: none;
+    --site-brand-size: 19px;
+    white-space: nowrap;
+  }
+  .site-root .site-nav-top .site-nav-tagline {
+    display: none;
+  }
+  .site-root .site-nav-top .site-nav-hire {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  .site-root .site-cover-xl .site-cover-row {
+    padding-bottom: 52px !important;
+  }
+  .site-root .site-nav-top .site-nav-end {
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+  .site-root .site-nav-top .site-nav-row {
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: 12px;
+    padding-block: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .site-root .site-nav-top .site-nav-row::-webkit-scrollbar {
+    display: none;
+  }
+  .site-root .site-nav-top .site-nav-links {
+    flex-wrap: nowrap;
+    font-size: 13px;
+    column-gap: 12px !important;
+    order: 1;
+  }
+  .site-root .site-nav-top .site-nav-links a,
+  .site-root .site-nav-top .site-nav-links > span {
+    white-space: nowrap;
+  }
+  .site-root .site-nav-top .site-nav-hire {
+    flex: none;
+    white-space: nowrap;
+  }
+  .site-root .site-nav-top .site-nav-social {
+    order: 2;
+    flex: none;
+  }
+  /* The hero takes less of a phone screen; the numbers sit under the words. */
+  .site-root .site-cover-xl {
+    min-height: 78vh !important;
+  }
+}
+/* Round 19: a spread's logos line up at the start once the words sit under the art. */
+@media (max-width: 900px) {
+  .site-root .site-spread-info .site-clogos {
+    justify-content: flex-start;
+  }
+}
+
+/* Round 19: cover slideshow, caption, dots and numbers. */
+.site-root .site-slides img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1.6s ease;
+  border-radius: 0 !important;
+}
+.site-root .site-slides img.on {
+  opacity: 1;
+}
+.site-root .site-slide-dots {
+  position: absolute;
+  inset-inline-end: var(--site-pad);
+  bottom: 22px;
+  z-index: 3;
+  display: flex;
+  gap: 8px;
+}
+.site-root .site-slide-dots button {
+  width: 22px;
+  height: 3px;
+  background: #ffffff;
+  opacity: 0.35;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.site-root .site-slide-dots button.on {
+  opacity: 1;
+  background: var(--site-accent);
+}
+.site-root .site-slide-cap {
+  position: absolute;
+  inset-inline-start: var(--site-pad);
+  bottom: 18px;
+  z-index: 3;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.72);
+}
+.site-root .site-cover-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 24px 40px;
+  align-items: end;
+}
+.site-root .site-cover-row > .site-cover-stats {
+  justify-self: end;
+}
+.site-root .site-cover-stats {
+  display: flex;
+  gap: 36px;
+  align-items: flex-end;
+}
+.site-root .site-cover-stat {
+  display: grid;
+  gap: 2px;
+  text-align: end;
+}
+.site-root .site-cover-stat span {
+  font-size: 13px;
+  opacity: 0.75;
+}
+.site-root .site-cover-stat:hover b {
+  color: var(--site-accent);
+}
+@container (max-width: 760px) {
+  .site-root .site-cover-row {
+    grid-template-columns: 1fr;
+  }
+  .site-root .site-cover-row > .site-cover-stats {
+    justify-self: start;
+  }
+  .site-root .site-cover-stats {
+    gap: 28px;
+  }
+  .site-root .site-cover-stat {
+    text-align: start;
+  }
+  .site-root .site-cover-stat b {
+    font-size: 40px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root:has(.site-root[data-snap]) {
+    scroll-snap-type: none;
+  }
+  .site-root [data-spread].is-in .site-spread-art > *,
+  .site-root [data-spread].is-in .site-spread-info {
+    animation: none;
+  }
+}
+
+/* Round 19: brand sections (a studio's, a community's or a shop's own colours). */
+.site-root .site-brand {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 40px 56px;
+  align-items: center;
+}
+.site-root .site-brand-head {
+  display: grid;
+  gap: 18px;
+  justify-items: start;
+}
+.site-root .site-brand-title {
+  margin: 0;
+}
+.site-root .site-brand-text {
+  display: grid;
+  gap: 12px;
+  max-width: 50ch;
+  font-size: 16px;
+}
+.site-root .site-brand-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  border-radius: var(--site-radius);
+  transition:
+    filter 0.2s,
+    transform 0.2s;
+}
+.site-root .site-brand-btn:hover {
+  filter: brightness(1.12);
+}
+.site-root .site-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--site-body);
+}
+.site-root .site-brand-mark > span:first-child {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-weight: 900;
+  font-size: 15px;
+  letter-spacing: -0.02em;
+}
+.site-root .site-brand-mark > span:last-child {
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+}
+.site-root .site-brand-tiles {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+  gap: 12px;
+}
+.site-root .site-brand-tile {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition:
+    transform 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.site-root .site-brand-tile:hover {
+  transform: translateY(-4px);
+  border-color: var(--brand-accent) !important;
+}
+.site-root .site-brand-tile img,
+.site-root .site-brand-tile picture,
+.site-root .site-brand-tile video {
+  border-radius: 0 !important;
+}
+.site-root .site-brand-cap {
+  display: grid;
+  gap: 4px;
+  padding: 12px 12px 14px;
+}
+.site-root .site-brand-cap-text {
+  font-size: 12px;
+  opacity: 0.8;
+}
+@container (max-width: 900px) {
+  .site-root .site-brand {
+    grid-template-columns: 1fr;
+  }
+  .site-root .site-brand-tiles {
+    grid-template-columns: repeat(min(var(--cols, 3), 2), minmax(0, 1fr));
+  }
+}
+@container (max-width: 520px) {
+  .site-root .site-brand-tiles {
+    grid-template-columns: repeat(min(var(--cols, 3), 2), minmax(0, 1fr));
+  }
+}
+/* Round 19: a background picture in the band's own colour. */
+.site-root .site-blend-lum img,
+.site-root .site-blend-lum video {
+  mix-blend-mode: luminosity;
+}
+
+/* Round 19: "View more" over a project cover. */
+.site-root .site-thumb-view {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  background: rgba(15, 14, 12, 0.55);
+  color: #ffffff;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  opacity: 0;
+  transition: opacity 0.25s;
+  pointer-events: none;
+}
+.site-root .site-hover-view:hover .site-thumb-view,
+.site-root .site-hover-view:focus-visible .site-thumb-view {
+  opacity: 1;
+}
+.site-root .site-hover-view .site-thumb img {
+  transition: transform 0.5s ease;
+}
+.site-root .site-hover-view:hover .site-thumb img {
+  transform: scale(1.04);
+}
+.site-root .site-hover-view:hover .site-thumb {
+  outline: 2px solid var(--site-accent);
+  outline-offset: -2px;
+}
+.site-root a.site-hover-view:hover figcaption > span:first-child {
+  color: var(--site-accent);
+}
+@media (hover: none) {
+  .site-root .site-thumb-view {
+    display: none;
+  }
+}
+
+/* Round 19: about with a floating portrait and a side column; contact as links. */
+.site-root .site-about-two {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+}
+.site-root .site-about-three {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
+}
+.site-root .site-about-portrait {
+  float: inline-start;
+  width: min(240px, 42%);
+  height: auto;
+  margin: 6px 24px 10px 0;
+  border: 2px solid var(--site-text);
+}
+.site-root[dir="rtl"] .site-about-portrait,
+.site-root [dir="rtl"] .site-about-portrait {
+  margin: 6px 0 10px 24px;
+}
+.site-root .site-about-words p {
+  margin: 0 0 14px;
+  max-width: 62ch;
+}
+.site-root .site-about-words::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+.site-root .site-about-org:hover {
+  border-color: var(--site-accent) !important;
+}
+@container (max-width: 820px) {
+  .site-root .site-about-two,
+  .site-root .site-about-three {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.site-root .site-contact-link:hover {
+  background: var(--site-accent) !important;
+  color: var(--site-on-accent) !important;
+  border-color: var(--site-accent) !important;
+}
+@container (max-width: 600px) {
+  .site-root .site-list-row {
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+  }
+}
+
+/* Round 19: the project reader (every sheet a screen). */
+html.site-reader-page {
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.site-reader-page {
+    scroll-snap-type: none;
+    scroll-behavior: auto;
+  }
+}
+.site-root .site-reader-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  margin: calc(var(--site-pad) * -1) calc(var(--site-pad) * -1) 0;
+  padding: 0 max(var(--site-pad), calc((100% - var(--site-maxw, 100%)) / 2));
+  background: color-mix(in srgb, var(--site-bg) 90%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--site-line);
+}
+.site-root .site-reader-head {
+  scroll-snap-align: start;
+}
+.site-root .site-reader-sheet {
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+.site-root .site-reader-sheet img,
+.site-root .site-reader-sheet video {
+  max-width: 100%;
+  max-height: calc(100vh - 120px);
+  width: auto;
+  height: auto;
+  background: var(--site-surface);
+}
+.site-root .site-reader-nav {
+  scroll-snap-align: end;
+}
+.site-reader-progress {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 100%;
+  background: var(--site-line);
+  z-index: 40;
+}
+.site-reader-progress i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--site-accent);
+  transition: width 0.25s;
 }

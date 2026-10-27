@@ -85,7 +85,12 @@ const SIZES: Record<FreeKind, Pick<FreePlace, "w" | "h">> = {
   drawing: { w: 8, h: 6 },
 };
 
-export function freeItem(kind: FreeKind, language: Locale, place?: Partial<FreePlace>, extra: Partial<FreeItem> = {}): FreeItem {
+export function freeItem(
+  kind: FreeKind,
+  language: Locale,
+  place?: Partial<FreePlace>,
+  extra: Partial<FreeItem> = {},
+): FreeItem {
   const w = words[language];
   const size = SIZES[kind];
   return {
@@ -108,7 +113,18 @@ export function freeItem(kind: FreeKind, language: Locale, place?: Partial<FreeP
               : kind === "map"
                 ? w.map
                 : "",
-    size: kind === "heading" ? 56 : kind === "quote" ? 32 : kind === "social" ? 28 : kind === "button" ? 16 : kind === "line" ? 16 : 18,
+    size:
+      kind === "heading"
+        ? 56
+        : kind === "quote"
+          ? 32
+          : kind === "social"
+            ? 28
+            : kind === "button"
+              ? 16
+              : kind === "line"
+                ? 16
+                : 18,
     align: "start",
     color: null,
     fill: null,
@@ -137,7 +153,9 @@ export function freeItem(kind: FreeKind, language: Locale, place?: Partial<FreeP
     fill2: null,
     // Decorations sit next to other items; on phones (one column) they'd float alone.
     ...(["underline", "arrow", "highlight", "doodle", "panel"].includes(kind) ? { hideOnPhone: true } : {}),
-    ...(kind === "badge" ? { text: language === "ar" ? "جديد" : "NEW", size: 13, radius: 999, upper: true, weight: 700 } : {}),
+    ...(kind === "badge"
+      ? { text: language === "ar" ? "جديد" : "NEW", size: 13, radius: 999, upper: true, weight: 700 }
+      : {}),
     ...(kind === "highlight" ? { fill: "#F5E663", opacity: 85 } : {}),
     ...(kind === "panel" ? { radius: 28, fill: null, shadow: true } : {}),
     // A doodle's own size follows its box (8×6 squares): 1000 × 750 drawing units.
@@ -194,7 +212,11 @@ export function freeTemplate(name: FreeTemplate, language: Locale): Extract<Bloc
         it("image", { x: 1, y: 1, w: 9, h: 11 }, { rotate: -4, tone: sampleTone(1), z: 1 }),
         it("image", { x: 8, y: 4, w: 9, h: 10 }, { rotate: 3, tone: sampleTone(4), z: 2 }),
         it("image", { x: 15, y: 0, w: 8, h: 9 }, { rotate: -2, tone: sampleTone(10), z: 3 }),
-        it("heading", { x: 14, y: 11, w: 10, h: 3 }, { z: 4, text: language === "ar" ? "أعمال مختارة" : "Selected work" }),
+        it(
+          "heading",
+          { x: 14, y: 11, w: 10, h: 3 },
+          { z: 4, text: language === "ar" ? "أعمال مختارة" : "Selected work" },
+        ),
       ];
       rows = 15;
       break;

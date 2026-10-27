@@ -66,7 +66,14 @@ export interface MediaDoc {
   caption: string;
   alt: string;
   crop?: { x: number; y: number; w: number; h: number } | null;
-  display: { fullWidth: boolean; lightbox: boolean; autoplay: boolean; use?: MediaUse };
+  /** Round 19: look = how a logo shows (white, as it is, on a white chip). */
+  display: {
+    fullWidth: boolean;
+    lightbox: boolean;
+    autoplay: boolean;
+    use?: MediaUse;
+    look?: "white" | "original" | "chip";
+  };
   embed?: { provider: "youtube" | "vimeo"; id: string; url: string; poster: string | null; title: string } | null;
   text?: string;
   /** Text items with a headline start a new part of the project (round 8). */
@@ -337,6 +344,8 @@ export interface ProjectPatch {
   credits?: string;
   thanks?: string;
   tools?: string;
+  /** Round 19: what one picture is called ("sheets"). */
+  unit?: string;
 }
 
 export async function updateProject(o: Owner, projectId: string, patch: ProjectPatch): Promise<{ slug: string }> {
@@ -366,6 +375,7 @@ export async function updateProject(o: Owner, projectId: string, patch: ProjectP
     if (patch[k] !== undefined) u[k] = cleanExtras({ [k]: parseRows(String(patch[k])) })[k] ?? [];
   }
   if (patch.tools !== undefined) u.tools = cleanExtras({ tools: String(patch.tools).split(/[,،]/) }).tools ?? [];
+  if (patch.unit !== undefined) u.unit = cleanExtras({ unit: patch.unit }).unit ?? "";
   if (patch.cardSize !== undefined || patch.cardText !== undefined) {
     const was = project.card ?? { size: "m", text: "title" };
     u.card = {
@@ -511,7 +521,11 @@ export async function startUpload(
       });
     }
   }
-  return { mediaId: mediaRef.id, uploadUrl: opts.link === false ? "" : await signedUploadUrl(original, file.type), contentType: file.type };
+  return {
+    mediaId: mediaRef.id,
+    uploadUrl: opts.link === false ? "" : await signedUploadUrl(original, file.type),
+    contentType: file.type,
+  };
 }
 
 type Pending = MediaDoc & { pendingOriginal?: string; pendingGen?: number; pendingSize?: number };
@@ -521,12 +535,18 @@ type Pending = MediaDoc & { pendingOriginal?: string; pendingGen?: number; pendi
  * "Bring your work in" (round 16): a project link's preview picture, fetched from the portfolio site's
  * picture host, goes through the same checks and processing as a file the artist uploads.
  */
-export async function importPreviewImage(o: Owner, projectId: string, imageUrl: string): Promise<MediaDoc & { id: string }> {
+export async function importPreviewImage(
+  o: Owner,
+  projectId: string,
+  imageUrl: string,
+): Promise<MediaDoc & { id: string }> {
   const data = await fetchPreviewImage(imageUrl);
   if (!data) throw new ProjectError("unreadable");
   const type = sniff(data.subarray(0, 64));
   if (!type || !type.startsWith("image/")) throw new ProjectError("bad-type");
-  const { mediaId } = await startUpload(o, projectId, { name: "preview", type, size: data.length }, undefined, { link: false });
+  const { mediaId } = await startUpload(o, projectId, { name: "preview", type, size: data.length }, undefined, {
+    link: false,
+  });
   const media = (await mediaCol(o.siteId).doc(mediaId).get()).data() as MediaDoc & { pendingOriginal: string };
   await writeObject(media.pendingOriginal, data, type);
   return finishUpload(o, mediaId);
@@ -719,7 +739,14 @@ export async function updateMedia(
     for (const k of ["fullWidth", "lightbox", "autoplay"] as const) {
       if (patch.display[k] !== undefined) u[`display.${k}`] = !!patch.display[k];
     }
-    if (patch.display.use !== undefined) u["display.use"] = (["gallery", "logo", "laurel"] as const).includes(patch.display.use) ? patch.display.use : "gallery";
+    if (patch.display.use !== undefined)
+      u["display.use"] = (["gallery", "logo", "laurel"] as const).includes(patch.display.use)
+        ? patch.display.use
+        : "gallery";
+    if (patch.display.look !== undefined)
+      u["display.look"] = (["white", "original", "chip"] as const).includes(patch.display.look)
+        ? patch.display.look
+        : "white";
   }
   if (Object.keys(u).length) await ref.update(u);
   // A header logo or laurel is never the project's cover: the first gallery picture takes over.

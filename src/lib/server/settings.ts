@@ -50,7 +50,12 @@ export function settingsFrom(site: Raw): SiteSettings {
 }
 
 const str = (v: unknown, max: number) =>
-  typeof v === "string" ? v.replace(/[\u0000-\u001f\u007f<>]/g, "").trim().slice(0, max) : "";
+  typeof v === "string"
+    ? v
+        .replace(/[\u0000-\u001f\u007f<>]/g, "")
+        .trim()
+        .slice(0, max)
+    : "";
 const id = (v: unknown) => (typeof v === "string" && /^[\w-]{1,64}$/.test(v) ? v : null);
 const httpUrl = (v: unknown) => {
   const s = str(v, 300);
@@ -94,7 +99,11 @@ export async function saveSettings(o: Owner, raw: Partial<SiteSettings>) {
   }
   if (raw.cvMediaId !== undefined) u.cvMediaId = id(raw.cvMediaId);
   if (raw.seo) {
-    u.seo = { title: str(raw.seo.title, 120), description: str(raw.seo.description, 300), shareImageId: id(raw.seo.shareImageId) };
+    u.seo = {
+      title: str(raw.seo.title, 120),
+      description: str(raw.seo.description, 300),
+      shareImageId: id(raw.seo.shareImageId),
+    };
   }
   if (raw.integrations) {
     const ga = str(raw.integrations.gaId, 20).toUpperCase();
@@ -138,10 +147,11 @@ export async function changeUsername(o: Owner, input: string): Promise<Availabil
   const db = adminDb();
   const result = await db.runTransaction(async (tx) => {
     const ref = db.collection("usernames").doc(name);
-    const doc = (await tx.get(ref)).data() as
-      | { uid: string; status: string; expiresAt?: Timestamp | null }
-      | undefined;
-    const free = !doc || doc.uid === o.uid || (doc.status !== "claimed" && !!doc.expiresAt && doc.expiresAt.toMillis() < Date.now());
+    const doc = (await tx.get(ref)).data() as { uid: string; status: string; expiresAt?: Timestamp | null } | undefined;
+    const free =
+      !doc ||
+      doc.uid === o.uid ||
+      (doc.status !== "claimed" && !!doc.expiresAt && doc.expiresAt.toMillis() < Date.now());
     if (!free) return { ok: false as const, reason: "taken" as const };
     tx.set(ref, { uid: o.uid, siteId: o.siteId, status: "claimed", expiresAt: null });
     tx.set(db.collection("usernames").doc(old), {
@@ -169,8 +179,7 @@ export async function changeUsername(o: Owner, input: string): Promise<Availabil
 /** If this name now points elsewhere (changed username), where to send visitors. */
 export async function usernameRedirect(username: string): Promise<string | null> {
   const doc = (await adminDb().collection("usernames").doc(username).get()).data() as
-    | { status?: string; redirectTo?: string; expiresAt?: Timestamp | null }
-    | undefined;
+    { status?: string; redirectTo?: string; expiresAt?: Timestamp | null } | undefined;
   if (doc?.status !== "redirect" || !doc.redirectTo) return null;
   if (doc.expiresAt && doc.expiresAt.toMillis() < Date.now()) return null;
   return doc.redirectTo;
@@ -212,7 +221,12 @@ export async function listMessages(siteId: string, limit = 200): Promise<Message
 }
 
 export async function countUnread(siteId: string): Promise<number> {
-  const agg = await adminDb().collection("messages").where("siteId", "==", siteId).where("read", "==", false).count().get();
+  const agg = await adminDb()
+    .collection("messages")
+    .where("siteId", "==", siteId)
+    .where("read", "==", false)
+    .count()
+    .get();
   return agg.data().count;
 }
 
@@ -261,7 +275,10 @@ const GRACE_DAYS = 14;
 export async function requestDeletion(o: Owner) {
   const at = Timestamp.fromMillis(Date.now() + GRACE_DAYS * 86_400_000);
   const db = adminDb();
-  await db.collection("users").doc(o.uid).set({ deletion: { requestedAt: FieldValue.serverTimestamp(), at } }, { merge: true });
+  await db
+    .collection("users")
+    .doc(o.uid)
+    .set({ deletion: { requestedAt: FieldValue.serverTimestamp(), at } }, { merge: true });
   await db.collection("sites").doc(o.siteId).update({ suspended: true, suspendedReason: "deleting" });
   await refresh(o);
   await adminAuth().revokeRefreshTokens(o.uid);

@@ -8,7 +8,7 @@ import { presetIds, themes } from "@/lib/site/starter";
 import { FontPicker } from "@/components/editor/FontPicker";
 import type { NavLayout, SiteDraft, Theme } from "@/lib/site/types";
 import { SectionDesign } from "../_inspector/SectionDesign";
-import { Area, Range, Text } from "../_ui/controls";
+import { Area, Choice, Range, Text } from "../_ui/controls";
 import { MediaField, type MediaKind } from "../_ui/media";
 
 export const noPreview = () => {};
@@ -54,7 +54,7 @@ export function NavSketch({ nav }: { nav: NavLayout }) {
             <span className={dot} />
             <span className={dot} />
           </span>
-          <span className="bg-current/15 block h-6 flex-1 rounded-[2px] opacity-20" />
+          <span className="block h-6 flex-1 rounded-[2px] bg-current/15 opacity-20" />
         </span>
       );
     case "inline":
@@ -119,8 +119,16 @@ export function StyleTab({
   if (section === "logo") {
     return (
       <div className="flex flex-col gap-4">
-        <Text title={t("siteTitle")} value={draft.title} onChange={(v) => setDraft((d) => ({ ...d, title: v }), "title")} />
-        <Text title={t("tagline")} value={draft.tagline} onChange={(v) => setDraft((d) => ({ ...d, tagline: v }), "tagline")} />
+        <Text
+          title={t("siteTitle")}
+          value={draft.title}
+          onChange={(v) => setDraft((d) => ({ ...d, title: v }), "title")}
+        />
+        <Text
+          title={t("tagline")}
+          value={draft.tagline}
+          onChange={(v) => setDraft((d) => ({ ...d, tagline: v }), "tagline")}
+        />
         <MediaField
           title={t("logo")}
           id={th.logoMediaId}
@@ -170,13 +178,25 @@ export function StyleTab({
   }
 
   if (section === "lock") {
-    const lock = draft.lock ?? { title: "", text: "", style: { ...defaultSectionStyle(), bg: { ...defaultSectionStyle().bg, kind: "pattern" as const, pattern: "doodles" as const } } };
+    const lock = draft.lock ?? {
+      title: "",
+      text: "",
+      style: {
+        ...defaultSectionStyle(),
+        bg: { ...defaultSectionStyle().bg, kind: "pattern" as const, pattern: "doodles" as const },
+      },
+    };
     const setLock = (patch: Partial<NonNullable<SiteDraft["lock"]>>, key?: string) =>
       setDraft((d) => ({ ...d, lock: { ...lock, ...(d.lock ?? {}), ...patch } }), key);
     return (
       <div className="flex flex-col gap-4" data-testid="lock-settings">
         <p className="text-muted text-[12px]">{t("lockHint")}</p>
-        <Text title={t("lockTitle")} value={lock.title} placeholder={t("lockTitlePlaceholder")} onChange={(v) => setLock({ title: v }, "lock-title")} />
+        <Text
+          title={t("lockTitle")}
+          value={lock.title}
+          placeholder={t("lockTitlePlaceholder")}
+          onChange={(v) => setLock({ title: v }, "lock-title")}
+        />
         <Area title={t("lockText")} value={lock.text} onChange={(v) => setLock({ text: v }, "lock-text")} />
         <SectionDesign
           value={lock.style}
@@ -239,7 +259,9 @@ export function StyleTab({
               <input
                 type="color"
                 value={th.colors[c]}
-                onChange={(e) => setTheme({ colors: { ...th.colors, [c]: e.target.value.toUpperCase() } }, `color-${c}`)}
+                onChange={(e) =>
+                  setTheme({ colors: { ...th.colors, [c]: e.target.value.toUpperCase() } }, `color-${c}`)
+                }
                 className="border-line h-9 w-full cursor-pointer rounded-[8px] border p-0.5"
               />
               {t(c)}
@@ -247,7 +269,34 @@ export function StyleTab({
           ))}
         </div>
       </div>
-      <Range title={t("radius")} value={th.radius} min={0} max={24} unit="px" onChange={(v) => setTheme({ radius: v }, "radius")} />
+      <Range
+        title={t("radius")}
+        value={th.radius}
+        min={0}
+        max={24}
+        unit="px"
+        onChange={(v) => setTheme({ radius: v }, "radius")}
+      />
+      <Choice
+        title={t("pageWidth")}
+        value={th.maxWidth ? `w${th.maxWidth}` : "fluid"}
+        options={[
+          ["fluid", t("pageWidths.fluid")],
+          ["w1200", t("pageWidths.w1200")],
+          ["w1360", t("pageWidths.w1360")],
+          ["w1520", t("pageWidths.w1520")],
+        ]}
+        onChange={(v) => setTheme({ maxWidth: v === "fluid" ? null : Number(v.slice(1)) })}
+      />
+      <Choice
+        title={t("projectPage")}
+        value={th.projectPage ?? "standard"}
+        options={[
+          ["standard", t("projectPages.standard")],
+          ["reader", t("projectPages.reader")],
+        ]}
+        onChange={(v) => setTheme({ projectPage: v === "reader" ? "reader" : undefined })}
+      />
     </div>
   );
 }

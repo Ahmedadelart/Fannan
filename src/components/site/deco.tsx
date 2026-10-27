@@ -63,7 +63,10 @@ function strokeLine(style: string, x0: number, x1: number, y: number, amp: numbe
       const pts: Pt[] = [];
       for (let i = 0; i <= n * 40; i++) {
         const t = (i / 40) * Math.PI * 2;
-        pts.push([x0 + ((len - 2 * r) * i) / (n * 40) + r - r * Math.sin(t) * 0.9, y + r * Math.cos(t) * 0.8 - r * 0.2]);
+        pts.push([
+          x0 + ((len - 2 * r) * i) / (n * 40) + r - r * Math.sin(t) * 0.9,
+          y + r * Math.cos(t) * 0.8 - r * 0.2,
+        ]);
       }
       return [pts];
     }
@@ -136,7 +139,10 @@ export function DecoSvg({ it, color }: { it: FreeItem; color: string }) {
         ];
       } else if (d.style === "zigzag") {
         const n = Math.max(2, Math.round(d.freq * 2));
-        pts = Array.from({ length: n + 1 }, (_, i): Pt => [x0 + ((x1 - x0) * i) / n, y + (i % 2 ? -1 : 1) * Math.abs(bend || (H / 2 - pad) * 0.4) * (i === 0 || i === n ? 0 : 1)]);
+        pts = Array.from({ length: n + 1 }, (_, i): Pt => [
+          x0 + ((x1 - x0) * i) / n,
+          y + (i % 2 ? -1 : 1) * Math.abs(bend || (H / 2 - pad) * 0.4) * (i === 0 || i === n ? 0 : 1),
+        ]);
       } else if (d.style === "loop") {
         const r = Math.min(H / 2 - pad, (x1 - x0) / 5);
         pts = Array.from({ length: 121 }, (_, i): Pt => {
@@ -159,7 +165,14 @@ export function DecoSvg({ it, color }: { it: FreeItem; color: string }) {
         const p1: Pt = [tip[0] - s * Math.cos(a - 0.5), tip[1] - s * Math.sin(a - 0.5)];
         const p2: Pt = [tip[0] - s * Math.cos(a + 0.5), tip[1] - s * Math.sin(a + 0.5)];
         return d.head === "filled" ? (
-          <path key={key} d={`${line([p1, tip, p2])} Z`} fill="currentColor" stroke="currentColor" strokeWidth={sw * 0.6} strokeLinejoin="round" />
+          <path
+            key={key}
+            d={`${line([p1, tip, p2])} Z`}
+            fill="currentColor"
+            stroke="currentColor"
+            strokeWidth={sw * 0.6}
+            strokeLinejoin="round"
+          />
         ) : (
           <path key={key} d={line([p1, tip, p2])} {...common} strokeDasharray={undefined} />
         );
@@ -263,8 +276,26 @@ export function DecoSvg({ it, color }: { it: FreeItem; color: string }) {
           const L = Math.max(W, H) * 0.42;
           body = (
             <g transform={`rotate(-35 ${cx} ${cy})`}>
-              <path d={line([[cx - L, cy - r * 0.22], [cx + L * 0.6, cy - r * 0.22], [cx + L, cy], [cx + L * 0.6, cy + r * 0.22], [cx - L, cy + r * 0.22]]) + " Z"} {...common} fill={fill} />
-              <path d={line([[cx + L * 0.6, cy - r * 0.22], [cx + L * 0.6, cy + r * 0.22]])} {...common} />
+              <path
+                d={
+                  line([
+                    [cx - L, cy - r * 0.22],
+                    [cx + L * 0.6, cy - r * 0.22],
+                    [cx + L, cy],
+                    [cx + L * 0.6, cy + r * 0.22],
+                    [cx - L, cy + r * 0.22],
+                  ]) + " Z"
+                }
+                {...common}
+                fill={fill}
+              />
+              <path
+                d={line([
+                  [cx + L * 0.6, cy - r * 0.22],
+                  [cx + L * 0.6, cy + r * 0.22],
+                ])}
+                {...common}
+              />
             </g>
           );
         }
@@ -278,7 +309,14 @@ export function DecoSvg({ it, color }: { it: FreeItem; color: string }) {
         d.backing === "none" ? null : d.backing === "circle" ? (
           <circle cx={W / 2} cy={H / 2} r={Math.min(W, H) / 2} fill={it.fill2 ?? "rgba(0,0,0,.08)"} />
         ) : (
-          <rect x={(W - Math.min(W, H)) / 2} y={(H - Math.min(W, H)) / 2} width={Math.min(W, H)} height={Math.min(W, H)} rx={Math.min(W, H) * 0.24} fill={it.fill2 ?? "rgba(0,0,0,.08)"} />
+          <rect
+            x={(W - Math.min(W, H)) / 2}
+            y={(H - Math.min(W, H)) / 2}
+            width={Math.min(W, H)}
+            height={Math.min(W, H)}
+            rx={Math.min(W, H) * 0.24}
+            fill={it.fill2 ?? "rgba(0,0,0,.08)"}
+          />
         );
       return (
         <svg viewBox={`0 0 ${W} ${H}`} className="block h-full w-full overflow-visible" aria-hidden style={{ color }}>
@@ -301,7 +339,13 @@ export function DecoSvg({ it, color }: { it: FreeItem; color: string }) {
     }
   }
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="block h-full w-full overflow-visible" aria-hidden data-deco={it.kind} style={{ color }}>
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      className="block h-full w-full overflow-visible"
+      aria-hidden
+      data-deco={it.kind}
+      style={{ color }}
+    >
       <g transform={flip}>{body}</g>
     </svg>
   );

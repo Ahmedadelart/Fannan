@@ -11,7 +11,22 @@ import { FONTS } from "@/components/site/fonts";
 export const isRich = (v: unknown): boolean => typeof v === "string" && /<(b|i|u|a|span)[\s>]/i.test(v);
 
 const DROP_WITH_CONTENT = new Set([
-  "script", "style", "iframe", "object", "embed", "template", "noscript", "textarea", "select", "svg", "math", "title", "head", "video", "audio", "canvas",
+  "script",
+  "style",
+  "iframe",
+  "object",
+  "embed",
+  "template",
+  "noscript",
+  "textarea",
+  "select",
+  "svg",
+  "math",
+  "title",
+  "head",
+  "video",
+  "audio",
+  "canvas",
 ]);
 const BLOCKS = new Set(["div", "p", "li", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "tr"]);
 const SIMPLE: Record<string, "b" | "i" | "u"> = { b: "b", strong: "b", i: "i", em: "i", u: "u" };
@@ -27,7 +42,8 @@ function decode(s: string): string {
     return m;
   });
 }
-const safeChar = (n: number, fallback: string) => (n > 0 && n < 0x110000 && !(n >= 0xd800 && n < 0xe000) ? String.fromCodePoint(n) : fallback);
+const safeChar = (n: number, fallback: string) =>
+  n > 0 && n < 0x110000 && !(n >= 0xd800 && n < 0xe000) ? String.fromCodePoint(n) : fallback;
 const escapeText = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const escapeAttr = (s: string) => escapeText(s).replace(/"/g, "&quot;");
 
@@ -54,14 +70,21 @@ function cssColor(v: string | null): string | null {
   if (/^#[0-9a-f]{6}$/.test(s)) return s;
   if (/^#[0-9a-f]{3}$/.test(s)) return `#${[...s.slice(1)].map((c) => c + c).join("")}`;
   const m = /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(?:,\s*[\d.]+\s*)?\)$/.exec(s);
-  if (m) return `#${m.slice(1, 4).map((n) => Math.min(255, Number(n)).toString(16).padStart(2, "0")).join("")}`;
+  if (m)
+    return `#${m
+      .slice(1, 4)
+      .map((n) => Math.min(255, Number(n)).toString(16).padStart(2, "0"))
+      .join("")}`;
   return null;
 }
 
 /** A font from the registry, given as "fn-id", "'fn-id', sans-serif" or the bare id. */
 function cssFont(v: string | null): string | null {
   if (!v) return null;
-  const first = v.split(",")[0].trim().replace(/^["']|["']$/g, "");
+  const first = v
+    .split(",")[0]
+    .trim()
+    .replace(/^["']|["']$/g, "");
   const id = first.startsWith("fn-") ? first.slice(3) : first;
   return FONTS[id] ? `fn-${id}` : null;
 }
@@ -151,7 +174,8 @@ export function sanitizeRich(input: string, max = 20000): string {
   while (stack.length) out += stack.pop()!.close;
 
   // Tidy: empty formatting, line breaks at the very end.
-  for (let i = 0; i < 4; i++) out = out.replace(/<(b|i|u)><\/\1>|<span style="[^"]*"><\/span>|<a href="[^"]*"><\/a>/g, "");
+  for (let i = 0; i < 4; i++)
+    out = out.replace(/<(b|i|u)><\/\1>|<span style="[^"]*"><\/span>|<a href="[^"]*"><\/a>/g, "");
   out = out.replace(/(<br>)+$/, "");
   // Too long: cut (leaving room for the closing tags) and clean once more, which closes what's open.
   if (out.length > max) out = sanitizeRich(out.slice(0, Math.max(Math.floor(max / 2), max - 32)), Infinity);
@@ -160,7 +184,13 @@ export function sanitizeRich(input: string, max = 20000): string {
 
 /** The words only (for page titles, alt text, search results). */
 export function plainText(v: string): string {
-  return isRich(v) ? decode(sanitizeRich(v).replace(/<br>/g, "\n").replace(/<[^>]+>/g, "")) : v;
+  return isRich(v)
+    ? decode(
+        sanitizeRich(v)
+          .replace(/<br>/g, "\n")
+          .replace(/<[^>]+>/g, ""),
+      )
+    : v;
 }
 
 /** HTML for a page: cleaned, links that open safely, and the *accent* / ==highlight== marks. */
@@ -169,10 +199,14 @@ export function richHtml(v: string): string {
   return clean
     .split(/(<[^>]+>)/g)
     .map((part) => {
-      if (part.startsWith("<a ")) return /href="https?:/i.test(part) ? part.replace(/>$/, ' rel="noopener noreferrer" target="_blank">') : part;
+      if (part.startsWith("<a "))
+        return /href="https?:/i.test(part) ? part.replace(/>$/, ' rel="noopener noreferrer" target="_blank">') : part;
       if (part.startsWith("<")) return part;
       return part
-        .replace(/==([^=\n]+)==/g, '<mark style="background:linear-gradient(transparent 40%,color-mix(in srgb,var(--site-accent) 55%,transparent) 40%);color:inherit;padding:0 .1em">$1</mark>')
+        .replace(
+          /==([^=\n]+)==/g,
+          '<mark style="background:linear-gradient(transparent 40%,color-mix(in srgb,var(--site-accent) 55%,transparent) 40%);color:inherit;padding:0 .1em">$1</mark>',
+        )
         .replace(/\*([^*\n]+)\*/g, '<span style="color:var(--site-accent)">$1</span>');
     })
     .join("");

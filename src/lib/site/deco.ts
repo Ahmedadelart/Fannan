@@ -2,7 +2,16 @@
 // dividers, icons, and the extra looks for pictures, buttons and text. Defaults are clean (no wobble).
 import type { FreeDeco, FreeKind } from "./types";
 
-export const DECO_KINDS: FreeKind[] = ["underline", "arrow", "highlight", "doodle", "badge", "icon", "divider", "panel"];
+export const DECO_KINDS: FreeKind[] = [
+  "underline",
+  "arrow",
+  "highlight",
+  "doodle",
+  "badge",
+  "icon",
+  "divider",
+  "panel",
+];
 
 export const DECO_STYLES: Partial<Record<FreeKind, string[]>> = {
   underline: ["wave", "zigzag", "scribble", "straight", "double", "loop"],
@@ -10,8 +19,30 @@ export const DECO_STYLES: Partial<Record<FreeKind, string[]>> = {
   doodle: ["sparkle", "star", "burst", "heart", "circle", "swirl", "emphasis", "pencil"],
   divider: ["solid", "dashed", "dotted", "wavy", "zigzag", "double"],
   icon: [
-    "sparkle", "star", "heart", "brush", "pen", "camera", "film", "book", "clock", "download", "image", "video-4k",
-    "audio", "email", "messages", "map", "link", "check", "palette", "projects", "quote", "social-links", "language", "publish",
+    "sparkle",
+    "star",
+    "heart",
+    "brush",
+    "pen",
+    "camera",
+    "film",
+    "book",
+    "clock",
+    "download",
+    "image",
+    "video-4k",
+    "audio",
+    "email",
+    "messages",
+    "map",
+    "link",
+    "check",
+    "palette",
+    "projects",
+    "quote",
+    "social-links",
+    "language",
+    "publish",
   ],
 };
 

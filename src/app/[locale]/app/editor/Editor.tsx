@@ -20,7 +20,14 @@ import { getClip, mod, setClip, typing } from "@/components/editor/clipboard";
 import type { Block, BlockOf, Crop, DrawStroke, SiteDraft } from "@/lib/site/types";
 import { addFreeItem } from "@/lib/site/free";
 import { defaultSectionStyle } from "@/lib/site/normalize";
-import { DoodlePanel, defaultTools, finishSession, startSession, type DoodleSession, type DoodleTools } from "@/components/editor/doodle";
+import {
+  DoodlePanel,
+  defaultTools,
+  finishSession,
+  startSession,
+  type DoodleSession,
+  type DoodleTools,
+} from "@/components/editor/doodle";
 import { FreeEditor } from "@/components/editor/FreeEditor";
 import { PicTools, type PicTarget } from "@/components/editor/PicTools";
 import { TextToolbar } from "@/components/editor/TextToolbar";
@@ -47,9 +54,11 @@ type Rail = "home" | "blocks" | "projects" | "design" | "doodle" | "messages" | 
 const RAILS: Rail[] = ["home", "blocks", "projects", "design", "doodle", "messages", "stats", "settings", "upgrade"];
 function embedPath(rail: Rail, projectId: string | null): string | null {
   if (rail === "projects") return projectId ? `/projects/${projectId}` : null;
-  return { home: "/home", messages: "/messages", stats: "/stats", settings: "/settings", upgrade: "/upgrade" }[
-    rail as "home"
-  ] ?? null;
+  return (
+    { home: "/home", messages: "/messages", stats: "/stats", settings: "/settings", upgrade: "/upgrade" }[
+      rail as "home"
+    ] ?? null
+  );
 }
 const DESIGN_PAGES: DesignSection[] = ["styles", "fonts", "logo", "nav", "footer", "lock"];
 const WIDTHS: Record<Device, number> = { desktop: 1200, tablet: 820, phone: 390 };
@@ -72,7 +81,16 @@ export function Editor({
   account,
 }: {
   /** The account menu and the Messages dot. */
-  account: { name: string; admin: boolean; pro: boolean; unread: number; deletionPending: boolean; siteUrl: string; shortBase: string; helpUrl: string };
+  account: {
+    name: string;
+    admin: boolean;
+    pro: boolean;
+    unread: number;
+    deletionPending: boolean;
+    siteUrl: string;
+    shortBase: string;
+    helpUrl: string;
+  };
   /** Social links, CV and older contact settings, edited from the footer and contact sections. */
   initialSettings: EditorSiteSettings;
   /** Pro sites can publish the showpiece blocks. */
@@ -129,7 +147,8 @@ export function Editor({
         setRail(panel);
         setPanelOpen(true);
         if (panel === "projects" && q.get("id")) setProjectId(q.get("id"));
-        if (panel === "design" && DESIGN_PAGES.includes(q.get("detail") as DesignSection)) setDesignOpen(q.get("detail") as DesignSection);
+        if (panel === "design" && DESIGN_PAGES.includes(q.get("detail") as DesignSection))
+          setDesignOpen(q.get("detail") as DesignSection);
       }
       // Just built by the guided setup (round 8).
       if (q.get("ready")) {
@@ -320,7 +339,14 @@ export function Editor({
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== window.location.origin) return;
-      const m = e.data as { fannan?: string; panel?: string; detail?: string; language?: string; social?: EditorSiteSettings["social"]; cvMediaId?: string | null };
+      const m = e.data as {
+        fannan?: string;
+        panel?: string;
+        detail?: string;
+        language?: string;
+        social?: EditorSiteSettings["social"];
+        cvMediaId?: string | null;
+      };
       if (m?.fannan === "changed") {
         if (m.language === "en" || m.language === "ar") {
           const language: Locale = m.language;
@@ -342,7 +368,8 @@ export function Editor({
         setFreeItem(null);
         setRail(m.panel as Rail);
         setPanelOpen(true);
-        if (m.panel === "design") setDesignOpen(DESIGN_PAGES.includes(m.detail as DesignSection) ? (m.detail as DesignSection) : null);
+        if (m.panel === "design")
+          setDesignOpen(DESIGN_PAGES.includes(m.detail as DesignSection) ? (m.detail as DesignSection) : null);
       }
     };
     window.addEventListener("message", onMessage);
@@ -434,7 +461,11 @@ export function Editor({
 
   sectionKeys.current = (e: KeyboardEvent) => {
     // Escape inside the side panel's settings closes them, even from a text box (round 17).
-    if (e.key === "Escape" && settingsOpen && (e.target as HTMLElement | null)?.closest?.('[data-testid="left-panel"]')) {
+    if (
+      e.key === "Escape" &&
+      settingsOpen &&
+      (e.target as HTMLElement | null)?.closest?.('[data-testid="left-panel"]')
+    ) {
       setSettingsOpen(false);
       setFreeItem(null);
       return;
@@ -522,7 +553,8 @@ export function Editor({
     remove: (id) => removeBlock(id),
   };
   // The line only shows while the library is open to fill it.
-  const insertShown = insertAt !== null && panelOpen && rail === "blocks" && panelTab === "blocks" && !settingsOpen ? insertAt : null;
+  const insertShown =
+    insertAt !== null && panelOpen && rail === "blocks" && panelTab === "blocks" && !settingsOpen ? insertAt : null;
   const sectionName = (id: string) => {
     if (id === "__header") return t("parts.header");
     if (id === "__footer") return t("parts.footer");
@@ -538,7 +570,10 @@ export function Editor({
   const [doodleTools, setDoodleTools] = useState<DoodleTools>(() => defaultTools(initialDraft.theme.colors.text));
   const [doodleLive, setDoodleLive] = useState<DrawStroke | null>(null);
   const rtl = draft.language === "ar";
-  const setSession = useCallback((fn: (s: DoodleSession) => DoodleSession) => setDoodleSession((s) => (s ? fn(s) : s)), []);
+  const setSession = useCallback(
+    (fn: (s: DoodleSession) => DoodleSession) => setDoodleSession((s) => (s ? fn(s) : s)),
+    [],
+  );
   const beginDoodle = (blockId: string, itemId: string | null) => {
     const b = page.blocks.find((x) => x.id === blockId);
     if (!b || b.type !== "free") return;
@@ -579,7 +614,15 @@ export function Editor({
       onDrawItem={(id) => beginDoodle(b.id, id)}
       doodle={
         doodleSession && doodleSession.blockId === b.id
-          ? { session: doodleSession, setSession, tools: doodleTools, live: doodleLive, setLive: setDoodleLive, onDone: finishDoodle, onCancel: cancelDoodle }
+          ? {
+              session: doodleSession,
+              setSession,
+              tools: doodleTools,
+              live: doodleLive,
+              setLive: setDoodleLive,
+              onDone: finishDoodle,
+              onCancel: cancelDoodle,
+            }
           : null
       }
       onEditItem={(id) => {
@@ -614,11 +657,21 @@ export function Editor({
           // Fill the sample tiles first, then add the rest.
           const items = [...b.items];
           const rest = [...ids];
-          for (let i = 0; i < items.length && rest.length; i++) if (!items[i].mediaId) items[i] = { ...items[i], mediaId: rest.shift()!, crop: undefined };
-          return { ...b, items: [...items, ...rest.map((id, n) => ({ id: newId(), mediaId: id, tone: sampleTone(items.length + n), caption: "" }))].slice(0, 60) };
+          for (let i = 0; i < items.length && rest.length; i++)
+            if (!items[i].mediaId) items[i] = { ...items[i], mediaId: rest.shift()!, crop: undefined };
+          return {
+            ...b,
+            items: [
+              ...items,
+              ...rest.map((id, n) => ({ id: newId(), mediaId: id, tone: sampleTone(items.length + n), caption: "" })),
+            ].slice(0, 60),
+          };
         }
         if (path.startsWith("#") && b.type === "free") {
-          return { ...b, items: b.items.map((i) => (i.id === path.slice(1) ? { ...i, mediaId: ids[0], crop: undefined } : i)) };
+          return {
+            ...b,
+            items: b.items.map((i) => (i.id === path.slice(1) ? { ...i, mediaId: ids[0], crop: undefined } : i)),
+          };
         }
         const next = setPath(b, path, ids[0]);
         return path.endsWith("mediaId") ? setPath(next, cropPath(path), undefined) : next;
@@ -633,7 +686,8 @@ export function Editor({
       const it = b.items.find((i) => i.id === path.slice(1));
       return it ? { mediaId: it.mediaId, crop: it.crop } : null;
     }
-    const get = (p: string) => p.split(".").reduce<unknown>((o, k) => (o as Record<string, unknown> | undefined)?.[k], b);
+    const get = (p: string) =>
+      p.split(".").reduce<unknown>((o, k) => (o as Record<string, unknown> | undefined)?.[k], b);
     const id = get(path);
     return { mediaId: typeof id === "string" ? id : null, crop: get(cropPath(path)) as Crop | undefined };
   }
@@ -642,7 +696,8 @@ export function Editor({
     setBlocks((blocks) =>
       blocks.map((b) => {
         if (b.id !== blockId) return b;
-        if (path.startsWith("#") && b.type === "free") return { ...b, items: b.items.map((i) => (i.id === path.slice(1) ? { ...i, crop } : i)) };
+        if (path.startsWith("#") && b.type === "free")
+          return { ...b, items: b.items.map((i) => (i.id === path.slice(1) ? { ...i, crop } : i)) };
         return setPath(b, cropPath(path), crop);
       }),
     );
@@ -654,7 +709,10 @@ export function Editor({
         ? { id: newId(), type: "image", mediaId: ids[0], tone: sampleTone(0), caption: "", fullWidth: false }
         : (() => {
             const g = imagesBlock("grid") as BlockOf<"images">;
-            return { ...g, items: ids.map((id, n) => ({ id: newId(), mediaId: id, tone: sampleTone(n), caption: "" })) };
+            return {
+              ...g,
+              items: ids.map((id, n) => ({ id: newId(), mediaId: id, tone: sampleTone(n), caption: "" })),
+            };
           })();
     setBlocks((blocks) => {
       const i = near ? blocks.findIndex((x) => x.id === near) + 1 : blocks.length;
@@ -668,10 +726,14 @@ export function Editor({
 
   /** Text typed on the canvas. Typing in one field counts as one step to undo. */
   const onText = (blockId: string, path: string, value: string) =>
-    setBlocks((blocks) => blocks.map((b) => (b.id === blockId ? setPath(b, path, value) : b)), `text-${blockId}-${path}`);
+    setBlocks(
+      (blocks) => blocks.map((b) => (b.id === blockId ? setPath(b, path, value) : b)),
+      `text-${blockId}-${path}`,
+    );
   const onSiteText = (field: "title" | "tagline" | "footer", value: string) =>
     setDraft(
-      (d) => (field === "footer" ? { ...d, footer: { ...normalizeFooter(d.footer), text: value } } : { ...d, [field]: value }),
+      (d) =>
+        field === "footer" ? { ...d, footer: { ...normalizeFooter(d.footer), text: value } } : { ...d, [field]: value },
       `site-${field}`,
     );
 
@@ -745,9 +807,19 @@ export function Editor({
     contactFallback: siteSettings.contact,
     social: siteSettings.social,
     footerLinks: [
-      ...siteSettings.social.map((l) => ({ href: l.url, label: networkName(l.network, l.url), kind: "social" as const })),
+      ...siteSettings.social.map((l) => ({
+        href: l.url,
+        label: networkName(l.network, l.url),
+        kind: "social" as const,
+      })),
       ...(siteSettings.cvMediaId && media[siteSettings.cvMediaId]
-        ? [{ href: "#cv", label: draft.language === "ar" ? "السيرة الذاتية (PDF)" : "Résumé (PDF)", kind: "cv" as const }]
+        ? [
+            {
+              href: "#cv",
+              label: draft.language === "ar" ? "السيرة الذاتية (PDF)" : "Résumé (PDF)",
+              kind: "cv" as const,
+            },
+          ]
         : []),
     ],
   };
@@ -789,7 +861,8 @@ export function Editor({
       setPanelTab("blocks");
       return;
     }
-    if (rail === id && panelOpen && !(id === "projects" && projectId)) return embedPath(id, projectId) ? wideBack() : setPanelOpen(false);
+    if (rail === id && panelOpen && !(id === "projects" && projectId))
+      return embedPath(id, projectId) ? wideBack() : setPanelOpen(false);
     setRail(id);
     if (id === "projects") setProjectId(null);
     setPanelOpen(true);
@@ -827,30 +900,32 @@ export function Editor({
         onSiteSettings={setSiteSettings}
       />
     ) : null;
-  const blockSettings = partSettings ?? (block ? (
-    <BlockSettings
-      key={block.id}
-      block={block}
-      freeItem={freeItem}
-      onFreeItem={setFreeItem}
-      media={media}
-      categories={categories}
-      openPicker={(kind, done) => setPicker({ kind, done })}
-      update={(patch, key) =>
-        setBlocks((blocks) => blocks.map((b) => (b.id === block.id ? ({ ...b, ...patch } as Block) : b)), key)
-      }
-      contactFallback={siteSettings.contact}
-      language={draft.language}
-      projects={projects}
-      theme={draft.theme}
-      isPro={isPro}
-      siteUrl={account.siteUrl}
-      shortBase={account.shortBase}
-      pages={draft.pages}
-      page={page}
-      onDrawItem={(itemId) => beginDoodle(block.id, itemId)}
-    />
-  ) : null);
+  const blockSettings =
+    partSettings ??
+    (block ? (
+      <BlockSettings
+        key={block.id}
+        block={block}
+        freeItem={freeItem}
+        onFreeItem={setFreeItem}
+        media={media}
+        categories={categories}
+        openPicker={(kind, done) => setPicker({ kind, done })}
+        update={(patch, key) =>
+          setBlocks((blocks) => blocks.map((b) => (b.id === block.id ? ({ ...b, ...patch } as Block) : b)), key)
+        }
+        contactFallback={siteSettings.contact}
+        language={draft.language}
+        projects={projects}
+        theme={draft.theme}
+        isPro={isPro}
+        siteUrl={account.siteUrl}
+        shortBase={account.shortBase}
+        pages={draft.pages}
+        page={page}
+        onDrawItem={(itemId) => beginDoodle(block.id, itemId)}
+      />
+    ) : null);
   const docked = settingsOpen && !!blockSettings && !reorder && !doodleSession && wide && !cardFloat;
   // The settings' header: the section's picture and name (round 18).
   const settingsName =
@@ -871,7 +946,8 @@ export function Editor({
   };
   const wideOn = panelOpen && !docked && !!embed;
   const [frames, setFrames] = useState<string[]>([]);
-  if (wideOn && embed && frames[frames.length - 1] !== embed) setFrames([...frames.filter((f) => f !== embed), embed].slice(wide ? -4 : -2));
+  if (wideOn && embed && frames[frames.length - 1] !== embed)
+    setFrames([...frames.filter((f) => f !== embed), embed].slice(wide ? -4 : -2));
   /** Back from a wide panel: a project goes back to the list, anything else back to the site. */
   function wideBack() {
     if (rail === "projects" && projectId) return setProjectId(null);
@@ -893,7 +969,9 @@ export function Editor({
           aria-label={t("rail.home")}
           className="group relative mb-2.5 flex size-9 flex-none items-center justify-center rounded-[12px] bg-white/10 max-sm:hidden"
         >
-          <span className="font-heading font-heading-weight text-lime text-[18px] leading-none">{locale === "ar" ? "ف" : "f"}</span>
+          <span className="font-heading font-heading-weight text-lime text-[18px] leading-none">
+            {locale === "ar" ? "ف" : "f"}
+          </span>
           {railTip(t("rail.home"))}
         </button>
         {railItems.map((r, i) => (
@@ -924,7 +1002,13 @@ export function Editor({
           </Fragment>
         ))}
         <span className="flex-1 max-sm:hidden" />
-        <a href={account.helpUrl} target="_blank" rel="noreferrer" className={cx(railTool, "max-sm:hidden")} aria-label={t("rail.help")}>
+        <a
+          href={account.helpUrl}
+          target="_blank"
+          rel="noreferrer"
+          className={cx(railTool, "max-sm:hidden")}
+          aria-label={t("rail.help")}
+        >
           <span className={railPill(false)}>
             <Icon name="help" size={20} />
           </span>
@@ -963,7 +1047,7 @@ export function Editor({
           {accountOpen && (
             <div
               role="menu"
-              className="bg-paper text-ink shadow-float border-line absolute bottom-0 start-12 z-50 flex w-[240px] flex-col gap-1 rounded-[14px] border p-2 max-sm:start-auto max-sm:end-0 max-sm:bottom-full max-sm:mb-2"
+              className="bg-paper text-ink shadow-float border-line absolute start-12 bottom-0 z-50 flex w-[240px] flex-col gap-1 rounded-[14px] border p-2 max-sm:start-auto max-sm:end-0 max-sm:bottom-full max-sm:mb-2"
             >
               <span className="text-muted truncate px-2.5 pt-1 pb-2 text-[12px]">{account.name}</span>
               {/* Phones: what the bottom bar has no room for. */}
@@ -1072,7 +1156,12 @@ export function Editor({
         >
           {docked && (
             // The selected section's (or item's) settings, in the panel: back to the sections, pop out, close.
-            <div role="region" aria-label={t("section.settings")} data-testid="block-settings" className="flex min-h-0 flex-1 flex-col">
+            <div
+              role="region"
+              aria-label={t("section.settings")}
+              data-testid="block-settings"
+              className="flex min-h-0 flex-1 flex-col"
+            >
               <div className="border-line relative flex h-12 flex-none items-center gap-2 border-b px-2">
                 <button
                   type="button"
@@ -1103,7 +1192,13 @@ export function Editor({
                 </button>
                 {settingsMenu && (
                   <>
-                    <button type="button" aria-hidden tabIndex={-1} className="fixed inset-0 z-40 cursor-default" onClick={() => setSettingsMenu(false)} />
+                    <button
+                      type="button"
+                      aria-hidden
+                      tabIndex={-1}
+                      className="fixed inset-0 z-40 cursor-default"
+                      onClick={() => setSettingsMenu(false)}
+                    />
                     <div
                       role="menu"
                       className="bg-paper border-line shadow-float absolute end-2 top-11 z-50 flex w-[210px] flex-col rounded-[14px] border p-1.5"
@@ -1156,7 +1251,11 @@ export function Editor({
                           className="hover:bg-mist flex h-9 items-center gap-2.5 rounded-[10px] px-2.5 text-start text-[13px]"
                           onClick={() => {
                             setSettingsMenu(false);
-                            setBlocks((blocks) => blocks.map((b) => (b.id === block.id ? ({ ...b, style: defaultSectionStyle() } as Block) : b)));
+                            setBlocks((blocks) =>
+                              blocks.map((b) =>
+                                b.id === block.id ? ({ ...b, style: defaultSectionStyle() } as Block) : b,
+                              ),
+                            );
                           }}
                         >
                           <Icon name="undo" size={16} />
@@ -1167,7 +1266,9 @@ export function Editor({
                   </>
                 )}
               </div>
-              <div className="fannan-compact relative min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">{blockSettings}</div>
+              <div className="fannan-compact relative min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+                {blockSettings}
+              </div>
             </div>
           )}
           {!docked && rail === "blocks" && (
@@ -1182,14 +1283,16 @@ export function Editor({
                         setPagesOpen(false);
                         setPanelTab("blocks");
                       }}
-                      className="hover:bg-mist flex h-9 items-center gap-1.5 rounded-pill ps-2 pe-3 text-[13px] font-semibold"
+                      className="hover:bg-mist rounded-pill flex h-9 items-center gap-1.5 ps-2 pe-3 text-[13px] font-semibold"
                       data-testid="pages-back"
                     >
                       <Icon name="arrow-left" size={18} />
                       {t("panelTabs.blocks")}
                     </button>
                   </div>
-                  <h2 className="px-4 pt-3 text-[15px] font-semibold">{pagesOpen ? t("rail.pages") : t("panelTabs.page")}</h2>
+                  <h2 className="px-4 pt-3 text-[15px] font-semibold">
+                    {pagesOpen ? t("rail.pages") : t("panelTabs.page")}
+                  </h2>
                   <div className="px-0.5">
                     <PagesTab
                       part={pagesOpen ? "list" : "settings"}
@@ -1266,9 +1369,10 @@ export function Editor({
             />
           )}
 
-          {!docked && rail === "design" && (
+          {!docked &&
+            rail === "design" &&
             // Round 18: preview cards; each opens its own page with "‹ Design".
-            !designOpen ? (
+            (!designOpen ? (
               <DesignHome
                 draft={draft}
                 media={media}
@@ -1282,7 +1386,7 @@ export function Editor({
                   <button
                     type="button"
                     onClick={() => setDesignOpen(null)}
-                    className="hover:bg-mist flex h-9 items-center gap-1.5 rounded-pill ps-2 pe-3 text-[13px] font-semibold"
+                    className="hover:bg-mist rounded-pill flex h-9 items-center gap-1.5 ps-2 pe-3 text-[13px] font-semibold"
                     data-testid="design-back"
                   >
                     <Icon name="arrow-left" size={18} />
@@ -1318,8 +1422,7 @@ export function Editor({
                   )}
                 </div>
               </div>
-            )
-          )}
+            ))}
 
           {!docked && rail === "projects" && !projectId && (
             <ProjectsPanel
@@ -1337,7 +1440,10 @@ export function Editor({
       {/* Round 18: Home, Projects, Messages, Stats, Settings and Pro open wide over the editor, the site
           dimmed behind (Carbonmade). Up to 4 stay loaded, so each keeps its place when opened again. */}
       <div
-        className={cx("absolute inset-y-0 start-14 end-0 z-30 flex max-sm:start-0 max-sm:bottom-16", !wideOn && "hidden")}
+        className={cx(
+          "absolute inset-y-0 start-14 end-0 z-30 flex max-sm:start-0 max-sm:bottom-16",
+          !wideOn && "hidden",
+        )}
         data-testid="wide-panel"
       >
         <div className="bg-mist shadow-float flex w-[min(760px,100%)] flex-none flex-col">
@@ -1345,7 +1451,7 @@ export function Editor({
             <button
               type="button"
               onClick={wideBack}
-              className="hover:bg-mist flex h-9 items-center gap-1.5 rounded-pill ps-2 pe-3 text-[13px] font-semibold"
+              className="hover:bg-mist rounded-pill flex h-9 items-center gap-1.5 ps-2 pe-3 text-[13px] font-semibold"
               data-testid="wide-back"
             >
               <Icon name="arrow-left" size={18} />
@@ -1363,7 +1469,13 @@ export function Editor({
             />
           ))}
         </div>
-        <button type="button" tabIndex={-1} aria-label={t("wideBack")} onClick={wideBack} className="bg-ink/55 min-w-0 flex-1 max-sm:hidden" />
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label={t("wideBack")}
+          onClick={wideBack}
+          className="bg-ink/55 min-w-0 flex-1 max-sm:hidden"
+        />
       </div>
 
       {/* The preview, with a slim bar on top. */}
@@ -1382,18 +1494,39 @@ export function Editor({
             size, preview and Publish. */}
         <header className="bg-surface border-line grid h-14 flex-none grid-cols-[1fr_auto_1fr] items-center gap-2 border-b px-2 md:px-3">
           <div className="flex items-center gap-1">
-            <button type="button" aria-label={t("undo")} title={t("undo")} disabled={historySize.past === 0} onClick={undo} className={barTool}>
+            <button
+              type="button"
+              aria-label={t("undo")}
+              title={t("undo")}
+              disabled={historySize.past === 0}
+              onClick={undo}
+              className={barTool}
+            >
               <Icon name="undo" size={18} />
             </button>
-            <button type="button" aria-label={t("redo")} title={t("redo")} disabled={historySize.future === 0} onClick={redo} className={barTool}>
+            <button
+              type="button"
+              aria-label={t("redo")}
+              title={t("redo")}
+              disabled={historySize.future === 0}
+              onClick={redo}
+              className={barTool}
+            >
               <Icon name="redo" size={18} />
             </button>
           </div>
           <div className="flex min-w-0 flex-col items-center leading-tight">
-            <span className="max-w-[220px] truncate text-[13px] font-semibold max-sm:max-w-[110px]" data-testid="top-page">
+            <span
+              className="max-w-[220px] truncate text-[13px] font-semibold max-sm:max-w-[110px]"
+              data-testid="top-page"
+            >
               {page.title}
             </span>
-            <span className="text-muted max-w-[220px] truncate text-[12px] max-sm:hidden" role="status" data-testid="editor-status">
+            <span
+              className="text-muted max-w-[220px] truncate text-[12px] max-sm:hidden"
+              role="status"
+              data-testid="editor-status"
+            >
               {status}
             </span>
           </div>
@@ -1417,7 +1550,11 @@ export function Editor({
               <Icon name="reorder" size={18} />
               {reorder && <span>{t("reorderDone")}</span>}
             </button>
-            <div className="bg-paper flex gap-0.5 rounded-pill p-[3px] max-sm:hidden" role="radiogroup" aria-label={t("device")}>
+            <div
+              className="bg-paper rounded-pill flex gap-0.5 p-[3px] max-sm:hidden"
+              role="radiogroup"
+              aria-label={t("device")}
+            >
               {(["desktop", "tablet", "phone"] as Device[]).map((d) => (
                 <button
                   key={d}
@@ -1456,8 +1593,8 @@ export function Editor({
                 onClick={doPublish}
                 disabled={publishing || upToDate}
                 className={cx(
-                  "flex h-9 items-center gap-2 rounded-pill px-3 text-[13px] font-semibold sm:px-4",
-                  upToDate ? "bg-[#E8E9DF] text-muted" : "bg-lime text-on-lime hover:brightness-95 disabled:opacity-60",
+                  "rounded-pill flex h-9 items-center gap-2 px-3 text-[13px] font-semibold sm:px-4",
+                  upToDate ? "text-muted bg-[#E8E9DF]" : "bg-lime text-on-lime hover:brightness-95 disabled:opacity-60",
                 )}
               >
                 <Icon name={upToDate ? "check" : "publish"} size={16} />
@@ -1470,7 +1607,9 @@ export function Editor({
         <PicTools
           root={canvasWrap}
           media={media}
-          disabled={reorder || !!doodleSession || page.type === "link" || page.type === "folder" || page.type === "project"}
+          disabled={
+            reorder || !!doodleSession || page.type === "link" || page.type === "folder" || page.type === "project"
+          }
           onUploaded={(m) => setMedia((all) => ({ ...all, [m.id]: m }))}
           onPlace={placeMedia}
           onLoose={looseMedia}
@@ -1481,82 +1620,94 @@ export function Editor({
           item={(() => {
             const fb = page.blocks.find((x) => x.id === selected && x.type === "free") as BlockOf<"free"> | undefined;
             const it = fb?.items.find((i) => i.id === freeItem);
-            return it && ["text", "heading", "quote"].includes(it.kind) ? { size: it.size, lineHeight: it.lineHeight, tracking: it.tracking } : null;
+            return it && ["text", "heading", "quote"].includes(it.kind)
+              ? { size: it.size, lineHeight: it.lineHeight, tracking: it.tracking }
+              : null;
           })()}
           onItem={(patch) => {
             if (!selected || !freeItem) return;
-            changeFree(selected, (b) => ({ ...b, items: b.items.map((i) => (i.id === freeItem ? { ...i, ...patch } : i)) }), `textbar-${freeItem}`);
+            changeFree(
+              selected,
+              (b) => ({ ...b, items: b.items.map((i) => (i.id === freeItem ? { ...i, ...patch } : i)) }),
+              `textbar-${freeItem}`,
+            );
           }}
         />
         <div ref={canvasWrap} className="contents">
-        <Canvas
-          width={WIDTHS[device]}
-          fluid={device === "desktop"}
-          selectedId={selected}
-          reorder={reorder}
-          actions={sectionActions}
-          order={page.blocks.map((b) => b.id)}
-          nameOf={sectionName}
-          insertAt={insertShown}
-          quiet={!!freeItem || !!doodleSession || (phone && panelOpen)}
-          sheet={phone}
-          version={page.blocks}
-          settings={docked ? null : blockSettings}
-          settingsOpen={settingsOpen}
-          onDock={wide ? () => floatCard(false) : undefined}
-          settingsTitle={settingsName}
-          itemId={block?.type === "free" && settingsOpen ? freeItem : null}
-          onAddElement={
-            block?.type === "free"
-              ? (kind) => {
-                  // "Draw" opens the board over this section; the drawing becomes an item when done.
-                  if (kind === "drawing") return beginDoodle(block.id, null);
-                  const r = addFreeItem(block, kind, draft.language);
-                  changeFree(block.id, () => r.block);
-                  setFreeItem(r.item.id);
-                }
-              : undefined
-          }
-          onCloseSettings={() => {
-            setSettingsOpen(false);
-            setFreeItem(null);
-          }}
-          onPick={(id, onFreeItem) => {
-            // A new selection closes the settings card; it opens from the toolbar when needed.
-            if (id !== selected) setSettingsOpen(false);
-            setSelected(id);
-            if (!onFreeItem) setFreeItem(null);
-          }}
-          dropLabel={t("dropHere")}
-          onDropBlock={(key, index) => {
-            const kind = blockKinds.find((k) => k.key === key);
-            if (kind) addBlock(kind, index);
-          }}
-        >
-          {page.type === "link" ? (
-            <div className="text-muted flex h-[400px] items-center justify-center p-10 text-center" dir="ltr">
-              ↗ {page.url || "https://"}
-            </div>
-          ) : page.type === "folder" ? (
-            <div className="text-muted flex h-[400px] items-center justify-center p-10 text-center" data-testid="folder-note">
-              {t("pages.folderCanvas")}
-            </div>
-          ) : page.type === "project" ? (
-            <div className="text-muted flex h-[400px] items-center justify-center p-10 text-center" data-testid="project-note">
-              {t("pages.projectCanvas", { project: projects.find((x) => x.id === page.projectId)?.title ?? "…" })}
-            </div>
-          ) : (
-            <SiteRender
-              {...renderProps}
-              editing
-              selectedBlockId={selected}
-              onText={reorder ? undefined : onText}
-              renderFree={reorder ? undefined : renderFree}
-              onSiteText={reorder ? undefined : onSiteText}
-              typeHere={t("typeHere")}
-            />
-          )}
-        </Canvas>
+          <Canvas
+            width={WIDTHS[device]}
+            fluid={device === "desktop"}
+            selectedId={selected}
+            reorder={reorder}
+            actions={sectionActions}
+            order={page.blocks.map((b) => b.id)}
+            nameOf={sectionName}
+            insertAt={insertShown}
+            quiet={!!freeItem || !!doodleSession || (phone && panelOpen)}
+            sheet={phone}
+            version={page.blocks}
+            settings={docked ? null : blockSettings}
+            settingsOpen={settingsOpen}
+            onDock={wide ? () => floatCard(false) : undefined}
+            settingsTitle={settingsName}
+            itemId={block?.type === "free" && settingsOpen ? freeItem : null}
+            onAddElement={
+              block?.type === "free"
+                ? (kind) => {
+                    // "Draw" opens the board over this section; the drawing becomes an item when done.
+                    if (kind === "drawing") return beginDoodle(block.id, null);
+                    const r = addFreeItem(block, kind, draft.language);
+                    changeFree(block.id, () => r.block);
+                    setFreeItem(r.item.id);
+                  }
+                : undefined
+            }
+            onCloseSettings={() => {
+              setSettingsOpen(false);
+              setFreeItem(null);
+            }}
+            onPick={(id, onFreeItem) => {
+              // A new selection closes the settings card; it opens from the toolbar when needed.
+              if (id !== selected) setSettingsOpen(false);
+              setSelected(id);
+              if (!onFreeItem) setFreeItem(null);
+            }}
+            dropLabel={t("dropHere")}
+            onDropBlock={(key, index) => {
+              const kind = blockKinds.find((k) => k.key === key);
+              if (kind) addBlock(kind, index);
+            }}
+          >
+            {page.type === "link" ? (
+              <div className="text-muted flex h-[400px] items-center justify-center p-10 text-center" dir="ltr">
+                ↗ {page.url || "https://"}
+              </div>
+            ) : page.type === "folder" ? (
+              <div
+                className="text-muted flex h-[400px] items-center justify-center p-10 text-center"
+                data-testid="folder-note"
+              >
+                {t("pages.folderCanvas")}
+              </div>
+            ) : page.type === "project" ? (
+              <div
+                className="text-muted flex h-[400px] items-center justify-center p-10 text-center"
+                data-testid="project-note"
+              >
+                {t("pages.projectCanvas", { project: projects.find((x) => x.id === page.projectId)?.title ?? "…" })}
+              </div>
+            ) : (
+              <SiteRender
+                {...renderProps}
+                editing
+                selectedBlockId={selected}
+                onText={reorder ? undefined : onText}
+                renderFree={reorder ? undefined : renderFree}
+                onSiteText={reorder ? undefined : onSiteText}
+                typeHere={t("typeHere")}
+              />
+            )}
+          </Canvas>
         </div>
       </div>
 
@@ -1645,7 +1796,11 @@ export function Editor({
           onKeyDown={(e) => e.key === "Escape" && setPreview(false)}
         >
           <div
-            className={cx("min-h-full", device !== "desktop" && "mx-auto my-6 overflow-hidden rounded-[10px] shadow-[0_2px_24px_rgba(20,20,20,.12)]")}
+            className={cx(
+              "min-h-full",
+              device !== "desktop" &&
+                "mx-auto my-6 overflow-hidden rounded-[10px] shadow-[0_2px_24px_rgba(20,20,20,.12)]",
+            )}
             style={device === "desktop" ? undefined : { width: WIDTHS[device], maxWidth: "100%" }}
             data-testid="preview"
             onClickCapture={previewClick}
@@ -1656,11 +1811,13 @@ export function Editor({
               pageId={previewPage}
               live
               contactHref={`/${draft.pages.find((p) => p.blocks.some((b) => b.type === "contact"))?.slug ?? ""}#contact`}
-              renderContact={(b) => <PreviewContact block={b} language={draft.language} fallback={siteSettings.contact} />}
+              renderContact={(b) => (
+                <PreviewContact block={b} language={draft.language} fallback={siteSettings.contact} />
+              )}
             />
             <SiteEnhancer key={previewPage} protectImages={false} closeLabel={t("closePreview")} />
           </div>
-          <div className="bg-ink shadow-float fixed bottom-5 start-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-pill p-1.5 ring-1 ring-white/20 rtl:translate-x-1/2">
+          <div className="bg-ink shadow-float rounded-pill fixed start-1/2 bottom-5 z-10 flex -translate-x-1/2 items-center gap-1 p-1.5 ring-1 ring-white/20 rtl:translate-x-1/2">
             {(["desktop", "tablet", "phone"] as Device[]).map((d) => (
               <button
                 key={d}
@@ -1681,7 +1838,7 @@ export function Editor({
               type="button"
               autoFocus
               onClick={() => setPreview(false)}
-              className="flex h-9 items-center gap-1.5 rounded-pill px-3.5 text-[13px] font-semibold text-white hover:bg-white/10"
+              className="rounded-pill flex h-9 items-center gap-1.5 px-3.5 text-[13px] font-semibold text-white hover:bg-white/10"
             >
               <Icon name="close" size={16} />
               {t("closePreview")}

@@ -15,6 +15,8 @@ export interface ProjectExtras {
   credits?: LabelValue[];
   thanks?: LabelValue[];
   tools?: string[];
+  /** Round 19: what one picture of this project is called ("sheets", "pages"): "+8 more sheets". */
+  unit?: string;
 }
 
 /** How one project media item is used: in the gallery (default), as a header logo, or as a festival laurel. */
@@ -35,13 +37,16 @@ export function parseRows(text: string, max = 20): LabelValue[] {
     .split(/\r?\n/)
     .map((line) => {
       const at = line.search(/[:：]/);
-      return at > 0 ? { label: clean(line.slice(0, at), 60), value: clean(line.slice(at + 1), 200) } : { label: "", value: clean(line, 200) };
+      return at > 0
+        ? { label: clean(line.slice(0, at), 60), value: clean(line.slice(at + 1), 200) }
+        : { label: "", value: clean(line, 200) };
     })
     .filter((r) => r.label || r.value)
     .slice(0, max);
 }
 
-export const rowsText = (rows: LabelValue[] | undefined) => (rows ?? []).map((r) => (r.label ? `${r.label}: ${r.value}` : r.value)).join("\n");
+export const rowsText = (rows: LabelValue[] | undefined) =>
+  (rows ?? []).map((r) => (r.label ? `${r.label}: ${r.value}` : r.value)).join("\n");
 
 const rows = (v: unknown): LabelValue[] =>
   Array.isArray(v)
@@ -69,7 +74,14 @@ export function cleanExtras(raw: Partial<Record<keyof ProjectExtras, unknown>> |
     const list = rows(r[k]);
     if (list.length) out[k] = list;
   }
-  const tools = Array.isArray(r.tools) ? r.tools.map((t) => clean(t, 60)).filter(Boolean).slice(0, 30) : [];
+  const tools = Array.isArray(r.tools)
+    ? r.tools
+        .map((t) => clean(t, 60))
+        .filter(Boolean)
+        .slice(0, 30)
+    : [];
   if (tools.length) out.tools = tools;
+  const unit = clean(r.unit, 30);
+  if (unit) out.unit = unit;
   return out;
 }

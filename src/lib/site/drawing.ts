@@ -106,7 +106,8 @@ export function simplify(points: number[], tolerance = 0.8): number[] {
   for (let i = 3; i + 2 < points.length; i += 3) {
     const lx = out[out.length - 3];
     const ly = out[out.length - 2];
-    if (Math.hypot(points[i] - lx, points[i + 1] - ly) >= tolerance || i + 3 >= points.length) out.push(points[i], points[i + 1], points[i + 2]);
+    if (Math.hypot(points[i] - lx, points[i + 1] - ly) >= tolerance || i + 3 >= points.length)
+      out.push(points[i], points[i + 1], points[i + 2]);
   }
   return out.map((n, i) => (i % 3 === 2 ? Math.round(n) : Math.round(n * 10) / 10));
 }
@@ -114,7 +115,8 @@ export function simplify(points: number[], tolerance = 0.8): number[] {
 /** Checked drawing data (from the editor or the database). */
 export function normalizeDrawing(raw: unknown): Drawing {
   const d = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
-  const num = (v: unknown, lo: number, hi: number, def: number) => (typeof v === "number" && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : def);
+  const num = (v: unknown, lo: number, hi: number, def: number) =>
+    typeof v === "number" && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : def;
   const w = Math.round(num(d.w, 100, 4000, 1000));
   const h = Math.round(num(d.h, 100, 4000, 750));
   const boil = (d.boil && typeof d.boil === "object" ? d.boil : {}) as Record<string, unknown>;
@@ -141,6 +143,10 @@ export function normalizeDrawing(raw: unknown): Drawing {
     w,
     h,
     strokes,
-    boil: { on: boil.on === true, amount: Math.round(num(boil.amount, 0, 100, 40)), speed: Math.round(num(boil.speed, 0, 100, 50)) },
+    boil: {
+      on: boil.on === true,
+      amount: Math.round(num(boil.amount, 0, 100, 40)),
+      speed: Math.round(num(boil.speed, 0, 100, 50)),
+    },
   };
 }

@@ -207,6 +207,7 @@ function blockOwnMediaIds(b: Block): Array<string | null> {
     case "cards":
       return [b.mediaId, ...b.items.map((x) => x.mediaId)];
     case "cover":
+      return [b.mediaId, ...(b.slides ?? []).map((x) => x.mediaId)];
     case "image":
     case "loop":
     case "pdf":
@@ -214,8 +215,6 @@ function blockOwnMediaIds(b: Block): Array<string | null> {
       return [b.mediaId];
     case "before-after":
       return [b.beforeId, b.afterId];
-    case "about":
-      return [b.photoId, b.cvId];
     case "header":
       return [b.logoId, b.lineId ?? null];
     case "feature":
@@ -225,6 +224,10 @@ function blockOwnMediaIds(b: Block): Array<string | null> {
     case "logos":
     case "images":
       return b.items.map((i) => i.mediaId);
+    case "brand":
+      return [b.logoId, ...b.tiles.map((t) => t.mediaId)];
+    case "about":
+      return [b.photoId, b.cvId, ...(b.orgs ?? []).map((x) => x.mediaId)];
     case "free":
       return [b.bgMediaId, ...b.items.map((i) => i.mediaId)];
     default:

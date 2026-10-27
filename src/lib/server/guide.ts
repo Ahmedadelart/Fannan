@@ -17,7 +17,8 @@ const MAX_BYTES = 200_000;
 const KEEP_DAYS = 30;
 
 export async function loadGuide(uid: string): Promise<{ state: GuideState | null; offered: boolean }> {
-  const user = (await getUser(uid)) as (Awaited<ReturnType<typeof getUser>> & { guide?: GuideState; guideOffered?: boolean }) | null;
+  const user = (await getUser(uid)) as
+    (Awaited<ReturnType<typeof getUser>> & { guide?: GuideState; guideOffered?: boolean }) | null;
   return { state: user?.guide ?? null, offered: !!user?.guideOffered || !!user?.guide };
 }
 
@@ -87,5 +88,7 @@ export async function buildGuide(o: Owner, answers: GuideAnswers) {
   }
   const social = (answers.social ?? []).filter((s) => s && typeof s.url === "string" && s.url.trim());
   if (social.length) await saveSettings(o, { social });
-  await users().doc(o.uid).set({ guide: { done: true } }, { merge: true });
+  await users()
+    .doc(o.uid)
+    .set({ guide: { done: true } }, { merge: true });
 }

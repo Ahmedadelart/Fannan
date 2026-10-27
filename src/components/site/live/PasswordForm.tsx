@@ -35,7 +35,10 @@ export function PasswordForm({
   }
 
   return (
-    <form onSubmit={submit} className="mx-auto flex w-full max-w-[420px] flex-col items-stretch gap-4 py-16 text-center">
+    <form
+      onSubmit={submit}
+      className="mx-auto flex w-full max-w-[420px] flex-col items-stretch gap-4 py-16 text-center"
+    >
       <span
         aria-hidden
         className="mx-auto flex size-12 items-center justify-center rounded-full text-[20px]"

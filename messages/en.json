@@ -73,7 +73,9 @@
       "tools": "Tools",
       "laurels": "Festivals",
       "next": "Next project",
-      "view": "View project"
+      "view": "View project",
+      "close": "Close",
+      "prev": "Previous project"
     },
     "cv": "Résumé (PDF)",
     "report": "Report this site"
@@ -425,15 +427,7 @@
     "drop": {
       "title": "Drop your work here",
       "text": "Images and files keep full quality for your visitors in every size. Drag to reorder once they’re in.",
-      "formats": [
-        "JPG",
-        "PNG",
-        "GIF",
-        "SVG",
-        "WebP",
-        "PDF",
-        "MP4 loop up to 30 s"
-      ],
+      "formats": ["JPG", "PNG", "GIF", "SVG", "WebP", "PDF", "MP4 loop up to 30 s"],
       "upload": "Upload files",
       "video": "Add YouTube / Vimeo link",
       "text_": "Add text block",
@@ -507,7 +501,9 @@
       "description": "Description",
       "tags": "Tags",
       "tagsHint": "Separate with commas.",
-      "tagsPlaceholder": "broadcast, character design"
+      "tagsPlaceholder": "broadcast, character design",
+      "unit": "What one picture is called",
+      "unitPlaceholder": "sheets, pages, mascots…"
     },
     "categories": {
       "": "Choose a category",
@@ -639,7 +635,13 @@
       "label": "Shows as",
       "gallery": "In the gallery",
       "logo": "Header logo",
-      "laurel": "Festival laurel"
+      "laurel": "Festival laurel",
+      "look": "Logo look",
+      "looks": {
+        "white": "White",
+        "original": "As it is",
+        "chip": "On a white chip"
+      }
     },
     "tagsLabel": "Filter by tag",
     "allTags": "All ({count})",
@@ -788,7 +790,11 @@
       "img-slideshow": "Slideshow",
       "header": "Section header",
       "feature": "Project feature",
-      "c-tiles": "Category tiles"
+      "c-tiles": "Category tiles",
+      "spread": "Project spread",
+      "brand": "Brand section",
+      "c-awards": "Recognition",
+      "c-list": "Experience list"
     },
     "addHint": "Click to add below the selected section, or drag onto the page.",
     "dropHere": "Drop the section here",
@@ -846,7 +852,19 @@
       "lockHint": "What visitors see on a page or site with a password, like an NDA page.",
       "lockTitle": "Title",
       "lockTitlePlaceholder": "This page is private",
-      "lockText": "Text"
+      "lockText": "Text",
+      "pageWidth": "Page width",
+      "pageWidths": {
+        "fluid": "As wide as the screen",
+        "w1200": "1200 px",
+        "w1360": "1360 px",
+        "w1520": "1520 px"
+      },
+      "projectPage": "Project pages",
+      "projectPages": {
+        "standard": "Standard",
+        "reader": "Reader: every sheet a screen"
+      }
     },
     "pages": {
       "inNavFor": "Show {page} in the menu",
@@ -981,7 +999,8 @@
         "none": "Fade a little",
         "zoom": "Zoom in",
         "title": "Show the title",
-        "lift": "Lift up"
+        "lift": "Lift up",
+        "view": "“View more”"
       }
     },
     "picker": {
@@ -1310,7 +1329,20 @@
       "logoFontSite": "Same as headings",
       "footerLogo": "Logo picture instead of the name",
       "footerAccent": "Name, email and arrow in the accent colour",
-      "footerBig": "Big name and email, in the heading font"
+      "footerBig": "Big name and email, in the heading font",
+      "bgGlass": "Glass (see-through)",
+      "hireColor": "Button colour",
+      "hireIcon": "Button icon",
+      "hireIcons": {
+        "none": "None",
+        "cart": "Cart",
+        "arrow": "Arrow"
+      },
+      "taglineBeside": "Tagline beside the name",
+      "socialDivider": "Line before the icons",
+      "rail": "Page index at the side (wide screens)",
+      "footerTagline": "Tagline after the name",
+      "footerLine": "Short line after the name"
     },
     "account": {
       "more": "More",
@@ -1410,6 +1442,9 @@
       "textColor": "Text colour",
       "auto": "Auto",
       "anchor": "Link name (for #links)",
+      "railLabel": "Name in the page index",
+      "railLabelHint": "The section title",
+      "railHide": "Leave out of the page index",
       "animate": "Scroll animation",
       "anim": {
         "none": "None",
@@ -1421,7 +1456,8 @@
       "reset": "Reset the design",
       "blur": "Blur the picture",
       "exactWidth": "Exact width",
-      "exactWidthHint": "0: the width above decides. Set an exact width to match another site."
+      "exactWidthHint": "0: the width above decides. Set an exact width to match another site.",
+      "blend": "Picture in the band's colour"
     },
     "deco": {
       "words": "Words",
@@ -1533,7 +1569,11 @@
       "lines": "What's included (one per line)",
       "stars": "Stars",
       "video": "YouTube or Vimeo link",
-      "navHint": "Links go to a section's link name (#name), set in its Style tab under More options."
+      "navHint": "Links go to a section's link name (#name), set in its Style tab under More options.",
+      "date": "Date",
+      "org": "Organisation",
+      "tag": "Tag (e.g. Winner)",
+      "years": "Years"
     },
     "guideReady": "Your site is ready. Change anything you like.",
     "links": {
@@ -1743,7 +1783,8 @@
       "down": "Move down",
       "count": "{n} pictures",
       "heading": "Heading (optional)",
-      "frame": "Frame around each picture"
+      "frame": "Frame around each picture",
+      "smallHeading": "Small heading (a group name)"
     },
     "pic": {
       "replace": "Replace picture",
@@ -1790,13 +1831,15 @@
       "size": "Size",
       "sizes": {
         "m": "Regular",
-        "l": "Large"
+        "l": "Large",
+        "xl": "Poster"
       },
       "anchor": "Menu link name",
       "anchorHint": "Link to this part from the menu with /#name.",
       "accent": "Title in the accent colour",
       "upper": "Title in capitals",
       "underline": "Short line under the title",
+      "narrow": "Narrow title (wraps onto two lines)",
       "line": "Hand-drawn line under the title (picture)"
     },
     "feature": {
@@ -1843,7 +1886,15 @@
         "xl": "Extra large"
       },
       "columns": "Logos per row (0: as many as fit)",
-      "moving": "Moving: logos glide in an endless loop"
+      "moving": "Moving: logos glide in an endless loop",
+      "look": "Wordmark look",
+      "looks": {
+        "auto": "Auto",
+        "word": "Capitals",
+        "box": "Boxed",
+        "lower": "Lowercase"
+      },
+      "height": "Height (0: default)"
     },
     "coverx": {
       "eyebrow": "Small line above",
@@ -1854,15 +1905,38 @@
       "sizes": {
         "s": "Small",
         "m": "Medium",
-        "l": "Large"
+        "l": "Large",
+        "xl": "Poster"
       },
-      "roundBottom": "Rounded bottom corners"
+      "roundBottom": "Rounded bottom corners",
+      "slides": "More pictures (slideshow)",
+      "slideCaption": "Caption",
+      "addSlide": "Add a picture",
+      "removeSlide": "Remove",
+      "interval": "Seconds per picture",
+      "caption": "Caption of the first picture",
+      "note": "Third line",
+      "stats": "Numbers",
+      "statValue": "Number",
+      "statLabel": "Word under it",
+      "statLink": "Link",
+      "addStat": "Add a number",
+      "removeStat": "Remove"
     },
     "contactx": {
       "image": "Illustration beside the form",
       "flat": "No panel behind it",
       "headingSize": "Heading size",
-      "accent": "Heading in the accent colour"
+      "accent": "Heading in the accent colour",
+      "mode": "Kind",
+      "modes": {
+        "form": "Form",
+        "links": "Email + links"
+      },
+      "email": "Email address",
+      "links": "Link buttons",
+      "linkLabel": "Words",
+      "linkUrl": "Link"
     },
     "galleryx": {
       "tag": "Tag",
@@ -1873,7 +1947,8 @@
         "client": "Client",
         "role": "Role",
         "studio": "Studio",
-        "year": "Year"
+        "year": "Year",
+        "meta": "Client · year"
       },
       "accentRole": "Role in the accent colour",
       "split": "Posters and landscape in separate rows",
@@ -1892,7 +1967,9 @@
         "xl": "Extra large"
       },
       "captionHeading": "Title in the heading font",
-      "coverLogo": "Project logo on the cover"
+      "coverLogo": "Project logo on the cover",
+      "captionLogos": "Logos under the caption",
+      "rowHeight": "Row height (0: auto)"
     },
     "cardsx": {
       "flat": "No panel behind the cards",
@@ -1900,6 +1977,69 @@
       "tileCenter": "Title in the middle, in capitals",
       "bigTitles": "Bigger titles",
       "accentTitles": "Titles in the accent colour"
+    },
+    "spreadx": {
+      "project": "Project",
+      "pictures": "Pictures beside the lead (up to 3)",
+      "picturesHint": "Click a picture to show it beside the lead",
+      "lead": "Lead",
+      "leadPick": "Lead picture",
+      "label": "Short name (page index)",
+      "counter": "Number (01 / 12)",
+      "logos": "Client logos",
+      "words": "First paragraph",
+      "snap": "Fills the screen, page snaps to it"
+    },
+    "brandx": {
+      "logo": "Logo",
+      "logoWidth": "Logo width",
+      "markLetters": "Mark letters",
+      "markWord": "Mark word",
+      "headingFont": "Heading font",
+      "fonts": {
+        "heading": "Headings",
+        "arabic": "Arabic",
+        "body": "Text"
+      },
+      "button": "Button",
+      "buttonLink": "Button link",
+      "buttonStyle": "Button style",
+      "tiles": "Tiles",
+      "tileProject": "Opens a project",
+      "tileSheet": "At sheet",
+      "tileLink": "Link",
+      "columns": "Columns",
+      "tileRatio": "Tile shape",
+      "tileRadius": "Tile corners",
+      "tileBorder": "Tile border",
+      "tileFont": "Tile caption font",
+      "dir": "Direction",
+      "dirs": {
+        "auto": "Follows the site",
+        "ltr": "Left to right",
+        "rtl": "Right to left"
+      },
+      "colors": "Colours",
+      "accent": "Accent (button, borders)",
+      "textColor": "Text",
+      "headingColor": "Heading",
+      "tileColor": "Tile",
+      "tileTextColor": "Tile text",
+      "addTile": "Add a tile",
+      "removeTile": "Remove tile",
+      "buttonPill": "Pill-shaped button"
+    },
+    "aboutx": {
+      "photoStyle": "Photo",
+      "photoStyles": {
+        "side": "Beside the words",
+        "float": "Inside the words, framed"
+      },
+      "skillsTitle": "Skills title",
+      "skills": "Skills (one per line)",
+      "orgsTitle": "Studios title",
+      "orgs": "Studios & communities",
+      "orgText": "Line"
     }
   },
   "inbox": {
@@ -2860,9 +3000,7 @@
       "sections": [
         {
           "h": "Who is responsible",
-          "p": [
-            "Big Cat Animation LLC, Cairo, Egypt, operates Fannan. Contact: support@fannan.net."
-          ]
+          "p": ["Big Cat Animation LLC, Cairo, Egypt, operates Fannan. Contact: support@fannan.net."]
         },
         {
           "h": "What we collect from artists",
@@ -2910,15 +3048,11 @@
         },
         {
           "h": "Children",
-          "p": [
-            "Fannan isn’t for children under 16, and we don’t knowingly collect their data."
-          ]
+          "p": ["Fannan isn’t for children under 16, and we don’t knowingly collect their data."]
         },
         {
           "h": "Changes",
-          "p": [
-            "We’ll tell you by email or in your dashboard before important changes to this policy."
-          ]
+          "p": ["We’ll tell you by email or in your dashboard before important changes to this policy."]
         }
       ]
     },

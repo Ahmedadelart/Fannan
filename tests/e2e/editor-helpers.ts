@@ -18,7 +18,10 @@ export async function closeTips(page: Page) {
 /** Opens the editor with the tips out of the way. */
 export async function openEditor(page: Page) {
   await page.goto(at("app", "/editor"));
-  await page.getByRole("dialog").waitFor({ timeout: 3000 }).catch(() => {});
+  await page
+    .getByRole("dialog")
+    .waitFor({ timeout: 3000 })
+    .catch(() => {});
   await closeTips(page);
   await page.waitForLoadState("networkidle");
 }
@@ -49,7 +52,9 @@ export async function publishAndWait(page: Page) {
 /** Opens the selected (or hovered) section's settings from its action card ("Edit section"). */
 export async function editSection(page: Page) {
   // The header and footer open in Design ▸ Menu / Footer (round 18).
-  const settings = page.locator('[data-testid="block-settings"], [data-testid="header-settings"], [data-testid="footer-settings"]').first();
+  const settings = page
+    .locator('[data-testid="block-settings"], [data-testid="header-settings"], [data-testid="footer-settings"]')
+    .first();
   const card = page.getByTestId("section-toolbar");
   if ((await card.isVisible()) || !(await settings.isVisible())) await card.getByTestId("section-edit").click();
   await expect(settings).toBeVisible();
@@ -61,8 +66,11 @@ export async function addSection(page: Page, key: string) {
   const back = page.getByTestId("settings-back");
   if (await back.isVisible()) await back.click();
   // The library is in the Pages panel (another panel may be open, e.g. Design after Edit header).
+  // On phones the panel may not be in the page at all until a tab is tapped (count() never waits).
   const panel = page.getByTestId("left-panel");
-  if ((await panel.getAttribute("data-panel").catch(() => null)) !== "blocks" || !(await panel.isVisible()))
+  const libraryOpen =
+    (await panel.count()) > 0 && (await panel.isVisible()) && (await panel.getAttribute("data-panel")) === "blocks";
+  if (!libraryOpen)
     await page.getByRole("navigation", { name: "Editor" }).getByRole("button", { name: "Pages", exact: true }).click();
   // Round 18: the library lists kinds of sections first; open the one that holds this section.
   const pagesBack = page.getByTestId("pages-back");

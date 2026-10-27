@@ -27,13 +27,19 @@ export function ProjectsPanel({
       <button
         type="button"
         onClick={() => setCreating(true)}
-        className="bg-lime text-on-lime flex h-10 items-center justify-center gap-1.5 rounded-pill text-[13px] font-semibold"
+        className="bg-lime text-on-lime rounded-pill flex h-10 items-center justify-center gap-1.5 text-[13px] font-semibold"
         data-testid="new-project"
       >
         <Icon name="add" size={16} />
         {t("createButton")}
       </button>
-      {creating && <NewProjectDialog fallbackTitle={t("untitled")} onClose={() => setCreating(false)} onCreated={(id) => onOpen(id)} />}
+      {creating && (
+        <NewProjectDialog
+          fallbackTitle={t("untitled")}
+          onClose={() => setCreating(false)}
+          onCreated={(id) => onOpen(id)}
+        />
+      )}
       {projects.length === 0 && <p className="text-muted px-1 text-[13px]">{t("empty")}</p>}
       <ul className="grid grid-cols-2 gap-2.5">
         {projects.map((p) => (

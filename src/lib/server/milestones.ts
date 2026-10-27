@@ -24,7 +24,13 @@ async function once(uid: string, key: Milestone): Promise<UserDoc | null> {
 
 const ROOT_DOMAIN = process.env.ROOT_DOMAIN ?? "fannan.net";
 
-function mail(user: UserDoc, subject: [string, string], body: [string[], string[]], cta: [string, string], link: string) {
+function mail(
+  user: UserDoc,
+  subject: [string, string],
+  body: [string[], string[]],
+  cta: [string, string],
+  link: string,
+) {
   const ar = user.locale === "ar";
   const lines = ar ? body[1] : body[0];
   const button = ar ? cta[1] : cta[0];

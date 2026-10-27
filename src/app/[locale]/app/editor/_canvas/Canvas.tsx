@@ -14,8 +14,7 @@ import { KIND_ICONS } from "@/components/editor/FreeEditor";
 
 /** Sections carry data-block-id; the header and footer are "__header" / "__footer". */
 const isPart = (id: string | null) => !!id && id.startsWith("__");
-const partSelector = (id: string) =>
-  isPart(id) ? `[data-site-part="${id.slice(2)}"]` : `[data-block-id="${id}"]`;
+const partSelector = (id: string) => (isPart(id) ? `[data-site-part="${id.slice(2)}"]` : `[data-block-id="${id}"]`);
 
 /** Round 18: what the hover card does. Every action names its section (the card follows the pointer). */
 export interface SectionActions {
@@ -177,7 +176,9 @@ export function Canvas({
       if (!el || !f) return setBox(null);
       const r = el.getBoundingClientRect();
       setBox({ top: r.top - f.top, left: r.left - f.left, width: r.width, height: r.height });
-      const item = itemId ? el.querySelector<HTMLElement>(`[data-testid="free-item"][data-free-item="${itemId}"]`) : null;
+      const item = itemId
+        ? el.querySelector<HTMLElement>(`[data-testid="free-item"][data-free-item="${itemId}"]`)
+        : null;
       const ir = item?.getBoundingClientRect();
       setItemBox(ir ? { top: ir.top - f.top, left: ir.left - f.left, width: ir.width, height: ir.height } : null);
     };
@@ -199,7 +200,8 @@ export function Canvas({
     }
     if (insertAt === null || !f) return setInsertY(null);
     const blocks = [...(inner.current?.querySelectorAll<HTMLElement>("[data-block-id]") ?? [])];
-    const at = blocks[insertAt]?.getBoundingClientRect().top ?? blocks[blocks.length - 1]?.getBoundingClientRect().bottom;
+    const at =
+      blocks[insertAt]?.getBoundingClientRect().top ?? blocks[blocks.length - 1]?.getBoundingClientRect().bottom;
     setInsertY(at === undefined ? 40 : at - f.top);
   }, [hoverId, insertAt, scale, version, reorder]);
   // The line scrolls into view when it appears.
@@ -263,8 +265,10 @@ export function Canvas({
     return { index, y: (y - rect.top) / scale };
   }
 
-  const tool = "flex size-9 items-center justify-center rounded-[10px] text-ink hover:bg-mist disabled:opacity-30 disabled:hover:bg-transparent";
-  const cardRow = "flex h-9 w-full items-center gap-2 rounded-[10px] px-2.5 text-start text-[13px] font-semibold text-ink hover:bg-mist";
+  const tool =
+    "flex size-9 items-center justify-center rounded-[10px] text-ink hover:bg-mist disabled:opacity-30 disabled:hover:bg-transparent";
+  const cardRow =
+    "flex h-9 w-full items-center gap-2 rounded-[10px] px-2.5 text-start text-[13px] font-semibold text-ink hover:bg-mist";
   // The card: the hovered section, else the selected one (until its settings are open).
   const calm = quiet || reorder || !!dragging || elementMenu;
   // Phones follow the tapped section only.
@@ -273,9 +277,16 @@ export function Canvas({
   const shownAt = shownId ? order.indexOf(shownId) : -1;
 
   return (
-    <div ref={outer} className={cx("bg-mist flex-1 overflow-auto overscroll-contain", fluid ? "pt-12 pb-20" : "px-6 py-6")} data-tip="canvas">
+    <div
+      ref={outer}
+      className={cx("bg-mist flex-1 overflow-auto overscroll-contain", fluid ? "pt-12 pb-20" : "px-6 py-6")}
+      data-tip="canvas"
+    >
       {reorder && (
-        <p role="status" className="bg-ink sticky top-0 z-30 mx-auto mb-4 w-fit rounded-pill px-4 py-2 text-[13px] font-semibold text-white">
+        <p
+          role="status"
+          className="bg-ink rounded-pill sticky top-0 z-30 mx-auto mb-4 w-fit px-4 py-2 text-[13px] font-semibold text-white"
+        >
           {t("reorderHint")}
         </p>
       )}
@@ -340,7 +351,10 @@ export function Canvas({
 
         {/* While dragging a section: where it will land. */}
         {mark && (
-          <div className="pointer-events-none absolute inset-x-0 z-20 flex items-center gap-2" style={{ top: mark.y - 3 }}>
+          <div
+            className="pointer-events-none absolute inset-x-0 z-20 flex items-center gap-2"
+            style={{ top: mark.y - 3 }}
+          >
             <span className="bg-ink h-1.5 flex-1 rounded" />
             <span className="bg-lime text-ink rounded-[6px] px-2 py-0.5 text-[12px] font-semibold">{dropLabel}</span>
             <span className="bg-ink h-1.5 flex-1 rounded" />
@@ -349,9 +363,15 @@ export function Canvas({
 
         {/* Where "Add section" will put the new one. */}
         {insertY !== null && !reorder && (
-          <div data-testid="insert-marker" className="pointer-events-none absolute inset-x-0 z-20 flex items-center gap-2" style={{ top: insertY - 3 }}>
+          <div
+            data-testid="insert-marker"
+            className="pointer-events-none absolute inset-x-0 z-20 flex items-center gap-2"
+            style={{ top: insertY - 3 }}
+          >
             <span className="bg-ink h-1.5 flex-1 rounded" />
-            <span className="bg-lime text-on-lime rounded-[8px] px-2.5 py-1 text-[12px] font-semibold">{t("insertHere")}</span>
+            <span className="bg-lime text-on-lime rounded-[8px] px-2.5 py-1 text-[12px] font-semibold">
+              {t("insertHere")}
+            </span>
             <span className="bg-ink h-1.5 flex-1 rounded" />
           </div>
         )}
@@ -368,7 +388,7 @@ export function Canvas({
             {isPart(shownId) ? (
               <span
                 data-canvas-tools
-                className="bg-ink pointer-events-none absolute z-20 flex h-6 items-center rounded-pill px-2.5 text-[11px] font-semibold text-white"
+                className="bg-ink rounded-pill pointer-events-none absolute z-20 flex h-6 items-center px-2.5 text-[11px] font-semibold text-white"
                 style={{ top: shownBox.top + 8, ...startInset(shownBox, 10) }}
               >
                 {nameOf(shownId)}
@@ -379,7 +399,7 @@ export function Canvas({
                 data-canvas-tools
                 aria-label={`${nameOf(shownId)}: ${t("drag")}`}
                 title={t("drag")}
-                className="bg-ink absolute z-20 flex h-6 cursor-grab touch-none items-center gap-1 rounded-pill ps-1.5 pe-2.5 text-[11px] font-semibold text-white"
+                className="bg-ink rounded-pill absolute z-20 flex h-6 cursor-grab touch-none items-center gap-1 ps-1.5 pe-2.5 text-[11px] font-semibold text-white"
                 style={{ top: shownBox.top + 10, ...startInset(shownBox, 12) }}
                 onPointerDown={(e) => drag(e, shownId)}
                 onKeyDown={(e) => {
@@ -398,55 +418,74 @@ export function Canvas({
               </button>
             )}
             {!sheet && (
-            <div
-              role="toolbar"
-              aria-label={t("toolbar")}
-              data-testid="section-toolbar"
-              data-canvas-tools
-              data-section={shownId}
-              className="border-line shadow-float absolute z-20 flex min-w-[172px] flex-col gap-0.5 rounded-[16px] border bg-white p-1.5"
-              style={{ top: shownBox.top + (isPart(shownId) ? Math.max(6, shownBox.height / 2 - 24) : 12), ...endInset(shownBox, 12) }}
-            >
-              <button type="button" data-testid="section-edit" className={cardRow} onClick={() => actions.edit(shownId)}>
-                <Icon name="pen" size={16} />
-                {shownId === "__header" ? t("editHeader") : shownId === "__footer" ? t("editFooter") : t("edit")}
-              </button>
-              {!isPart(shownId) && (
-                <>
-                  <span className="border-line my-0.5 flex gap-0.5 border-y px-0.5 py-0.5">
-                    <button type="button" aria-label={t("duplicate")} title={t("duplicate")} className={tool} onClick={() => actions.duplicate(shownId)}>
-                      <Icon name="duplicate" size={18} />
-                    </button>
+              <div
+                role="toolbar"
+                aria-label={t("toolbar")}
+                data-testid="section-toolbar"
+                data-canvas-tools
+                data-section={shownId}
+                className="border-line shadow-float absolute z-20 flex min-w-[172px] flex-col gap-0.5 rounded-[16px] border bg-white p-1.5"
+                style={{
+                  top: shownBox.top + (isPart(shownId) ? Math.max(6, shownBox.height / 2 - 24) : 12),
+                  ...endInset(shownBox, 12),
+                }}
+              >
+                <button
+                  type="button"
+                  data-testid="section-edit"
+                  className={cardRow}
+                  onClick={() => actions.edit(shownId)}
+                >
+                  <Icon name="pen" size={16} />
+                  {shownId === "__header" ? t("editHeader") : shownId === "__footer" ? t("editFooter") : t("edit")}
+                </button>
+                {!isPart(shownId) && (
+                  <>
+                    <span className="border-line my-0.5 flex gap-0.5 border-y px-0.5 py-0.5">
+                      <button
+                        type="button"
+                        aria-label={t("duplicate")}
+                        title={t("duplicate")}
+                        className={tool}
+                        onClick={() => actions.duplicate(shownId)}
+                      >
+                        <Icon name="duplicate" size={18} />
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="section-up"
+                        aria-label={t("moveUp")}
+                        title={t("moveUp")}
+                        disabled={shownAt <= 0}
+                        className={tool}
+                        onClick={() => actions.move(shownId, shownAt - 1)}
+                      >
+                        <Icon name="arrow-up" size={18} />
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="section-down"
+                        aria-label={t("moveDown")}
+                        title={t("moveDown")}
+                        disabled={shownAt < 0 || shownAt >= order.length - 1}
+                        className={tool}
+                        onClick={() => actions.move(shownId, shownAt + 1)}
+                      >
+                        <Icon name="arrow-down" size={18} />
+                      </button>
+                    </span>
                     <button
                       type="button"
-                      data-testid="section-up"
-                      aria-label={t("moveUp")}
-                      title={t("moveUp")}
-                      disabled={shownAt <= 0}
-                      className={tool}
-                      onClick={() => actions.move(shownId, shownAt - 1)}
+                      data-testid="section-remove"
+                      className={cardRow}
+                      onClick={() => actions.remove(shownId)}
                     >
-                      <Icon name="arrow-up" size={18} />
+                      <Icon name="delete" size={16} />
+                      {t("remove")}
                     </button>
-                    <button
-                      type="button"
-                      data-testid="section-down"
-                      aria-label={t("moveDown")}
-                      title={t("moveDown")}
-                      disabled={shownAt < 0 || shownAt >= order.length - 1}
-                      className={tool}
-                      onClick={() => actions.move(shownId, shownAt + 1)}
-                    >
-                      <Icon name="arrow-down" size={18} />
-                    </button>
-                  </span>
-                  <button type="button" data-testid="section-remove" className={cardRow} onClick={() => actions.remove(shownId)}>
-                    <Icon name="delete" size={16} />
-                    {t("remove")}
-                  </button>
-                </>
-              )}
-            </div>
+                  </>
+                )}
+              </div>
             )}
             {sheet && (
               <div
@@ -484,7 +523,13 @@ export function Canvas({
                       [
                         ["duplicate", "duplicate", t("duplicate"), false, () => actions.duplicate(shownId)],
                         ["section-up", "arrow-up", t("moveUp"), shownAt <= 0, () => actions.move(shownId, shownAt - 1)],
-                        ["section-down", "arrow-down", t("moveDown"), shownAt >= order.length - 1, () => actions.move(shownId, shownAt + 1)],
+                        [
+                          "section-down",
+                          "arrow-down",
+                          t("moveDown"),
+                          shownAt >= order.length - 1,
+                          () => actions.move(shownId, shownAt + 1),
+                        ],
                         ["section-remove", "delete", t("remove"), false, () => actions.remove(shownId)],
                       ] as const
                     ).map(([id, icon, label, off, run]) => (
@@ -506,7 +551,7 @@ export function Canvas({
                   <button
                     type="button"
                     data-testid="add-section-below"
-                    className="border-line flex h-11 items-center justify-center gap-1.5 rounded-pill border text-[13px] font-semibold"
+                    className="border-line rounded-pill flex h-11 items-center justify-center gap-1.5 border text-[13px] font-semibold"
                     onClick={() => actions.addAt(shownAt + 1)}
                   >
                     <Icon name="add" size={18} />
@@ -523,7 +568,7 @@ export function Canvas({
                   data-canvas-tools
                   data-testid={`add-section-${where}`}
                   aria-label={where === "above" ? t("addAbove") : t("addBelow")}
-                  className="bg-ink shadow-float absolute z-20 flex h-[30px] items-center gap-1.5 rounded-pill px-3.5 text-[12px] font-semibold whitespace-nowrap text-white"
+                  className="bg-ink shadow-float rounded-pill absolute z-20 flex h-[30px] items-center gap-1.5 px-3.5 text-[12px] font-semibold whitespace-nowrap text-white"
                   style={{
                     top: where === "above" ? shownBox.top - 15 : shownBox.top + shownBox.height - 15,
                     left: shownBox.left + shownBox.width / 2,
@@ -551,7 +596,7 @@ export function Canvas({
                 <button
                   type="button"
                   aria-expanded={elementMenu}
-                  className="bg-ink shadow-float flex h-9 items-center gap-1.5 rounded-pill px-3.5 text-[13px] font-semibold text-white"
+                  className="bg-ink shadow-float rounded-pill flex h-9 items-center gap-1.5 px-3.5 text-[13px] font-semibold text-white"
                   onClick={() => setElementMenu(!elementMenu)}
                 >
                   <Icon name="add" size={16} />
@@ -575,7 +620,9 @@ export function Canvas({
                       />
                     </label>
                     {ITEM_GROUPS.map(({ group, kinds }) => {
-                      const shown = kinds.filter((k) => tf(`kinds.${k}`).toLowerCase().includes(itemQuery.toLowerCase()));
+                      const shown = kinds.filter((k) =>
+                        tf(`kinds.${k}`).toLowerCase().includes(itemQuery.toLowerCase()),
+                      );
                       if (!shown.length) return null;
                       return (
                         <div key={group} className="flex flex-col">
@@ -639,7 +686,10 @@ export function Canvas({
             className="bg-paper text-ink shadow-float border-line absolute z-30 flex max-h-[62vh] w-[288px] flex-col overflow-hidden rounded-[16px] border text-[13px]"
             style={{
               top: Math.max(0, Math.min((itemBox ? itemBox.top : toolsTop(box) + 48) + cardShift.y, height - 120)),
-              left: Math.max(0, Math.min((itemBox ? besideItem(itemBox) : popLeft(box)) + cardShift.x, width * scale - 288)),
+              left: Math.max(
+                0,
+                Math.min((itemBox ? besideItem(itemBox) : popLeft(box)) + cardShift.x, width * scale - 288),
+              ),
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -704,7 +754,13 @@ function DecoTile({ kind }: { kind: FreeKind }) {
       {kind === "drawing" ? (
         // The doodle tool: a pen and a scribble.
         <svg viewBox="0 0 56 36" className="h-9 w-14" aria-hidden>
-          <path d="M6 26c6-12 12-14 16-6s10 8 14-4 10-10 14-2" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          <path
+            d="M6 26c6-12 12-14 16-6s10 8 14-4 10-10 14-2"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
         </svg>
       ) : kind === "badge" ? (
         <span className="bg-lime text-on-lime rounded-pill px-2 py-0.5 text-[9px] font-bold">NEW</span>

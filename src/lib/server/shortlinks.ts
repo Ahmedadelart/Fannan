@@ -50,7 +50,14 @@ export async function createShortLink(o: Owner, input: { path: string; code?: st
     // Same rules as usernames: letters, numbers and hyphens, nothing reserved or rude.
     if (checkUsername(wanted)) throw new ProjectError("bad-link");
     try {
-      await col().doc(wanted).create({ siteId: o.siteId, uid: o.uid, path, custom: true, clicks: 0, createdAt: FieldValue.serverTimestamp() });
+      await col().doc(wanted).create({
+        siteId: o.siteId,
+        uid: o.uid,
+        path,
+        custom: true,
+        clicks: 0,
+        createdAt: FieldValue.serverTimestamp(),
+      });
     } catch {
       throw new ProjectError("slug-taken");
     }
@@ -59,7 +66,14 @@ export async function createShortLink(o: Owner, input: { path: string; code?: st
   for (let i = 0; i < 6; i++) {
     const code = randomCode();
     try {
-      await col().doc(code).create({ siteId: o.siteId, uid: o.uid, path, custom: false, clicks: 0, createdAt: FieldValue.serverTimestamp() });
+      await col().doc(code).create({
+        siteId: o.siteId,
+        uid: o.uid,
+        path,
+        custom: false,
+        clicks: 0,
+        createdAt: FieldValue.serverTimestamp(),
+      });
       return { code, path, custom: false, clicks: 0 };
     } catch {
       /* taken: try another */

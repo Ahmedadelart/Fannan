@@ -16,7 +16,12 @@ function filterDefs(id: string, used: Set<string>): ReactNode {
         <filter id={`${id}-pencil`} {...box}>
           <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="3" result="n" />
           <feDisplacementMap in="SourceGraphic" in2="n" scale="2" result="d" />
-          <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.2 1.25" result="grain" />
+          <feColorMatrix
+            in="n"
+            type="matrix"
+            values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.2 1.25"
+            result="grain"
+          />
           <feComposite in="d" in2="grain" operator="in" />
         </filter>
       )}
@@ -107,9 +112,18 @@ export function DrawingSvg({
   const step = Math.round(260 - drawing.boil.speed * 2);
   const frame = (f: number) =>
     groups(strokes).map((g, gi) => (
-      <g key={gi} filter={g.filter === "none" ? undefined : `url(#${safe}-${g.filter})`} style={g.filter === "watercolor" ? { mixBlendMode: "multiply" } : undefined}>
+      <g
+        key={gi}
+        filter={g.filter === "none" ? undefined : `url(#${safe}-${g.filter})`}
+        style={g.filter === "watercolor" ? { mixBlendMode: "multiply" } : undefined}
+      >
         {g.strokes.map((s, i) => (
-          <path key={i} d={strokePath(s, boil ? drawing.boil.amount : 0, f + 1)} fill={s.color} fillOpacity={s.opacity / 100} />
+          <path
+            key={i}
+            d={strokePath(s, boil ? drawing.boil.amount : 0, f + 1)}
+            fill={s.color}
+            fillOpacity={s.opacity / 100}
+          />
         ))}
       </g>
     ));
@@ -124,7 +138,17 @@ export function DrawingSvg({
     >
       {filterDefs(safe, used)}
       {Array.from({ length: frames }, (_, f) => (
-        <g key={f} className={boil && animate ? "dw-frame" : undefined} style={boil && animate ? { animationDelay: `calc(var(--dw-step) * ${-f})` } : f > 0 ? { display: "none" } : undefined}>
+        <g
+          key={f}
+          className={boil && animate ? "dw-frame" : undefined}
+          style={
+            boil && animate
+              ? { animationDelay: `calc(var(--dw-step) * ${-f})` }
+              : f > 0
+                ? { display: "none" }
+                : undefined
+          }
+        >
           {frame(f)}
         </g>
       ))}

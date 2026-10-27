@@ -108,10 +108,22 @@ export function SitePartSettings({
               ]}
               onChange={(v) => setHeader({ width: v })}
             />
-            <Range title={t("linkGap")} value={header.linkGap} min={4} max={64} unit="px" onChange={(v) => setHeader({ linkGap: v }, "h-gap")} />
+            <Range
+              title={t("linkGap")}
+              value={header.linkGap}
+              min={4}
+              max={64}
+              unit="px"
+              onChange={(v) => setHeader({ linkGap: v }, "h-gap")}
+            />
             <Range
               title={t("height")}
-              value={header.space ?? (header.background !== "none" || header.border || header.shadow || header.padding > 0 ? 20 + header.padding : 48)}
+              value={
+                header.space ??
+                (header.background !== "none" || header.border || header.shadow || header.padding > 0
+                  ? 20 + header.padding
+                  : 48)
+              }
               min={0}
               max={96}
               unit="px"
@@ -122,8 +134,22 @@ export function SitePartSettings({
         )}
         {tab === "style" && (
           <>
-            <Range title={t("logoSize")} value={header.logoSize} min={20} max={140} unit="px" onChange={(v) => setHeader({ logoSize: v }, "h-logo")} />
-            <Range title={t("titleSize")} value={header.titleSize} min={14} max={72} unit="px" onChange={(v) => setHeader({ titleSize: v }, "h-title")} />
+            <Range
+              title={t("logoSize")}
+              value={header.logoSize}
+              min={20}
+              max={140}
+              unit="px"
+              onChange={(v) => setHeader({ logoSize: v }, "h-logo")}
+            />
+            <Range
+              title={t("titleSize")}
+              value={header.titleSize}
+              min={14}
+              max={72}
+              unit="px"
+              onChange={(v) => setHeader({ titleSize: v }, "h-title")}
+            />
             {!draft.theme.logoMediaId && (
               <Label title={t("logoFont")}>
                 <select
@@ -146,13 +172,18 @@ export function SitePartSettings({
                 </select>
               </Label>
             )}
-            <Switch title={t("upperLinks")} checked={header.upperLinks} onChange={(v) => setHeader({ upperLinks: v })} />
+            <Switch
+              title={t("upperLinks")}
+              checked={header.upperLinks}
+              onChange={(v) => setHeader({ upperLinks: v })}
+            />
             <Choice
               title={t("background")}
-              value={bg === "none" || bg === "surface" ? bg : "colour"}
+              value={bg === "none" || bg === "surface" || bg === "glass" ? bg : "colour"}
               options={[
                 ["none", t("bgNone")],
                 ["surface", t("bgSoft")],
+                ["glass", t("bgGlass")],
                 ["colour", t("bgColour")],
               ]}
               onChange={(v) => setHeader({ background: v === "colour" ? (bg.startsWith("#") ? bg : "#F4F4F2") : v })}
@@ -174,7 +205,12 @@ export function SitePartSettings({
                 />
               </>
             )}
-            <ColorField title={t("textColor")} value={header.textColor} themeLabel={t("theme")} onChange={(v) => setHeader({ textColor: v }, "h-text")} />
+            <ColorField
+              title={t("textColor")}
+              value={header.textColor}
+              themeLabel={t("theme")}
+              onChange={(v) => setHeader({ textColor: v }, "h-text")}
+            />
             <div className="grid grid-cols-2 gap-x-3 gap-y-2">
               <Switch title={t("border")} checked={header.border} onChange={(v) => setHeader({ border: v })} />
               <Switch title={t("shadow")} checked={header.shadow} onChange={(v) => setHeader({ shadow: v })} />
@@ -184,8 +220,23 @@ export function SitePartSettings({
         {tab === "items" && (
           <>
             <Switch title={t("showTagline")} checked={header.tagline} onChange={(v) => setHeader({ tagline: v })} />
+            {header.tagline && (
+              <Switch
+                title={t("taglineBeside")}
+                checked={!!header.taglineBeside}
+                onChange={(v) => setHeader({ taglineBeside: v })}
+              />
+            )}
+            <Switch title={t("rail")} checked={!!header.rail} onChange={(v) => setHeader({ rail: v })} />
             <div className="border-line flex flex-col gap-3 border-t pt-4">
               <Switch title={t("socialInHeader")} checked={header.social} onChange={(v) => setHeader({ social: v })} />
+              {header.social && (
+                <Switch
+                  title={t("socialDivider")}
+                  checked={!!header.socialDivider}
+                  onChange={(v) => setHeader({ socialDivider: v })}
+                />
+              )}
               {header.social && inSettings}
             </div>
             <div className="border-line flex flex-col gap-3 border-t pt-4">
@@ -222,6 +273,22 @@ export function SitePartSettings({
                 ]}
                 onChange={(v) => setHeader({ hire: { ...header.hire, style: v } })}
               />
+              <ColorField
+                title={t("hireColor")}
+                value={header.hire.color ?? null}
+                themeLabel={t("theme")}
+                onChange={(v) => setHeader({ hire: { ...header.hire, color: v } }, "hire-color")}
+              />
+              <Choice
+                title={t("hireIcon")}
+                value={header.hire.icon ?? "none"}
+                options={[
+                  ["none", t("hireIcons.none")],
+                  ["cart", t("hireIcons.cart")],
+                  ["arrow", t("hireIcons.arrow")],
+                ]}
+                onChange={(v) => setHeader({ hire: { ...header.hire, icon: v === "none" ? undefined : v } })}
+              />
             </div>
           </>
         )}
@@ -252,7 +319,10 @@ export function SitePartSettings({
                       groups: [
                         {
                           title: t("pagesGroup"),
-                          links: draft.pages.filter((p) => p.type !== "folder").slice(0, 6).map((p) => ({ label: p.title, link: p.slug ? `/${p.slug}` : "/" })),
+                          links: draft.pages
+                            .filter((p) => p.type !== "folder")
+                            .slice(0, 6)
+                            .map((p) => ({ label: p.title, link: p.slug ? `/${p.slug}` : "/" })),
                         },
                       ],
                     }
@@ -274,7 +344,9 @@ export function SitePartSettings({
                           aria-label={t("linkLabel")}
                           className={inputCls}
                           value={l.label}
-                          onChange={(e) => setGroup({ links: g.links.map((x, j) => (j === li ? { ...x, label: e.target.value } : x)) })}
+                          onChange={(e) =>
+                            setGroup({ links: g.links.map((x, j) => (j === li ? { ...x, label: e.target.value } : x)) })
+                          }
                         />
                         <input
                           aria-label={t("linkUrl")}
@@ -282,7 +354,9 @@ export function SitePartSettings({
                           dir="ltr"
                           placeholder="/about"
                           value={l.link}
-                          onChange={(e) => setGroup({ links: g.links.map((x, j) => (j === li ? { ...x, link: e.target.value } : x)) })}
+                          onChange={(e) =>
+                            setGroup({ links: g.links.map((x, j) => (j === li ? { ...x, link: e.target.value } : x)) })
+                          }
                         />
                         <button
                           type="button"
@@ -296,11 +370,21 @@ export function SitePartSettings({
                     ))}
                     <div className="flex flex-wrap gap-1.5">
                       {g.links.length < 8 && (
-                        <Button size="sm" variant="outline" icon="add" onClick={() => setGroup({ links: [...g.links, { label: "", link: "" }] })}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          icon="add"
+                          onClick={() => setGroup({ links: [...g.links, { label: "", link: "" }] })}
+                        >
                           {t("addLink")}
                         </Button>
                       )}
-                      <Button size="sm" variant="ghost" icon="delete" onClick={() => setFooter({ groups: footer.groups.filter((_, j) => j !== gi) })}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon="delete"
+                        onClick={() => setFooter({ groups: footer.groups.filter((_, j) => j !== gi) })}
+                      >
                         {t("removeGroup")}
                       </Button>
                     </div>
@@ -308,7 +392,12 @@ export function SitePartSettings({
                 );
               })}
               {footer.groups.length < 4 && (
-                <Button size="sm" variant="outline" icon="add" onClick={() => setFooter({ groups: [...footer.groups, { title: "", links: [] }] })}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  icon="add"
+                  onClick={() => setFooter({ groups: [...footer.groups, { title: "", links: [] }] })}
+                >
                   {t("addGroup")}
                 </Button>
               )}
@@ -325,13 +414,25 @@ export function SitePartSettings({
               onChange={(v) => setFooter({ align: v })}
             />
           )}
-          <Range title={t("spacing")} value={footer.padding} min={0} max={120} unit="px" onChange={(v) => setFooter({ padding: v }, "f-pad")} />
+          <Range
+            title={t("spacing")}
+            value={footer.padding}
+            min={0}
+            max={120}
+            unit="px"
+            onChange={(v) => setFooter({ padding: v }, "f-pad")}
+          />
           <Area title={t("footerText")} value={footer.text} onChange={(v) => setFooter({ text: v }, "footer-text")} />
         </>
       )}
       {tab === "style" && (
         <>
-          <ColorField title={t("background")} value={footer.background} themeLabel={t("theme")} onChange={(v) => setFooter({ background: v }, "f-bg")} />
+          <ColorField
+            title={t("background")}
+            value={footer.background}
+            themeLabel={t("theme")}
+            onChange={(v) => setFooter({ background: v }, "f-bg")}
+          />
           {footer.background && (
             <ColorField
               title={t("gradientTo")}
@@ -340,7 +441,12 @@ export function SitePartSettings({
               onChange={(v) => setFooter({ gradientTo: v }, "f-grad")}
             />
           )}
-          <ColorField title={t("textColor")} value={footer.textColor} themeLabel={t("theme")} onChange={(v) => setFooter({ textColor: v }, "f-text")} />
+          <ColorField
+            title={t("textColor")}
+            value={footer.textColor}
+            themeLabel={t("theme")}
+            onChange={(v) => setFooter({ textColor: v }, "f-text")}
+          />
           <Choice
             title={t("socialStyle")}
             value={footer.socialStyle}
@@ -357,9 +463,28 @@ export function SitePartSettings({
       {tab === "items" && (
         <>
           <Switch title={t("showTitle")} checked={footer.showTitle} onChange={(v) => setFooter({ showTitle: v })} />
-          <Text title={t("email")} value={footer.email} dir="ltr" placeholder="you@email.com" onChange={(v) => setFooter({ email: v }, "f-email")} />
+          {footer.showTitle && (
+            <Switch title={t("footerTagline")} checked={!!footer.tagline} onChange={(v) => setFooter({ tagline: v })} />
+          )}
+          {footer.showTitle && (
+            <Text
+              title={t("footerLine")}
+              value={footer.line ?? ""}
+              placeholder="Cairo, Egypt"
+              onChange={(v) => setFooter({ line: v }, "f-line")}
+            />
+          )}
+          <Text
+            title={t("email")}
+            value={footer.email}
+            dir="ltr"
+            placeholder="you@email.com"
+            onChange={(v) => setFooter({ email: v }, "f-email")}
+          />
           <Switch title={t("backToTop")} checked={footer.backToTop} onChange={(v) => setFooter({ backToTop: v })} />
-          {footer.showTitle && draft.theme.logoMediaId && <Switch title={t("footerLogo")} checked={!!footer.logo} onChange={(v) => setFooter({ logo: v })} />}
+          {footer.showTitle && draft.theme.logoMediaId && (
+            <Switch title={t("footerLogo")} checked={!!footer.logo} onChange={(v) => setFooter({ logo: v })} />
+          )}
           <Switch title={t("footerAccent")} checked={!!footer.accent} onChange={(v) => setFooter({ accent: v })} />
           <Switch title={t("footerBig")} checked={!!footer.big} onChange={(v) => setFooter({ big: v })} />
           <div className="border-line flex flex-col gap-3 border-t pt-4">

@@ -41,8 +41,13 @@ const tone = (v: unknown, d: string) => (isSampleTone(v) ? v : upgradeTone(color
 export function normalizeCrop(v: unknown): { crop?: { x: number; y: number; zoom: number } } {
   if (!v || typeof v !== "object") return {};
   const c = v as Record<string, unknown>;
-  const n = (x: unknown, lo: number, hi: number, d: number) => (typeof x === "number" && Number.isFinite(x) ? Math.min(hi, Math.max(lo, x)) : d);
-  const crop = { x: Math.round(n(c.x, 0, 100, 50)), y: Math.round(n(c.y, 0, 100, 50)), zoom: Math.round(n(c.zoom, 1, 3, 1) * 100) / 100 };
+  const n = (x: unknown, lo: number, hi: number, d: number) =>
+    typeof x === "number" && Number.isFinite(x) ? Math.min(hi, Math.max(lo, x)) : d;
+  const crop = {
+    x: Math.round(n(c.x, 0, 100, 50)),
+    y: Math.round(n(c.y, 0, 100, 50)),
+    zoom: Math.round(n(c.zoom, 1, 3, 1) * 100) / 100,
+  };
   return crop.x === 50 && crop.y === 50 && crop.zoom === 1 ? {} : { crop };
 }
 
@@ -74,19 +79,27 @@ export function normalizeTheme(raw: unknown): Theme {
     },
     fonts: {
       // Any font from the registry (round 12); old ids are the same fonts.
-      heading: ((h) => (isFont(h, "latin") ? h : p.fonts.heading))(oldHeading[fonts.heading as string] ?? fonts.heading),
-      body: ((b) => (isFont(b, "latin") ? b : p.fonts.body))(fonts.body === "sans" || fonts.body === "serif" ? "plex" : fonts.body),
+      heading: ((h) => (isFont(h, "latin") ? h : p.fonts.heading))(
+        oldHeading[fonts.heading as string] ?? fonts.heading,
+      ),
+      body: ((b) => (isFont(b, "latin") ? b : p.fonts.body))(
+        fonts.body === "sans" || fonts.body === "serif" ? "plex" : fonts.body,
+      ),
       arabic: isFont(fonts.arabic, "arabic") ? fonts.arabic : p.fonts.arabic,
       ...(isFont(fonts.arabicBody, "arabic") ? { arabicBody: fonts.arabicBody } : {}),
       ...(typeof fonts.headingWeight === "number" ? { headingWeight: num(fonts.headingWeight, 100, 900, 600) } : {}),
       ...(fonts.headingUpper === true ? { headingUpper: true } : {}),
       ...(fonts.headingScale === "s" || fonts.headingScale === "l" ? { headingScale: fonts.headingScale } : {}),
-      ...(typeof fonts.headingTracking === "number" ? { headingTracking: num(fonts.headingTracking, -10, 30, -1) } : {}),
+      ...(typeof fonts.headingTracking === "number"
+        ? { headingTracking: num(fonts.headingTracking, -10, 30, -1) }
+        : {}),
     },
     radius: num(t.radius, 0, 24, p.radius),
     nav: pick(oldNav[t.nav as string] ?? t.nav, ["top", "centered", "sidebar", "split", "minimal", "inline"], p.nav),
     logoMediaId: idOrNull(t.logoMediaId),
     faviconMediaId: idOrNull(t.faviconMediaId),
+    ...(typeof t.maxWidth === "number" && t.maxWidth >= 720 ? { maxWidth: num(t.maxWidth, 720, 2400, 1520) } : {}),
+    ...(t.projectPage === "reader" ? { projectPage: "reader" as const } : {}),
   };
 }
 
@@ -108,7 +121,8 @@ function cleanStrings<T>(v: T, depth = 0): T {
   if (depth > 6 || !v || typeof v !== "object") return v;
   if (Array.isArray(v)) return v.map((x) => cleanStrings(x, depth + 1)) as T;
   const out: Record<string, unknown> = {};
-  for (const [k, x] of Object.entries(v as Record<string, unknown>)) out[k] = k === "drawing" ? x : cleanStrings(x, depth + 1);
+  for (const [k, x] of Object.entries(v as Record<string, unknown>))
+    out[k] = k === "drawing" ? x : cleanStrings(x, depth + 1);
   return out as T;
 }
 
@@ -121,7 +135,13 @@ export function normalizeBlock(raw: unknown): Block | null {
   if (block.type === "free" && !style && (block.background || block.bgMediaId)) {
     style = defaultSectionStyle();
     if (block.bgMediaId) {
-      style.bg = { ...style.bg, kind: "image", mediaId: block.bgMediaId, overlay: block.background ?? "#000000", overlayOpacity: 0 };
+      style.bg = {
+        ...style.bg,
+        kind: "image",
+        mediaId: block.bgMediaId,
+        overlay: block.background ?? "#000000",
+        overlayOpacity: 0,
+      };
     } else style.bg = { ...style.bg, kind: "color", color: block.background! };
     style.padTop = 0;
     style.padBottom = 0;
@@ -153,6 +173,7 @@ export function normalizeSectionStyle(raw: unknown): SectionStyle {
       overlay: color(bg.overlay, "#000000"),
       overlayOpacity: num(bg.overlayOpacity, 0, 100, 40),
       ...(num(bg.blur, 0, 40, 0) ? { blur: num(bg.blur, 0, 40, 0) } : {}),
+      ...(bg.blend === "luminosity" ? { blend: "luminosity" as const } : {}),
       pattern: pick(bg.pattern, ["dots", "grid", "waves", "sparkles", "doodles", "custom"], "dots"),
       patternColor: color(bg.patternColor, "#141414"),
       patternOpacity: num(bg.patternOpacity, 0, 100, 12),
@@ -173,6 +194,8 @@ export function normalizeSectionStyle(raw: unknown): SectionStyle {
     },
     text: s.text ? color(s.text, "#141414") : null,
     ...(s.align === "start" || s.align === "center" || s.align === "end" ? { align: s.align } : {}),
+    ...(str(s.railLabel, 40) ? { railLabel: str(s.railLabel, 40) } : {}),
+    ...(s.railHide === true ? { railHide: true } : {}),
     anchor: str(s.anchor, 40)
       .toLowerCase()
       .replace(/[^a-z0-9-]/g, ""),
@@ -180,7 +203,23 @@ export function normalizeSectionStyle(raw: unknown): SectionStyle {
   };
 }
 
-const CARD_VARIANTS = ["icons", "images", "tiles", "stats", "faq", "mosaic", "nav", "marquee", "testimonials", "timeline", "press", "films", "offers"] as const;
+const CARD_VARIANTS = [
+  "awards",
+  "list",
+  "icons",
+  "images",
+  "tiles",
+  "stats",
+  "faq",
+  "mosaic",
+  "nav",
+  "marquee",
+  "testimonials",
+  "timeline",
+  "press",
+  "films",
+  "offers",
+] as const;
 
 function normalizeCards(id: string, b: Any): Block {
   return {
@@ -213,7 +252,70 @@ function normalizeCards(id: string, b: Any): Block {
       stars: num(x?.stars, 0, 5, 0),
       price: str(x?.price, 40),
       url: str(x?.url, 500),
+      ...(str(x?.date, 60) ? { date: str(x?.date, 60) } : {}),
+      ...(str(x?.subtitle, 160) ? { subtitle: str(x?.subtitle, 160) } : {}),
     })),
+  };
+}
+
+/** Round 19: a project spread. */
+function normalizeSpread(id: string, b: Any): Block {
+  return {
+    id,
+    type: "spread",
+    projectId: str(b.projectId, 40) || null,
+    lead: num(b.lead, 0, 500, 0),
+    supports: Array.isArray(b.supports) ? b.supports.slice(0, 3).map((x) => num(x, 0, 500, 0)) : [],
+    label: str(b.label, 40),
+    counter: bool(b.counter, true),
+    logos: bool(b.logos, true),
+    words: bool(b.words, true),
+    snap: bool(b.snap, true),
+  };
+}
+
+/** Round 19: a brand section. */
+function normalizeBrand(id: string, b: Any): Block {
+  const button = (b.button && typeof b.button === "object" ? b.button : {}) as Any;
+  const colors = (b.colors && typeof b.colors === "object" ? b.colors : {}) as Any;
+  const mark = (b.mark && typeof b.mark === "object" ? b.mark : null) as Any | null;
+  return {
+    id,
+    type: "brand",
+    logoId: idOrNull(b.logoId),
+    logoWidth: num(b.logoWidth, 60, 480, 240),
+    mark: mark && str(mark.letters, 4) ? { letters: str(mark.letters, 4), word: str(mark.word, 40) } : null,
+    heading: str(b.heading, 200),
+    headingFont: pick(b.headingFont, ["heading", "arabic", "body"], "heading"),
+    text: str(b.text, 3000),
+    button: {
+      label: str(button.label, 60),
+      link: safeLink(button.link),
+      style: button.style === "outline" ? "outline" : "filled",
+      ...(button.pill === true ? { pill: true } : {}),
+    },
+    colors: {
+      text: colors.text ? color(colors.text, "#FFFFFF") : null,
+      ...(colors.heading ? { heading: color(colors.heading, "#FFFFFF") } : {}),
+      accent: color(colors.accent, "#141414"),
+      tile: colors.tile ? color(colors.tile, "#141414") : null,
+      tileText: colors.tileText ? color(colors.tileText, "#FFFFFF") : null,
+    },
+    dir: pick(b.dir, ["auto", "ltr", "rtl"], "auto"),
+    tiles: list(b.tiles, 12, (x: Any) => ({
+      mediaId: idOrNull(x?.mediaId),
+      tone: tone(x?.tone, "#5B3A2E"),
+      title: str(x?.title, 120),
+      text: str(x?.text, 300),
+      link: safeLink(x?.link),
+      projectId: str(x?.projectId, 40) || null,
+      sheet: num(x?.sheet, 0, 500, 0),
+    })),
+    columns: num(b.columns, 1, 6, 3),
+    tileRatio: pick(b.tileRatio, ["16/9", "1/1", "4/5", "4/3", "3/4", "15/16"], "16/9"),
+    tileRadius: num(b.tileRadius, 0, 40, 0),
+    tileBorder: bool(b.tileBorder, true),
+    tileFont: pick(b.tileFont, ["heading", "arabic", "body"], "heading"),
   };
 }
 
@@ -223,6 +325,10 @@ function normalizeBlockBody(raw: unknown): Block | null {
   switch (b.type) {
     case "cards":
       return normalizeCards(id, b);
+    case "spread":
+      return normalizeSpread(id, b);
+    case "brand":
+      return normalizeBrand(id, b);
     case "cover":
       return {
         id,
@@ -238,7 +344,28 @@ function normalizeBlockBody(raw: unknown): Block | null {
         ...(b.link ? { link: safeLink(b.link) } : {}),
         ...(b.inset === true ? { inset: true } : {}),
         ...(b.roundBottom === true ? { roundBottom: true } : {}),
-        ...(b.size === "s" || b.size === "m" ? { size: b.size as "s" } : {}),
+        ...(b.size === "s" || b.size === "m" || b.size === "xl" ? { size: b.size as "s" } : {}),
+        ...(Array.isArray(b.slides) && b.slides.length
+          ? {
+              slides: list(b.slides, 12, (x: Any) => ({
+                mediaId: idOrNull(x?.mediaId),
+                caption: str(x?.caption, 160),
+                ...normalizeCrop(x?.crop),
+              })),
+            }
+          : {}),
+        ...(num(b.interval, 2, 30, 0) ? { interval: num(b.interval, 2, 30, 6) } : {}),
+        ...(str(b.caption, 160) ? { caption: str(b.caption, 160) } : {}),
+        ...(str(b.note, 200) ? { note: str(b.note, 200) } : {}),
+        ...(Array.isArray(b.stats) && b.stats.length
+          ? {
+              stats: list(b.stats, 4, (x: Any) => ({
+                value: str(x?.value, 16),
+                label: str(x?.label, 40),
+                link: safeLink(x?.link),
+              })),
+            }
+          : {}),
       };
     case "header":
       return {
@@ -250,10 +377,11 @@ function normalizeBlockBody(raw: unknown): Block | null {
         logoId: idOrNull(b.logoId),
         badge: str(b.badge, 40),
         divider: bool(b.divider, true),
-        size: pick(b.size, ["m", "l"], "m"),
+        size: pick(b.size, ["m", "l", "xl"], "m"),
         ...(b.accent === true ? { accent: true } : {}),
         ...(b.upper === true ? { upper: true } : {}),
         ...(b.underline === true ? { underline: true } : {}),
+        ...(b.narrow === true ? { narrow: true } : {}),
         ...(idOrNull(b.lineId) ? { lineId: idOrNull(b.lineId) } : {}),
       };
     case "feature":
@@ -299,20 +427,39 @@ function normalizeBlockBody(raw: unknown): Block | null {
         captions: bool(b.captions, true),
         credits: bool(b.credits, true),
         hoverPlay: bool(b.hoverPlay, true),
-        ...(["zoom", "title", "lift", "none"].includes(b.hover as string) ? { hover: b.hover as "zoom" } : {}),
+        ...(["zoom", "title", "lift", "view", "none"].includes(b.hover as string) ? { hover: b.hover as "zoom" } : {}),
+        ...(b.captionLogos === true ? { captionLogos: true } : {}),
+        ...(num(b.rowHeight, 120, 720, 0) ? { rowHeight: num(b.rowHeight, 120, 720, 300) } : {}),
         ...(Array.isArray(b.lines)
-          ? { lines: [...new Set((b.lines as unknown[]).filter((x): x is "role" => ["network", "client", "role", "studio", "year"].includes(x as string)))] }
+          ? {
+              lines: [
+                ...new Set(
+                  (b.lines as unknown[]).filter((x): x is "role" =>
+                    ["network", "client", "role", "studio", "year", "meta"].includes(x as string),
+                  ),
+                ),
+              ],
+            }
           : {}),
         ...(b.accentRole === true ? { accentRole: true } : {}),
         ...(b.split === true ? { split: true, wideColumns: num(b.wideColumns, 1, 4, 2) } : {}),
         ...(b.loopPlay === "always" ? { loopPlay: "always" as const } : {}),
-        ...(b.captionStyle === "accent" || b.captionStyle === "heading" ? { captionStyle: b.captionStyle as "accent" | "heading" } : {}),
+        ...(b.captionStyle === "accent" || b.captionStyle === "heading"
+          ? { captionStyle: b.captionStyle as "accent" | "heading" }
+          : {}),
         ...(b.coverLogo === true ? { coverLogo: true } : {}),
-        ...(["s", "l", "xl"].includes(b.captionSize as string) ? { captionSize: b.captionSize as "s" | "l" | "xl" } : {}),
+        ...(["s", "l", "xl"].includes(b.captionSize as string)
+          ? { captionSize: b.captionSize as "s" | "l" | "xl" }
+          : {}),
         filter: bool(b.filter),
         ...(b.cardSizes === true ? { cardSizes: true } : {}),
         ...(Array.isArray(b.picks) && b.picks.length
-          ? { picks: (b.picks as unknown[]).filter((x): x is string => typeof x === "string").slice(0, 60).map((x) => x.slice(0, 40)) }
+          ? {
+              picks: (b.picks as unknown[])
+                .filter((x): x is string => typeof x === "string")
+                .slice(0, 60)
+                .map((x) => x.slice(0, 40)),
+            }
           : {}),
         samples: samples(b.samples),
       };
@@ -367,6 +514,7 @@ function normalizeBlockBody(raw: unknown): Block | null {
         ratio: pick(b.ratio, ["16:9", "4:3", "1:1", "4:5", "3:4", "2:3", "original"], "4:3"),
         captions: bool(b.captions),
         ...(b.frame ? { frame: color(b.frame, "#E0261B") } : {}),
+        ...(b.headingSize === "s" ? { headingSize: "s" as const } : {}),
       };
     case "hero-image":
       return {
@@ -418,7 +566,12 @@ function normalizeBlockBody(raw: unknown): Block | null {
         id,
         type: "logos",
         heading: str(b.heading, 120),
-        items: list(b.items, 40, (x) => ({ name: str(x.name, 80), mediaId: idOrNull(x.mediaId) })),
+        items: list(b.items, 40, (x) => ({
+          name: str(x.name, 80),
+          mediaId: idOrNull(x.mediaId),
+          ...(["word", "box", "lower", "arabic"].includes(x.look as string) ? { look: x.look as "word" } : {}),
+          ...(num(x.height, 12, 120, 0) ? { height: num(x.height, 12, 120, 28) } : {}),
+        })),
         ...(b.band ? { band: color(b.band, "#FF5A1F") } : {}),
         ...(b.tint === "white" || b.tint === "black" ? { tint: b.tint } : {}),
         ...(b.oneRow === true ? { oneRow: true } : {}),
@@ -434,6 +587,26 @@ function normalizeBlockBody(raw: unknown): Block | null {
         text: str(b.text, 6000),
         photoId: idOrNull(b.photoId),
         cvId: idOrNull(b.cvId),
+        ...(b.photoStyle === "float" ? { photoStyle: "float" as const } : {}),
+        ...(str(b.skillsTitle, 60) ? { skillsTitle: str(b.skillsTitle, 60) } : {}),
+        ...(Array.isArray(b.skills) && b.skills.length
+          ? {
+              skills: b.skills
+                .slice(0, 24)
+                .map((x) => str(x, 40))
+                .filter(Boolean),
+            }
+          : {}),
+        ...(str(b.orgsTitle, 60) ? { orgsTitle: str(b.orgsTitle, 60) } : {}),
+        ...(Array.isArray(b.orgs) && b.orgs.length
+          ? {
+              orgs: list(b.orgs, 8, (x: Any) => ({
+                mediaId: idOrNull(x?.mediaId),
+                text: str(x?.text, 200),
+                link: safeLink(x?.link),
+              })),
+            }
+          : {}),
       };
     case "contact":
       return {
@@ -447,6 +620,11 @@ function normalizeBlockBody(raw: unknown): Block | null {
         ...(b.flat === true ? { flat: true } : {}),
         ...(b.headingSize === "s" || b.headingSize === "m" ? { headingSize: b.headingSize as "s" | "m" } : {}),
         ...(b.accent === true ? { accent: true } : {}),
+        ...(b.mode === "links" ? { mode: "links" as const } : {}),
+        ...(str(b.email, 120) ? { email: str(b.email, 120) } : {}),
+        ...(Array.isArray(b.links) && b.links.length
+          ? { links: list(b.links, 10, (x: Any) => ({ label: str(x?.label, 40), url: safeLink(x?.url) })) }
+          : {}),
       };
     case "hire":
       return { id, type: "hire", text: str(b.text, 300) };
@@ -500,14 +678,14 @@ function normalizeLinks(id: string, b: Any): Block {
       style: pick(btn.style, ["fill", "outline", "soft", "shadow"], "fill"),
       shape: pick(btn.shape, ["square", "rounded", "pill"], "pill"),
       color: typeof btn.color === "string" && /^#[0-9a-f]{6}$/i.test(btn.color) ? btn.color.toUpperCase() : null,
-      textColor: typeof btn.textColor === "string" && /^#[0-9a-f]{6}$/i.test(btn.textColor) ? btn.textColor.toUpperCase() : null,
+      textColor:
+        typeof btn.textColor === "string" && /^#[0-9a-f]{6}$/i.test(btn.textColor) ? btn.textColor.toUpperCase() : null,
     },
     share: bool(b.share, true),
   };
 }
 
 /* ---------- free-form sections ---------- */
-
 
 /** Links an artist can put on a button or picture: web, email, phone, or a page on their own site. */
 export function safeLink(v: unknown): string {
@@ -551,7 +729,9 @@ function normalizeFreeItem(raw: Any): FreeItem {
     tone: tone(raw.tone, "#5B3A2E"),
     hidden: bool(raw.hidden),
     font: pick(raw.font, ["body", "heading"], raw.kind === "heading" || raw.kind === "quote" ? "heading" : "body"),
-    weight: Math.round(num(raw.weight, 300, 900, raw.kind === "heading" ? 700 : raw.kind === "button" ? 600 : 400) / 100) * 100,
+    weight:
+      Math.round(num(raw.weight, 300, 900, raw.kind === "heading" ? 700 : raw.kind === "button" ? 600 : 400) / 100) *
+      100,
     lineHeight: num(raw.lineHeight, 80, 240, raw.kind === "heading" ? 105 : 155),
     tracking: num(raw.tracking, -10, 50, 0),
     upper: bool(raw.upper),
@@ -656,13 +836,15 @@ export function normalizeHeader(raw: unknown): HeaderSettings {
   const bg = typeof h.background === "string" ? h.background : "none";
   return {
     sticky: h.sticky === true,
-    background: bg === "surface" || HEX.test(bg) ? bg : "none",
+    background: bg === "surface" || bg === "glass" || HEX.test(bg) ? bg : "none",
     tagline: h.tagline !== false,
     hire: {
       on: typeof hire.on === "boolean" ? hire.on : null,
       label: str(hire.label, 40),
       link: safeLink(hire.link),
       style: hire.style === "outline" ? "outline" : "filled",
+      ...(HEX.test(String(hire.color)) ? { color: String(hire.color).toUpperCase() } : {}),
+      ...(hire.icon === "cart" || hire.icon === "arrow" ? { icon: hire.icon as "cart" } : {}),
     },
     linkGap: num(h.linkGap, 4, 64, 20),
     padding: num(h.padding, 0, 80, 0),
@@ -677,6 +859,9 @@ export function normalizeHeader(raw: unknown): HeaderSettings {
     logoFont: isFont(h.logoFont) ? h.logoFont : null,
     upperLinks: bool(h.upperLinks),
     gradientTo: HEX.test(String(h.gradientTo)) ? String(h.gradientTo).toUpperCase() : null,
+    ...(h.taglineBeside === true ? { taglineBeside: true } : {}),
+    ...(h.socialDivider === true ? { socialDivider: true } : {}),
+    ...(h.rail === true ? { rail: true } : {}),
   };
 }
 
@@ -704,12 +889,19 @@ export function normalizeFooter(raw: unknown): FooterSettings {
     border: bool(f.border),
     padding: num(f.padding, 0, 120, 32),
     gradientTo: HEX.test(String(f.gradientTo)) ? String(f.gradientTo).toUpperCase() : null,
+    ...(f.tagline === true ? { tagline: true } : {}),
+    ...(str(f.line, 80) ? { line: str(f.line, 80) } : {}),
   };
 }
 
 /** Dropdowns go one level deep: a page sits inside a top-level page (not the home page, not itself). */
 function tidyParents(pages: PageDraft[]): PageDraft[] {
-  const top = new Set(pages.slice(1).filter((p) => !p.parentId).map((p) => p.id));
+  const top = new Set(
+    pages
+      .slice(1)
+      .filter((p) => !p.parentId)
+      .map((p) => p.id),
+  );
   return pages.map((p, i) => ({
     ...p,
     parentId: i > 0 && p.parentId && p.parentId !== p.id && top.has(p.parentId) ? p.parentId : null,

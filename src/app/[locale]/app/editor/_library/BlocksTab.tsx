@@ -16,7 +16,13 @@ export function previewHeight(b: Block): number {
     case "free":
       return Math.round(b.rows * 47 + 40 + (b.style ? b.style.padTop + b.style.padBottom : 0));
     case "cards":
-      return b.variant === "nav" ? 160 : b.variant === "marquee" || b.variant === "stats" ? 320 : b.variant === "timeline" ? 1100 : 640;
+      return b.variant === "nav"
+        ? 160
+        : b.variant === "marquee" || b.variant === "stats"
+          ? 320
+          : b.variant === "timeline"
+            ? 1100
+            : 640;
     case "gallery":
       return b.layout === "slider" ? 520 : 720;
     case "credits":
@@ -28,6 +34,10 @@ export function previewHeight(b: Block): number {
       return 300;
     case "header":
       return 160;
+    case "spread":
+      return 760;
+    case "brand":
+      return 640;
     default:
       return 560;
   }
@@ -106,7 +116,7 @@ export function BlocksTab({
       <BlockPreview kind={k} draft={draft} media={media} projects={projects} />
       <span className="text-ink block truncate px-3 py-2 text-[12px] font-semibold">{t(`blocks.${k.key}`)}</span>
       {k.pro && (
-        <span className="bg-lime text-on-lime absolute end-2 top-2 rounded-pill px-1.5 text-[9px] leading-[16px] font-bold tracking-[0.06em]">
+        <span className="bg-lime text-on-lime rounded-pill absolute end-2 top-2 px-1.5 text-[9px] leading-[16px] font-bold tracking-[0.06em]">
           PRO
         </span>
       )}
@@ -133,7 +143,7 @@ export function BlocksTab({
           <button
             type="button"
             onClick={() => setOpen(null)}
-            className="hover:bg-mist -ms-1 flex h-9 w-fit items-center gap-1.5 rounded-pill ps-1.5 pe-3 text-[13px] font-semibold"
+            className="hover:bg-mist rounded-pill -ms-1 flex h-9 w-fit items-center gap-1.5 ps-1.5 pe-3 text-[13px] font-semibold"
             data-testid="library-back"
           >
             <Icon name="arrow-left" size={18} />
@@ -175,7 +185,10 @@ export function BlocksTab({
                       data-library-keys={keys.join(" ")}
                       className="hover:bg-mist flex h-[52px] items-center gap-3 rounded-[12px] px-2 text-start"
                     >
-                      <span aria-hidden className="pointer-events-none h-9 w-[52px] flex-none overflow-hidden rounded-[6px] bg-[#141414]">
+                      <span
+                        aria-hidden
+                        className="pointer-events-none h-9 w-[52px] flex-none overflow-hidden rounded-[6px] bg-[#141414]"
+                      >
                         {first && <BlockPreview kind={first} draft={draft} media={media} projects={projects} />}
                       </span>
                       <span className="min-w-0 flex-1 truncate text-[14px] font-medium">{t(`library.${group}`)}</span>
@@ -191,7 +204,7 @@ export function BlocksTab({
                   onClick={() => onAdd(blank)}
                   data-testid="add-free-blank"
                   data-block-key="free-blank"
-                  className="border-line hover:bg-mist flex h-10 items-center justify-center gap-1.5 rounded-pill border text-[13px] font-semibold"
+                  className="border-line hover:bg-mist rounded-pill flex h-10 items-center justify-center gap-1.5 border text-[13px] font-semibold"
                 >
                   <Icon name="add" size={16} />
                   {t("library.blankSection")}

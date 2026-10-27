@@ -26,6 +26,7 @@ export { newId } from "./ids";
 import { newId } from "./ids";
 import { cardsBlock, type CardKey } from "./cards";
 import { sampleTone } from "./samples";
+import { defaultSectionStyle } from "./style";
 
 /** Round 13: an Images section with sample pictures until the artist drops in their own. */
 export function imagesBlock(layout: "grid" | "masonry" | "rows" | "slideshow"): Block {
@@ -68,6 +69,10 @@ const copy = {
     author: "Name, Company",
     before: "Sketch",
     after: "Final",
+    brand: "The studio",
+    brandText: "A few lines about the studio, community or shop this section belongs to.",
+    brandButton: "Visit the site",
+    brandTile: "Project",
   },
   ar: {
     cover: "خلّي الفرص تلاقيك.",
@@ -90,6 +95,10 @@ const copy = {
     author: "الاسم، الشركة",
     before: "اسكتش",
     after: "النهائي",
+    brand: "الاستوديو",
+    brandText: "بضعة أسطر عن الاستوديو أو المجتمع أو المتجر الذي يخص هذا القسم.",
+    brandButton: "زُر الموقع",
+    brandTile: "مشروع",
   },
 };
 export const blockCopy = copy;
@@ -118,7 +127,13 @@ export const blockKinds: BlockKind[] = [
   { key: "free-blank", type: "free", group: "freeform", icon: "shape", make: (l) => freeTemplate("blank", l) },
   { key: "free-collage", type: "free", group: "freeform", icon: "masonry", make: (l) => freeTemplate("collage", l) },
   { key: "free-split", type: "free", group: "freeform", icon: "columns", make: (l) => freeTemplate("split", l) },
-  { key: "free-statement", type: "free", group: "freeform", icon: "hero-headline", make: (l) => freeTemplate("statement", l) },
+  {
+    key: "free-statement",
+    type: "free",
+    group: "freeform",
+    icon: "hero-headline",
+    make: (l) => freeTemplate("statement", l),
+  },
   // Layout
   {
     key: "cover",
@@ -161,6 +176,65 @@ export const blockKinds: BlockKind[] = [
     make: (l) => ({ id: newId(), type: "hero", text: copy[l].hero, align: "start" }),
   },
   // Galleries
+  {
+    // Round 19: one project per screen (Eslam Aboshady's site): a lead picture, up to three sheets, the words.
+    key: "spread",
+    type: "spread",
+    group: "galleries",
+    icon: "fullscreen-grid",
+    make: () => ({
+      id: newId(),
+      type: "spread",
+      projectId: null,
+      lead: 0,
+      supports: [1, 2, 3],
+      label: "",
+      counter: true,
+      logos: true,
+      words: true,
+      snap: true,
+    }),
+  },
+  {
+    // Round 19: a section in another brand's colours.
+    key: "brand",
+    type: "brand",
+    group: "layout",
+    icon: "sparkle",
+    make: (l) => ({
+      id: newId(),
+      type: "brand",
+      style: {
+        ...defaultSectionStyle(),
+        bg: { ...defaultSectionStyle().bg, kind: "color", color: "#1F1B4D" },
+        padTop: 72,
+        padBottom: 72,
+      },
+      logoId: null,
+      logoWidth: 240,
+      mark: null,
+      heading: copy[l].brand,
+      headingFont: "heading",
+      text: copy[l].brandText,
+      button: { label: copy[l].brandButton, link: "", style: "filled" },
+      colors: { text: null, accent: "#FFFFFF", tile: null, tileText: null },
+      dir: "auto",
+      tiles: Array.from({ length: 3 }, (_, i) => ({
+        mediaId: null,
+        tone: sampleTone(i + 3),
+        title: copy[l].brandTile,
+        text: "",
+        link: "",
+        projectId: null,
+        sheet: 0,
+      })),
+      columns: 3,
+      tileRatio: "16/9",
+      tileRadius: 0,
+      tileBorder: true,
+      tileFont: "heading",
+    }),
+  },
   { key: "grid", type: "gallery", group: "galleries", icon: "grid", make: (l) => gallery("grid", l) },
   { key: "masonry", type: "gallery", group: "galleries", icon: "masonry", make: (l) => gallery("masonry", l) },
   { key: "slider", type: "gallery", group: "galleries", icon: "slider", make: (l) => gallery("slider", l) },
@@ -398,6 +472,8 @@ const CARD_ICONS: Record<CardKey, IconName> = {
   "c-films": "film",
   "c-offers": "hire-me-badge",
   "c-tiles": "fullscreen-grid",
+  "c-awards": "star",
+  "c-list": "list",
 };
 export const cardKinds: BlockKind[] = (Object.keys(CARD_ICONS) as CardKey[]).map((key) => ({
   key,
@@ -414,8 +490,26 @@ export type LibraryGroup = "intro" | "work" | "images" | "text" | "about" | "med
 /** What the library shows, in this order. Older block kinds still work on existing pages. */
 export const LIBRARY: Array<{ group: LibraryGroup; keys: string[] }> = [
   // Round 13: pictures first in every group ("show, not tell").
-  { group: "intro", keys: ["d-title-over", "d-hero-photo", "d-hero-split", "d-cover", "d-title", "d-statement", "c-nav"] },
-  { group: "work", keys: ["grid", "masonry", "feature", "c-tiles", "d-project-intro", "d-split-left", "d-split-right", "slider", "c-mosaic", "c-films"] },
+  {
+    group: "intro",
+    keys: ["d-title-over", "d-hero-photo", "d-hero-split", "d-cover", "d-title", "d-statement", "c-nav"],
+  },
+  {
+    group: "work",
+    keys: [
+      "spread",
+      "grid",
+      "masonry",
+      "feature",
+      "c-tiles",
+      "d-project-intro",
+      "d-split-left",
+      "d-split-right",
+      "slider",
+      "c-mosaic",
+      "c-films",
+    ],
+  },
   {
     group: "images",
     keys: [
@@ -437,7 +531,10 @@ export const LIBRARY: Array<{ group: LibraryGroup; keys: string[] }> = [
       "d-before-after",
     ],
   },
-  { group: "text", keys: ["header", "c-icons", "c-stats", "c-faq", "d-info", "d-long-text", "d-project-info", "d-resume", "quote"] },
+  {
+    group: "text",
+    keys: ["header", "c-icons", "c-stats", "c-faq", "d-info", "d-long-text", "d-project-info", "d-resume", "quote"],
+  },
   {
     group: "about",
     keys: [
@@ -445,6 +542,9 @@ export const LIBRARY: Array<{ group: LibraryGroup; keys: string[] }> = [
       "d-about-circle",
       "d-about",
       "c-cards",
+      "c-awards",
+      "c-list",
+      "brand",
       "c-testimonials",
       "c-timeline",
       "c-press",
@@ -472,9 +572,12 @@ export const isProBlock = (b: Block) =>
 
 /** The catalogue entry for a block on the page (galleries map back to their layout). */
 export function kindOf(b: Block): BlockKind {
-  if ((b.type === "free" || b.type === "cards") && b.design) return blockKinds.find((k) => k.key === b.design) ?? blockKinds[0];
-  if (b.type === "gallery") return blockKinds.find((k) => k.key === (b.layout === "masonry" || b.layout === "slider" ? b.layout : "grid"))!;
-  if (b.type === "images") return blockKinds.find((k) => k.key === `img-${b.layout}`) ?? blockKinds.find((k) => k.type === "images")!;
+  if ((b.type === "free" || b.type === "cards") && b.design)
+    return blockKinds.find((k) => k.key === b.design) ?? blockKinds[0];
+  if (b.type === "gallery")
+    return blockKinds.find((k) => k.key === (b.layout === "masonry" || b.layout === "slider" ? b.layout : "grid"))!;
+  if (b.type === "images")
+    return blockKinds.find((k) => k.key === `img-${b.layout}`) ?? blockKinds.find((k) => k.type === "images")!;
   return blockKinds.find((k) => k.type === b.type)!;
 }
 

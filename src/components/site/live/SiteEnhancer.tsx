@@ -92,6 +92,23 @@ export function SiteEnhancer({ protectImages, closeLabel }: { protectImages: boo
       cleanups.push(() => io.disconnect());
     }
 
+    // Round 19: project spreads rise in as they scroll into view (unless motion is reduced).
+    const spreads = [...document.querySelectorAll<HTMLElement>("[data-spread]")];
+    if (spreads.length && "IntersectionObserver" in window && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const io = new IntersectionObserver(
+        (entries) =>
+          entries.forEach((en) => {
+            if (en.isIntersecting) {
+              en.target.classList.add("is-in");
+              io.unobserve(en.target);
+            }
+          }),
+        { threshold: 0.12 },
+      );
+      spreads.forEach((el) => io.observe(el));
+      cleanups.push(() => io.disconnect());
+    }
+
     // Lightbox: every marked picture on the page is part of one set.
     // Masonry columns (round 14) hold their pictures column by column; the lightbox follows reading order.
     const boxes: HTMLElement[] = [];
@@ -101,7 +118,11 @@ export function SiteEnhancer({ protectImages, closeLabel }: { protectImages: boo
       if (!wall) boxes.push(el);
       else if (!done.has(wall)) {
         done.add(wall);
-        boxes.push(...[...wall.querySelectorAll<HTMLElement>("[data-lightbox]")].sort((a, b) => Number(a.style.order) - Number(b.style.order)));
+        boxes.push(
+          ...[...wall.querySelectorAll<HTMLElement>("[data-lightbox]")].sort(
+            (a, b) => Number(a.style.order) - Number(b.style.order),
+          ),
+        );
       }
     }
     const items = boxes.map((el) => ({ src: el.dataset.lightbox!, caption: el.dataset.lightboxCaption }));

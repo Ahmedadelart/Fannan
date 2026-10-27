@@ -54,8 +54,7 @@ const W = {
     info: "The idea",
     infoText:
       "Use this block for a short note about you or a project. To change the words, just click right here.\n\nTIP: duplicate this block to build a longer layout.",
-    long:
-      "Tell the story of this piece: the brief, the idea, how you made it and what came out of it. A few honest lines help the people who hire understand how you think.\n\nClick anywhere in this text to edit it.",
+    long: "Tell the story of this piece: the brief, the idea, how you made it and what came out of it. A few honest lines help the people who hire understand how you think.\n\nClick anywhere in this text to edit it.",
     metaLabels: "PROJECT\nClient name\n\nROLE\nArt direction\n\nYEAR\n2026",
     metaText:
       "Describe the project: what was asked, what you did, the tools and the team. Keep it short and specific; details like the client and your role are what studios look for first.",
@@ -120,10 +119,12 @@ const W = {
     intro: "مقدمة قصيرة",
     statement: "أعمال وراءها حكاية.",
     info: "الفكرة",
-    infoText: "استخدم هذا القسم لنبذة قصيرة عنك أو عن مشروع. لتغيير الكلمات اضغط هنا مباشرة.\n\nنصيحة: كرّر هذا القسم لتبني تصميمًا أطول.",
+    infoText:
+      "استخدم هذا القسم لنبذة قصيرة عنك أو عن مشروع. لتغيير الكلمات اضغط هنا مباشرة.\n\nنصيحة: كرّر هذا القسم لتبني تصميمًا أطول.",
     long: "احكِ قصة هذا العمل: المطلوب، والفكرة، وكيف صنعته، وما الذي نتج عنه. بضعة أسطر صادقة تساعد من يوظّفون على فهم طريقة تفكيرك.\n\nاضغط في أي مكان من النص لتعديله.",
     metaLabels: "المشروع\nاسم العميل\n\nالدور\nإدارة فنية\n\nالسنة\n٢٠٢٦",
-    metaText: "صف المشروع: ما الذي طُلب، وما الذي فعلته، والأدوات والفريق. اجعله قصيرًا ومحددًا؛ فالعميل ودورك أول ما تبحث عنه الاستوديوهات.",
+    metaText:
+      "صف المشروع: ما الذي طُلب، وما الذي فعلته، والأدوات والفريق. اجعله قصيرًا ومحددًا؛ فالعميل ودورك أول ما تبحث عنه الاستوديوهات.",
     resume: [
       ["الخبرات", "اسم الاستوديو\n٢٠٢٣ – الآن\n\nاسم الوكالة\n٢٠٢٠ – ٢٠٢٣"],
       ["عملاء مختارون", "العميل الأول\nالعميل الثاني\nالعميل الثالث"],
@@ -191,7 +192,8 @@ export function designBlock(key: DesignKey, language: Locale): Extract<Block, { 
   let z = 0;
   const el = (kind: FreeKind, place: FreePlace, extra: Partial<FreeItem> = {}) =>
     freeItem(kind, language, place, { z: ++z, ...extra });
-  const img = (place: FreePlace, n: number, extra: Partial<FreeItem> = {}) => el("image", place, { tone: TONES[n % TONES.length], ...extra });
+  const img = (place: FreePlace, n: number, extra: Partial<FreeItem> = {}) =>
+    el("image", place, { tone: TONES[n % TONES.length], ...extra });
   const heading = (place: FreePlace, text: string, size: number, extra: Partial<FreeItem> = {}) =>
     el("heading", place, { text, size, ...extra });
   const text = (place: FreePlace, value: string, size = 18, extra: Partial<FreeItem> = {}) =>
@@ -236,7 +238,11 @@ export function designBlock(key: DesignKey, language: Locale): Extract<Block, { 
         dec("underline", P(1, 9, 8, 1), { style: "scribble", amp: 60, freq: 4, stroke: 6 }),
       ];
       rows = 11;
-      style = sectionStyle({ bg: { kind: "gradient", color: "#FFF4D6", color2: "#FFFFFF" }, padTop: 40, padBottom: 40 });
+      style = sectionStyle({
+        bg: { kind: "gradient", color: "#FFF4D6", color2: "#FFFFFF" },
+        padTop: 40,
+        padBottom: 40,
+      });
       break;
     case "d-info":
       items = [
@@ -272,14 +278,20 @@ export function designBlock(key: DesignKey, language: Locale): Extract<Block, { 
         heading(P(1, 2, 12, 2), w.experience, 64),
         ...w.resume.flatMap(([h, body], i) => [
           eyebrow(P(1 + i * 6, 6, 5, 1), h, { opacity: 90 }),
-          el("divider", P(1 + i * 6, 7, 5, 1), { deco: { ...defaultDeco(), ...decoDefaults("divider"), style: "solid", stroke: 1 } }),
+          el("divider", P(1 + i * 6, 7, 5, 1), {
+            deco: { ...defaultDeco(), ...decoDefaults("divider"), style: "solid", stroke: 1 },
+          }),
           text(P(1 + i * 6, 8, 5, 6), body, 17, { lineHeight: 170 }),
         ]),
       ];
       rows = 14;
       break;
     case "d-image-caption":
-      items = [img(P(0, 0, 24, 14), 2), heading(P(0, 15, 12, 1), w.imageTitle, 24), text(P(0, 16, 14, 2), w.caption, 16, { opacity: 75 })];
+      items = [
+        img(P(0, 0, 24, 14), 2),
+        heading(P(0, 15, 12, 1), w.imageTitle, 24),
+        text(P(0, 16, 14, 2), w.caption, 16, { opacity: 75 }),
+      ];
       rows = 18;
       break;
     case "d-grid-4":
@@ -358,7 +370,13 @@ export function designBlock(key: DesignKey, language: Locale): Extract<Block, { 
       items = [
         eyebrow(P(6, 1, 12, 1), w.eyebrowContact, { align: "center", color: "#1A1C16", opacity: 75 }),
         heading(P(2, 2, 20, 5), w.contactTitle, 84, { align: "center", color: "#1A1C16", lineHeight: 95 }),
-        el("button", P(8, 8, 8, 2), { text: w.contactText, link: "mailto:hello@yourname.com", fill: "#1A1C16", color: "#FFFFFF", size: 20 }),
+        el("button", P(8, 8, 8, 2), {
+          text: w.contactText,
+          link: "mailto:hello@yourname.com",
+          fill: "#1A1C16",
+          color: "#FFFFFF",
+          size: 20,
+        }),
         text(P(6, 11, 12, 1), w.contactMore, 16, { align: "center", color: "#1A1C16", opacity: 75 }),
       ];
       rows = 13;
@@ -375,7 +393,9 @@ export function designBlock(key: DesignKey, language: Locale): Extract<Block, { 
       items = [
         eyebrow(P(6, 1, 12, 1), w.eyebrowClients, { align: "center" }),
         heading(P(3, 2, 18, 2), w.clients, 48, { align: "center" }),
-        ...[0, 1, 2, 3, 4, 5].map((n) => img(P(1 + (n % 3) * 8, 5 + Math.floor(n / 3) * 5, 6, 4), n, { fit: "contain", radius: 16 })),
+        ...[0, 1, 2, 3, 4, 5].map((n) =>
+          img(P(1 + (n % 3) * 8, 5 + Math.floor(n / 3) * 5, 6, 4), n, { fit: "contain", radius: 16 }),
+        ),
       ];
       rows = 15;
       break;
@@ -391,14 +411,23 @@ export function designBlock(key: DesignKey, language: Locale): Extract<Block, { 
         dec("doodle", P(21, 14, 2, 2), { style: "sparkle", filled: false, stroke: 4 }),
       ];
       rows = 17;
-      style = sectionStyle({ bg: { kind: "gradient", color: "#FFF4D6", color2: "#FFFFFF" }, padTop: 24, padBottom: 24 });
+      style = sectionStyle({
+        bg: { kind: "gradient", color: "#FFF4D6", color2: "#FFFFFF" },
+        padTop: 24,
+        padBottom: 24,
+      });
       break;
     case "d-hero-photo":
       items = [
         img(P(0, 0, 24, 16), 0, { opacity: 100 }),
         el("shape", P(0, 0, 24, 16), { fill: "#000000", opacity: 40, z: 2 } as Partial<FreeItem>),
         eyebrow(P(2, 5, 10, 1), w.eyebrowWork, { color: "#FFFFFF", opacity: 85, z: 3 }),
-        heading(P(2, 6, 18, 6), w.photoTitle, 112, { color: "#FFFFFF", z: 3, lineHeight: 92, deco: { ...defaultDeco(), textShadow: true } }),
+        heading(P(2, 6, 18, 6), w.photoTitle, 112, {
+          color: "#FFFFFF",
+          z: 3,
+          lineHeight: 92,
+          deco: { ...defaultDeco(), textShadow: true },
+        }),
         el("button", P(2, 13, 5, 2), { text: w.heroButton, link: "/", z: 4, deco: { ...defaultDeco(), arrow: true } }),
       ];
       rows = 16;
@@ -420,7 +449,12 @@ export function designBlock(key: DesignKey, language: Locale): Extract<Block, { 
       items = [
         heading(P(1, 1, 14, 3), w.cta, 56, { lineHeight: 100 }),
         text(P(1, 4, 13, 2), w.ctaText, 19, { opacity: 80 }),
-        el("button", P(17, 2, 6, 2), { text: w.ctaButton, link: "/contact", size: 18, deco: { ...defaultDeco(), arrow: true } }),
+        el("button", P(17, 2, 6, 2), {
+          text: w.ctaButton,
+          link: "/contact",
+          size: 18,
+          deco: { ...defaultDeco(), arrow: true },
+        }),
       ];
       rows = 7;
       style = sectionStyle({
@@ -440,7 +474,11 @@ export function designBlock(key: DesignKey, language: Locale): Extract<Block, { 
         eyebrow(P(px(14, 9), 4, 9, 1), w.eyebrowProject),
         heading(P(px(14, 10), 5, 10, 3), w.layoutTitle, 56, { lineHeight: 100 }),
         text(P(px(14, 9), 8, 9, 3), w.layoutText, 19, { lineHeight: 165, opacity: 85 }),
-        el("button", P(px(14, 5), 12, 5, 2), { text: w.projectButton, link: "/", deco: { ...defaultDeco(), arrow: true } }),
+        el("button", P(px(14, 5), 12, 5, 2), {
+          text: w.projectButton,
+          link: "/",
+          deco: { ...defaultDeco(), arrow: true },
+        }),
       ];
       rows = 16;
       break;
@@ -456,13 +494,23 @@ export function designBlock(key: DesignKey, language: Locale): Extract<Block, { 
       rows = 16;
       break;
     case "d-fullbleed":
-      items = [img(P(0, 0, 24, 15), 3), heading(P(1, 16, 12, 1), w.imageTitle, 22), text(P(1, 17, 14, 1), w.caption, 16, { opacity: 75 })];
+      items = [
+        img(P(0, 0, 24, 15), 3),
+        heading(P(1, 16, 12, 1), w.imageTitle, 22),
+        text(P(1, 17, 14, 1), w.caption, 16, { opacity: 75 }),
+      ];
       rows = 19;
       style = sectionStyle({ width: "full", padTop: 0, padBottom: 24 });
       break;
     case "d-three-up":
       // Three pictures with a one-square gap between them (7 + 8 + 7 squares).
-      items = ([[0, 7], [8, 8], [17, 7]] as const).flatMap(([x, wd], n) => [
+      items = (
+        [
+          [0, 7],
+          [8, 8],
+          [17, 7],
+        ] as const
+      ).flatMap(([x, wd], n) => [
         img(P(x, 0, wd, 11), n + 3),
         heading(P(x, 12, wd, 1), w.imageTitle, 20),
         text(P(x, 13, wd, 1), w.description, 15, { opacity: 75 }),
@@ -492,7 +540,10 @@ export function designBlock(key: DesignKey, language: Locale): Extract<Block, { 
       items = [
         eyebrow(P(1, 2, 10, 1), w.eyebrowProject),
         heading(P(1, 3, 10, 3), w.projectTitle, 64, { lineHeight: 95 }),
-        ...w.meta.flatMap(([label, value], i) => [eyebrow(P(1, 7 + i * 2, 4, 1), label), text(P(5, 7 + i * 2, 6, 1), value, 17, { weight: 600 })]),
+        ...w.meta.flatMap(([label, value], i) => [
+          eyebrow(P(1, 7 + i * 2, 4, 1), label),
+          text(P(5, 7 + i * 2, 6, 1), value, 17, { weight: 600 }),
+        ]),
         text(P(1, 13, 10, 3), w.metaText, 17, { lineHeight: 165, opacity: 85 }),
         img(P(12, 0, 12, 17), 2),
       ];
@@ -511,5 +562,14 @@ export function designBlock(key: DesignKey, language: Locale): Extract<Block, { 
       rows = 17;
       break;
   }
-  return { id: newId(), type: "free", rows, background, bgMediaId: null, items, design: key, ...(style ? { style } : {}) };
+  return {
+    id: newId(),
+    type: "free",
+    rows,
+    background,
+    bgMediaId: null,
+    items,
+    design: key,
+    ...(style ? { style } : {}),
+  };
 }

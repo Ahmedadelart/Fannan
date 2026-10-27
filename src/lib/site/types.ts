@@ -34,6 +34,10 @@ export interface Theme {
   nav: NavLayout;
   logoMediaId: string | null;
   faviconMediaId: string | null;
+  /** Round 19: the page's content width in px (not set: as wide as the screen). */
+  maxWidth?: number | null;
+  /** Round 19: project pages as a reader (every sheet a screen, snapping) instead of the standard page. */
+  projectPage?: "standard" | "reader";
 }
 
 /** Placeholder artwork until the artist picks real media: just a colour and a shape. */
@@ -68,6 +72,8 @@ export interface SectionStyle {
     overlayOpacity: number;
     /** Background picture blurred by this many px (0: sharp). */
     blur?: number;
+    /** Round 19: the picture takes the band's colour (luminosity blend), like a tinted photo. */
+    blend?: "normal" | "luminosity";
     pattern: PatternId;
     patternColor: string;
     patternOpacity: number;
@@ -89,6 +95,10 @@ export interface SectionStyle {
   animate: "none" | "fade" | "slide" | "zoom";
   /** Round 13: where the section's text sits (not set: the section's own default). */
   align?: "start" | "center" | "end";
+  /** Round 19: the section's name in the page index rail (not set: its heading). */
+  railLabel?: string;
+  /** Round 19: keep this section out of the page index rail. */
+  railHide?: boolean;
 }
 
 type B<T extends string, P> = { id: string; type: T; style?: SectionStyle } & P;
@@ -113,10 +123,77 @@ export type ImagesLayout = "grid" | "masonry" | "rows" | "slideshow";
 
 // Round 13: alternate (tall and short), featured (one big, Pro) and rows (every cover keeps its shape).
 export type GalleryLayout = "grid" | "masonry" | "slider" | "fullscreen" | "alternate" | "featured" | "rows";
-export type ThumbHover = "none" | "zoom" | "title" | "lift";
+export type ThumbHover = "none" | "zoom" | "title" | "lift" | "view";
 export type ThumbRatio = "16:9" | "4:3" | "1:1" | "4:5" | "3:4" | "2:3" | "original";
 
+/** Round 19: one more picture in a cover slideshow. */
+export interface CoverSlide {
+  mediaId: string | null;
+  caption: string;
+  crop?: Crop;
+}
+export interface CoverStat {
+  value: string;
+  label: string;
+  link: string;
+}
+
+/** Round 19: a project shown as one screen: lead picture, up to three supporting sheets, words. */
+export interface SpreadSection {
+  projectId: string | null;
+  /** Which of the project's pictures lead, and which support (indexes into its gallery). */
+  lead: number;
+  supports: number[];
+  /** Short name for the page index rail (not set: the project's title). */
+  label: string;
+  counter: boolean;
+  logos: boolean;
+  words: boolean;
+  /** Each spread fills the screen and the page snaps to it. */
+  snap: boolean;
+}
+
+/** Round 19: a section in another brand's colours (a studio, a community, a shop). */
+export interface BrandTile {
+  mediaId: string | null;
+  tone: string;
+  title: string;
+  text: string;
+  link: string;
+  /** Instead of a link: one of the artist's projects, opened at a sheet. */
+  projectId: string | null;
+  sheet: number;
+}
+export interface BrandSection {
+  logoId: string | null;
+  /** Logo width in px. */
+  logoWidth: number;
+  /** A round mark with a couple of letters and a word, when there is no logo picture ("rb REDBUBBLE"). */
+  mark: { letters: string; word: string } | null;
+  heading: string;
+  headingFont: "heading" | "arabic" | "body";
+  text: string;
+  button: { label: string; link: string; style: "filled" | "outline"; pill?: boolean };
+  /** null picks readable colours for the band. */
+  colors: {
+    text: string | null;
+    heading?: string | null;
+    accent: string;
+    tile: string | null;
+    tileText: string | null;
+  };
+  dir: "auto" | "ltr" | "rtl";
+  tiles: BrandTile[];
+  columns: number;
+  tileRatio: "16/9" | "1/1" | "4/5" | "4/3" | "3/4" | "15/16";
+  tileRadius: number;
+  tileBorder: boolean;
+  tileFont: "heading" | "arabic" | "body";
+}
+
 export type Block =
+  | B<"spread", SpreadSection>
+  | B<"brand", BrandSection>
   | B<
       "cover",
       {
@@ -135,8 +212,18 @@ export type Block =
         inset?: boolean;
         /** Round 14: edge to edge with rounded bottom corners. */
         roundBottom?: boolean;
-        /** Heading size: a small line, medium or big. */
-        size?: "s" | "m" | "l";
+        /** Heading size: a small line, medium, big, or a poster-size headline. */
+        size?: "s" | "m" | "l" | "xl";
+        /** Round 19: more pictures that crossfade after the first (a slideshow), each with its own caption. */
+        slides?: CoverSlide[];
+        /** Seconds between slides. */
+        interval?: number;
+        /** Caption of the first picture (shown small in a corner). */
+        caption?: string;
+        /** A third line under the words, in the Arabic font when it is Arabic. */
+        note?: string;
+        /** Big numbers with a word under each ("+100K followers"), linking out. */
+        stats?: CoverStat[];
       }
     >
   | B<
@@ -151,13 +238,16 @@ export type Block =
         /** A small pill ("Directed by me"). */
         badge: string;
         divider: boolean;
-        size: "m" | "l";
+        /** Round 19: "xl" is a poster-size section title (clamped to the page width). */
+        size: "m" | "l" | "xl";
         /** Title in the accent colour, in capitals, with a short accent line under it. */
         accent?: boolean;
         upper?: boolean;
         underline?: boolean;
         /** Round 15: a picture under the title (a hand-drawn line), instead of the short line. */
         lineId?: string | null;
+        /** Round 19: a narrow title that wraps onto two lines sooner ("Let's draw / something new"). */
+        narrow?: boolean;
       }
     >
   | B<
@@ -195,7 +285,7 @@ export type Block =
         /** Round 13: what a cover does under the pointer. Not set: a light fade. */
         hover?: ThumbHover;
         /** Caption lines under each cover, in order (not set: the older title + credits switches). */
-        lines?: Array<"network" | "client" | "role" | "studio" | "year">;
+        lines?: Array<"network" | "client" | "role" | "studio" | "year" | "meta">;
         /** Show the role line in the accent colour. */
         accentRole?: boolean;
         /** Grid: posters in one row, landscape covers in the next (wideColumns across). */
@@ -209,6 +299,10 @@ export type Block =
         coverLogo?: boolean;
         /** Round 14: caption text size (not set: medium). */
         captionSize?: "s" | "m" | "l" | "xl";
+        /** Round 19: each project's logos under its caption. */
+        captionLogos?: boolean;
+        /** Round 19: rows layout: the height rows aim for, px. */
+        rowHeight?: number;
         filter: boolean;
         /** Round 8: each project's own card size and text, instead of one size for all. */
         cardSizes?: boolean;
@@ -218,7 +312,10 @@ export type Block =
         samples: SampleArt[];
       }
     >
-  | B<"image", { mediaId: string | null; tone: string; caption: string; fullWidth: boolean; crop?: Crop; showCaption?: boolean }>
+  | B<
+      "image",
+      { mediaId: string | null; tone: string; caption: string; fullWidth: boolean; crop?: Crop; showCaption?: boolean }
+    >
   | B<
       "images",
       {
@@ -232,6 +329,8 @@ export type Block =
         captions: boolean;
         /** A coloured frame around each picture (null: none). */
         frame?: string | null;
+        /** Round 19: a smaller heading (a group name inside a longer list). */
+        headingSize?: "s";
       }
     >
   | B<"video", { url: string; caption: string }>
@@ -244,7 +343,14 @@ export type Block =
       "logos",
       {
         heading: string;
-        items: Array<{ name: string; mediaId: string | null }>;
+        items: Array<{
+          name: string;
+          mediaId: string | null;
+          /** Round 19: a logo without a picture shows its name as a wordmark: in the heading font, boxed, lowercase or Arabic. */
+          look?: "word" | "box" | "lower" | "arabic";
+          /** Round 19: this logo's own height in px. */
+          height?: number;
+        }>;
         /** A colour band behind the logos (null: none). */
         band?: string | null;
         /** Logos as they are, or all white / all black. */
@@ -258,8 +364,42 @@ export type Block =
         moving?: boolean;
       }
     >
-  | B<"about", { heading: string; text: string; photoId: string | null; cvId: string | null }>
-  | B<"contact", { heading: string; text: string; button: string; form?: ContactForm; /** An illustration beside the form. */ mediaId?: string | null; /** No panel behind it. */ flat?: boolean; /** Round 14: heading size (not set: large) and colour. */ headingSize?: "s" | "m" | "l"; accent?: boolean }>
+  | B<
+      "about",
+      {
+        heading: string;
+        text: string;
+        photoId: string | null;
+        cvId: string | null;
+        /** Round 19: the photo floats inside the words with a thin frame. */
+        photoStyle?: "side" | "float";
+        /** Round 19: a side column: skills as chips, and the studios or communities the artist belongs to. */
+        skillsTitle?: string;
+        skills?: string[];
+        orgsTitle?: string;
+        orgs?: Array<{ mediaId: string | null; text: string; link: string }>;
+      }
+    >
+  | B<
+      "contact",
+      {
+        heading: string;
+        text: string;
+        button: string;
+        form?: ContactForm;
+        /** An illustration beside the form. */
+        mediaId?: string | null;
+        /** No panel behind it. */
+        flat?: boolean;
+        /** Round 14: heading size (not set: large) and colour. */
+        headingSize?: "s" | "m" | "l";
+        accent?: boolean;
+        /** Round 19: instead of a form, an email with a Copy button and a row of link buttons. */
+        mode?: "form" | "links";
+        email?: string;
+        links?: Array<{ label: string; url: string }>;
+      }
+    >
   | B<"hire", { text: string }>
   | B<"social", { links: Array<{ network: string; url: string }> }>
   | B<"quote", { text: string; author: string }>
@@ -312,6 +452,8 @@ export interface LinksSection {
 /* ---------- card sections (round 7) ---------- */
 
 export type CardVariant =
+  | "awards"
+  | "list"
   | "icons"
   | "images"
   | "tiles"
@@ -341,6 +483,9 @@ export interface CardItem {
   price: string;
   /** Films: YouTube or Vimeo address. */
   url: string;
+  /** Round 19: awards and lists: a date line, and a second line (the organisation). */
+  date?: string;
+  subtitle?: string;
 }
 
 export interface CardsSection {
@@ -595,11 +740,18 @@ export interface ContactForm {
 /** The site header, edited by clicking it on the canvas (round 4). */
 export interface HeaderSettings {
   sticky: boolean;
-  /** "none" sits on the page; "surface" is a soft band; or a #hex colour. */
+  /** "none" sits on the page; "surface" is a soft band; "glass" is see-through and blurred (round 19); or a #hex colour. */
   background: string;
   tagline: boolean;
-  /** The Hire me button. `on` null follows the "available for work" switch. */
-  hire: { on: boolean | null; label: string; link: string; style: "filled" | "outline" };
+  /** The Hire me button. `on` null follows the "available for work" switch. Round 19: its own colour and a small icon. */
+  hire: {
+    on: boolean | null;
+    label: string;
+    link: string;
+    style: "filled" | "outline";
+    color?: string | null;
+    icon?: "none" | "cart" | "arrow";
+  };
   /** Round 5 (Squarespace-style header settings). */
   linkGap: number;
   /** Extra space above and below, px. */
@@ -620,6 +772,12 @@ export interface HeaderSettings {
   upperLinks: boolean;
   /** With a colour background: fades to this colour (round 7). */
   gradientTo: string | null;
+  /** Round 19: the tagline beside the name instead of under it. */
+  taglineBeside?: boolean;
+  /** Round 19: a thin line before the social icons. */
+  socialDivider?: boolean;
+  /** Round 19: a page index pinned at the side on wide screens (spreads and named sections). */
+  rail?: boolean;
 }
 
 /** The site footer, edited by clicking it on the canvas (round 4). */
@@ -647,6 +805,9 @@ export interface FooterSettings {
   padding: number;
   /** With a background colour: fades to this colour (round 7). */
   gradientTo: string | null;
+  /** Round 19: the tagline after the name, and a short line after that ("Cairo, Egypt"). */
+  tagline?: boolean;
+  line?: string;
 }
 
 export interface SiteDraft {

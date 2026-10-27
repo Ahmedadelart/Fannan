@@ -101,7 +101,10 @@ export async function recordTime(siteId: string, seconds: number) {
   await adminDb()
     .collection("stats")
     .doc(docId(siteId, dayKey()))
-    .set({ siteId, day: dayKey(), timeTotal: FieldValue.increment(s), timeCount: FieldValue.increment(1) }, { merge: true });
+    .set(
+      { siteId, day: dayKey(), timeTotal: FieldValue.increment(s), timeCount: FieldValue.increment(1) },
+      { merge: true },
+    );
 }
 
 /* ---------- reading ---------- */
@@ -153,7 +156,12 @@ function sum(docs: Doc[]): Totals {
     }),
     { visitors: 0, views: 0, projectViews: 0, time: 0, timed: 0 },
   );
-  return { visitors: t.visitors, views: t.views, projectViews: t.projectViews, avgSeconds: t.timed ? Math.round(t.time / t.timed) : 0 };
+  return {
+    visitors: t.visitors,
+    views: t.views,
+    projectViews: t.projectViews,
+    avgSeconds: t.timed ? Math.round(t.time / t.timed) : 0,
+  };
 }
 
 function merge(docs: Doc[], field: "byProject" | "referrers" | "countries" | "clicks") {
@@ -175,7 +183,12 @@ export async function statsReport(siteId: string, range: number, publishDays: st
   const prev = previous.map((d) => byDay.get(d) ?? {});
   const published = new Set(publishDays);
   return {
-    days: current.map((d, i) => ({ day: d, visitors: cur[i].visitors ?? 0, views: cur[i].views ?? 0, published: published.has(d) })),
+    days: current.map((d, i) => ({
+      day: d,
+      visitors: cur[i].visitors ?? 0,
+      views: cur[i].views ?? 0,
+      published: published.has(d),
+    })),
     totals: sum(cur),
     previous: sum(prev),
     byProject: merge(cur, "byProject"),
@@ -191,5 +204,8 @@ export async function linkClicks(siteId: string, range = 30): Promise<Record<str
   const col = adminDb().collection("stats");
   const days = Array.from({ length: range }, (_, i) => dayKey(new Date(today - i * 86_400_000)));
   const snaps = await adminDb().getAll(...days.map((d) => col.doc(docId(siteId, d))));
-  return merge(snaps.filter((s) => s.exists).map((s) => s.data() as Doc), "clicks");
+  return merge(
+    snaps.filter((s) => s.exists).map((s) => s.data() as Doc),
+    "clicks",
+  );
 }

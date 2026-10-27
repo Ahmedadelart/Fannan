@@ -64,8 +64,24 @@ export function FreeItemSettings({
               />
               {it.drawing.boil.on && (
                 <>
-                  <Range title={fr("boilAmount")} value={it.drawing.boil.amount} min={5} max={100} onChange={(v) => setItem({ drawing: { ...it.drawing!, boil: { ...it.drawing!.boil, amount: v } } }, ik("ba"))} />
-                  <Range title={fr("boilSpeed")} value={it.drawing.boil.speed} min={0} max={100} onChange={(v) => setItem({ drawing: { ...it.drawing!, boil: { ...it.drawing!.boil, speed: v } } }, ik("bs"))} />
+                  <Range
+                    title={fr("boilAmount")}
+                    value={it.drawing.boil.amount}
+                    min={5}
+                    max={100}
+                    onChange={(v) =>
+                      setItem({ drawing: { ...it.drawing!, boil: { ...it.drawing!.boil, amount: v } } }, ik("ba"))
+                    }
+                  />
+                  <Range
+                    title={fr("boilSpeed")}
+                    value={it.drawing.boil.speed}
+                    min={0}
+                    max={100}
+                    onChange={(v) =>
+                      setItem({ drawing: { ...it.drawing!, boil: { ...it.drawing!.boil, speed: v } } }, ik("bs"))
+                    }
+                  />
                 </>
               )}
             </>
@@ -75,7 +91,9 @@ export function FreeItemSettings({
       {(it.kind === "text" || it.kind === "heading" || it.kind === "quote") && (
         <Area title={fr("text")} value={it.text} onChange={(v) => setItem({ text: v }, ik("t"))} />
       )}
-      {it.kind === "button" && <Text title={fr("label")} value={it.text} onChange={(v) => setItem({ text: v }, ik("t"))} />}
+      {it.kind === "button" && (
+        <Text title={fr("label")} value={it.text} onChange={(v) => setItem({ text: v }, ik("t"))} />
+      )}
       {(it.kind === "badge" || (it.kind === "doodle" && dc.style === "burst")) && (
         <Text title={dk("words")} value={it.text} onChange={(v) => setItem({ text: v }, ik("t"))} />
       )}
@@ -106,9 +124,13 @@ export function FreeItemSettings({
           </div>
         </div>
       )}
-      {it.kind === "quote" && <Text title={fr("author")} value={it.caption} onChange={(v) => setItem({ caption: v }, ik("cap"))} />}
+      {it.kind === "quote" && (
+        <Text title={fr("author")} value={it.caption} onChange={(v) => setItem({ caption: v }, ik("cap"))} />
+      )}
       {it.kind === "image" && mediaField(f("image"), it.mediaId, "image", (id) => setItem({ mediaId: id }))}
-      {it.kind === "image" && <Text title={fr("caption")} value={it.caption} onChange={(v) => setItem({ caption: v }, ik("cap"))} />}
+      {it.kind === "image" && (
+        <Text title={fr("caption")} value={it.caption} onChange={(v) => setItem({ caption: v }, ik("cap"))} />
+      )}
       {it.kind === "image" && (
         <Choice
           title={fr("fit")}
@@ -121,7 +143,13 @@ export function FreeItemSettings({
         />
       )}
       {it.kind === "video" && (
-        <Text title={fr("videoLink")} dir="ltr" placeholder="https://youtu.be/" value={it.url} onChange={(v) => setItem({ url: v }, ik("url"))} />
+        <Text
+          title={fr("videoLink")}
+          dir="ltr"
+          placeholder="https://youtu.be/"
+          value={it.url}
+          onChange={(v) => setItem({ url: v }, ik("url"))}
+        />
       )}
       {it.kind === "audio" && (
         <Text
@@ -132,7 +160,9 @@ export function FreeItemSettings({
           onChange={(v) => setItem({ url: v }, ik("url"))}
         />
       )}
-      {it.kind === "map" && <Text title={fr("address")} value={it.text} onChange={(v) => setItem({ text: v }, ik("t"))} />}
+      {it.kind === "map" && (
+        <Text title={fr("address")} value={it.text} onChange={(v) => setItem({ text: v }, ik("t"))} />
+      )}
       {it.kind === "social" && <p className="text-muted text-[12px]">{fr("socialHint")}</p>}
       {it.kind === "project" && (
         <Label title={fr("project")}>
@@ -157,27 +187,47 @@ export function FreeItemSettings({
               <Text
                 title={fr("question")}
                 value={e.title}
-                onChange={(v) => setItem({ entries: it.entries.map((x, j) => (j === n ? { ...x, title: v } : x)) }, ik(`q${n}`))}
+                onChange={(v) =>
+                  setItem({ entries: it.entries.map((x, j) => (j === n ? { ...x, title: v } : x)) }, ik(`q${n}`))
+                }
               />
               <Area
                 title={fr("answer")}
                 value={e.body}
-                onChange={(v) => setItem({ entries: it.entries.map((x, j) => (j === n ? { ...x, body: v } : x)) }, ik(`a${n}`))}
+                onChange={(v) =>
+                  setItem({ entries: it.entries.map((x, j) => (j === n ? { ...x, body: v } : x)) }, ik(`a${n}`))
+                }
               />
-              <Button size="sm" variant="ghost" icon="delete" onClick={() => setItem({ entries: it.entries.filter((_, j) => j !== n) })}>
+              <Button
+                size="sm"
+                variant="ghost"
+                icon="delete"
+                onClick={() => setItem({ entries: it.entries.filter((_, j) => j !== n) })}
+              >
                 {fr("removeRow")}
               </Button>
             </div>
           ))}
           {it.entries.length < 20 && (
-            <Button size="sm" variant="outline" icon="add" onClick={() => setItem({ entries: [...it.entries, { title: "", body: "" }] })}>
+            <Button
+              size="sm"
+              variant="outline"
+              icon="add"
+              onClick={() => setItem({ entries: [...it.entries, { title: "", body: "" }] })}
+            >
               {fr("addRow")}
             </Button>
           )}
         </div>
       )}
       {linkable && (
-        <Text title={fr("link")} dir="ltr" placeholder={fr("linkPlaceholder")} value={it.link} onChange={(v) => setItem({ link: v }, ik("link"))} />
+        <Text
+          title={fr("link")}
+          dir="ltr"
+          placeholder={fr("linkPlaceholder")}
+          value={it.link}
+          onChange={(v) => setItem({ link: v }, ik("link"))}
+        />
       )}
       <Switch title={fr("hideOnPhone")} checked={it.hideOnPhone} onChange={(v) => setItem({ hideOnPhone: v })} />
       <Switch title={fr("hideEverywhere")} checked={it.hidden} onChange={(v) => setItem({ hidden: v })} />
@@ -200,7 +250,9 @@ export function FreeItemSettings({
                 onClick={() => setDeco({ style: st })}
                 className={cx(
                   "h-9 rounded-[8px] px-1 text-[11px] font-semibold",
-                  dc.style === st ? "bg-secondary-container text-on-secondary-container" : "border-line hover:bg-mist border",
+                  dc.style === st
+                    ? "bg-secondary-container text-on-secondary-container"
+                    : "border-line hover:bg-mist border",
                 )}
               >
                 {dk(`styles.${st}`)}
@@ -210,13 +262,37 @@ export function FreeItemSettings({
         </div>
       )}
       {drawn && (
-        <ColorField title={fr("color")} value={it.fill} themeLabel={fr("theme")} onChange={(v) => setItem({ fill: v }, ik("fill"))} />
+        <ColorField
+          title={fr("color")}
+          value={it.fill}
+          themeLabel={fr("theme")}
+          onChange={(v) => setItem({ fill: v }, ik("fill"))}
+        />
       )}
-      {(it.kind === "underline" || it.kind === "arrow" || it.kind === "divider" || it.kind === "icon" || (it.kind === "doodle" && !dc.filled)) && (
-        <Range title={fr("thickness")} value={dc.stroke} min={1} max={40} unit="px" onChange={(v) => setDeco({ stroke: v }, ik("sw"))} />
+      {(it.kind === "underline" ||
+        it.kind === "arrow" ||
+        it.kind === "divider" ||
+        it.kind === "icon" ||
+        (it.kind === "doodle" && !dc.filled)) && (
+        <Range
+          title={fr("thickness")}
+          value={dc.stroke}
+          min={1}
+          max={40}
+          unit="px"
+          onChange={(v) => setDeco({ stroke: v }, ik("sw"))}
+        />
       )}
-      {(it.kind === "underline" || (it.kind === "divider" && (dc.style === "wavy" || dc.style === "zigzag" || dc.style === "double"))) && (
-        <Range title={dk("amp")} value={dc.amp} min={0} max={100} unit="%" onChange={(v) => setDeco({ amp: v }, ik("amp"))} />
+      {(it.kind === "underline" ||
+        (it.kind === "divider" && (dc.style === "wavy" || dc.style === "zigzag" || dc.style === "double"))) && (
+        <Range
+          title={dk("amp")}
+          value={dc.amp}
+          min={0}
+          max={100}
+          unit="%"
+          onChange={(v) => setDeco({ amp: v }, ik("amp"))}
+        />
       )}
       {(it.kind === "underline" ||
         (it.kind === "divider" && (dc.style === "wavy" || dc.style === "zigzag")) ||
@@ -230,7 +306,9 @@ export function FreeItemSettings({
           onChange={(v) => setDeco({ freq: v }, ik("freq"))}
         />
       )}
-      {(it.kind === "arrow" || it.kind === "highlight" || (it.kind === "doodle" && (dc.style === "star" || dc.style === "sparkle"))) && (
+      {(it.kind === "arrow" ||
+        it.kind === "highlight" ||
+        (it.kind === "doodle" && (dc.style === "star" || dc.style === "sparkle"))) && (
         <Range
           title={it.kind === "arrow" ? dk("curve") : it.kind === "highlight" ? dk("slant") : dk("sharp")}
           value={dc.curve}
@@ -253,11 +331,19 @@ export function FreeItemSettings({
             onChange={(v) => setDeco({ head: v })}
           />
           {dc.head !== "none" && (
-            <Range title={dk("headSize")} value={dc.headSize} min={8} max={120} onChange={(v) => setDeco({ headSize: v }, ik("hs"))} />
+            <Range
+              title={dk("headSize")}
+              value={dc.headSize}
+              min={8}
+              max={120}
+              onChange={(v) => setDeco({ headSize: v }, ik("hs"))}
+            />
           )}
         </>
       )}
-      {it.kind === "doodle" && <Switch title={dk("filled")} checked={dc.filled} onChange={(v) => setDeco({ filled: v })} />}
+      {it.kind === "doodle" && (
+        <Switch title={dk("filled")} checked={dc.filled} onChange={(v) => setDeco({ filled: v })} />
+      )}
       {(it.kind === "underline" || it.kind === "arrow") && (
         <div className="grid grid-cols-2 gap-x-3 gap-y-2">
           <Switch title={dk("dashed")} checked={dc.dashed} onChange={(v) => setDeco({ dashed: v })} />
@@ -267,7 +353,13 @@ export function FreeItemSettings({
         </div>
       )}
       {drawn && it.kind !== "icon" && (
-        <Range title={dk("wobble")} value={dc.wobble} min={0} max={100} onChange={(v) => setDeco({ wobble: v }, ik("wob"))} />
+        <Range
+          title={dk("wobble")}
+          value={dc.wobble}
+          min={0}
+          max={100}
+          onChange={(v) => setDeco({ wobble: v }, ik("wob"))}
+        />
       )}
       {it.kind === "icon" && (
         <>
@@ -282,7 +374,12 @@ export function FreeItemSettings({
             onChange={(v) => setDeco({ backing: v })}
           />
           {dc.backing !== "none" && (
-            <ColorField title={dk("backingColor")} value={it.fill2} themeLabel={fr("theme")} onChange={(v) => setItem({ fill2: v }, ik("f2"))} />
+            <ColorField
+              title={dk("backingColor")}
+              value={it.fill2}
+              themeLabel={fr("theme")}
+              onChange={(v) => setItem({ fill2: v }, ik("f2"))}
+            />
           )}
         </>
       )}
@@ -323,8 +420,20 @@ export function FreeItemSettings({
           {dc.filter === "duotone" && (
             <div className="flex items-center gap-2 text-[12px] font-semibold">
               {dk("duotone")}
-              <input type="color" aria-label={dk("dark")} value={dc.duo1} onChange={(e) => setDeco({ duo1: e.target.value.toUpperCase() }, ik("d1"))} className="border-line h-8 w-10 rounded-[8px] border p-0.5" />
-              <input type="color" aria-label={dk("light")} value={dc.duo2} onChange={(e) => setDeco({ duo2: e.target.value.toUpperCase() }, ik("d2"))} className="border-line h-8 w-10 rounded-[8px] border p-0.5" />
+              <input
+                type="color"
+                aria-label={dk("dark")}
+                value={dc.duo1}
+                onChange={(e) => setDeco({ duo1: e.target.value.toUpperCase() }, ik("d1"))}
+                className="border-line h-8 w-10 rounded-[8px] border p-0.5"
+              />
+              <input
+                type="color"
+                aria-label={dk("light")}
+                value={dc.duo2}
+                onChange={(e) => setDeco({ duo2: e.target.value.toUpperCase() }, ik("d2"))}
+                className="border-line h-8 w-10 rounded-[8px] border p-0.5"
+              />
             </div>
           )}
           <Choice
@@ -338,13 +447,25 @@ export function FreeItemSettings({
             onChange={(v) => setDeco({ backdrop: v })}
           />
           {dc.backdrop !== "none" && (
-            <ColorField title={dk("backdropColor")} value={it.fill2} themeLabel={fr("theme")} onChange={(v) => setItem({ fill2: v }, ik("f2"))} />
+            <ColorField
+              title={dk("backdropColor")}
+              value={it.fill2}
+              themeLabel={fr("theme")}
+              onChange={(v) => setItem({ fill2: v }, ik("f2"))}
+            />
           )}
         </>
       )}
-      {it.kind === "button" && <Switch title={dk("arrow")} checked={dc.arrow} onChange={(v) => setDeco({ arrow: v })} />}
+      {it.kind === "button" && (
+        <Switch title={dk("arrow")} checked={dc.arrow} onChange={(v) => setDeco({ arrow: v })} />
+      )}
       {(it.kind === "button" || it.kind === "shape" || it.kind === "panel" || it.kind === "badge") && (
-        <ColorField title={dk("gradientTo")} value={it.fill2} themeLabel={dk("noGradient")} onChange={(v) => setItem({ fill2: v }, ik("f2"))} />
+        <ColorField
+          title={dk("gradientTo")}
+          value={it.fill2}
+          themeLabel={dk("noGradient")}
+          onChange={(v) => setItem({ fill2: v }, ik("f2"))}
+        />
       )}
       {(it.kind === "text" || it.kind === "heading" || it.kind === "quote") && (
         <Switch title={dk("textShadow")} checked={dc.textShadow} onChange={(v) => setDeco({ textShadow: v })} />
@@ -420,10 +541,29 @@ export function FreeItemSettings({
             ]}
             onChange={(v) => setItem({ font: v })}
           />
-          <Range title={fr("weight")} value={it.weight} min={300} max={900} onChange={(v) => setItem({ weight: Math.round(v / 100) * 100 }, ik("w"))} />
-          <Range title={fr("lineHeight")} value={it.lineHeight} min={80} max={240} unit="%" onChange={(v) => setItem({ lineHeight: v }, ik("lh"))} />
+          <Range
+            title={fr("weight")}
+            value={it.weight}
+            min={300}
+            max={900}
+            onChange={(v) => setItem({ weight: Math.round(v / 100) * 100 }, ik("w"))}
+          />
+          <Range
+            title={fr("lineHeight")}
+            value={it.lineHeight}
+            min={80}
+            max={240}
+            unit="%"
+            onChange={(v) => setItem({ lineHeight: v }, ik("lh"))}
+          />
           {language !== "ar" && (
-            <Range title={fr("tracking")} value={it.tracking} min={-10} max={50} onChange={(v) => setItem({ tracking: v }, ik("tr"))} />
+            <Range
+              title={fr("tracking")}
+              value={it.tracking}
+              min={-10}
+              max={50}
+              onChange={(v) => setItem({ tracking: v }, ik("tr"))}
+            />
           )}
           <div className="grid grid-cols-2 gap-x-3 gap-y-2">
             <Switch title={fr("upper")} checked={it.upper} onChange={(v) => setItem({ upper: v })} />
@@ -444,20 +584,54 @@ export function FreeItemSettings({
         />
       )}
       {(typed || it.kind === "social") && (
-        <ColorField title={fr("textColor")} value={it.color} themeLabel={fr("theme")} onChange={(v) => setItem({ color: v }, ik("color"))} />
+        <ColorField
+          title={fr("textColor")}
+          value={it.color}
+          themeLabel={fr("theme")}
+          onChange={(v) => setItem({ color: v }, ik("color"))}
+        />
       )}
-      {(it.kind === "button" || it.kind === "shape" || it.kind === "line" || it.kind === "panel" || it.kind === "badge") && (
-        <ColorField title={fr("color")} value={it.fill} themeLabel={fr("theme")} onChange={(v) => setItem({ fill: v }, ik("fill"))} />
+      {(it.kind === "button" ||
+        it.kind === "shape" ||
+        it.kind === "line" ||
+        it.kind === "panel" ||
+        it.kind === "badge") && (
+        <ColorField
+          title={fr("color")}
+          value={it.fill}
+          themeLabel={fr("theme")}
+          onChange={(v) => setItem({ fill: v }, ik("fill"))}
+        />
       )}
       {it.kind === "line" && (
-        <Range title={fr("thickness")} value={it.size} min={8} max={160} onChange={(v) => setItem({ size: v }, ik("size"))} />
+        <Range
+          title={fr("thickness")}
+          value={it.size}
+          min={8}
+          max={160}
+          onChange={(v) => setItem({ size: v }, ik("size"))}
+        />
       )}
       {cornered && it.shape !== "circle" && (
-        <Range title={fr("corners")} value={Math.min(it.radius, 200)} min={0} max={200} unit="px" onChange={(v) => setItem({ radius: v }, ik("radius"))} />
+        <Range
+          title={fr("corners")}
+          value={Math.min(it.radius, 200)}
+          min={0}
+          max={200}
+          unit="px"
+          onChange={(v) => setItem({ radius: v }, ik("radius"))}
+        />
       )}
       {framed && (
         <>
-          <Range title={fr("border")} value={it.borderWidth} min={0} max={24} unit="px" onChange={(v) => setItem({ borderWidth: v }, ik("bw"))} />
+          <Range
+            title={fr("border")}
+            value={it.borderWidth}
+            min={0}
+            max={24}
+            unit="px"
+            onChange={(v) => setItem({ borderWidth: v }, ik("bw"))}
+          />
           {it.borderWidth > 0 && (
             <ColorField
               title={fr("borderColor")}
@@ -469,14 +643,32 @@ export function FreeItemSettings({
           <Switch title={fr("shadow")} checked={it.shadow} onChange={(v) => setItem({ shadow: v })} />
         </>
       )}
-      <Range title={fr("rotate")} value={it.rotate} min={-180} max={180} unit="°" onChange={(v) => setItem({ rotate: v }, ik("rot"))} />
-      <Range title={fr("opacity")} value={it.opacity} min={0} max={100} unit="%" onChange={(v) => setItem({ opacity: v }, ik("op"))} />
+      <Range
+        title={fr("rotate")}
+        value={it.rotate}
+        min={-180}
+        max={180}
+        unit="°"
+        onChange={(v) => setItem({ rotate: v }, ik("rot"))}
+      />
+      <Range
+        title={fr("opacity")}
+        value={it.opacity}
+        min={0}
+        max={100}
+        unit="%"
+        onChange={(v) => setItem({ opacity: v }, ik("op"))}
+      />
     </>
   );
 
   return (
     <>
-      <button type="button" onClick={onBack} className="text-ink-soft hover:text-ink self-start text-[12px] font-semibold">
+      <button
+        type="button"
+        onClick={onBack}
+        className="text-ink-soft hover:text-ink self-start text-[12px] font-semibold"
+      >
         {fr("backToSection")}
       </button>
       <div className="flex items-center gap-2 text-[14px] font-semibold">{fr(`kinds.${it.kind}`)}</div>

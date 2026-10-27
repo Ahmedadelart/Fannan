@@ -4,12 +4,14 @@ import { notFound, redirect } from "next/navigation";
 import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { StagingBar } from "@/components/StagingBar";
 import { ContactForm } from "@/components/site/live/ContactForm";
 import { MatureGate } from "@/components/site/live/MatureGate";
 import { PasswordForm } from "@/components/site/live/PasswordForm";
 import { SiteEnhancer } from "@/components/site/live/SiteEnhancer";
+import { ReaderControls } from "@/components/site/live/ReaderControls";
+import { cx } from "@/lib/cx";
 import { networkName } from "@/lib/site/blocks";
 import { hasOwnPage } from "@/lib/site/pages";
 import { contactFormOf } from "@/lib/site/contact";
@@ -83,6 +85,7 @@ function galleryProjects(s: LiveSite): GalleryProject[] {
             credits: p.credits,
             thanks: p.thanks,
             tools: p.tools,
+            unit: p.unit,
             mediaIds: p.mediaIds,
             logoIds: p.logoIds,
             laurelIds: p.laurelIds,
@@ -161,7 +164,15 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
 /* ---------- pieces ---------- */
 
-async function PasswordScreen({ username, scope, lock }: { username: string; scope: string; lock?: SiteDraft["lock"] }) {
+async function PasswordScreen({
+  username,
+  scope,
+  lock,
+}: {
+  username: string;
+  scope: string;
+  lock?: SiteDraft["lock"];
+}) {
   const t = await getTranslations("site.password");
   return (
     <PasswordForm
@@ -194,7 +205,10 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
     [t("team"), project.team],
   ].filter(([k, v]) => k && v) as Array<[string, string]>;
   // The first paragraph is the one line under the title; the rest are the artist's words.
-  const paragraphs = text.description.split(/\n\s*\n/).map((x) => x.trim()).filter(Boolean);
+  const paragraphs = text.description
+    .split(/\n\s*\n/)
+    .map((x) => x.trim())
+    .filter(Boolean);
   const lead = paragraphs[0] && paragraphs[0].length <= 240 ? paragraphs[0] : "";
   const words = lead ? paragraphs.slice(1) : paragraphs;
   // Back to the part of the site this project belongs to (a section whose menu link name is one of its tags).
@@ -202,13 +216,19 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
     for (const tag of project.tags.map((x) => x.toLowerCase())) {
       for (const pg of site.pages) {
         const b = pg.blocks.find((x) => x.style?.anchor?.toLowerCase() === tag);
-        if (b) return { href: `/${pg.slug}#${b.style!.anchor}`.replace(/^\/\//, "/"), label: b.type === "header" ? b.title : "" };
+        if (b)
+          return {
+            href: `/${pg.slug}#${b.style!.anchor}`.replace(/^\/\//, "/"),
+            label: b.type === "header" ? b.title : "",
+          };
       }
     }
     return { href: "/", label: "" };
   })();
   // Next project: the next one shown in galleries (newest first), round to the first.
-  const visible = site.projects.filter((x) => x.visibility === "public").sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+  const visible = site.projects
+    .filter((x) => x.visibility === "public")
+    .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
   const at = visible.findIndex((x) => x.id === project.id);
   const next = visible.length > 1 && at >= 0 ? visible[(at + 1) % visible.length] : null;
   const video = project.video ? parseVideoLink(project.video) : null;
@@ -261,7 +281,10 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
             <div key={m.id} className="flex max-w-[760px] flex-col gap-2 pt-6" data-testid="project-part">
               <h2
                 className="m-0 text-[28px] leading-[1.15]"
-                style={{ fontFamily: "var(--site-heading)", fontWeight: "var(--site-heading-weight)" as unknown as number }}
+                style={{
+                  fontFamily: "var(--site-heading)",
+                  fontWeight: "var(--site-heading-weight)" as unknown as number,
+                }}
               >
                 {m.title}
               </h2>
@@ -356,6 +379,7 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
         return (
           <figure
             key={m.id}
+            id={`sheet-${project.mediaIds.indexOf(m.id)}`}
             className="m-0 flex flex-col gap-2"
             style={style}
             data-lightbox={m.display?.lightbox !== false ? src.src : undefined}
@@ -407,17 +431,31 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
             <h1 className="m-0 text-[56px] leading-[1.02] @max-2xl:text-[36px]" style={heading}>
               {text.title}
             </h1>
-            {lead && <p className="m-0 text-[20px] leading-[1.5]" style={{ color: "var(--site-muted)" }}>{lead}</p>}
-            {!lead && project.category && <span style={{ color: "var(--site-muted)" }}>{tp(`categories.${project.category}`)}</span>}
+            {lead && (
+              <p className="m-0 text-[20px] leading-[1.5]" style={{ color: "var(--site-muted)" }}>
+                {lead}
+              </p>
+            )}
+            {!lead && project.category && (
+              <span style={{ color: "var(--site-muted)" }}>{tp(`categories.${project.category}`)}</span>
+            )}
           </div>
           {text.role && (
-            <span className="rounded-full px-4 py-2 text-[15px] font-semibold" style={{ background: "var(--site-accent)", color: "var(--site-on-accent)" }} data-testid="project-role">
+            <span
+              className="rounded-full px-4 py-2 text-[15px] font-semibold"
+              style={{ background: "var(--site-accent)", color: "var(--site-on-accent)" }}
+              data-testid="project-role"
+            >
               {text.role}
             </span>
           )}
         </div>
         {credits.length > 0 && (
-          <dl className="m-0 flex flex-wrap gap-x-10 gap-y-3 py-5" style={{ borderBlock: "1px solid var(--site-line)" }} data-testid="project-meta">
+          <dl
+            className="m-0 flex flex-wrap gap-x-10 gap-y-3 py-5"
+            style={{ borderBlock: "1px solid var(--site-line)" }}
+            data-testid="project-meta"
+          >
             {credits.map(([k, v]) => (
               <div key={k} className="flex flex-col">
                 <dt className="text-[13px]" style={{ color: "var(--site-muted)" }}>
@@ -445,9 +483,17 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
           >
             {(videoPoster(video) || coverSrc) && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={videoPoster(video) ?? coverSrc!.src} alt={text.title} className="block h-full w-full object-cover" />
+              <img
+                src={videoPoster(video) ?? coverSrc!.src}
+                alt={text.title}
+                className="block h-full w-full object-cover"
+              />
             )}
-            <span aria-hidden className="absolute inset-0 m-auto flex size-16 items-center justify-center rounded-full" style={{ background: "var(--site-accent)" }}>
+            <span
+              aria-hidden
+              className="absolute inset-0 m-auto flex size-16 items-center justify-center rounded-full"
+              style={{ background: "var(--site-accent)" }}
+            >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="var(--site-on-accent)">
                 <path d="M8 5v14l11-7z" />
               </svg>
@@ -455,19 +501,21 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
           </div>
         ) : coverSrc && cover ? (
           <figure className="m-0" data-lightbox={coverSrc.src} data-lightbox-caption={cover.caption || text.title}>
-          <picture className="block overflow-hidden" style={{ borderRadius: "calc(var(--site-radius) * 1.6)" }}>
-            {coverSrc.avifSet && <source type="image/avif" srcSet={coverSrc.avifSet} sizes="(min-width: 1200px) 1200px, 100vw" />}
-            <img
-              src={coverSrc.src}
-              srcSet={coverSrc.srcSet}
-              sizes="(min-width: 1200px) 1200px, 100vw"
-              alt={text.title}
-              width={cover.width}
-              height={cover.height}
-              fetchPriority="high"
-              className="mx-auto block h-auto max-h-[80vh] w-auto max-w-full"
-            />
-          </picture>
+            <picture className="block overflow-hidden" style={{ borderRadius: "calc(var(--site-radius) * 1.6)" }}>
+              {coverSrc.avifSet && (
+                <source type="image/avif" srcSet={coverSrc.avifSet} sizes="(min-width: 1200px) 1200px, 100vw" />
+              )}
+              <img
+                src={coverSrc.src}
+                srcSet={coverSrc.srcSet}
+                sizes="(min-width: 1200px) 1200px, 100vw"
+                alt={text.title}
+                width={cover.width}
+                height={cover.height}
+                fetchPriority="high"
+                className="mx-auto block h-auto max-h-[80vh] w-auto max-w-full"
+              />
+            </picture>
           </figure>
         ) : null}
       </header>
@@ -493,7 +541,9 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
             const l = site.media[id];
             const src = l ? imageSources(l, 400, base) : null;
             // eslint-disable-next-line @next/next/no-img-element
-            return src ? <img key={id} src={src.src} alt={l?.alt || ""} className="block h-20 w-auto" loading="lazy" /> : null;
+            return src ? (
+              <img key={id} src={src.src} alt={l?.alt || ""} className="block h-20 w-auto" loading="lazy" />
+            ) : null;
           })}
         </section>
       )}
@@ -506,7 +556,11 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
           </h2>
           <div className="flex flex-wrap gap-2">
             {project.tools.map((x) => (
-              <span key={x} className="rounded-full px-3.5 py-1.5 text-[14px]" style={{ border: "1px solid var(--site-line)" }}>
+              <span
+                key={x}
+                className="rounded-full px-3.5 py-1.5 text-[14px]"
+                style={{ border: "1px solid var(--site-line)" }}
+              >
                 {x}
               </span>
             ))}
@@ -517,7 +571,12 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
         <a
           href={`/${next.slug}`}
           className="grid grid-cols-[1fr_minmax(0,320px)] items-center gap-8 overflow-hidden p-8 @max-xl:grid-cols-1"
-          style={{ background: "var(--site-surface)", borderRadius: "calc(var(--site-radius) * 2)", color: "inherit", textDecoration: "none" }}
+          style={{
+            background: "var(--site-surface)",
+            borderRadius: "calc(var(--site-radius) * 2)",
+            color: "inherit",
+            textDecoration: "none",
+          }}
           data-testid="next-project"
         >
           <span className="flex flex-col gap-2">
@@ -527,7 +586,9 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
             <span className="text-[28px] leading-tight" style={heading}>
               {projectText(site, next).title}
             </span>
-            <span style={{ color: "var(--site-muted)" }}>{[next.network || next.client, projectText(site, next).role].filter(Boolean).join(" · ")}</span>
+            <span style={{ color: "var(--site-muted)" }}>
+              {[next.network || next.client, projectText(site, next).role].filter(Boolean).join(" · ")}
+            </span>
             <span className="font-semibold" style={{ color: "var(--site-accent-ink)" }}>
               {t("view")} →
             </span>
@@ -536,10 +597,233 @@ async function ProjectView({ site, project, base }: { site: LiveSite; project: P
             const nc = next.coverId && next.visibility === "public" ? site.media[next.coverId] : undefined;
             const src = nc ? imageSources(nc, 800, base) : null;
             // eslint-disable-next-line @next/next/no-img-element
-            return src ? <img src={src.src} alt="" loading="lazy" className="block aspect-[16/10] w-full object-cover" style={{ borderRadius: "var(--site-radius)" }} /> : <span />;
+            return src ? (
+              <img
+                src={src.src}
+                alt=""
+                loading="lazy"
+                className="block aspect-[16/10] w-full object-cover"
+                style={{ borderRadius: "var(--site-radius)" }}
+              />
+            ) : (
+              <span />
+            );
           })()}
         </a>
       )}
+    </article>
+  );
+}
+
+/** Round 19: the project reader. Every sheet is a screen the page snaps to; arrow keys step between them. */
+async function ReaderView({ site, project, base }: { site: LiveSite; project: PublishedProject; base: string }) {
+  const t = await getTranslations("site.project");
+  const tm = await getTranslations("site.mature");
+  const text = projectText(site, project);
+  // Previous and next follow the home page's spreads, then the rest newest first.
+  const home = site.pages[0];
+  const spreadIds = (home?.blocks ?? []).flatMap((b) => (b.type === "spread" && b.projectId ? [b.projectId] : []));
+  const visible = site.projects.filter((x) => x.visibility === "public");
+  const ordered = [
+    ...spreadIds.map((id) => visible.find((p) => p.id === id)).filter((p): p is PublishedProject => !!p),
+    ...visible.filter((p) => !spreadIds.includes(p.id)).sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0)),
+  ];
+  const at = ordered.findIndex((p) => p.id === project.id);
+  const prev = ordered.length > 1 && at >= 0 ? ordered[(at - 1 + ordered.length) % ordered.length] : null;
+  const next = ordered.length > 1 && at >= 0 ? ordered[(at + 1) % ordered.length] : null;
+  // Close goes back to this project's spread on the home page when it has one.
+  const spread = home?.blocks.find((b) => b.type === "spread" && b.projectId === project.id);
+  const backHref = spread ? `/#${spread.style?.anchor || `s-${spread.id}`}` : "/";
+  const items = project.mediaIds
+    .map((id, k) => ({ k, m: site.media[id] as (SiteMedia & { text?: string; title?: string }) | undefined }))
+    .filter((x) => !!x.m);
+  const heading = {
+    fontFamily: "var(--site-heading)",
+    fontWeight: "var(--site-heading-weight)" as unknown as number,
+    textTransform: "var(--site-heading-case, none)" as CSSProperties["textTransform"],
+    letterSpacing: "var(--site-heading-tracking, -0.01em)",
+  };
+  const credits: Array<[string, string]> = [
+    [t("client"), project.client],
+    [t("role"), text.role],
+    [t("year"), project.year],
+  ].filter(([, v]) => v) as Array<[string, string]>;
+  const paragraphs = text.description
+    .split(/\n\s*\n/)
+    .map((x) => x.trim())
+    .filter(Boolean);
+  const sizes = "(min-width: 1200px) 1200px, 100vw";
+  const sheets = (
+    <div className="mx-auto flex w-full max-w-[1200px] flex-col items-center gap-6 pb-10" data-testid="reader-sheets">
+      {items.map(({ k, m }) => {
+        if (!m) return null;
+        let body: ReactNode = null;
+        if (m.type === "text") {
+          body = (
+            <div className="flex max-w-[760px] flex-col gap-2 py-10 text-[18px] leading-[1.6]">
+              {m.title && (
+                <h2 className="m-0 text-[28px]" style={heading}>
+                  {m.title}
+                </h2>
+              )}
+              {m.text && <div className="whitespace-pre-line">{m.text}</div>}
+            </div>
+          );
+        } else if ((m.type === "gif" || m.type === "loop") && m.loop) {
+          body = (
+            <video
+              src={`${base}${m.loop}`}
+              poster={imageSources(m, 1600, base)?.src}
+              muted
+              loop
+              playsInline
+              autoPlay
+              className="block"
+            />
+          );
+        } else if (m.type === "embed") {
+          const v = parseVideoLink(m.embed?.url ?? "");
+          const poster = m.embed?.poster ?? videoPoster(v);
+          body = (
+            <div
+              className="relative w-full overflow-hidden"
+              data-video={m.embed?.url}
+              style={{ aspectRatio: "16 / 9", background: "#141414", maxWidth: 1200 }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {poster && (
+                <img
+                  src={poster}
+                  alt={m.embed?.title ?? ""}
+                  loading="lazy"
+                  className="block h-full w-full object-cover"
+                />
+              )}
+            </div>
+          );
+        } else {
+          const src = imageSources(m, 2560, base);
+          if (!src) return null;
+          body = (
+            <picture className="block max-w-full">
+              {src.avifSet && <source type="image/avif" srcSet={src.avifSet} sizes={sizes} />}
+              <img
+                src={src.src}
+                srcSet={src.srcSet}
+                sizes={sizes}
+                alt={m.alt || `${text.title}, ${k + 1}`}
+                width={m.width}
+                height={m.height}
+                loading={k < 2 ? "eager" : "lazy"}
+                decoding="async"
+                className="block"
+              />
+            </picture>
+          );
+        }
+        return (
+          <figure
+            key={m.id}
+            id={`sheet-${k}`}
+            data-sheet
+            className="site-reader-sheet m-0 grid max-w-full justify-items-center gap-2"
+          >
+            {body}
+            <figcaption className="text-[12px] tabular-nums" style={{ color: "var(--site-muted)" }}>
+              {k + 1} / {items.length}
+            </figcaption>
+          </figure>
+        );
+      })}
+    </div>
+  );
+  const navLink = (p: PublishedProject | null, which: "prev" | "next") =>
+    p ? (
+      <a
+        href={`/${p.slug}`}
+        className={cx("grid max-w-[46%] gap-1", which === "next" && "ms-auto text-end")}
+        style={{ color: "inherit", textDecoration: "none" }}
+        data-testid={`reader-${which}`}
+      >
+        <span className="text-[13px]" style={{ color: "var(--site-muted)" }}>
+          {which === "prev" ? t("prev") : t("next")}
+        </span>
+        <b className="text-[26px] leading-none" style={heading}>
+          {projectText(site, p).title}
+        </b>
+      </a>
+    ) : (
+      <span />
+    );
+  return (
+    <article className="site-reader flex flex-col gap-10" data-testid="project-reader">
+      <div className="site-reader-bar">
+        <div className="flex h-14 items-center justify-between gap-4">
+          <b className="min-w-0 truncate text-[22px]" style={heading}>
+            {text.title}
+          </b>
+          <a
+            href={backHref}
+            className="site-contact-link inline-flex items-center gap-2 px-4 py-2 text-[14px] font-semibold"
+            style={{
+              border: "2px solid var(--site-text)",
+              color: "inherit",
+              textDecoration: "none",
+              borderRadius: "var(--site-radius)",
+            }}
+            data-testid="reader-close"
+          >
+            {t("close")} ✕
+          </a>
+        </div>
+      </div>
+      <header
+        className="site-reader-head grid items-end gap-5 @max-2xl:grid-cols-1"
+        style={{ gridTemplateColumns: "minmax(0, 1.2fr) minmax(0, 0.8fr)" }}
+      >
+        <h1 className="m-0 text-[clamp(40px,6cqi,96px)] leading-[.88]" style={{ ...heading, textWrap: "balance" }}>
+          {text.title}
+        </h1>
+        {credits.length > 0 && (
+          <dl
+            className="m-0 grid gap-x-4 gap-y-1.5 text-[15px]"
+            style={{ gridTemplateColumns: "auto 1fr" }}
+            data-testid="reader-meta"
+          >
+            {credits.map(([k, v]) => (
+              <div key={k} className="contents">
+                <dt style={{ color: "var(--site-muted)" }}>{k}</dt>
+                <dd className="m-0 font-medium">{v}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        {paragraphs.length > 0 && (
+          <div className="col-span-full flex max-w-[70ch] flex-col gap-3 text-[17px]">
+            {paragraphs.map((w, i) => (
+              <p key={i} className="m-0 whitespace-pre-line">
+                {w}
+              </p>
+            ))}
+          </div>
+        )}
+      </header>
+      {project.mature ? (
+        <MatureGate text={tm("text")} button={tm("view")}>
+          {sheets}
+        </MatureGate>
+      ) : (
+        sheets
+      )}
+      <nav
+        className="site-reader-nav flex justify-between gap-4 pt-5 pb-14"
+        style={{ borderTop: "1px solid var(--site-text)" }}
+        aria-label={t("next")}
+      >
+        {navLink(prev, "prev")}
+        {navLink(next, "next")}
+      </nav>
+      <ReaderControls backHref={backHref} />
     </article>
   );
 }
@@ -601,11 +885,11 @@ function Integrations({ ga, pixel }: { ga: string; pixel: string }) {
 
 /** Social links and the CV from Settings. */
 function footerLinks(site: LiveSite, cvLabel: string) {
-  const links: Array<{ href: string; label: string; download?: boolean; kind: "social" | "cv" }> = site.settings.social.map(
-    (l) => ({ href: l.url, label: networkName(l.network, l.url), kind: "social" }),
-  );
+  const links: Array<{ href: string; label: string; download?: boolean; kind: "social" | "cv" }> =
+    site.settings.social.map((l) => ({ href: l.url, label: networkName(l.network, l.url), kind: "social" }));
   const cv = site.settings.cvMediaId;
-  if (cv && site.media[cv]) links.push({ href: `/m/pdf/${site.siteId}/${cv}`, label: cvLabel, download: true, kind: "cv" });
+  if (cv && site.media[cv])
+    links.push({ href: `/m/pdf/${site.siteId}/${cv}`, label: cvLabel, download: true, kind: "cv" });
   return links;
 }
 
@@ -671,7 +955,15 @@ export default async function ArtistSite({ params }: { params: Promise<Params> }
   let content: ReactNode | undefined;
   if (siteLocked) content = <PasswordScreen username={username} scope="site" lock={site.lock} />;
   else if (!unlocked) content = <PasswordScreen username={username} scope={r.scope} lock={site.lock} />;
-  else if (r.kind === "project") content = <ProjectView site={site} project={r.project} base={base} />;
+  else if (r.kind === "project")
+    content =
+      site.theme.projectPage === "reader" ? (
+        <ReaderView site={site} project={r.project} base={base} />
+      ) : (
+        <ProjectView site={site} project={r.project} base={base} />
+      );
+  // The reader has its own bar instead of the site's menu and footer.
+  const reader = r.kind === "project" && unlocked && !siteLocked && site.theme.projectPage === "reader";
   // The password page can have its own background (Design → Password page).
   const contentStyle = (siteLocked || !unlocked) && site.lock ? site.lock.style : undefined;
 
@@ -687,6 +979,7 @@ export default async function ArtistSite({ params }: { params: Promise<Params> }
         projects={galleryProjects(site)}
         mediaBase={base}
         live
+        bare={reader}
         content={content}
         contentStyle={contentStyle}
         credit={credit}
@@ -702,7 +995,11 @@ export default async function ArtistSite({ params }: { params: Promise<Params> }
         contactFallback={site.settings.contact}
         social={site.settings.social}
         renderContact={(b) => (
-          <ContactForm button={b.button} turnstileKey={TURNSTILE_SITE_KEY} form={contactFormOf(b, site.settings.contact)} />
+          <ContactForm
+            button={b.button}
+            turnstileKey={TURNSTILE_SITE_KEY}
+            form={contactFormOf(b, site.settings.contact)}
+          />
         )}
       />
       <SiteEnhancer protectImages={site.settings.privacy.protectImages} closeLabel={ts("close")} />

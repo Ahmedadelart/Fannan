@@ -374,6 +374,19 @@ export const FONT_LIST = [
     "variable": false
   },
   {
+    "id": "instrument-sans",
+    "name": "Instrument Sans",
+    "script": "latin",
+    "category": "sans",
+    "family": "\"fn-instrument-sans\"",
+    "headingWeight": 600,
+    "weights": [
+      400,
+      700
+    ],
+    "variable": true
+  },
+  {
     "id": "big-shoulders",
     "name": "Big Shoulders",
     "script": "latin",

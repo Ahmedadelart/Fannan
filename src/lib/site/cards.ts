@@ -21,7 +21,9 @@ export type CardKey =
   | "c-press"
   | "c-films"
   | "c-offers"
-  | "c-tiles";
+  | "c-tiles"
+  | "c-awards"
+  | "c-list";
 
 export const CARD_VARIANT: Record<CardKey, CardVariant> = {
   "c-icons": "icons",
@@ -37,6 +39,8 @@ export const CARD_VARIANT: Record<CardKey, CardVariant> = {
   "c-films": "films",
   "c-offers": "offers",
   "c-tiles": "tiles",
+  "c-awards": "awards",
+  "c-list": "list",
 };
 
 export function cardItem(extra: Partial<CardItem> = {}): CardItem {
@@ -84,22 +88,46 @@ const W = {
         ["Tutorials", "Step-by-step guides you can follow anytime.", "Browse"],
       ],
     },
-    stats: { heading: "", items: [["12+", "years in animation"], ["40", "productions"], ["120+", "students mentored"], ["8", "short films"]] },
+    stats: {
+      heading: "",
+      items: [
+        ["12+", "years in animation"],
+        ["40", "productions"],
+        ["120+", "students mentored"],
+        ["8", "short films"],
+      ],
+    },
     faq: {
       heading: "Frequently asked questions",
       items: [
-        ["Are you available for freelance work?", "Yes. Tell me about your project, timeline and budget through the contact form."],
+        [
+          "Are you available for freelance work?",
+          "Yes. Tell me about your project, timeline and budget through the contact form.",
+        ],
         ["Which tools do you use?", "Mostly Photoshop, Procreate and Toon Boom Harmony."],
         ["Do you work with studios abroad?", "Yes, remotely, in English and Arabic."],
       ],
     },
     mosaic: { heading: "", button: "See more sketches" },
-    nav: { items: [["Work", "work"], ["About", "about"], ["Contact", "contact"]] },
-    marquee: { heading: "Studios I've worked with", items: ["Studio One", "Animation House", "Film Co.", "Kids TV", "Games Lab", "Story Works"] },
+    nav: {
+      items: [
+        ["Work", "work"],
+        ["About", "about"],
+        ["Contact", "contact"],
+      ],
+    },
+    marquee: {
+      heading: "Studios I've worked with",
+      items: ["Studio One", "Animation House", "Film Co.", "Kids TV", "Games Lab", "Story Works"],
+    },
     testimonials: {
       heading: "What people say",
       items: [
-        ["Mona Fathy", "Art director, Studio One", "Fast, thoughtful and a joy to work with. The characters were exactly right."],
+        [
+          "Mona Fathy",
+          "Art director, Studio One",
+          "Fast, thoughtful and a joy to work with. The characters were exactly right.",
+        ],
         ["Karim Adel", "Producer, Animation House", "Brought our show to life with real personality."],
         ["Sara Nabil", "Student", "The feedback changed how I approach design."],
       ],
@@ -126,6 +154,22 @@ const W = {
       items: [
         ["Night Market", "A short about a girl who sells stars. Written, directed and animated by me."],
         ["The Last Bus", "Two strangers and one very late bus."],
+      ],
+    },
+    awards: {
+      heading: "Recognition",
+      items: [
+        ["Winner", "Annecy MIFA", "Selected pitch, feature film", "June 2024"],
+        ["", "CairoComix", "Exhibiting artist at Egypt's comics festival", "2023"],
+        ["", "Character Design Challenge", "Monthly winner, twice", "2022"],
+      ],
+    },
+    list: {
+      heading: "Experience",
+      items: [
+        ["2022 –", "Art director", "Studio One, Cairo", "Leads the art department on two series."],
+        ["2019 – 2022", "Character designer", "Animation House", "Designed the cast of a feature in development."],
+        ["2015 – 2019", "Freelance artist", "Agencies and studios", "Characters and storyboards for commercials."],
       ],
     },
     offers: {
@@ -164,7 +208,15 @@ const W = {
         ["الدروس", "شروحات خطوة بخطوة في أي وقت.", "تصفّح"],
       ],
     },
-    stats: { heading: "", items: [["+١٢", "سنة في الرسوم المتحركة"], ["٤٠", "إنتاجًا"], ["+١٢٠", "طالبًا"], ["٨", "أفلام قصيرة"]] },
+    stats: {
+      heading: "",
+      items: [
+        ["+١٢", "سنة في الرسوم المتحركة"],
+        ["٤٠", "إنتاجًا"],
+        ["+١٢٠", "طالبًا"],
+        ["٨", "أفلام قصيرة"],
+      ],
+    },
     faq: {
       heading: "أسئلة شائعة",
       items: [
@@ -174,8 +226,17 @@ const W = {
       ],
     },
     mosaic: { heading: "", button: "شاهد المزيد من الاسكتشات" },
-    nav: { items: [["الأعمال", "work"], ["نبذة", "about"], ["تواصل", "contact"]] },
-    marquee: { heading: "استوديوهات عملت معها", items: ["استوديو واحد", "بيت الأنيميشن", "شركة أفلام", "تلفزيون الأطفال", "معمل الألعاب", "ورشة الحكايات"] },
+    nav: {
+      items: [
+        ["الأعمال", "work"],
+        ["نبذة", "about"],
+        ["تواصل", "contact"],
+      ],
+    },
+    marquee: {
+      heading: "استوديوهات عملت معها",
+      items: ["استوديو واحد", "بيت الأنيميشن", "شركة أفلام", "تلفزيون الأطفال", "معمل الألعاب", "ورشة الحكايات"],
+    },
     testimonials: {
       heading: "ماذا يقولون",
       items: [
@@ -206,6 +267,22 @@ const W = {
       items: [
         ["سوق الليل", "فيلم قصير عن فتاة تبيع النجوم. كتابة وإخراج وتحريك."],
         ["آخر أتوبيس", "غريبان وأتوبيس متأخر جدًا."],
+      ],
+    },
+    awards: {
+      heading: "تقدير",
+      items: [
+        ["فائز", "آنسي MIFA", "مشروع فيلم طويل مختار", "يونيو ٢٠٢٤"],
+        ["", "كايرو كوميكس", "فنان عارض في مهرجان القصص المصورة", "٢٠٢٣"],
+        ["", "تحدي تصميم الشخصيات", "فائز شهري مرتين", "٢٠٢٢"],
+      ],
+    },
+    list: {
+      heading: "الخبرات",
+      items: [
+        ["٢٠٢٢ –", "مدير فني", "استوديو واحد، القاهرة", "يقود قسم الفن في مسلسلين."],
+        ["٢٠١٩ – ٢٠٢٢", "مصمم شخصيات", "بيت الأنيميشن", "صمّم شخصيات فيلم قيد التطوير."],
+        ["٢٠١٥ – ٢٠١٩", "فنان مستقل", "وكالات واستوديوهات", "شخصيات وستوري بورد للإعلانات."],
       ],
     },
     offers: {
@@ -264,11 +341,15 @@ export function cardsBlock(key: CardKey, language: Locale): Extract<Block, { typ
       break;
     case "testimonials":
       heading = w.testimonials.heading;
-      items = w.testimonials.items.map(([title, meta, text], i) => cardItem({ title, meta, text, stars: 5, tone: sampleTone(i + 5) }));
+      items = w.testimonials.items.map(([title, meta, text], i) =>
+        cardItem({ title, meta, text, stars: 5, tone: sampleTone(i + 5) }),
+      );
       break;
     case "timeline":
       heading = w.timeline.heading;
-      items = w.timeline.items.map(([meta, title, text], i) => cardItem({ meta, title, text, tone: sampleTone(i + 1) }));
+      items = w.timeline.items.map(([meta, title, text], i) =>
+        cardItem({ meta, title, text, tone: sampleTone(i + 1) }),
+      );
       columns = 1;
       break;
     case "press":
@@ -280,6 +361,15 @@ export function cardsBlock(key: CardKey, language: Locale): Extract<Block, { typ
       heading = w.films.heading;
       items = w.films.items.map(([title, text], i) => cardItem({ title, text, tone: sampleTone(i + 8) }));
       columns = 2;
+      break;
+    case "awards":
+      heading = w.awards.heading;
+      items = w.awards.items.map(([meta, title, text, date]) => cardItem({ meta, title, text, date }));
+      break;
+    case "list":
+      heading = w.list.heading;
+      items = w.list.items.map(([meta, title, subtitle, text]) => cardItem({ meta, title, subtitle, text }));
+      columns = 1;
       break;
     case "offers":
       heading = w.offers.heading;

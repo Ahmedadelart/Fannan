@@ -19,7 +19,21 @@ import type { MediaKind } from "./_ui/media";
 
 type LinksBlock = BlockOf<"links">;
 
-const ICONS: string[] = [...SOCIAL_NETWORKS, "email", "sparkle", "film", "camera", "brush", "book", "heart", "star", "download", "map", "clock", "pen"];
+const ICONS: string[] = [
+  ...SOCIAL_NETWORKS,
+  "email",
+  "sparkle",
+  "film",
+  "camera",
+  "brush",
+  "book",
+  "heart",
+  "star",
+  "download",
+  "map",
+  "clock",
+  "pen",
+];
 
 /** The link page's settings (round 9): profile, buttons, their look, and sharing (QR, short links). */
 export function LinksSettings({
@@ -49,7 +63,10 @@ export function LinksSettings({
   const k = (name: string) => `${block.id}-${name}`;
   const setItems = (items: LinkItem[], key?: string) => set({ items }, key);
   const change = (id: string, patch: Partial<LinkItem>, key?: string) =>
-    setItems(block.items.map((x) => (x.id === id ? { ...x, ...patch } : x)), key);
+    setItems(
+      block.items.map((x) => (x.id === id ? { ...x, ...patch } : x)),
+      key,
+    );
 
   useEffect(() => {
     if (!isPro) return;
@@ -89,7 +106,11 @@ export function LinksSettings({
         <h3 className="m-0 text-[13px] font-semibold">{t("links")}</h3>
         <ul ref={list} className="relative m-0 flex list-none flex-col gap-1.5 p-0" data-testid="links-list">
           {block.items.map((it) => (
-            <li key={it.id} data-item-id={it.id} className={cx("border-line bg-paper rounded-[12px] border", it.hidden && "opacity-60")}>
+            <li
+              key={it.id}
+              data-item-id={it.id}
+              className={cx("border-line bg-paper rounded-[12px] border", it.hidden && "opacity-60")}
+            >
               <div className="flex items-center gap-1 p-1.5">
                 <button
                   type="button"
@@ -99,7 +120,10 @@ export function LinksSettings({
                     startSortDrag(e, {
                       dragId: it.id,
                       items: () =>
-                        Array.from(list.current?.querySelectorAll<HTMLElement>("li[data-item-id]") ?? []).map((el) => ({ id: el.dataset.itemId!, el })),
+                        Array.from(list.current?.querySelectorAll<HTMLElement>("li[data-item-id]") ?? []).map((el) => ({
+                          id: el.dataset.itemId!,
+                          el,
+                        })),
                       onMark: (m) => {
                         const top = list.current?.getBoundingClientRect().top ?? 0;
                         setMark(m ? m.y - top : null);
@@ -144,7 +168,11 @@ export function LinksSettings({
               </div>
               {open === it.id && (
                 <div className="border-line flex flex-col gap-3 border-t p-3">
-                  <Text title={it.kind === "header" ? t("headerText") : t("title")} value={it.title} onChange={(v) => change(it.id, { title: v }, k(`t${it.id}`))} />
+                  <Text
+                    title={it.kind === "header" ? t("headerText") : t("title")}
+                    value={it.title}
+                    onChange={(v) => change(it.id, { title: v }, k(`t${it.id}`))}
+                  />
                   {it.kind !== "header" && (
                     <Text
                       title={it.kind === "embed" ? t("embedUrl") : t("url")}
@@ -167,7 +195,10 @@ export function LinksSettings({
                               role="radio"
                               aria-checked={!it.icon}
                               onClick={() => change(it.id, { icon: "" })}
-                              className={cx("flex h-8 items-center justify-center rounded-[8px] border text-[10px]", !it.icon ? "border-primary bg-secondary-container" : "border-line hover:bg-mist")}
+                              className={cx(
+                                "flex h-8 items-center justify-center rounded-[8px] border text-[10px]",
+                                !it.icon ? "border-primary bg-secondary-container" : "border-line hover:bg-mist",
+                              )}
                               title={t("iconAuto")}
                             >
                               {t("auto")}
@@ -180,13 +211,22 @@ export function LinksSettings({
                                 aria-checked={it.icon === name}
                                 aria-label={SOCIAL_NETWORKS.includes(name) ? networkName(name, "") : name}
                                 onClick={() => change(it.id, { icon: name })}
-                                className={cx("flex h-8 items-center justify-center rounded-[8px] border", it.icon === name ? "border-primary bg-secondary-container" : "border-line hover:bg-mist")}
+                                className={cx(
+                                  "flex h-8 items-center justify-center rounded-[8px] border",
+                                  it.icon === name
+                                    ? "border-primary bg-secondary-container"
+                                    : "border-line hover:bg-mist",
+                                )}
                               >
                                 <LinkIcon name={name} />
                               </button>
                             ))}
                           </div>
-                          {!it.icon && it.url && <span className="text-muted font-normal">{t("iconGuess", { name: networkName(networkOf(it.url) || "website", it.url) })}</span>}
+                          {!it.icon && it.url && (
+                            <span className="text-muted font-normal">
+                              {t("iconGuess", { name: networkName(networkOf(it.url) || "website", it.url) })}
+                            </span>
+                          )}
                         </div>
                       )}
                       <div className="flex flex-col gap-2">
@@ -196,7 +236,10 @@ export function LinksSettings({
                         <Choice
                           title=""
                           value={it.highlight}
-                          options={(["none", "wiggle", "pulse", "glow", "shine"] as const).map((h) => [h, t(`highlights.${h}`)])}
+                          options={(["none", "wiggle", "pulse", "glow", "shine"] as const).map((h) => [
+                            h,
+                            t(`highlights.${h}`),
+                          ])}
                           onChange={(v) => change(it.id, { highlight: v })}
                         />
                       </div>
@@ -207,25 +250,49 @@ export function LinksSettings({
                         <div className="grid grid-cols-2 gap-2">
                           <label className="flex flex-col gap-1 text-[11px]">
                             {t("from")}
-                            <input type="date" className={inputCls} value={it.from} onChange={(e) => change(it.id, { from: e.target.value })} data-testid="link-from" />
+                            <input
+                              type="date"
+                              className={inputCls}
+                              value={it.from}
+                              onChange={(e) => change(it.id, { from: e.target.value })}
+                              data-testid="link-from"
+                            />
                           </label>
                           <label className="flex flex-col gap-1 text-[11px]">
                             {t("until")}
-                            <input type="date" className={inputCls} value={it.until} onChange={(e) => change(it.id, { until: e.target.value })} />
+                            <input
+                              type="date"
+                              className={inputCls}
+                              value={it.until}
+                              onChange={(e) => change(it.id, { until: e.target.value })}
+                            />
                           </label>
                         </div>
-                        {!isPro && (it.highlight !== "none" || it.from || it.until) && <p className="text-muted m-0 text-[12px]">{t("proNote")}</p>}
+                        {!isPro && (it.highlight !== "none" || it.from || it.until) && (
+                          <p className="text-muted m-0 text-[12px]">{t("proNote")}</p>
+                        )}
                       </div>
                     </>
                   )}
-                  <Button size="sm" variant="ghost" icon="delete" onClick={() => setItems(block.items.filter((x) => x.id !== it.id))}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    icon="delete"
+                    onClick={() => setItems(block.items.filter((x) => x.id !== it.id))}
+                  >
                     {t("remove")}
                   </Button>
                 </div>
               )}
             </li>
           ))}
-          {mark !== null && <li aria-hidden className="bg-primary pointer-events-none absolute inset-x-0 h-1 rounded" style={{ top: mark - 3 }} />}
+          {mark !== null && (
+            <li
+              aria-hidden
+              className="bg-primary pointer-events-none absolute inset-x-0 h-1 rounded"
+              style={{ top: mark - 3 }}
+            />
+          )}
         </ul>
         <div className="flex flex-wrap gap-1.5">
           <Button size="sm" variant="outline" icon="add" onClick={() => add("link")} data-testid="links-add">
@@ -256,8 +323,18 @@ export function LinksSettings({
           options={(["square", "rounded", "pill"] as const).map((s) => [s, t(`shapes.${s}`)])}
           onChange={(v) => set({ button: { ...block.button, shape: v } })}
         />
-        <ColorField title={t("color")} value={block.button.color} themeLabel={t("themeColor")} onChange={(v) => set({ button: { ...block.button, color: v } }, k("bc"))} />
-        <ColorField title={t("textColor")} value={block.button.textColor} themeLabel={t("auto")} onChange={(v) => set({ button: { ...block.button, textColor: v } }, k("btc"))} />
+        <ColorField
+          title={t("color")}
+          value={block.button.color}
+          themeLabel={t("themeColor")}
+          onChange={(v) => set({ button: { ...block.button, color: v } }, k("bc"))}
+        />
+        <ColorField
+          title={t("textColor")}
+          value={block.button.textColor}
+          themeLabel={t("auto")}
+          onChange={(v) => set({ button: { ...block.button, textColor: v } }, k("btc"))}
+        />
         <p className="text-muted m-0 text-[12px]">{t("bgHint")}</p>
       </section>
     </div>
@@ -293,14 +370,24 @@ function ShareCard({
   const tp = useTranslations("projects");
   const toast = useToast();
   const pageUrl = `${siteUrl.replace(/\/$/, "")}${page.slug ? `/${page.slug}` : ""}`;
-  const [links, setLinks] = useState<Array<{ code: string; path: string; custom: boolean; clicks: number }> | null>(null);
+  const [links, setLinks] = useState<Array<{ code: string; path: string; custom: boolean; clicks: number }> | null>(
+    null,
+  );
   const [qrFor, setQrFor] = useState(pageUrl);
   const [qr, setQr] = useState<string | null>(null);
   const [custom, setCustom] = useState("");
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const errorText = (code: string) =>
-    code === "limit" ? t("shortLimit") : code === "slug-taken" ? t("shortTaken") : code === "bad-link" ? t("shortBad") : tp.has(`errors.${code}`) ? tp(`errors.${code}`, { image: 30, pdf: 50 }) : tp("errors.error");
+    code === "limit"
+      ? t("shortLimit")
+      : code === "slug-taken"
+        ? t("shortTaken")
+        : code === "bad-link"
+          ? t("shortBad")
+          : tp.has(`errors.${code}`)
+            ? tp(`errors.${code}`, { image: 30, pdf: 50 })
+            : tp("errors.error");
 
   useEffect(() => {
     let live = true;
@@ -329,7 +416,10 @@ function ShareCard({
     toast(t("copied"), "check");
   };
   const download = async (kind: "png" | "svg") => {
-    const name = `qr-${qrFor.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").slice(0, 40)}`;
+    const name = `qr-${qrFor
+      .replace(/^https?:\/\//, "")
+      .replace(/[^a-z0-9]+/gi, "-")
+      .slice(0, 40)}`;
     const href =
       kind === "png"
         ? await QRCode.toDataURL(qrFor, { margin: 2, width: 1200 })
@@ -352,13 +442,22 @@ function ShareCard({
   const own = pages.filter((p) => p.type !== "link" && p.type !== "folder" && p.type !== "project");
 
   return (
-    <section className="bg-secondary-container/40 border-line flex flex-col gap-3 rounded-[16px] border p-3" data-testid="links-share">
+    <section
+      className="bg-secondary-container/40 border-line flex flex-col gap-3 rounded-[16px] border p-3"
+      data-testid="links-share"
+    >
       <h3 className="m-0 flex items-center gap-2 text-[13px] font-semibold">
         <Icon name="link" size={16} />
         {t("shareTitle")}
       </h3>
       <div className="flex items-center gap-1.5">
-        <input readOnly className={cx(inputCls, "min-w-0 flex-1 text-[12px]")} dir="ltr" value={pageUrl} aria-label={t("address")} />
+        <input
+          readOnly
+          className={cx(inputCls, "min-w-0 flex-1 text-[12px]")}
+          dir="ltr"
+          value={pageUrl}
+          aria-label={t("address")}
+        />
         <Button size="sm" variant="outline" onClick={() => copy(pageUrl)}>
           {t("copy")}
         </Button>
@@ -368,7 +467,12 @@ function ShareCard({
       <div className="flex flex-wrap items-start gap-3">
         {qr && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={qr} alt={t("qrAlt", { url: qrFor })} className="size-28 flex-none rounded-[8px] bg-white" data-testid="links-qr" />
+          <img
+            src={qr}
+            alt={t("qrAlt", { url: qrFor })}
+            className="size-28 flex-none rounded-[8px] bg-white"
+            data-testid="links-qr"
+          />
         )}
         <div className="flex min-w-0 flex-col gap-1.5">
           <span className="text-muted truncate text-[11px]" dir="ltr">
@@ -376,15 +480,31 @@ function ShareCard({
           </span>
           <span className="text-[12px] font-semibold">{t("downloadQr")}</span>
           <span className="flex flex-wrap gap-1.5">
-            <Button size="sm" variant="outline" icon="download" onClick={() => void download("png")} title={t("downloadPng")}>
+            <Button
+              size="sm"
+              variant="outline"
+              icon="download"
+              onClick={() => void download("png")}
+              title={t("downloadPng")}
+            >
               PNG
             </Button>
-            <Button size="sm" variant="outline" icon="download" onClick={() => void download("svg")} title={t("downloadSvg")}>
+            <Button
+              size="sm"
+              variant="outline"
+              icon="download"
+              onClick={() => void download("svg")}
+              title={t("downloadSvg")}
+            >
               SVG
             </Button>
           </span>
           {qrFor !== pageUrl && (
-            <button type="button" className="text-primary text-start text-[12px] font-semibold hover:underline" onClick={() => setQrFor(pageUrl)}>
+            <button
+              type="button"
+              className="text-primary text-start text-[12px] font-semibold hover:underline"
+              onClick={() => setQrFor(pageUrl)}
+            >
               {t("qrPage")}
             </button>
           )}
@@ -402,7 +522,11 @@ function ShareCard({
               return (
                 <li key={l.code} className="bg-paper border-line flex flex-col gap-1.5 rounded-[10px] border p-2">
                   <span className="flex items-center gap-1.5">
-                    <span className="min-w-0 flex-1 truncate text-[12px] font-semibold" dir="ltr" data-testid="short-link">
+                    <span
+                      className="min-w-0 flex-1 truncate text-[12px] font-semibold"
+                      dir="ltr"
+                      data-testid="short-link"
+                    >
                       {url.replace(/^https?:\/\//, "")}
                     </span>
                     <span className="text-muted text-[11px] tabular-nums">{t("visits", { count: l.clicks })}</span>
@@ -449,7 +573,14 @@ function ShareCard({
             })}
           </ul>
         )}
-        <Button size="sm" variant="outline" icon="add" disabled={busy} onClick={() => void make()} data-testid="short-make">
+        <Button
+          size="sm"
+          variant="outline"
+          icon="add"
+          disabled={busy}
+          onClick={() => void make()}
+          data-testid="short-make"
+        >
           {t("makeShort")}
         </Button>
         <div className="flex flex-col gap-1.5">
@@ -470,7 +601,12 @@ function ShareCard({
               aria-label={t("customShort")}
               data-testid="short-custom"
             />
-            <Button size="sm" variant="outline" disabled={!isPro || busy || custom.length < 3} onClick={() => void make(custom)}>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={!isPro || busy || custom.length < 3}
+              onClick={() => void make(custom)}
+            >
               {t("create")}
             </Button>
           </div>

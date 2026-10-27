@@ -36,7 +36,10 @@ export interface LegacyContactFields {
   customQuestion: string;
 }
 
-export function contactFormOf(b: Extract<Block, { type: "contact" }>, legacy?: LegacyContactFields | null): ContactForm {
+export function contactFormOf(
+  b: Extract<Block, { type: "contact" }>,
+  legacy?: LegacyContactFields | null,
+): ContactForm {
   if (b.form) return b.form;
   return {
     projectType: !!legacy?.projectType,

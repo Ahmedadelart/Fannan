@@ -125,7 +125,8 @@ export function reelLayoutName(discipline: string): "reel" | "showcase" {
 /** Layout order for step 4: the most fitting first. */
 export function layoutOrder(discipline: string): LayoutId[] {
   const kind = disciplineById(discipline)?.kind;
-  if (kind === "direction" || kind === "story" || kind === "writing") return ["storyteller", "reel", "grid", "minimalist"];
+  if (kind === "direction" || kind === "story" || kind === "writing")
+    return ["storyteller", "reel", "grid", "minimalist"];
   // Stills-first fields lead with the grid.
   if (["photo", "architecture", "fashion", "fineart", "craft", "beauty", "design"].includes(kind ?? ""))
     return ["grid", "minimalist", "reel", "storyteller"];

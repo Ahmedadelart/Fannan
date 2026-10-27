@@ -49,8 +49,7 @@ export function Tips({ onDone }: { onDone: () => void }) {
           const vh = document.documentElement.clientHeight;
           const w = Math.min(300, vw - 32);
           if (!rect) return { left: 16, top: 80 };
-          const want =
-            rect.left + (target === "publish" ? rect.width - w : target === "canvas" ? 40 : rect.width + 16);
+          const want = rect.left + (target === "publish" ? rect.width - w : target === "canvas" ? 40 : rect.width + 16);
           const left = Math.max(16, Math.min(want, vw - w - 16));
           const top = Math.max(16, Math.min(target === "publish" ? rect.bottom + 16 : rect.top + 40, vh - 180));
           return { left, top };

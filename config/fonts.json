@@ -404,6 +404,15 @@
       ]
     },
     {
+      "id": "instrument-sans",
+      "name": "Instrument Sans",
+      "script": "latin",
+      "category": "sans",
+      "package": "@fontsource-variable/instrument-sans",
+      "variable": true,
+      "headingWeight": 600
+    },
+    {
       "id": "big-shoulders",
       "name": "Big Shoulders",
       "script": "latin",

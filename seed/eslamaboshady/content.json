@@ -1,0 +1,171 @@
+{
+  "_about": "Eslam Aboshady's portfolio, rebuilt from the reference site in C:\\Users\\PC\\Downloads\\Eslam\\website (index.html, data.json, img/). Projects, fan art and hero slides come from data.json; the words here are the reference's own, kept as they are. Built by scripts/seed-eslam.ts through the app's own functions, so everything stays editable in the editor.",
+  "account": {
+    "email": "shop.eslamaboshady@gmail.com",
+    "displayName": "Eslam Aboshady",
+    "username": "eslamaboshady",
+    "discipline": "character-designer",
+    "language": "en"
+  },
+  "site": {
+    "title": "Eslam Aboshady",
+    "tagline": "إسلام أبو شادي",
+    "seoTitle": "Eslam Aboshady",
+    "seoDescription": "Eslam Aboshady — character designer, art director and comic artist in Cairo. Co-founder of Jump Animation. Work for Disney, Marvel / Fantasy Flight Games, MBC, Vodafone and more.",
+    "colors": { "background": "#0F0E0C", "text": "#F1EDE4", "accent": "#FFC01E" },
+    "social": [
+      { "network": "instagram", "url": "https://www.instagram.com/eslam_aboshady" },
+      { "network": "behance", "url": "https://www.behance.net/eslamabosh3199" },
+      { "network": "facebook", "url": "https://www.facebook.com/eslam.aboshady.694086" },
+      { "network": "x", "url": "https://x.com/eslam_aboshady" },
+      { "network": "artstation", "url": "https://www.artstation.com/eslamashady" }
+    ],
+    "shop": { "label": "Shop", "link": "https://www.redbubble.com/people/eslam-aboshady/shop", "color": "#E41321" }
+  },
+  "menu": {
+    "work": {
+      "title": "Work",
+      "items": [
+        ["Featured projects", "/#work"],
+        ["More work", "/#more-h"],
+        ["Fan art & sketchbook", "/#fanart"],
+        ["Jump Animation", "/#jump"],
+        ["Arabesque", "/#arabesque"]
+      ]
+    },
+    "links": [
+      ["Recognition", "/#recognition"],
+      ["About", "/#about"]
+    ]
+  },
+  "hero": {
+    "heading": "Character designer & art director",
+    "text": "Animation, games and comics. Co-founder of Jump Animation, Cairo.",
+    "note": "مصمم شخصيات ومدير فني",
+    "stats": [
+      { "value": "+100K", "label": "followers", "link": "https://www.instagram.com/eslam_aboshady" },
+      { "value": "+30", "label": "Behance features", "link": "https://www.behance.net/eslamabosh3199" }
+    ]
+  },
+  "clients": [
+    { "img": "logos-png/disney.png", "name": "Disney", "height": 30 },
+    { "name": "MARVEL", "look": "box", "height": 26 },
+    { "img": "logos-png/ffg.png", "name": "Fantasy Flight Games", "height": 22 },
+    { "name": "Fantasy Flight Games", "height": 27 },
+    { "name": "mbc", "height": 26 },
+    { "img": "logos-png/vodafone.png", "name": "Vodafone", "height": 21 },
+    { "name": "vodafone", "height": 21 },
+    { "name": "Juhayna", "height": 27 },
+    { "name": "Panda", "height": 27 },
+    { "img": "logos-png/epic.png", "name": "Epic Games", "height": 28 },
+    { "name": "JWT", "height": 27 },
+    { "name": "FP7 McCann", "height": 27 },
+    { "name": "مانجا العربية", "height": 25 }
+  ],
+  "more": {
+    "title": "More work",
+    "subtitle": "Mascot series, campaigns and the personal projects. Each opens the full set."
+  },
+  "jump": {
+    "heading": "The creative factory",
+    "text": "Jump Animation is the 2D studio Eslam co-founded in Cairo in 2020 with Ehab ElKholey, Mostafa AbdelGawad and Ahmed AbdelWarith, on a mission to revive the Egyptian animation industry and connect it with the world. Forty-plus artists; Eslam directs and runs the art department.",
+    "button": "jumpanimation.com",
+    "link": "https://www.jumpanimation.com/",
+    "tiles": [
+      { "img": "jump-zakia.jpg", "title": "Zakia AlZakeya", "text": "Majid TV series, 26 episodes. Eslam co-directs and leads layout.", "link": "https://www.jumpanimation.com/zakiaseries" },
+      { "img": "jump-grandnight.jpg", "title": "The Grand Night", "text": "Feature teaser with Giraffics, selected at Annecy MIFA 2020.", "link": "https://www.jumpanimation.com/the-grand-night" },
+      { "project": "legend-of-antara", "sheet": 0, "title": "The Legend of Antara", "text": "Jump's comic series. Eslam is lead illustrator." }
+    ]
+  },
+  "arabesque": {
+    "heading": "تحدي شهري لرسم شخصية من التراث العربي",
+    "text": "أرابيسك مجتمع أسسه إسلام أبو شادي مع أحمد نبيل عام ٢٠١٦: كل شهر شخصية من التاريخ والتراث العربي والإسلامي يرسمها آلاف الفنانين بأسلوبهم. عُرضت أعمال المجموعة في مؤتمر الشارقة للرسوم المتحركة والقصص المصورة ٢٠٢٦.\n\nArabesque is a monthly challenge Eslam co-founded with Ahmed Nabil in 2016: one character from Arab and Islamic heritage, drawn by thousands of artists across the region. Its work was exhibited at the Sharjah Animation & Comics Conference in October 2026.",
+    "button": "3arabesque.art",
+    "link": "http://3arabesque.art/",
+    "tiles": [
+      { "project": "heritage", "sheet": 9, "title": "عباس بن فرناس" },
+      { "project": "heritage", "sheet": 24, "title": "قطز" },
+      { "project": "heritage", "sheet": 15, "title": "عمر المختار" },
+      { "project": "heritage", "sheet": 18, "title": "تغريبة بني هلال" },
+      { "project": "saif", "sheet": 0, "title": "سيف بن ذي يزن" },
+      { "project": "legend-of-antara", "sheet": 1, "title": "عنترة بن شداد" }
+    ]
+  },
+  "fanart": {
+    "title": "Fan art & sketchbook",
+    "subtitle": "Grouped by series. Tap any piece to see it large.",
+    "railLabel": "Fan art"
+  },
+  "shop": {
+    "heading": "Wear the art",
+    "text": "176 designs as stickers, tees, prints, pillows, mugs and phone cases on Eslam's Redbubble shop.",
+    "button": "Shop on Redbubble",
+    "link": "https://www.redbubble.com/people/eslam-aboshady/shop",
+    "mark": { "letters": "rb", "word": "REDBUBBLE" },
+    "tiles": [
+      { "img": "shop-tiger.jpg", "title": "Tiger", "text": "Sticker" },
+      { "img": "shop-ahly.jpg", "title": "Ahly", "text": "Photographic print" },
+      { "img": "shop-admirals.jpg", "title": "Marine Admirals", "text": "Classic mug" },
+      { "img": "shop-wolverine.jpg", "title": "Wolverine", "text": "Pin" },
+      { "img": "shop-morocco.jpg", "title": "Morocco", "text": "Sticker" },
+      { "img": "shop-brazil.jpg", "title": "Brazil", "text": "Sticker" },
+      { "img": "shop-genie.jpg", "title": "Genie", "text": "Transparent sticker" },
+      { "img": "shop-garp.jpg", "title": "Garp", "text": "Tote bag" }
+    ]
+  },
+  "recognition": {
+    "title": "Recognition",
+    "subtitle": "Prizes, exhibitions, features and the numbers behind the work.",
+    "items": [
+      { "img": "jasor-thumb.jpg", "tag": "Winner", "title": "Sharjah Animation Conference", "text": "Animation projects competition, won with Jasor, now in development as a comic", "date": "May 2025" },
+      { "img": "sacc2026.jpg", "title": "Sharjah Animation & Comics Conference", "link": "https://sharjah24.ae/en/Articles/2026/10/22/a6", "text": "Arabesque exhibition of selected artists' work on Arab heritage", "date": "October 2026" },
+      { "img": "stormtheblock.jpg", "title": "Storm the Block", "link": "https://www.stormtheblock.com", "text": "Guest artist at the Abu Dhabi comics and pop-culture event, Yas Creative Hub", "date": "8–10 December" },
+      { "title": "Character Design Challenge", "link": "https://characterdesignreferences.com/winners5/winners-of-the-bikers-challenge", "text": "Multiple-time winner of the international monthly contest", "date": "2018 – 2026" },
+      { "title": "CairoComix", "text": "Exhibiting artist at Egypt's comics festival" },
+      { "title": "Behance", "link": "https://www.behance.net/eslamabosh3199", "text": "Featured 31 times in the Character Design and Photoshop galleries" },
+      { "title": "Read interview", "link": "https://characterdesignreferences.com/blog-interviews/eslam-aboshady", "text": "Character Design References", "date": "2015" },
+      { "title": "Daily News Egypt", "link": "https://www.dailynewsegypt.com/2019/09/01/arabesque-online-platform-artistically-chronicling-arab-heritage/", "text": "Feature on Arabesque, the heritage-character platform he co-founded", "date": "2019" }
+    ]
+  },
+  "experience": {
+    "title": "Experience",
+    "subtitle": "Fourteen years across studios in Cairo, Alexandria and Amman, and remote work for studios in the US and the UK.",
+    "items": [
+      { "years": "2020 –", "role": "Co-founder", "org": "Jump Animation, Cairo", "text": "Runs the studio's art department. Co-director and layout lead on the animated series Zakia AlZakeya. Lead artist on an upcoming comic series." },
+      { "years": "2021 –", "role": "Illustrator", "org": "Fantasy Flight Games", "text": "Illustrations for more than twenty issues of Star Wars and Marvel board games, including X-Men: Mutant Insurrection." },
+      { "years": "2020", "role": "Character designer", "org": "Walt Disney Animation Studios", "text": "Initial character designs for the Stardust episode of Kizazi Moto: Generation Fire, produced with Triggerfish." },
+      { "years": "2017 – 2019", "role": "Director", "org": "Bare Entertainment, Giza", "text": "Directed the animated series Space Delivery and designed its characters and storyboards. Art director for the TV series Suhail and director of its animated sequences." },
+      { "years": "2016 – 2017", "role": "Creative art director", "org": "Curl Stone Entertainment, Jordan", "text": "Character design, concept art and storyboards for the series Badr on J Channel. Directed and designed the series Union Force." },
+      { "years": "2015 – 2016", "role": "Art director", "org": "Aroma Designs & Solutions, Giza", "text": "Character design, concept art and storyboards for an unannounced animated feature. Storyboards and concept art for Vodafone, Nesquik, Edita and Juhayna commercials." },
+      { "years": "2014 – 2015", "role": "Art director", "org": "Ion-7, Alexandria", "text": "Character design and concept art for the studio's mobile games." },
+      { "years": "2012 – 2020", "role": "Freelance artist", "org": "JWT, FP7 Egypt, MBC, Epic Games, Fantasy Flight Games, Crazy Piranha, AlRajhi Education, Fullmoon Studios, Aspire Creative Network", "text": "Character design for Fananees (MBC), Judo & Gida (Juhayna) and Sawsan & Suad (Labanita), among many commercial projects." }
+    ]
+  },
+  "about": {
+    "title": "About",
+    "portrait": "portrait.jpg",
+    "text": "Eslam Aboshady is a character designer, art director and comic artist from Alexandria, based in Cairo. Self-taught, he left a law degree for drawing and started freelancing in 2012. Since then he has art-directed commercials, an animated feature in development and two series, designed for Disney, Fantasy Flight Games, MBC and Vodafone, and illustrated comics for publishers in the UK and the Gulf.\n\nIn 2020 he co-founded Jump Animation in Cairo with Ehab ElKholey, Mostafa AbdelGawad and Ahmed AbdelWarith, a 2D studio of 40+ artists where he directs and leads the art department. Jump's work includes the Majid TV series Zakia AlZakeya, the teaser for the feature The Grand Night (Annecy MIFA 2020 selection) and the comic series The Legend of Antara.\n\nHis drawing sits between animation design and manga: exaggerated silhouettes, heavy ink, and characters already mid-action on the model sheet. Much of his personal work returns to Arab and Islamic history, from Antara and Saif ibn Dhi Yazan to Abbas ibn Firnas. That is also the brief of Arabesque, the monthly challenge he co-founded in 2016 with Ahmed Nabil, where thousands of artists across the region draw one heritage character a month.\n\nHe works in Arabic and English, in Photoshop and Procreate.",
+    "skillsTitle": "What he does",
+    "skills": ["Character design", "Art direction", "Look development", "Storyboarding", "Comics & manga", "Mascot design", "Concept art", "Layout"],
+    "orgsTitle": "Studio & community",
+    "orgs": [
+      { "img": "logo-jump.png", "text": "Co-founder and director, Jump Animation, Cairo, since 2020", "link": "https://www.jumpanimation.com/" },
+      { "img": "logos-png/logo-arabesque.png", "text": "Co-founder, Arabesque, the monthly Arab-heritage character challenge, since 2016", "link": "http://3arabesque.art/" }
+    ]
+  },
+  "contact": {
+    "heading": "Let's draw something new",
+    "email": "eslamaboshady_61@hotmail.com",
+    "links": [
+      ["Instagram", "https://www.instagram.com/eslam_aboshady"],
+      ["LinkedIn", "https://www.linkedin.com/in/eslam-aboshady-98468759"],
+      ["Behance", "https://www.behance.net/eslamabosh3199"],
+      ["ArtStation", "https://www.artstation.com/eslamashady"],
+      ["Cara", "https://cara.app/aboshady/portfolio"]
+    ]
+  },
+  "footer": {
+    "line": "Cairo, Egypt",
+    "legal": "© 2026 Eslam Aboshady. Kizazi Moto artwork © Disney. X-Men artwork © Marvel / Fantasy Flight Games. Fan art of characters belonging to their respective owners."
+  }
+}

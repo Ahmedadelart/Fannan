@@ -662,6 +662,20 @@ _Last updated: 10 Oct 2026, phase 8 (Editor 2.0) under way; round 8 (guided setu
   - **Words:** the out-of-date "from phase 4" contact note and the "E eraser" doodle shortcut (there's no such key) are fixed; the menu-link hint points at Style ▸ More options; a few helper sentences are gone (sticky header, footer text, new project).
   - "Add a page" is a set of small tiles with a picture of each kind (no lime words).
 
+### Round 19: Eslam Aboshady's site, and what Fannan gained for it (26 Oct 2026)
+Ahmed asked for Eslam's reference site (C:\Users\PC\Downloads\Eslam\website) rebuilt on Fannan exactly, adding real features where Fannan had none. Account shop.eslamaboshady@gmail.com, address eslamaboshady.fannan.net, Pro comped 12 months.
+- **Project spread** section: one project per screen in its own colour; lead picture + up to 3 sheets at true proportions (`SpreadFrame` solves the widths); counter, title, client · role · year, first paragraph, client logos; "+N more sheets"; the page snaps to each spread; rises in on scroll. Pictures link to the project at that sheet.
+- **Brand section**: another brand's colours inside the site: logo or a lettered mark, heading in the heading / Arabic / text font, paragraphs, button (filled / outline / pill), tiles (columns, shape, corners, border, caption font), own colours, right-to-left. Edges and a tinted band photo come from the section's Style (new: picture in the band's colour).
+- **Cover**: more pictures crossfade (slideshow with captions and dots), a third line, big numbers linking out, a poster-size heading.
+- **Page index rail** (Design > Menu): pinned at the side on wide screens; lists the spreads, then sections with a name for it (or every section header); highlights the current one, hides over the cover, turns dark over light sections.
+- **Reader** project pages (Design > Theme > Project pages): every sheet a screen with snap, "n / N", a progress line, arrow keys, Previous / Next, Close back to the spread; links can open at a sheet (`/slug#sheet-3`).
+- **Logos**: a project's text item marked as a logo shows as a wordmark; picture logos can be white, as they are, or on a white chip (project editor); the logos section has per-logo looks and heights. Lowercase names show lowercase in the text font.
+- **Galleries**: "View more" hover, logos under captions, row height. **Cards**: Recognition (awards) and Experience (list). **About**: floating framed portrait, skills chips, studios & communities. **Contact**: email with Copy and link buttons instead of a form. **Header**: glass background, button colour and icon, tagline beside the name, line before the icons. **Footer**: tagline and a short line after the name. **Theme**: page width, project pages. **Images**: small heading. **Section header**: poster size.
+- Fonts: Instrument Sans added (Fontsource, OFL).
+- Seed: `scripts/seed-eslam.ts` reads the reference's data.json and `seed/eslamaboshady/content.json`; SVG logos rendered to PNG first.
+- 27 Oct, after comparing both sites screen by screen: the header and cover stay full width beside the rail (only the sections move in); the poster cover puts the words left and the numbers right; galleries have a "Client · year" caption line and show only picture logos under thumbnails; justified rows pack like the reference on tablets and phones; a project's "unit" word ("sheets", "pages") reaches the live site; a section can have its own name in the page index or stay out of it (Design panel); section headers have a "Narrow title" switch; on phones the top header is one row (name, links, button, icons that scroll sideways).
+- Known approximations: text wordmarks come from the project's logo items only (no stand-in from the client name); the Jump band's slanted edges protrude instead of being cut; the rail's current item follows the section most in view.
+
 ### Round 18: not done / follow-ups
 - The editor's hooks (history, panel navigation) still live in Editor.tsx; they move out when the shell changes again.
 - Unused message keys are not deleted yet (some are built from names at run time, so they need a careful pass).
