@@ -298,8 +298,23 @@
   align-items: flex-start;
   position: sticky;
   top: var(--site-pad);
+  /* Room between the menu and a full-width picture beside it. */
+  padding-inline-end: 20px;
 }
-.site-root .site-with-sidebar > header > span:last-child > span {
+/* A logo picture or a long name fits the sidebar's column instead of running under the page. */
+.site-root .site-with-sidebar > header > * {
+  max-width: 100%;
+  min-width: 0;
+}
+.site-root .site-with-sidebar > header img {
+  max-width: 100%;
+}
+/* The links, icons and button stack in a column; a dropdown's pages sit under their parent. */
+.site-root .site-with-sidebar > header .site-nav-end,
+.site-root .site-with-sidebar > header .site-nav-row,
+.site-root .site-with-sidebar > header .site-nav-links,
+.site-root .site-with-sidebar > header .site-nav-social,
+.site-root .site-with-sidebar > header [data-testid="nav-dropdown"] {
   flex-direction: column;
   align-items: flex-start;
 }
@@ -1116,9 +1131,14 @@ html[data-embed] .dash-main {
     border-color: rgba(0, 0, 0, 0.15);
   }
 }
-/* Round 19: a wider page on very wide screens (1520 → 1760, like a printed spread). */
-@media (min-width: 1700px) {
-  .site-root[data-maxw] {
+/* Round 19: the page width, and a wider one on very wide screens (1520 → 1760, like a printed spread).
+   Measured on the site itself (a container query), so the editor's canvas gets the right one too. */
+.site-root[data-maxw] {
+  --site-maxw: var(--site-maxw-base);
+}
+/* A container query never matches the container itself, so the wide value goes on everything inside it. */
+@container (min-width: 1700px) {
+  .site-root[data-maxw] > * {
     --site-maxw: var(--site-maxw-xl);
   }
 }

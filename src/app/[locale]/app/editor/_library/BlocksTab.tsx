@@ -43,6 +43,18 @@ export function previewHeight(b: Block): number {
   }
 }
 
+/** The same ids every time for a sample: `<kind>-0`, `<kind>-1`… in the order they appear. */
+function stableIds<T>(value: T, key: string, n = { i: 0 }): T {
+  if (Array.isArray(value)) return value.map((x) => stableIds(x, key, n)) as T;
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, x] of Object.entries(value as Record<string, unknown>))
+      out[k] = k === "id" && typeof x === "string" ? `${key}-${n.i++}` : stableIds(x, key, n);
+    return out as T;
+  }
+  return value;
+}
+
 export function BlockPreview({
   kind,
   draft,
@@ -54,8 +66,9 @@ export function BlockPreview({
   media: Record<string, SiteMedia>;
   projects: GalleryProject[];
 }) {
-  // One sample of the block in the artist's own theme, made once.
-  const [sample] = useState(() => kind.make(draft.language));
+  // One sample of the block in the artist's own theme, made once. Its ids are fixed per kind, so the
+  // server and the browser draw the same preview (random ids made React throw the first render away).
+  const [sample] = useState(() => stableIds(kind.make(draft.language), kind.key));
   const site: SiteDraft = {
     ...draft,
     pages: [{ id: "preview", slug: "", title: "", type: "custom", showInNav: false, blocks: [sample] }],

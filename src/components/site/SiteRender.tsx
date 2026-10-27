@@ -18,7 +18,7 @@ import { parseVideoLink, videoPoster } from "@/lib/video";
 import { InlineText } from "@/components/editor/InlineText";
 import { CONTACT_WORDS, contactFormOf, type LegacyContactFields } from "@/lib/site/contact";
 import { normalizeFooter, normalizeHeader } from "@/lib/site/normalize";
-import { isRich, richHtml } from "@/lib/site/richtext";
+import { decodeEntities, isRich, richHtml } from "@/lib/site/richtext";
 import type { ProjectExtras } from "@/lib/site/projectExtras";
 import { isSampleTone, toneFill } from "@/lib/site/samples";
 import { FONTS, fontOf, fontStack, siteFontVars } from "./fonts";
@@ -3119,6 +3119,8 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
               xl && "site-cover-row",
             )}
             style={{
+              // The words line up with the page content when the cover is wider than the page.
+              paddingInline: b.inset ? undefined : "max(var(--site-pad), calc((100% - var(--site-maxw, 100%)) / 2))",
               // On a picture or a sample drawing: white words over a soft shade.
               color: img || isSampleTone(b.tone) ? "#FFFFFF" : readableOn(b.tone),
               background:
@@ -4152,7 +4154,7 @@ function T({
     return <Tag className={className} style={style} dangerouslySetInnerHTML={{ __html: richHtml(value) }} />;
   return (
     <Tag className={className} style={style}>
-      {accentText(value)}
+      {accentText(decodeEntities(value))}
     </Tag>
   );
 }
@@ -4320,7 +4322,10 @@ function SectionBand({
     <div
       className="site-section-inner relative"
       style={{
-        maxWidth: maxW ?? (banded || s.width === "full" ? undefined : "var(--site-maxw, none)"),
+        // A cover that is not inset spans the whole screen; its words keep to the page width themselves.
+        maxWidth:
+          maxW ??
+          (banded || s.width === "full" || (b.type === "cover" && !b.inset) ? undefined : "var(--site-maxw, none)"),
         marginInline: "auto",
       }}
     >
@@ -5118,7 +5123,10 @@ export function SiteRender({
       : `${b.family}, ${arBody.family}, ${fontStack(b)}`,
     "--site-arabic": `${ar.family}, ${arBody.family}, sans-serif`,
     "--site-logo-filter": logoFilter(theme.colors.text),
-    ...(theme.maxWidth ? { "--site-maxw": `${theme.maxWidth}px`, "--site-maxw-xl": `${theme.maxWidth + 240}px` } : {}),
+    // The page width: the stylesheet picks the base or the wide-screen value (an inline --site-maxw would win over it).
+    ...(theme.maxWidth
+      ? { "--site-maxw-base": `${theme.maxWidth}px`, "--site-maxw-xl": `${theme.maxWidth + 240}px` }
+      : {}),
   } as CSSProperties;
   // Round 19: the page index rail lists the spreads, then every section with a name for it.
   const spreads = page.blocks.filter((x) => x.type === "spread");
@@ -5219,6 +5227,8 @@ export function SiteRender({
         lineHeight: 1.5,
       }}
     >
+      {/* The page behind the site is the site's colour too: no pale edge on overscroll or in full-page captures. */}
+      {live && <style>{`html,body{background:${theme.colors.background}}`}</style>}
       {page.type === "links" && !content ? (
         // A link page (round 9): no menu or footer, one band from top to bottom.
         <div className="flex min-h-full flex-col" style={{ ["--site-pad" as string]: "0px" }}>

@@ -6,7 +6,7 @@
 // - Hovering a picture shows Replace and Crop.
 // Pictures on the canvas carry data-pic="blockId|path" (SiteRender / FreeEditor); this file only reads that.
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { Icon } from "@/components/ui/Icon";
@@ -49,6 +49,12 @@ export function PicTools({
   disabled?: boolean;
 }) {
   const t = useTranslations("editor.pic");
+  // False on the server and in the browser's first render, true after that (the tools live in a portal).
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const [hover, setHover] = useState<{ target: PicTarget; box: Box } | null>(null);
   const [drop, setDrop] = useState<{ target: PicTarget | null; box: Box | null } | null>(null);
   const [busy, setBusy] = useState<{ done: number; total: number } | null>(null);
@@ -151,7 +157,9 @@ export function PicTools({
   const btn =
     "bg-ink/85 hover:bg-ink flex size-9 items-center justify-center rounded-full text-white shadow-[0_2px_10px_rgba(0,0,0,.25)] backdrop-blur";
 
-  if (typeof document === "undefined") return null;
+  // The tools exist only in the browser, after the first paint, so the server's HTML and the browser's
+  // first render agree (a `typeof document` check here made React redraw the whole editor on load).
+  if (!mounted) return null;
   return createPortal(
     <>
       <input
@@ -173,7 +181,11 @@ export function PicTools({
         <div
           ref={toolbar}
           className="fixed z-[45] flex gap-1.5"
-          style={{ top: hover.box.top + 10, left: hover.box.left + hover.box.width - 10, transform: "translateX(-100%)" }}
+          style={{
+            top: hover.box.top + 10,
+            left: hover.box.left + hover.box.width - 10,
+            transform: "translateX(-100%)",
+          }}
           data-testid="pic-tools"
           onPointerLeave={(e) => {
             if (!root.current?.contains(e.relatedTarget as Node)) setHover(null);
@@ -213,13 +225,13 @@ export function PicTools({
               className="border-lime bg-ink/40 absolute flex items-center justify-center rounded-[6px] border-[3px]"
               style={{ top: drop.box.top, left: drop.box.left, width: drop.box.width, height: drop.box.height }}
             >
-              <span className="bg-lime text-on-lime flex items-center gap-2 rounded-pill px-4 py-2 text-[14px] font-semibold">
+              <span className="bg-lime text-on-lime rounded-pill flex items-center gap-2 px-4 py-2 text-[14px] font-semibold">
                 <Icon name="upload" size={18} />
                 {t("dropToUpload")}
               </span>
             </div>
           ) : (
-            <span className="bg-ink absolute start-1/2 bottom-8 flex -translate-x-1/2 items-center gap-2 rounded-pill px-4 py-2 text-[14px] font-semibold text-white rtl:translate-x-1/2">
+            <span className="bg-ink rounded-pill absolute start-1/2 bottom-8 flex -translate-x-1/2 items-center gap-2 px-4 py-2 text-[14px] font-semibold text-white rtl:translate-x-1/2">
               <Icon name="upload" size={18} />
               {t("dropToUpload")}
             </span>
@@ -230,7 +242,7 @@ export function PicTools({
         <div
           role="status"
           className={cx(
-            "fixed start-1/2 bottom-8 z-[46] flex -translate-x-1/2 items-center gap-3 rounded-pill px-4 py-2 text-[14px] font-semibold text-white rtl:translate-x-1/2",
+            "rounded-pill fixed start-1/2 bottom-8 z-[46] flex -translate-x-1/2 items-center gap-3 px-4 py-2 text-[14px] font-semibold text-white rtl:translate-x-1/2",
             "bg-ink",
           )}
           data-testid="pic-status"
@@ -275,7 +287,15 @@ function Ring({ value }: { value: number }) {
   return (
     <svg viewBox="0 0 20 20" className="size-5 -rotate-90" aria-hidden>
       <circle cx="10" cy="10" r="8" fill="none" stroke="rgba(255,255,255,.25)" strokeWidth="3" />
-      <circle cx="10" cy="10" r="8" fill="none" stroke="#C6F432" strokeWidth="3" strokeDasharray={`${c * Math.max(0.06, value)} ${c}`} />
+      <circle
+        cx="10"
+        cy="10"
+        r="8"
+        fill="none"
+        stroke="#C6F432"
+        strokeWidth="3"
+        strokeDasharray={`${c * Math.max(0.06, value)} ${c}`}
+      />
     </svg>
   );
 }
@@ -363,7 +383,11 @@ export function CropDialog({
             alt=""
             draggable={false}
             className="pointer-events-none block h-full w-full object-cover"
-            style={{ objectPosition: `${c.x}% ${c.y}%`, transform: `scale(${c.zoom})`, transformOrigin: `${c.x}% ${c.y}%` }}
+            style={{
+              objectPosition: `${c.x}% ${c.y}%`,
+              transform: `scale(${c.zoom})`,
+              transformOrigin: `${c.x}% ${c.y}%`,
+            }}
           />
           <div aria-hidden className="pointer-events-none absolute inset-0 grid grid-cols-3 grid-rows-3">
             {Array.from({ length: 9 }, (_, i) => (
@@ -386,10 +410,18 @@ export function CropDialog({
           />
         </label>
         <div className="flex flex-wrap justify-end gap-2">
-          <button type="button" className="hover:bg-mist me-auto rounded-pill px-4 py-2 text-[14px] font-semibold" onClick={() => setC({ x: 50, y: 50, zoom: 1 })}>
+          <button
+            type="button"
+            className="hover:bg-mist rounded-pill me-auto px-4 py-2 text-[14px] font-semibold"
+            onClick={() => setC({ x: 50, y: 50, zoom: 1 })}
+          >
             {t("reset")}
           </button>
-          <button type="button" className="border-line hover:bg-mist rounded-pill border px-4 py-2 text-[14px] font-semibold" onClick={onClose}>
+          <button
+            type="button"
+            className="border-line hover:bg-mist rounded-pill border px-4 py-2 text-[14px] font-semibold"
+            onClick={onClose}
+          >
             {t("cancel")}
           </button>
           <button

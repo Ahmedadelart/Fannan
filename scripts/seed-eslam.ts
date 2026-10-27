@@ -9,6 +9,11 @@
  *     FIREBASE_ENV=emulator npx tsx --conditions=react-server scripts/seed-eslam.ts --assets "<website folder>" --logos "<png logos folder>" --fresh --publish --pro 12
  *
  *   Production (after `gcloud auth login`; nothing secret is printed): same environment variables as scripts/seed-site.ts.
+ *   If `gcloud auth print-identity-token` answers "Reauthentication failed" but the application sign-in
+ *   (`gcloud auth application-default login`) is fresh, MEDIA_ID_TOKEN can be the id_token that Google's token
+ *   endpoint returns for the application credentials' refresh token (the media service accepts it), and the
+ *   Cloudflare token can come from the Secret Manager REST API with `application-default print-access-token`.
+ *   Ran this way on 27 Oct 2026.
  *
  * Flags:
  *   --assets <dir>   the reference folder (holds data.json and img/)

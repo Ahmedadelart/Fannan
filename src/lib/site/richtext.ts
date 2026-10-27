@@ -42,6 +42,8 @@ function decode(s: string): string {
     return m;
   });
 }
+/** Plain text with any HTML entities read back ("&amp;" → "&"), for text that was escaped once too often. */
+export const decodeEntities = (s: string): string => (s.includes("&") ? decode(s) : s);
 const safeChar = (n: number, fallback: string) =>
   n > 0 && n < 0x110000 && !(n >= 0xd800 && n < 0xe000) ? String.fromCodePoint(n) : fallback;
 const escapeText = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -109,7 +111,8 @@ type Open = { out: string; close: string; src: string };
  */
 export function sanitizeRich(input: string, max = 20000): string {
   if (typeof input !== "string") return "";
-  if (!input.includes("<")) return input;
+  // No tags: plain words, with entities read back (a browser reports "&" as "&amp;"; it must not be saved that way).
+  if (!input.includes("<")) return decode(input);
   const re = /<!--[\s\S]*?-->|<\/?([a-zA-Z][a-zA-Z0-9]*)\b((?:[^<>"']|"[^"]*"|'[^']*')*)\/?>/g;
   let out = "";
   const stack: Open[] = [];
@@ -190,7 +193,7 @@ export function plainText(v: string): string {
           .replace(/<br>/g, "\n")
           .replace(/<[^>]+>/g, ""),
       )
-    : v;
+    : decodeEntities(v);
 }
 
 /** HTML for a page: cleaned, links that open safely, and the *accent* / ==highlight== marks. */

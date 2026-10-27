@@ -5,7 +5,7 @@ import { isSampleTone, upgradeTone } from "./samples";
 import { defaultDeco } from "./deco";
 import { isFont } from "@/components/site/fonts";
 import { normalizeDrawing } from "./drawing";
-import { sanitizeRich } from "./richtext";
+import { decodeEntities, sanitizeRich } from "./richtext";
 import { defaultSectionStyle } from "./style";
 
 export { defaultSectionStyle };
@@ -117,7 +117,8 @@ const list = <T>(v: unknown, max: number, f: (x: Any) => T): T[] =>
 /** Every section may carry a style (round 7); free-form sections' older background moves into it. */
 /** Round 13: any text in a section may carry per-word formatting; only the allowlist survives. */
 function cleanStrings<T>(v: T, depth = 0): T {
-  if (typeof v === "string") return (v.includes("<") ? sanitizeRich(v) : v) as T;
+  // Plain words never keep HTML entities (older saves could hold "&amp;" for "&").
+  if (typeof v === "string") return (v.includes("<") ? sanitizeRich(v) : decodeEntities(v)) as T;
   if (depth > 6 || !v || typeof v !== "object") return v;
   if (Array.isArray(v)) return v.map((x) => cleanStrings(x, depth + 1)) as T;
   const out: Record<string, unknown> = {};
