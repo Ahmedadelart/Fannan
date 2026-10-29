@@ -2519,7 +2519,14 @@
     "policy": "Content policy",
     "copyright": "Copyright",
     "tagline": "Where work finds you",
-    "operator": "© {year} Fannan, operated by Big Cat Animation LLC, Cairo."
+    "operator": "© {year} Fannan, operated by Big Cat Animation LLC, Cairo.",
+    "askTitle": "Questions?",
+    "askText": "About your site, your plan or your account. A person answers, usually the same day.",
+    "pressTitle": "Press and partnerships",
+    "pressText": "Studios, schools and artist communities: let's talk.",
+    "contactUs": "Contact page",
+    "colFannan": "Fannan",
+    "colMore": "The small print"
   },
   "home": {
     "metaTitle": "Fannan · Portfolios for Arab artists",
@@ -2660,6 +2667,23 @@
         "nocode": "No code, no developer",
         "links": "Link page, QR code and short links"
       }
+    },
+    "v3": {
+      "kicker": "Portfolios for Arab artists",
+      "heroNote": "A real Fannan site, drawn live",
+      "introTitle": "One link that does the talking",
+      "intro1": "Every project with its credits: the client, your role, the year. The details the people who hire look for first.",
+      "intro2": "Your site lives at yourname.fannan.net or your own domain, in Arabic and English, ready in minutes with no code.",
+      "introCta": "See how it works",
+      "stepsNote": "Three steps, no developer.",
+      "examplesLine": "Six kinds of artists, six different sites, one tool.",
+      "examplesCta": "See all examples",
+      "pricingLine": "Free forever, or Pro paid once for 3, 6 or 12 months. Nothing renews by itself.",
+      "offerTitle": "Paid once",
+      "offerText": "No subscriptions. Buy 3, 6 or 12 months, and we remind you before it ends.",
+      "offerCta": "See all plans",
+      "cta": "Let the work <c>find</c> you.",
+      "ctaLine": "Your name, your work, one link. Free to start."
     }
   },
   "pricing": {

@@ -3,12 +3,15 @@ import { headers } from "next/headers";
 import { getFormatter, getTranslations, setRequestLocale } from "next-intl/server";
 import { MarketingPage } from "@/components/marketing/Chrome";
 import { mHref } from "@/components/marketing/links";
+import { Badge, Pill, Tile } from "@/components/marketing/ui";
+import { Icon } from "@/components/ui/Icon";
 import { currencyForCountry, plansConfig } from "@/config/plans";
 import type { Locale } from "@/i18n/locales";
 import { cx } from "@/lib/cx";
 import { surfaceUrls } from "@/lib/server/urls";
 
 // Prices from config/plans.json in the visitor's currency (EGP in Egypt, USD elsewhere).
+// Round 20: tiles like Talabat's "numbers" (cream, ink, sage), the comparison in a paper tile, an accordion.
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/marketing/pricing">): Promise<Metadata> {
   const { locale } = await params;
@@ -25,76 +28,93 @@ export default async function PricingPage({ params }: PageProps<"/[locale]/marke
   const currency = currencyForCountry((await headers()).get("cf-ipcountry"));
   const money = (n: number) =>
     currency === "EGP" ? `${format.number(n)} ${locale === "ar" ? "ج.م" : "EGP"}` : `$${format.number(n)}`;
-  const rows = ["projects", "address", "domain", "themes", "contact", "available", "stats", "passwords", "storage", "credit"] as const;
+  const rows = [
+    "projects",
+    "address",
+    "domain",
+    "themes",
+    "contact",
+    "available",
+    "stats",
+    "passwords",
+    "storage",
+    "credit",
+  ] as const;
+  const tones = { 3: "mist", 6: "sage", 12: "ink" } as const;
 
   return (
     <MarketingPage locale={locale} path="/pricing" title={t("title")} sub={t("sub")}>
-      <p className="text-muted mb-6 text-[14px]">{currency === "EGP" ? t("inEgp") : t("inUsd")}</p>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,230px),1fr))] gap-4">
-        <section className="border-line flex flex-col gap-3 rounded-[16px] border p-6">
-          <h2 className="font-heading font-heading-weight text-[24px]">{t("free")}</h2>
-          <div className="font-heading font-heading-weight text-[36px]">{money(0)}</div>
-          <p className="text-ink-soft text-[14px]">{t("freeBlurb")}</p>
-          <a href={`${mHref(locale, "/")}#claim`} className="border-ink mt-auto flex h-12 items-center justify-center rounded-md border-2 font-semibold hover:bg-mist">
+      <p className="m-0 mb-6 text-[15px] opacity-70">{currency === "EGP" ? t("inEgp") : t("inUsd")}</p>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,250px),1fr))] gap-5">
+        <Tile tone="paper" className="border-ink/10 flex flex-col gap-3 border-2 p-7">
+          <h2 className="mk-title m-0 text-[24px]">{t("free")}</h2>
+          <div className="mk-display text-[44px]">{money(0)}</div>
+          <p className="m-0 text-[15px] opacity-80">{t("freeBlurb")}</p>
+          <Pill tone="outline" size="sm" href={`${mHref(locale, "/")}#claim`} className="mt-auto self-start">
             {t("startFree")}
-          </a>
-        </section>
-        {plansConfig.plans.pro.durations.map((d) => (
-          <section key={d.months} className={cx("flex flex-col gap-3 rounded-[16px] border-2 p-6", d.months === 12 ? "border-ink" : "border-line")}>
-            <div className="flex items-center justify-between gap-2">
-              <h2 className="font-heading font-heading-weight text-[24px]">{t("pro", { months: d.months })}</h2>
-              <span className={cx("rounded-sm px-2 py-0.5 text-[11px] font-semibold", d.months === 12 ? "bg-lime" : "bg-mist")}>
-                {t(`tags.${d.months}`)}
-              </span>
-            </div>
-            <div>
-              <span className="font-heading font-heading-weight text-[36px]">{money(d[currency])}</span>
-              <div className="text-muted text-[14px]">{t("perMonth", { price: money(Math.floor(d[currency] / d.months)) })}</div>
-            </div>
-            <p className="text-ink-soft text-[14px]">{t("once")}</p>
-            <a
-              href={urls.app(`/upgrade?months=${d.months}`)}
-              className={cx(
-                "mt-auto flex h-12 items-center justify-center rounded-md font-semibold",
-                d.months === 12 ? "bg-primary text-on-primary hover:brightness-110" : "border-outline text-primary border hover:bg-primary/8",
-              )}
-            >
-              {t("get", { months: d.months })}
-            </a>
-          </section>
-        ))}
+          </Pill>
+        </Tile>
+        {plansConfig.plans.pro.durations.map((d) => {
+          const tone = tones[d.months as 3 | 6 | 12] ?? "mist";
+          return (
+            <Tile key={d.months} tone={tone} className="flex flex-col gap-3 p-7">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="mk-title m-0 text-[24px]">{t("pro", { months: d.months })}</h2>
+                <Badge tone={tone === "ink" ? "lime" : "ink"}>{t(`tags.${d.months}`)}</Badge>
+              </div>
+              <div>
+                <span className="mk-display text-[44px]">{money(d[currency])}</span>
+                <div className="text-[15px] opacity-75">
+                  {t("perMonth", { price: money(Math.floor(d[currency] / d.months)) })}
+                </div>
+              </div>
+              <p className="m-0 text-[15px] opacity-80">{t("once")}</p>
+              <Pill
+                tone={tone === "ink" ? "lime" : "ink"}
+                size="sm"
+                href={urls.app(`/upgrade?months=${d.months}`)}
+                className="mt-auto self-start"
+              >
+                {t("get", { months: d.months })}
+              </Pill>
+            </Tile>
+          );
+        })}
       </div>
 
-      <h2 className="font-heading font-heading-weight mt-16 mb-6 text-[32px]">{t("compareTitle")}</h2>
-      <div className="border-line overflow-x-auto rounded-[16px] border">
-        <table className="w-full min-w-[480px] text-start text-[15px]">
-          <thead className="bg-mist">
-            <tr>
-              <th className="px-4 py-3 text-start font-semibold">{t("feature")}</th>
-              <th className="px-4 py-3 text-start font-semibold">{t("free")}</th>
-              <th className="px-4 py-3 text-start font-semibold">Pro</th>
+      <h2 className="mk-title mt-20 mb-6 text-[clamp(28px,3.2vw,36px)]">{t("compareTitle")}</h2>
+      <Tile tone="paper" className="border-ink/10 overflow-x-auto border-2">
+        <table className="w-full min-w-[520px] text-start text-[16px]">
+          <thead>
+            <tr className="border-ink/10 border-b-2">
+              <th className="px-6 py-4 text-start font-bold">{t("feature")}</th>
+              <th className="px-6 py-4 text-start font-bold">{t("free")}</th>
+              <th className="px-6 py-4 text-start font-bold">Pro</th>
             </tr>
           </thead>
-          <tbody className="divide-line divide-y">
-            {rows.map((r) => (
-              <tr key={r}>
-                <th scope="row" className="px-4 py-3 text-start font-medium">
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={r} className={cx(i < rows.length - 1 && "border-ink/10 border-b")}>
+                <th scope="row" className="px-6 py-4 text-start font-semibold">
                   {t(`rows.${r}.label`)}
                 </th>
-                <td className="text-ink-soft px-4 py-3">{t(`rows.${r}.free`)}</td>
-                <td className="px-4 py-3 font-medium">{t(`rows.${r}.pro`)}</td>
+                <td className="px-6 py-4 opacity-80">{t(`rows.${r}.free`)}</td>
+                <td className="px-6 py-4 font-semibold">{t(`rows.${r}.pro`)}</td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
+      </Tile>
 
-      <h2 className="font-heading font-heading-weight mt-16 mb-6 text-[32px]">{t("faqTitle")}</h2>
-      <div className="flex max-w-[760px] flex-col gap-3">
+      <h2 className="mk-title mt-20 mb-4 text-[clamp(28px,3.2vw,36px)]">{t("faqTitle")}</h2>
+      <div className="flex max-w-[800px] flex-col">
         {(["renew", "stack", "ends", "currency", "refund", "pay"] as const).map((q) => (
-          <details key={q} className="border-line group rounded-[14px] border p-5">
-            <summary className="cursor-pointer text-[17px] font-semibold">{t(`faq.${q}.q`)}</summary>
-            <p className="text-ink-soft mt-3">{t(`faq.${q}.a`)}</p>
+          <details key={q} className="mk-acc py-5">
+            <summary className="flex items-center justify-between gap-4 text-[19px] font-bold">
+              {t(`faq.${q}.q`)}
+              <Icon name="chevron-down" size={20} className="mk-chev shrink-0 transition-transform" />
+            </summary>
+            <p className="m-0 mt-3 max-w-[64ch] text-[17px] leading-[1.6] opacity-85">{t(`faq.${q}.a`)}</p>
           </details>
         ))}
       </div>

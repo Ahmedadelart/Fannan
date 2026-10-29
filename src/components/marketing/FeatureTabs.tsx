@@ -3,9 +3,13 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cx } from "@/lib/cx";
 
-// fannan.net: features as big pictures with a row of tabs (like Squarespace), turning by themselves.
+// fannan.net: features as big pictures with a row of pills (round 20), turning by themselves.
 
-export function FeatureTabs({ tabs }: { tabs: Array<{ key: string; label: string; line: string; visual: ReactNode }> }) {
+export function FeatureTabs({
+  tabs,
+}: {
+  tabs: Array<{ key: string; label: string; line: string; visual: ReactNode }>;
+}) {
   const [at, setAt] = useState(0);
   const [paused, setPaused] = useState(false);
   const box = useRef<HTMLDivElement>(null);
@@ -25,13 +29,13 @@ export function FeatureTabs({ tabs }: { tabs: Array<{ key: string; label: string
   return (
     <div
       ref={box}
-      className="flex flex-col gap-6"
+      className="flex flex-col gap-8"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
     >
-      <div role="tablist" aria-label="Features" className="flex flex-wrap justify-center gap-2" data-testid="feature-tabs">
+      <div role="tablist" aria-label="Features" className="flex flex-wrap gap-2.5" data-testid="feature-tabs">
         {tabs.map((tab, i) => (
           <button
             key={tab.key}
@@ -42,12 +46,14 @@ export function FeatureTabs({ tabs }: { tabs: Array<{ key: string; label: string
             aria-controls={`fp-${tab.key}`}
             onClick={() => setAt(i)}
             className={cx(
-              "rounded-pill relative h-11 overflow-hidden px-5 text-[15px] font-semibold transition-colors",
-              i === at ? "bg-ink text-paper" : "bg-paper text-ink hover:bg-mist border-line border",
+              "rounded-pill relative h-11 overflow-hidden px-5 text-[15px] font-bold transition-colors",
+              i === at ? "bg-ink text-paper" : "border-ink/15 bg-paper text-ink hover:border-ink border-2",
             )}
           >
             {tab.label}
-            {i === at && visible && !paused && <span aria-hidden className="ft-progress bg-lime absolute inset-x-0 bottom-0 h-[3px] origin-left" />}
+            {i === at && visible && !paused && (
+              <span aria-hidden className="ft-progress bg-lime absolute inset-x-0 bottom-0 h-[3px] origin-left" />
+            )}
           </button>
         ))}
       </div>
@@ -58,9 +64,9 @@ export function FeatureTabs({ tabs }: { tabs: Array<{ key: string; label: string
           id={`fp-${tab.key}`}
           aria-labelledby={`ft-${tab.key}`}
           hidden={i !== at}
-          className="flex flex-col items-center gap-5"
+          className="flex flex-col gap-6"
         >
-          <p className="text-ink-soft m-0 max-w-[620px] text-center text-[18px]">{tab.line}</p>
+          <p className="m-0 max-w-[62ch] text-[19px] leading-[1.45] opacity-85">{tab.line}</p>
           <div className="w-full">{tab.visual}</div>
         </div>
       ))}
